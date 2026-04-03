@@ -1,0 +1,195 @@
+device: incubator
+registry_key: incubator
+device_identity:
+  manufacturer: ""
+  model:
+    name: Laboratory Incubator
+    type: device
+  module_path: unilabos.devices.incubator.incubator:Incubator
+description:
+  text_en: Plate-storage incubator controller that manages rack sites, tray transfer, temperature control, and optional shaking for handled plates.
+  method: local
+description_evidence:
+  web: []
+  local:
+    - registry.description identifies a laboratory incubator with loading, door, and temperature operations.
+    - method docstrings describe tray fetch/take-in and temperature-setting behavior.
+    - code includes site selection routines (random/smallest) and free-site checks.
+related_tags:
+  - id: 4387
+    name: 微生物培养箱
+    name_en: Microbial Incubator
+    type: device_template_tag
+  - id: 4315
+    name: 器件/细胞设备
+    name_en: Device / Cell Equipment
+    type: experimental_step
+  - id: 4318
+    name: 生命体系
+    name_en: Life Sciences
+    type: experimental_domain
+  - id: 4330
+    name: 细胞生物学研究
+    name_en: Cell Biology Research
+    type: experimental_scene
+tag_evidence:
+  - tag_id: 4387
+    rationale: Core behavior matches a microbial incubator with plate handling and temperature control.
+    signals:
+      - registry.category
+      - description
+      - atom_actions
+  - tag_id: 4315
+    rationale: Device manages experimental plates and storage sites in cell-related workflows.
+    signals:
+      - description
+      - atom_actions
+  - tag_id: 4318
+    rationale: Incubation and controlled plate storage are standard life-science operations.
+    signals:
+      - description
+      - atom_actions
+  - tag_id: 4330
+    rationale: Incubator tray and climate operations align with cell-biology workflow patterns.
+    signals:
+      - description
+      - atom_actions
+atom_actions:
+  - name: auto-racks
+    title: racks
+    parameters: []
+    command_type: UniLabJsonCommand
+    description_en: Return configured incubator racks.
+    evidence_source: code
+  - name: auto-fetch_plate_to_loading_tray
+    title: fetch_plate_to_loading_tray
+    parameters:
+      - plate_name
+    command_type: UniLabJsonCommand
+    description_en: Fetch plate from rack and place it onto loading tray.
+    evidence_source: docstring
+  - name: auto-take_in_plate
+    title: take_in_plate
+    parameters:
+      - site
+    command_type: UniLabJsonCommand
+    description_en: Take plate from loading tray and store it in selected site.
+    evidence_source: docstring
+  - name: auto-find_smallest_site_for_plate
+    title: find_smallest_site_for_plate
+    parameters:
+      - plate
+    command_type: UniLabJsonCommand
+    description_en: Choose smallest available site that fits plate height.
+    evidence_source: code
+  - name: auto-find_random_site
+    title: find_random_site
+    parameters:
+      - plate
+    command_type: UniLabJsonCommand
+    description_en: Choose a random available storage site for the plate.
+    evidence_source: code
+  - name: auto-get_num_free_sites
+    title: get_num_free_sites
+    parameters: []
+    command_type: UniLabJsonCommand
+    description_en: Count available free sites across all racks.
+    evidence_source: code
+  - name: auto-get_site_by_plate_name
+    title: get_site_by_plate_name
+    parameters:
+      - plate_name
+    command_type: UniLabJsonCommand
+    description_en: Locate the rack site currently holding a named plate.
+    evidence_source: code
+  - name: auto-set_temperature
+    title: set_temperature
+    parameters:
+      - temperature
+    command_type: UniLabJsonCommand
+    description_en: Set incubator temperature in degrees Celsius.
+    evidence_source: docstring
+  - name: auto-get_temperature
+    title: get_temperature
+    parameters: []
+    command_type: UniLabJsonCommand
+    description_en: Read current incubator temperature.
+    evidence_source: code
+  - name: auto-open_door
+    title: open_door
+    parameters: []
+    command_type: UniLabJsonCommand
+    description_en: Open incubator door via backend control.
+    evidence_source: code
+  - name: auto-close_door
+    title: close_door
+    parameters: []
+    command_type: UniLabJsonCommand
+    description_en: Close incubator door via backend control.
+    evidence_source: code
+  - name: auto-start_shaking
+    title: start_shaking
+    parameters:
+      - frequency
+    command_type: UniLabJsonCommand
+    description_en: Start shaking at requested frequency.
+    evidence_source: code
+  - name: auto-stop_shaking
+    title: stop_shaking
+    parameters: []
+    command_type: UniLabJsonCommand
+    description_en: Stop shaking operation.
+    evidence_source: code
+  - name: auto-summary
+    title: summary
+    parameters: []
+    command_type: UniLabJsonCommand
+    description_en: Produce text table summary of rack occupancy.
+    evidence_source: code
+  - name: auto-serialize
+    title: serialize
+    parameters: []
+    command_type: UniLabJsonCommand
+    description_en: Serialize incubator state and resource layout.
+    evidence_source: code
+  - name: auto-deserialize
+    title: deserialize
+    parameters:
+      - data
+      - allow_marshal
+    command_type: UniLabJsonCommand
+    description_en: Rebuild incubator object from serialized state payload.
+    evidence_source: code
+driver_functions:
+  compact_signatures:
+    - Incubator.__init__(self, backend, name, size_x, size_y, size_z, racks, loading_tray_location, rotation, category, model) (line 92)
+    - Incubator.racks(self) (line 128)
+    - Incubator.setup(self, **backend_kwargs) [async] (line 132)
+    - Incubator.get_num_free_sites(self) (line 137)
+    - Incubator.get_site_by_plate_name(self, plate_name) (line 141)
+    - Incubator.fetch_plate_to_loading_tray(self, plate_name) [async] (line 149)
+    - Incubator._find_available_sites_sorted(self, plate) (line 161)
+    - Incubator.find_smallest_site_for_plate(self, plate) (line 185)
+    - Incubator.find_random_site(self, plate) (line 189)
+    - Incubator.take_in_plate(self, site) [async] (line 193)
+    - Incubator.set_temperature(self, temperature) [async] (line 214)
+    - Incubator.get_temperature(self) [async] (line 219)
+    - Incubator.open_door(self) [async] (line 223)
+    - Incubator.close_door(self) [async] (line 227)
+    - Incubator.start_shaking(self, frequency) [async] (line 231)
+    - Incubator.stop_shaking(self) [async] (line 235)
+    - Incubator.summary(self) (line 239)
+    - Incubator.serialize(self) (line 275)
+    - Incubator.deserialize(cls, data, allow_marshal) (line 286)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: prototype_v4
+processing_pass_order:
+  - description_extraction
+  - action_summary
+  - driver_function_summary
+  - tag_determination
+  - final_formatting_validation
+stats:
+  atom_action_count: 16
+  driver_function_count: 19
+  related_tag_count: 4
