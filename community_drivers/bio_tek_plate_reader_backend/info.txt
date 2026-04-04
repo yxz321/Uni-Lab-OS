@@ -1,636 +1,301 @@
 device: bio_tek_plate_reader_backend
 registry_key: bio_tek_plate_reader_backend
 device_identity:
-  manufacturer: Cytek Biosciences
+  manufacturer: Agilent BioTek
   model:
-    name: 'Cytek Aurora&trade; Evo 全光谱流式细胞仪'
+    name: Agilent BioTek Microplate Reader
     type: device
-  module_path: 'unilabos.devices.plate_reader.biotek_plate_reader_backend:BioTekPlateReaderBackend'
+  name: Agilent BioTek Microplate Reader
+  module_path: unilabos.devices.plate_reader.biotek_plate_reader_backend:BioTekPlateReaderBackend
 description:
-  text_en: 'Microplate reader backend for absorbance and fluorescence measurement workflows, with channel setup, read execution, and instrument-state control.'
-  method: local
+  text_en: Agilent BioTek microplate readers are multimode plate instruments used for absorbance, fluorescence,
+    and luminescence readout of microplate wells.
+  method: web+local
 description_evidence:
   web:
-    []
+  - BioTek plate reader references describe absorbance/fluorescence/luminescence microplate measurement
+    workflows.
   local:
-    - 'registry.description: Cytek Aurora&trade;'
-    - 'actions include: abs_wavelength_range, close, emission_range, excitation_range, focal_height_range, get_current_temperature, get_firmware_version, get_serial_number ...'
-    - 'function summaries include: Execute init with timeout, device_id.; Find non-overlapping rectangles that cover all given points.; Set up.'
+  - 'registry.description: Cytek Aurora&trade; Evo 全光谱流式细胞仪是由Cytek Biosciences生产的专业实验设备。Backend for Agilent
+    BioTek plate readers'
+  - Driver class docstring states backend for Agilent BioTek plate readers.
+registry_identity_conflict:
+  registry_manufacturer: Cytek Biosciences
+  registry_model_name: Cytek Aurora&trade; Evo 全光谱流式细胞仪
+  chosen_manufacturer: Agilent BioTek
+  chosen_model_name: Agilent BioTek Microplate Reader
+  rationale: Driver module and class docstring explicitly target Agilent BioTek plate readers, and actions are microplate read/temperature/shaking operations, not flow cytometry.
 related_tags:
-  -
-    id: 4316
-    name: '表征设备'
-    name_en: Characterization Equipment
-    type: experimental_step
-  -
-    id: 4318
-    name: '生命体系'
-    name_en: Life Sciences
-    type: experimental_domain
-  -
-    id: 4457
-    name: '酶标仪'
-    name_en: Microplate Reader
-    type: device_template_tag
-  -
-    id: 4330
-    name: '细胞生物学研究'
-    name_en: Cell Biology Research
-    type: experimental_scene
-  -
-    id: 4329
-    name: '代谢组学研究'
-    name_en: Metabolomics Research
-    type: experimental_scene
+- id: 4457
+  name: 酶标仪
+  name_en: Microplate Reader
+  type: device_template_tag
+- id: 4316
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+- id: 4318
+  name: 生命体系
+  name_en: Life Sciences
+  type: experimental_domain
+- id: 4330
+  name: 细胞生物学研究
+  name_en: Cell Biology Research
+  type: experimental_scene
 tag_evidence:
-  -
-    tag_id: 4316
-    name_en: Characterization Equipment
-    rationale: 'Actions and instrument role support readout, measurement, or characterization.'
-    signals:
-      - registry.tags
-      - registry.category
-      - description
-      - atom_actions
-      - driver_functions
-  -
-    tag_id: 4318
-    name_en: Life Sciences
-    rationale: Device usage and operations align with biological or cell-lab workflows.
-    signals:
-      - registry.tags
-      - registry.category
-      - description
-      - atom_actions
-      - driver_functions
-  -
-    tag_id: 4457
-    name_en: Microplate Reader
-    rationale: Device behavior and naming match the Microplate Reader template.
-    signals:
-      - registry.tags
-      - registry.category
-      - description
-      - atom_actions
-      - driver_functions
-  -
-    tag_id: 4330
-    name_en: Cell Biology Research
-    rationale: Description and supported operations are compatible with Cell Biology Research scenarios.
-    signals:
-      - registry.tags
-      - registry.category
-      - description
-      - atom_actions
-      - driver_functions
-  -
-    tag_id: 4329
-    name_en: Metabolomics Research
-    rationale: Description and supported operations are compatible with Metabolomics Research scenarios.
-    signals:
-      - registry.tags
-      - registry.category
-      - description
-      - atom_actions
-      - driver_functions
+- tag_id: 4457
+  rationale: Action set is characteristic of a microplate reader (plate open/close, absorbance, fluorescence,
+    luminescence).
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: 4316
+  rationale: Functions are centered on instrument readout, electrical state readback, or data capture
+    for characterization.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: 4318
+  rationale: Plate handling, incubation, and assay-oriented operations align with life-science laboratory
+    workflows.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: 4330
+  rationale: Temperature/shaking and plate-read operations are commonly used in cell-biology assay pipelines.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
 atom_actions:
-  -
-    name: auto-abs_wavelength_range
-    title: abs_wavelength_range
-    parameters:
-      []
-    command_type: UniLabJsonCommand
-    description_en: Read abs wavelength range.
-    evidence_source: driver_function
-  -
-    name: auto-close
-    title: close
-    parameters:
-      - plate
-      - slow
-    command_type: UniLabJsonCommandAsync
-    description_en: 'Execute close with plate, slow.'
-    evidence_source: driver_function
-  -
-    name: auto-emission_range
-    title: emission_range
-    parameters:
-      []
-    command_type: UniLabJsonCommand
-    description_en: Read emission range.
-    evidence_source: driver_function
-  -
-    name: auto-excitation_range
-    title: excitation_range
-    parameters:
-      []
-    command_type: UniLabJsonCommand
-    description_en: Read excitation range.
-    evidence_source: driver_function
-  -
-    name: auto-focal_height_range
-    title: focal_height_range
-    parameters:
-      []
-    command_type: UniLabJsonCommand
-    description_en: Read focal height range.
-    evidence_source: driver_function
-  -
-    name: auto-get_current_temperature
-    title: get_current_temperature
-    parameters:
-      []
-    command_type: UniLabJsonCommand
-    description_en: Get current temperature in degrees Celsius.
-    evidence_source: driver_function
-  -
-    name: auto-get_firmware_version
-    title: get_firmware_version
-    parameters:
-      []
-    command_type: UniLabJsonCommand
-    description_en: Get firmware version.
-    evidence_source: driver_function
-  -
-    name: auto-get_serial_number
-    title: get_serial_number
-    parameters:
-      []
-    command_type: UniLabJsonCommand
-    description_en: Get serial number.
-    evidence_source: driver_function
-  -
-    name: auto-home
-    title: home
-    parameters:
-      []
-    command_type: UniLabJsonCommandAsync
-    description_en: Execute home.
-    evidence_source: driver_function
-  -
-    name: auto-open
-    title: open
-    parameters:
-      - slow
-    command_type: UniLabJsonCommandAsync
-    description_en: Execute open with slow.
-    evidence_source: driver_function
-  -
-    name: auto-read_absorbance
-    title: read_absorbance
-    parameters:
-      - plate
-      - wavelength
-      - wells
-    command_type: UniLabJsonCommandAsync
-    description_en: 'Execute read absorbance with plate, wells, wavelength.'
-    evidence_source: driver_function
-  -
-    name: auto-read_fluorescence
-    title: read_fluorescence
-    parameters:
-      - emission_wavelength
-      - excitation_wavelength
-      - focal_height
-      - plate
-      - wells
-    command_type: UniLabJsonCommandAsync
-    description_en: 'Execute read fluorescence with plate, wells, excitation_wavelength, emission_wavelength, focal_height.'
-    evidence_source: driver_function
-  -
-    name: auto-read_luminescence
-    title: read_luminescence
-    parameters:
-      - focal_height
-      - integration_time
-      - plate
-      - wells
-    command_type: UniLabJsonCommandAsync
-    description_en: 'Execute read luminescence with plate, wells, focal_height, integration_time.'
-    evidence_source: driver_function
-  -
-    name: auto-send_command
-    title: send_command
-    parameters:
-      - command
-      - parameter
-      - timeout
-      - wait_for_response
-    command_type: UniLabJsonCommandAsync
-    description_en: 'Execute send command with command, parameter, wait_for_response, timeout.'
-    evidence_source: driver_function
-  -
-    name: auto-set_plate
-    title: set_plate
-    parameters:
-      - plate
-    command_type: UniLabJsonCommandAsync
-    description_en: Set plate using plate.
-    evidence_source: driver_function
-  -
-    name: auto-set_temperature
-    title: set_temperature
-    parameters:
-      - temperature
-    command_type: UniLabJsonCommandAsync
-    description_en: Set temperature in degrees Celsius.
-    evidence_source: driver_function
-  -
-    name: auto-setup
-    title: setup
-    parameters:
-      []
-    command_type: UniLabJsonCommandAsync
-    description_en: Set up.
-    evidence_source: driver_function
-  -
-    name: auto-shake
-    title: shake
-    parameters:
-      - frequency
-      - shake_type
-    command_type: UniLabJsonCommandAsync
-    description_en: 'Warning: the duration for shaking has to be specified on the machine, and the maximum is 16 minutes.'
-    evidence_source: driver_function
-  -
-    name: auto-stop
-    title: stop
-    parameters:
-      []
-    command_type: UniLabJsonCommandAsync
-    description_en: Execute stop.
-    evidence_source: driver_function
-  -
-    name: auto-stop_heating_or_cooling
-    title: stop_heating_or_cooling
-    parameters:
-      []
-    command_type: UniLabJsonCommandAsync
-    description_en: Execute stop heating or cooling.
-    evidence_source: driver_function
-  -
-    name: auto-stop_shaking
-    title: stop_shaking
-    parameters:
-      []
-    command_type: UniLabJsonCommandAsync
-    description_en: Execute stop shaking.
-    evidence_source: driver_function
-  -
-    name: auto-supports_cooling
-    title: supports_cooling
-    parameters:
-      []
-    command_type: UniLabJsonCommand
-    description_en: Read supports cooling.
-    evidence_source: driver_function
-  -
-    name: auto-supports_heating
-    title: supports_heating
-    parameters:
-      []
-    command_type: UniLabJsonCommand
-    description_en: Read supports heating.
-    evidence_source: driver_function
-  -
-    name: auto-temperature_range
-    title: temperature_range
-    parameters:
-      []
-    command_type: UniLabJsonCommand
-    description_en: 'Return (min_temp, max_temp).'
-    evidence_source: driver_function
-  -
-    name: auto-version
-    title: version
-    parameters:
-      []
-    command_type: UniLabJsonCommand
-    description_en: Read version.
-    evidence_source: driver_function
+- name: auto-close
+  title: close
+  parameters:
+  - plate
+  - slow
+  command_type: UniLabJsonCommandAsync
+  description_en: Close tray; optionally set plate definition before closing.
+  evidence_source: code_comments
+- name: auto-home
+  title: home
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Home the plate transport mechanism.
+  evidence_source: name_params
+- name: auto-open
+  title: open
+  parameters:
+  - slow
+  command_type: UniLabJsonCommandAsync
+  description_en: Open tray with optional slow mode.
+  evidence_source: name_params
+- name: auto-read_absorbance
+  title: read_absorbance
+  parameters:
+  - plate
+  - wavelength
+  - wells
+  command_type: UniLabJsonCommandAsync
+  description_en: Run absorbance read for selected wells at a configured wavelength.
+  evidence_source: name_params
+- name: auto-read_fluorescence
+  title: read_fluorescence
+  parameters:
+  - emission_wavelength
+  - excitation_wavelength
+  - focal_height
+  - plate
+  - wells
+  command_type: UniLabJsonCommandAsync
+  description_en: Run fluorescence read for selected wells with excitation/emission wavelengths.
+  evidence_source: name_params
+- name: auto-read_luminescence
+  title: read_luminescence
+  parameters:
+  - focal_height
+  - integration_time
+  - plate
+  - wells
+  command_type: UniLabJsonCommandAsync
+  description_en: Run luminescence read with focal height and integration time settings.
+  evidence_source: name_params
+- name: auto-send_command
+  title: send_command
+  parameters:
+  - command
+  - parameter
+  - timeout
+  - wait_for_response
+  command_type: UniLabJsonCommandAsync
+  description_en: Send low-level command/parameter frames and optionally wait for response.
+  evidence_source: code_comments
+- name: auto-set_plate
+  title: set_plate
+  parameters:
+  - plate
+  command_type: UniLabJsonCommandAsync
+  description_en: Upload plate geometry to instrument command format.
+  evidence_source: code_comments
+- name: auto-set_temperature
+  title: set_temperature
+  parameters:
+  - temperature
+  command_type: UniLabJsonCommandAsync
+  description_en: Set temperature target with capability/range checks.
+  evidence_source: docstring
+- name: auto-setup
+  title: setup
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Initialize FTDI transport and detect working baud configuration.
+  evidence_source: code_comments
+- name: auto-shake
+  title: shake
+  parameters:
+  - frequency
+  - shake_type
+  command_type: UniLabJsonCommandAsync
+  description_en: Start shaker loops using timed repeated maximum-duration commands.
+  evidence_source: docstring
+- name: auto-stop
+  title: stop
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Stop shaking and close I/O backend.
+  evidence_source: name_params
+- name: auto-stop_heating_or_cooling
+  title: stop_heating_or_cooling
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Stop thermal control loop.
+  evidence_source: name_params
+- name: auto-stop_shaking
+  title: stop_shaking
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Abort and stop ongoing shaker task.
+  evidence_source: name_params
+- name: auto-version
+  title: version
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return cached firmware version string.
+  evidence_source: name_params
+- name: auto-abs_wavelength_range
+  title: abs_wavelength_range
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return supported absorbance wavelength range.
+  evidence_source: name_params
+- name: auto-focal_height_range
+  title: focal_height_range
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return supported focal-height range.
+  evidence_source: name_params
+- name: auto-excitation_range
+  title: excitation_range
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return supported excitation wavelength range.
+  evidence_source: name_params
+- name: auto-emission_range
+  title: emission_range
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return supported emission wavelength range.
+  evidence_source: name_params
+- name: auto-supports_heating
+  title: supports_heating
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Report heating capability flag.
+  evidence_source: name_params
+- name: auto-supports_cooling
+  title: supports_cooling
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Report cooling capability flag.
+  evidence_source: name_params
+- name: auto-temperature_range
+  title: temperature_range
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return effective min/max temperature limits based on capabilities.
+  evidence_source: docstring
+- name: auto-get_serial_number
+  title: get_serial_number
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Query instrument serial number.
+  evidence_source: name_params
+- name: auto-get_firmware_version
+  title: get_firmware_version
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Query firmware version identifier.
+  evidence_source: name_params
+- name: auto-get_current_temperature
+  title: get_current_temperature
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Get current temperature in degrees Celsius.
+  evidence_source: docstring
 driver_functions:
-  -
-    name: BioTekPlateReaderBackend.__init__
-    signature: 'BioTekPlateReaderBackend.__init__(self, timeout, device_id)'
-    parameters:
-      - timeout
-      - device_id
-    visibility: private
-    accessor_type: method
-    description_en: 'Execute init with timeout, device_id.'
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend._non_overlapping_rectangles
-    signature: 'BioTekPlateReaderBackend._non_overlapping_rectangles(self, points)'
-    parameters:
-      - points
-    visibility: private
-    accessor_type: method
-    description_en: Find non-overlapping rectangles that cover all given points.
-    evidence_source: docstring
-  -
-    name: BioTekPlateReaderBackend.setup
-    signature: 'BioTekPlateReaderBackend.setup(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: method
-    description_en: Set up.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.stop
-    signature: 'BioTekPlateReaderBackend.stop(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: method
-    description_en: Execute stop.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.version
-    signature: 'BioTekPlateReaderBackend.version(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: getter
-    description_en: Read version.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.abs_wavelength_range
-    signature: 'BioTekPlateReaderBackend.abs_wavelength_range(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: getter
-    description_en: Read abs wavelength range.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.focal_height_range
-    signature: 'BioTekPlateReaderBackend.focal_height_range(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: getter
-    description_en: Read focal height range.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.excitation_range
-    signature: 'BioTekPlateReaderBackend.excitation_range(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: getter
-    description_en: Read excitation range.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.emission_range
-    signature: 'BioTekPlateReaderBackend.emission_range(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: getter
-    description_en: Read emission range.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.supports_heating
-    signature: 'BioTekPlateReaderBackend.supports_heating(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: getter
-    description_en: Read supports heating.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.supports_cooling
-    signature: 'BioTekPlateReaderBackend.supports_cooling(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: getter
-    description_en: Read supports cooling.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.temperature_range
-    signature: 'BioTekPlateReaderBackend.temperature_range(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: getter
-    description_en: 'Return (min_temp, max_temp).'
-    evidence_source: docstring
-  -
-    name: BioTekPlateReaderBackend._purge_buffers
-    signature: 'BioTekPlateReaderBackend._purge_buffers(self)'
-    parameters:
-      []
-    visibility: private
-    accessor_type: method
-    description_en: 'Purge the RX and TX buffers, as implemented in Gen5.exe'
-    evidence_source: docstring
-  -
-    name: BioTekPlateReaderBackend._read_until
-    signature: 'BioTekPlateReaderBackend._read_until(self, terminator, timeout)'
-    parameters:
-      - terminator
-      - timeout
-    visibility: private
-    accessor_type: method
-    description_en: 'If timeout is None, use self.timeout'
-    evidence_source: docstring
-  -
-    name: BioTekPlateReaderBackend.send_command
-    signature: 'BioTekPlateReaderBackend.send_command(self, command, parameter, wait_for_response, timeout)'
-    parameters:
-      - command
-      - parameter
-      - wait_for_response
-      - timeout
-    visibility: public
-    accessor_type: method
-    description_en: 'Execute send command with command, parameter, wait_for_response, timeout.'
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.get_serial_number
-    signature: 'BioTekPlateReaderBackend.get_serial_number(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: method
-    description_en: Get serial number.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.get_firmware_version
-    signature: 'BioTekPlateReaderBackend.get_firmware_version(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: method
-    description_en: Get firmware version.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend._set_slow_mode
-    signature: 'BioTekPlateReaderBackend._set_slow_mode(self, slow)'
-    parameters:
-      - slow
-    visibility: private
-    accessor_type: method
-    description_en: Execute set slow mode with slow.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.open
-    signature: 'BioTekPlateReaderBackend.open(self, slow)'
-    parameters:
-      - slow
-    visibility: public
-    accessor_type: method
-    description_en: Execute open with slow.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.close
-    signature: 'BioTekPlateReaderBackend.close(self, plate, slow)'
-    parameters:
-      - plate
-      - slow
-    visibility: public
-    accessor_type: method
-    description_en: 'Execute close with plate, slow.'
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.home
-    signature: 'BioTekPlateReaderBackend.home(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: method
-    description_en: Execute home.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.get_current_temperature
-    signature: 'BioTekPlateReaderBackend.get_current_temperature(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: method
-    description_en: Get current temperature in degrees Celsius.
-    evidence_source: docstring
-  -
-    name: BioTekPlateReaderBackend.set_temperature
-    signature: 'BioTekPlateReaderBackend.set_temperature(self, temperature)'
-    parameters:
-      - temperature
-    visibility: public
-    accessor_type: method
-    description_en: Set temperature in degrees Celsius.
-    evidence_source: docstring
-  -
-    name: BioTekPlateReaderBackend.stop_heating_or_cooling
-    signature: 'BioTekPlateReaderBackend.stop_heating_or_cooling(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: method
-    description_en: Execute stop heating or cooling.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend._parse_body
-    signature: 'BioTekPlateReaderBackend._parse_body(self, body)'
-    parameters:
-      - body
-    visibility: private
-    accessor_type: method
-    description_en: Execute parse body with body.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.set_plate
-    signature: 'BioTekPlateReaderBackend.set_plate(self, plate)'
-    parameters:
-      - plate
-    visibility: public
-    accessor_type: method
-    description_en: Set plate using plate.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend._get_min_max_row_col_tuples
-    signature: 'BioTekPlateReaderBackend._get_min_max_row_col_tuples(self, wells, plate)'
-    parameters:
-      - wells
-      - plate
-    visibility: private
-    accessor_type: method
-    description_en: 'Execute get min max row col tuples with wells, plate.'
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.read_absorbance
-    signature: 'BioTekPlateReaderBackend.read_absorbance(self, plate, wells, wavelength)'
-    parameters:
-      - plate
-      - wells
-      - wavelength
-    visibility: public
-    accessor_type: method
-    description_en: 'Execute read absorbance with plate, wells, wavelength.'
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.read_luminescence
-    signature: 'BioTekPlateReaderBackend.read_luminescence(self, plate, wells, focal_height, integration_time)'
-    parameters:
-      - plate
-      - wells
-      - focal_height
-      - integration_time
-    visibility: public
-    accessor_type: method
-    description_en: 'Execute read luminescence with plate, wells, focal_height, integration_time.'
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.read_fluorescence
-    signature: 'BioTekPlateReaderBackend.read_fluorescence(self, plate, wells, excitation_wavelength, emission_wavelength, focal_height)'
-    parameters:
-      - plate
-      - wells
-      - excitation_wavelength
-      - emission_wavelength
-      - focal_height
-    visibility: public
-    accessor_type: method
-    description_en: 'Execute read fluorescence with plate, wells, excitation_wavelength, emission_wavelength, focal_height.'
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend._abort
-    signature: 'BioTekPlateReaderBackend._abort(self)'
-    parameters:
-      []
-    visibility: private
-    accessor_type: method
-    description_en: Execute abort.
-    evidence_source: code_name_params
-  -
-    name: BioTekPlateReaderBackend.shake
-    signature: 'BioTekPlateReaderBackend.shake(self, shake_type, frequency)'
-    parameters:
-      - shake_type
-      - frequency
-    visibility: public
-    accessor_type: method
-    description_en: 'Warning: the duration for shaking has to be specified on the machine, and the maximum is 16 minutes.'
-    evidence_source: docstring
-  -
-    name: BioTekPlateReaderBackend.stop_shaking
-    signature: 'BioTekPlateReaderBackend.stop_shaking(self)'
-    parameters:
-      []
-    visibility: public
-    accessor_type: method
-    description_en: Execute stop shaking.
-    evidence_source: code_name_params
-schema_version: prototype_v3
+  compact_signatures:
+  - BioTekPlateReaderBackend.__init__(self, timeout, device_id) (line 85)
+  - BioTekPlateReaderBackend.close(self, plate, slow) [async] (line 309)
+  - BioTekPlateReaderBackend.home(self) [async] (line 319)
+  - BioTekPlateReaderBackend.open(self, slow) [async] (line 304)
+  - BioTekPlateReaderBackend.read_absorbance(self, plate, wells, wavelength) [async] (line 447)
+  - BioTekPlateReaderBackend.read_fluorescence(self, plate, wells, excitation_wavelength, emission_wavelength,
+    focal_height) [async] (line 556)
+  - BioTekPlateReaderBackend.read_luminescence(self, plate, wells, focal_height, integration_time) [async]
+    (line 494)
+  - BioTekPlateReaderBackend.send_command(self, command, parameter, wait_for_response, timeout) [async]
+    (line 259)
+  - BioTekPlateReaderBackend.set_plate(self, plate) [async] (line 384)
+  - BioTekPlateReaderBackend.set_temperature(self, temperature) [async] (line 330)
+  - BioTekPlateReaderBackend.setup(self) [async] (line 151)
+  - BioTekPlateReaderBackend.shake(self, shake_type, frequency) [async] (line 635)
+  - BioTekPlateReaderBackend.stop(self) [async] (line 174)
+  - BioTekPlateReaderBackend.stop_heating_or_cooling(self) [async] (line 352)
+  - BioTekPlateReaderBackend.stop_shaking(self) [async] (line 685)
+  - BioTekPlateReaderBackend.version(self) (line 183)
+  - BioTekPlateReaderBackend.abs_wavelength_range(self) (line 190)
+  - BioTekPlateReaderBackend.focal_height_range(self) (line 195)
+  - BioTekPlateReaderBackend.excitation_range(self) (line 200)
+  - BioTekPlateReaderBackend.emission_range(self) (line 205)
+  - BioTekPlateReaderBackend.supports_heating(self) (line 210)
+  - BioTekPlateReaderBackend.supports_cooling(self) (line 215)
+  - BioTekPlateReaderBackend.temperature_range(self) (line 220)
+  - BioTekPlateReaderBackend.get_serial_number(self) [async] (line 285)
+  - BioTekPlateReaderBackend.get_firmware_version(self) [async] (line 291)
+  - BioTekPlateReaderBackend.get_current_temperature(self) [async] (line 323)
+  - BioTekPlateReaderBackend._purge_buffers(self) [async] (line 230)
+  - BioTekPlateReaderBackend._read_until(self, terminator, timeout) [async] (line 237)
+  - BioTekPlateReaderBackend._parse_body(self, body) (line 356)
+  note: Compact signatures retained; action semantics are documented in atom_actions.
+schema_version: v3
 processing_pass_order:
-  - description_extraction
-  - action_summary
-  - driver_function_summary
-  - tag_determination
-  - final_formatting_validation
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
 stats:
   atom_action_count: 25
-  driver_function_count: 33
-  related_tag_count: 5
+  driver_function_count: 29
+  related_tag_count: 4

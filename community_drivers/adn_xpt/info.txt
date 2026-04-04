@@ -1,61 +1,191 @@
-Device: adn_xpt
-Registry Key: adn_xpt
-Short Description: Analog Devices ADN Crosspoint Switch是由Analog Devices生产的专业实验设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (14):
-- auto-assign_output -> assign_output [UniLabJsonCommand] goal_params: channel, val
-- auto-init -> init [UniLabJsonCommand] goal_params: register_map
-- auto-input_config -> input_config [UniLabJsonCommand] goal_params: none
-- auto-io_config -> io_config [UniLabJsonCommand] goal_params: conf
-- auto-output_table -> output_table [UniLabJsonCommand] goal_params: table, write
-- auto-read_register -> read_register [UniLabJsonCommand] goal_params: cat, regname
-- auto-reset -> reset [UniLabJsonCommand] goal_params: none
-- auto-rx_config -> rx_config [UniLabJsonCommand] goal_params: channel, register, val, write
-- auto-rx_termination -> rx_termination [UniLabJsonCommand] goal_params: base_addr, output, val, write
-- auto-set_termination -> set_termination [UniLabJsonCommand] goal_params: none
-- auto-tx_config -> tx_config [UniLabJsonCommand] goal_params: channel, register, val, write
-- auto-tx_termination -> tx_termination [UniLabJsonCommand] goal_params: output, val, write
-- auto-write_register -> write_register [UniLabJsonCommand] goal_params: cat, regname, val
-- auto-xpt_update -> xpt_update [UniLabJsonCommand] goal_params: none
-
-Driver Functions (34):
-- I2C_INTF.__init__(self, intf, conf) (line 89)
-- I2C_INTF.init(self) (line 93)
-- I2C_INTF._set_reg(self, addr, val) (line 96)
-- I2C_INTF._get_reg(self, addr) (line 99)
-- MuxPca9540B.__init__(self, intf, conf) (line 114)
-- MuxPca9540B._set_i2c_mux(self, bus) (line 119)
-- MuxPca9540B._get_i2c_mux(self) (line 122)
-- GpioPca9554.__init__(self, intf, conf) (line 137)
-- GpioPca9554.init(self) (line 143)
-- GpioPca9554._write_output_port_select(self, value) (line 148)
-- GpioPca9554._read_input_port(self) (line 152)
-- GpioPca9554._write_output_port(self, value) (line 156)
-- GpioPca9554._read_output_port(self) (line 160)
-- GpioPca9554._set_output_port(self, mask) (line 164)
-- GpioPca9554._clear_output_port(self, mask) (line 167)
-- GpioPca9554._get_input_port(self, mask) (line 170)
-- ADN_XPT.__init__(self, intf, conf) (line 186)
-- ADN_XPT.init(self, register_map) (line 196)
-- ADN_XPT.write_register(self, cat, regname, val) (line 215)
-- ADN_XPT.read_register(self, cat, regname) (line 232)
-- ADN_XPT._calculate_mask(self, cat, regname) (line 244)
-- ADN_XPT.get_addr(self, cat, regname) (line 249)
-- ADN_XPT.reset(self) (line 253)
-- ADN_XPT.xpt_update(self) (line 260)
-- ADN_XPT.output_table(self, write, table) (line 267)
-- ADN_XPT.assign_output(self, channel, val) (line 281)
-- ADN_XPT.tx_config(self, register, channel, val, write) (line 299)
-- ADN_XPT.rx_config(self, register, channel, val, write) (line 314)
-- ADN_XPT.set_termination(self) (line 328)
-- ADN_XPT.tx_termination(self, output, write, val) (line 339)
-- ADN_XPT.rx_termination(self, base_addr, output, write, val) (line 352)
-- ADN_XPT.io_config(self, conf) (line 368)
-- ADN_XPT.get_output_status(self, channel) (line 437)
-- ADN_XPT.input_config(self) (line 446)
+device: adn_xpt
+registry_key: adn_xpt
+device_identity:
+  manufacturer: Analog Devices
+  model:
+    name: ''
+    type: ''
+  module_path: unilabos.devices.xpt.adn_xpt:ADN_XPT
+description:
+  text_en: Analog Devices ADN crosspoint-switch controller for register I/O, channel routing, and termination configuration.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'registry.description: Analog Devices ADN Crosspoint Switch是由Analog Devices生产的专业实验设备。Auto-imported from basil/HL/XPT.py'
+  - 'actions include: assign_output, init, input_config, io_config, output_table, read_register, reset, rx_config'
+  - 'driver functions include: I2C_INTF.__init__, I2C_INTF.init, I2C_INTF._set_reg, I2C_INTF._get_reg, MuxPca9540B.__init__,
+    MuxPca9540B._set_i2c_mux'
+related_tags:
+- id: '4313'
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: '4313'
+  rationale: Matched from registry metadata and action/description semantics.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+atom_actions:
+- name: auto-assign_output
+  title: assign_output
+  parameters:
+  - channel
+  - val
+  command_type: UniLabJsonCommand
+  description_en: Selecting table.
+  evidence_source: code_comments
+- name: auto-init
+  title: init
+  parameters:
+  - register_map
+  command_type: UniLabJsonCommand
+  description_en: Execute init with intf, conf.
+  evidence_source: driver_function
+- name: auto-input_config
+  title: input_config
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Use BCAST.
+  evidence_source: code_comments
+- name: auto-io_config
+  title: io_config
+  parameters:
+  - conf
+  command_type: UniLabJsonCommand
+  description_en: 'If "BC" not in key: # Hack for no broadcast in tx sign control. Default usually sufficient.'
+  evidence_source: code_comments
+- name: auto-output_table
+  title: output_table
+  parameters:
+  - table
+  - write
+  command_type: UniLabJsonCommand
+  description_en: Execute output table with write, table.
+  evidence_source: driver_function
+- name: auto-read_register
+  title: read_register
+  parameters:
+  - cat
+  - regname
+  command_type: UniLabJsonCommand
+  description_en: 010b'))).
+  evidence_source: code_comments
+- name: auto-reset
+  title: reset
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute reset.
+  evidence_source: driver_function
+- name: auto-rx_config
+  title: rx_config
+  parameters:
+  - channel
+  - register
+  - val
+  - write
+  command_type: UniLabJsonCommand
+  description_en: Execute rx config with register, channel, val, write.
+  evidence_source: driver_function
+- name: auto-rx_termination
+  title: rx_termination
+  parameters:
+  - base_addr
+  - output
+  - val
+  - write
+  command_type: UniLabJsonCommand
+  description_en: Execute rx termination with base_addr, output, write, val.
+  evidence_source: driver_function
+- name: auto-set_termination
+  title: set_termination
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: ADN4604 has no RX term.
+  evidence_source: code_comments
+- name: auto-tx_config
+  title: tx_config
+  parameters:
+  - channel
+  - register
+  - val
+  - write
+  command_type: UniLabJsonCommand
+  description_en: Execute tx config with register, channel, val, write.
+  evidence_source: driver_function
+- name: auto-tx_termination
+  title: tx_termination
+  parameters:
+  - output
+  - val
+  - write
+  command_type: UniLabJsonCommand
+  description_en: Execute tx termination with output, write, val.
+  evidence_source: driver_function
+- name: auto-write_register
+  title: write_register
+  parameters:
+  - cat
+  - regname
+  - val
+  command_type: UniLabJsonCommand
+  description_en: 010b'))).
+  evidence_source: code_comments
+- name: auto-xpt_update
+  title: xpt_update
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute xpt update.
+  evidence_source: driver_function
+driver_functions:
+  compact_signatures:
+  - I2C_INTF.__init__(self, intf, conf) (line 89)
+  - I2C_INTF.init(self) (line 93)
+  - I2C_INTF._set_reg(self, addr, val) (line 96)
+  - I2C_INTF._get_reg(self, addr) (line 99)
+  - MuxPca9540B.__init__(self, intf, conf) (line 114)
+  - MuxPca9540B._set_i2c_mux(self, bus) (line 119)
+  - MuxPca9540B._get_i2c_mux(self) (line 122)
+  - GpioPca9554.__init__(self, intf, conf) (line 137)
+  - GpioPca9554.init(self) (line 143)
+  - GpioPca9554._write_output_port_select(self, value) (line 148)
+  - GpioPca9554._read_input_port(self) (line 152)
+  - GpioPca9554._write_output_port(self, value) (line 156)
+  - GpioPca9554._read_output_port(self) (line 160)
+  - GpioPca9554._set_output_port(self, mask) (line 164)
+  - GpioPca9554._clear_output_port(self, mask) (line 167)
+  - GpioPca9554._get_input_port(self, mask) (line 170)
+  - ADN_XPT.__init__(self, intf, conf) (line 186)
+  - ADN_XPT.init(self, register_map) (line 196)
+  - ADN_XPT.write_register(self, cat, regname, val) (line 215)
+  - ADN_XPT.read_register(self, cat, regname) (line 232)
+  - ADN_XPT._calculate_mask(self, cat, regname) (line 244)
+  - ADN_XPT.get_addr(self, cat, regname) (line 249)
+  - ADN_XPT.reset(self) (line 253)
+  - ADN_XPT.xpt_update(self) (line 260)
+  - ADN_XPT.output_table(self, write, table) (line 267)
+  - ADN_XPT.assign_output(self, channel, val) (line 281)
+  - ADN_XPT.tx_config(self, register, channel, val, write) (line 299)
+  - ADN_XPT.rx_config(self, register, channel, val, write) (line 314)
+  - ADN_XPT.set_termination(self) (line 328)
+  - ADN_XPT.tx_termination(self, output, write, val) (line 339)
+  - ADN_XPT.rx_termination(self, base_addr, output, write, val) (line 352)
+  - ADN_XPT.io_config(self, conf) (line 368)
+  - ADN_XPT.get_output_status(self, channel) (line 437)
+  - ADN_XPT.input_config(self) (line 446)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 14
+  driver_function_count: 34
+  related_tag_count: 1

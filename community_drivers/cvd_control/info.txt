@@ -1,29 +1,131 @@
-Device: cvd_control
-Registry Key: cvd_control
-Short Description: cvd_control
-
-Categories:
-- devices
-- generic
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (7):
-- auto-apply_setpoints -> apply_setpoints [UniLabJsonCommand] goal_params: none
-- auto-open_recipe -> open_recipe [UniLabJsonCommand] goal_params: none
-- auto-return_ui_fields -> return_ui_fields [UniLabJsonCommand] goal_params: none
-- auto-save_recipe -> save_recipe [UniLabJsonCommand] goal_params: none
-- auto-start_recipe -> start_recipe [UniLabJsonCommand] goal_params: none
-- auto-stop_recipe -> stop_recipe [UniLabJsonCommand] goal_params: none
-- auto-update_plot -> update_plot [UniLabJsonCommand] goal_params: none
-
-Driver Functions (8):
-- cvd_control.__init__(self, *args, **kwargs) (line 84)
-- cvd_control.return_ui_fields(self) (line 137)
-- cvd_control.save_recipe(self) (line 145)
-- cvd_control.open_recipe(self) (line 217)
-- cvd_control.update_plot(self) (line 268)
-- cvd_control.start_recipe(self) (line 295)
-- cvd_control.stop_recipe(self) (line 302)
-- cvd_control.apply_setpoints(self) (line 306)
+device: cvd_control
+registry_key: cvd_control
+device_identity:
+  manufacturer: Open Source
+  model:
+    name: CVD Recipe Control GUI
+    type: device
+  name: CVD Process Recipe Controller
+  module_path: unilabos.devices.devices.generic.generic_device:cvd_control
+description:
+  text_en: Operator interface for chemical vapor deposition workflows, providing recipe file load/save,
+    setpoint application, and run/stop control for CVD process steps.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'driver header origin: main.py'
+  - Qt main-window class with save_recipe(), open_recipe(), start_recipe(), stop_recipe(), and apply_setpoints()
+  - UI fields and recipe metadata handling indicate process recipe control rather than single-instrument
+    transport
+registry_identity_conflict:
+  registry_manufacturer: Unknown
+  registry_model_name: Search for Zahner devices / generic registry mix
+  chosen_manufacturer: Open Source
+  chosen_model_name: CVD Recipe Control GUI
+  rationale: The bundled driver is a CVD recipe-control GUI (main.py) and does not match the mixed generic
+    registry identities (SCPI searcher/piezo/etc.).
+related_tags:
+- id: '4313'
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+- id: '4373'
+  name: 化学气相沉积设备
+  name_en: Chemical Vapor Deposition System
+  type: device_template_tag
+- id: '4322'
+  name: 表面/薄膜体系
+  name_en: Surface / Thin Film System
+  type: experimental_domain
+tag_evidence:
+- tag_id: '4313'
+  rationale: Recipe execution and setpoint application are experiment-control operations.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: '4373'
+  rationale: Device semantics explicitly target chemical vapor deposition control workflows.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: '4322'
+  rationale: CVD workflows are strongly associated with thin-film/surface process domain.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-apply_setpoints
+  title: apply_setpoints
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Apply configured process setpoints from UI inputs.
+  evidence_source: action_name_params
+- name: auto-open_recipe
+  title: open_recipe
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Load recipe file into UI fields and metadata labels.
+  evidence_source: code_comments
+- name: auto-return_ui_fields
+  title: return_ui_fields
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return current UI field values for recipe/state use.
+  evidence_source: action_name_params
+- name: auto-save_recipe
+  title: save_recipe
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Save current CVD recipe table and metadata to file.
+  evidence_source: code_comments
+- name: auto-start_recipe
+  title: start_recipe
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Start recipe execution flow.
+  evidence_source: action_name_params
+- name: auto-stop_recipe
+  title: stop_recipe
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Stop recipe execution flow.
+  evidence_source: action_name_params
+- name: auto-update_plot
+  title: update_plot
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Refresh process trend plots in the UI.
+  evidence_source: code_comments
+driver_functions:
+  compact_signatures:
+  - cvd_control.__init__(self, *args, **kwargs) (line 84)
+  - cvd_control.return_ui_fields(self) (line 137)
+  - cvd_control.save_recipe(self) (line 145)
+  - cvd_control.open_recipe(self) (line 217)
+  - cvd_control.update_plot(self) (line 268)
+  - cvd_control.start_recipe(self) (line 295)
+  - cvd_control.stop_recipe(self) (line 302)
+  - cvd_control.apply_setpoints(self) (line 306)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v3
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 7
+  driver_function_count: 8
+  related_tag_count: 3

@@ -15,6 +15,7 @@ SUMMARY_CSV = REPO_ROOT / "_device_capability_summary.csv"
 TAG_CSV = REPO_ROOT / "tag 标签列表.csv"
 PROMPT_TEMPLATE = Path(__file__).resolve().parent / "agent_prompt_template.md"
 BATCH_ROOT = Path(__file__).resolve().parent / "batches"
+WORKFLOW_VERSION = "v3"
 
 
 def load_summary_rows() -> dict[str, dict[str, str]]:
@@ -85,7 +86,8 @@ def build_manifest(batch_name: str, devices: list[str], summary_rows: dict[str, 
         },
         "notes": {
             "description_pass_before_tag_pass": True,
-            "prototype_only": True,
+            "mode": "production",
+            "workflow_version": WORKFLOW_VERSION,
         },
     }
 

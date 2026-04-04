@@ -1,47 +1,163 @@
-Device: cmd_seq
-Registry Key: cmd_seq
-Short Description: FEI4 Command Sequencer是一款实验执行&合成设备，主要功能包括使能、停止、启动、复位、触发、读取数据。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (13):
-- auto-is_done -> is_done [UniLabJsonCommand] goal_params: none
-- auto-reset -> reset [UniLabJsonCommand] goal_params: none
-- auto-set_clock_gate -> set_clock_gate [UniLabJsonCommand] goal_params: value
-- auto-set_cmd_pulse -> set_cmd_pulse [UniLabJsonCommand] goal_params: value
-- auto-set_data -> set_data [UniLabJsonCommand] goal_params: addr, data
-- auto-set_ext_trigger -> set_ext_trigger [UniLabJsonCommand] goal_params: value
-- auto-set_output_enable -> set_output_enable [UniLabJsonCommand] goal_params: value
-- auto-set_output_mode -> set_output_mode [UniLabJsonCommand] goal_params: value
-- auto-set_repeat -> set_repeat [UniLabJsonCommand] goal_params: value
-- auto-set_size -> set_size [UniLabJsonCommand] goal_params: value
-- auto-set_start_seq_length -> set_start_seq_length [UniLabJsonCommand] goal_params: value
-- auto-set_stop_seq_length -> set_stop_seq_length [UniLabJsonCommand] goal_params: value
-- auto-start -> start [UniLabJsonCommand] goal_params: none
-
-Driver Functions (21):
-- cmd_seq.__init__(self, intf, conf) (line 106)
-- cmd_seq.reset(self) (line 115)
-- cmd_seq.start(self) (line 119)
-- cmd_seq.is_done(self) (line 123)
-- cmd_seq.is_ready(self) (line 128)
-- cmd_seq.set_ext_trigger(self, value) (line 132)
-- cmd_seq.set_output_mode(self, value) (line 136)
-- cmd_seq.set_clock_gate(self, value) (line 140)
-- cmd_seq.set_cmd_pulse(self, value) (line 144)
-- cmd_seq.get_size(self) (line 148)
-- cmd_seq.set_size(self, value) (line 152)
-- cmd_seq.get_repeat(self) (line 156)
-- cmd_seq.set_repeat(self, value) (line 160)
-- cmd_seq.get_start_seq_length(self) (line 164)
-- cmd_seq.set_start_seq_length(self, value) (line 168)
-- cmd_seq.get_stop_seq_length(self) (line 172)
-- cmd_seq.set_stop_seq_length(self, value) (line 176)
-- cmd_seq.get_output_enable(self) (line 180)
-- cmd_seq.set_output_enable(self, value) (line 184)
-- cmd_seq.set_data(self, data, addr) (line 188)
-- cmd_seq.get_data(self, size, addr) (line 194)
+device: cmd_seq
+registry_key: cmd_seq
+device_identity:
+  manufacturer: SiLab / Open Source
+  model:
+    name: FE-I4 Command Sequencer FPGA module
+    type: device
+  module_path: unilabos.devices.cmd_seq.cmd_seq:cmd_seq
+description:
+  text_en: FPGA command sequencer block for FE-I4-style command streams, including
+    trigger, output mode, sequence length, repeat, and command-memory data control.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'driver.class_doc: FEI4 Command Sequencer Controller Interface for cmd_seq FPGA
+    module'
+  - 'driver registers: START/RESET/READY/CMD_SIZE/CMD_REPEAT'
+  - driver methods set_data/get_data for command memory
+related_tags:
+- id: '4313'
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: '4313'
+  rationale: Matched from registry metadata and action/description semantics.
+  signals:
+  - registry.tags
+  - registry.category
+  - name
+  - model
+  - manufacturer
+  - module_path
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-reset
+  title: reset
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Clear sequencer state via RESET register.
+  evidence_source: code
+- name: auto-start
+  title: start
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Start sequencer execution via START register.
+  evidence_source: code
+- name: auto-is_done
+  title: is_done
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return completion state from READY status.
+  evidence_source: code
+- name: auto-set_ext_trigger
+  title: set_ext_trigger
+  parameters:
+  - value
+  command_type: UniLabJsonCommand
+  description_en: Enable or disable external trigger mode.
+  evidence_source: name_params
+- name: auto-set_output_mode
+  title: set_output_mode
+  parameters:
+  - value
+  command_type: UniLabJsonCommand
+  description_en: Set encoded output mode value.
+  evidence_source: name_params
+- name: auto-set_clock_gate
+  title: set_clock_gate
+  parameters:
+  - value
+  command_type: UniLabJsonCommand
+  description_en: Set clock gate behavior value.
+  evidence_source: name_params
+- name: auto-set_cmd_pulse
+  title: set_cmd_pulse
+  parameters:
+  - value
+  command_type: UniLabJsonCommand
+  description_en: Set command pulse encoding mode.
+  evidence_source: name_params
+- name: auto-set_size
+  title: set_size
+  parameters:
+  - value
+  command_type: UniLabJsonCommand
+  description_en: Set command sequence size register.
+  evidence_source: name_params
+- name: auto-set_repeat
+  title: set_repeat
+  parameters:
+  - value
+  command_type: UniLabJsonCommand
+  description_en: Set sequence repeat count register.
+  evidence_source: name_params
+- name: auto-set_start_seq_length
+  title: set_start_seq_length
+  parameters:
+  - value
+  command_type: UniLabJsonCommand
+  description_en: Set start-sequence length register.
+  evidence_source: name_params
+- name: auto-set_stop_seq_length
+  title: set_stop_seq_length
+  parameters:
+  - value
+  command_type: UniLabJsonCommand
+  description_en: Set stop-sequence length register.
+  evidence_source: name_params
+- name: auto-set_output_enable
+  title: set_output_enable
+  parameters:
+  - value
+  command_type: UniLabJsonCommand
+  description_en: Set output enable bitmask register.
+  evidence_source: name_params
+- name: auto-set_data
+  title: set_data
+  parameters:
+  - data
+  - addr
+  command_type: UniLabJsonCommand
+  description_en: Write command bytes into sequencer memory at offset.
+  evidence_source: code
+driver_functions:
+  compact_signatures:
+  - cmd_seq.__init__(self, intf, conf) (line 106)
+  - cmd_seq.reset(self) (line 115)
+  - cmd_seq.start(self) (line 119)
+  - cmd_seq.is_done(self) (line 123)
+  - cmd_seq.is_ready(self) (line 128)
+  - cmd_seq.set_ext_trigger(self, value) (line 132)
+  - cmd_seq.set_output_mode(self, value) (line 136)
+  - cmd_seq.set_clock_gate(self, value) (line 140)
+  - cmd_seq.set_cmd_pulse(self, value) (line 144)
+  - cmd_seq.get_size(self) (line 148)
+  - cmd_seq.set_size(self, value) (line 152)
+  - cmd_seq.get_repeat(self) (line 156)
+  - cmd_seq.set_repeat(self, value) (line 160)
+  - cmd_seq.get_start_seq_length(self) (line 164)
+  - cmd_seq.set_start_seq_length(self, value) (line 168)
+  - cmd_seq.get_stop_seq_length(self) (line 172)
+  - cmd_seq.set_stop_seq_length(self, value) (line 176)
+  - cmd_seq.get_output_enable(self) (line 180)
+  - cmd_seq.set_output_enable(self, value) (line 184)
+  - cmd_seq.set_data(self, data, addr) (line 188)
+  - cmd_seq.get_data(self, size, addr) (line 194)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 13
+  driver_function_count: 21
+  related_tag_count: 1

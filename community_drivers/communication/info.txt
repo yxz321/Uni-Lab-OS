@@ -1,24 +1,92 @@
-Device: communication
-Registry Key: communication
-Short Description: Communication是由Open Standard生产的实验执行&合成设备，主要功能包括记录、设备连接。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (5):
-- auto-connect -> connect [UniLabJsonCommand] goal_params: device_name, pid, vid
-- auto-disconnect -> disconnect [UniLabJsonCommand] goal_params: none
-- auto-is_connect -> is_connect [UniLabJsonCommand] goal_params: none
-- auto-record -> record [UniLabJsonCommand] goal_params: msg, timeout
-- auto-send -> send [UniLabJsonCommand] goal_params: msg, timeout
-
-Driver Functions (6):
-- Communication.__init__(self, device_name, vid, pid) (line 94)
-- Communication.connect(self, device_name, vid, pid) (line 116)
-- Communication.disconnect(self) (line 153)
-- Communication.is_connect(self) (line 161)
-- Communication.send(self, msg, timeout) (line 174)
-- Communication.record(self, msg, timeout) (line 220)
+device: communication
+registry_key: communication
+device_identity:
+  manufacturer: Open Standard
+  model:
+    name: USB-UART communication adapter
+    type: device_interface
+  name: Generic USB-UART Communication Interface
+  module_path: unilabos.devices.custom.communication:Communication
+description:
+  text_en: USB-UART communication interface for small lab controllers (for example RP2040-based boards),
+    handling device discovery by VID/PID plus framed send/record serial exchanges.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - Class docstring states USB-UART path and separation from GUI layer.
+  - Methods implement connect/disconnect plus send and record message transactions with ACK handling.
+related_tags:
+- id: 4313
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: 4313
+  rationale: The interface is used to send operational commands and record responses during experiment
+    execution.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-connect
+  title: connect
+  parameters:
+  - device_name
+  - vid
+  - pid
+  command_type: UniLabJsonCommand
+  description_en: Connect to target serial device by name or VID/PID.
+  evidence_source: docstring
+- name: auto-disconnect
+  title: disconnect
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Disable active communication path.
+  evidence_source: docstring
+- name: auto-is_connect
+  title: is_connect
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Report whether a target device is connected.
+  evidence_source: docstring
+- name: auto-send
+  title: send
+  parameters:
+  - msg
+  - timeout
+  command_type: UniLabJsonCommand
+  description_en: Send command string and wait for acknowledge reply.
+  evidence_source: docstring
+- name: auto-record
+  title: record
+  parameters:
+  - msg
+  - timeout
+  command_type: UniLabJsonCommand
+  description_en: Send record request and parse returned sampled signal list.
+  evidence_source: docstring
+driver_functions:
+  compact_signatures:
+  - Communication.__init__(self, device_name, vid, pid) (line 94)
+  - Communication.connect(self, device_name, vid, pid) (line 116)
+  - Communication.disconnect(self) (line 153)
+  - Communication.is_connect(self) (line 161)
+  - Communication.send(self, msg, timeout) (line 174)
+  - Communication.record(self, msg, timeout) (line 220)
+  note: Compact signatures retained; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 5
+  driver_function_count: 6
+  related_tag_count: 1

@@ -1,46 +1,119 @@
-Device: com_port
-Registry Key: com_port
-Short Description: COM Port是由Open Standard生产的专业实验设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (6):
-- auto-getLineCoding -> getLineCoding [UniLabJsonCommand] goal_params: none
-- auto-readBytes -> readBytes [UniLabJsonCommand] goal_params: none
-- auto-readText -> readText [UniLabJsonCommand] goal_params: none
-- auto-setControlLineState -> setControlLineState [UniLabJsonCommand] goal_params: DTR, RTS
-- auto-setLineCoding -> setLineCoding [UniLabJsonCommand] goal_params: baudrate, databits, parity, stopbits
-- auto-write -> write [UniLabJsonCommand] goal_params: data
-
-Driver Functions (27):
-- _Getch.__init__(self) (line 140)
-- _Getch.__call__(self) (line 146)
-- _GetchUnix.__call__(self) (line 151)
-- _GetchWindows.__init__(self) (line 166)
-- _GetchWindows.__call__(self) (line 169)
-- ComPort.__init__(self, usb_device, start) (line 176)
-- ComPort._startRx(self) (line 242)
-- ComPort._endRx(self) (line 252)
-- ComPort._read(self) (line 256)
-- ComPort._getRxLen(self) (line 278)
-- ComPort.readBytes(self) (line 283)
-- ComPort.readText(self) (line 290)
-- ComPort.write(self, data) (line 294)
-- ComPort.setControlLineState(self, RTS, DTR) (line 309)
-- ComPort.setLineCoding(self, baudrate, parity, databits, stopbits) (line 330)
-- ComPort._setBaudFTDI(self, baudrate) (line 392)
-- ComPort._setLineCodeFTDI(self, bits, stopbits, parity, breaktype) (line 414)
-- ComPort._resetFTDI(self) (line 436)
-- ComPort._flushFTDI(self, rx, tx) (line 453)
-- ComPort.getLineCoding(self) (line 479)
-- ComPort.disconnect(self) (line 506)
-- configLog() (line 531)
-- selectDevice() (line 544)
-- configInputQueue() (line 599)
-- fmt_text(text) (line 621)
-- runTerminal(d) (line 633)
-- ftdi_to_clkbits(baudrate) (line 657)
+device: com_port
+registry_key: com_port
+device_identity:
+  manufacturer: Open Standard
+  model:
+    name: USB virtual COM port interface
+    type: device_interface
+  name: USB CDC/FTDI COM Port Interface
+  module_path: unilabos.devices.generic.com_port:ComPort
+description:
+  text_en: USB virtual COM-port interface for lab instruments, providing low-level serial byte I/O plus
+    line-coding and RTS/DTR control for CDC and FTDI devices.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - Module-level comments document CDC line coding and control-line state behavior.
+  - Driver implements USB endpoint read/write, line coding configuration, and FTDI-specific control transfers.
+related_tags:
+- id: 4313
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: 4313
+  rationale: Serial transport and line-control operations are used to execute and coordinate instrument
+    actions.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-readBytes
+  title: readBytes
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read all currently buffered bytes from RX queue.
+  evidence_source: name_params
+- name: auto-readText
+  title: readText
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read buffered bytes and decode as text.
+  evidence_source: name_params
+- name: auto-write
+  title: write
+  parameters:
+  - data
+  command_type: UniLabJsonCommand
+  description_en: Write raw bytes to USB output endpoint.
+  evidence_source: name_params
+- name: auto-setControlLineState
+  title: setControlLineState
+  parameters:
+  - RTS
+  - DTR
+  command_type: UniLabJsonCommand
+  description_en: Set RTS/DTR control line state bits.
+  evidence_source: name_params
+- name: auto-setLineCoding
+  title: setLineCoding
+  parameters:
+  - baudrate
+  - parity
+  - databits
+  - stopbits
+  command_type: UniLabJsonCommand
+  description_en: Configure baud rate, parity, data bits, and stop bits.
+  evidence_source: code_comments
+- name: auto-getLineCoding
+  title: getLineCoding
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read and decode current serial line-coding parameters.
+  evidence_source: name_params
+driver_functions:
+  compact_signatures:
+  - _Getch.__init__(self) (line 140)
+  - _Getch.__call__(self) (line 146)
+  - _GetchUnix.__call__(self) (line 151)
+  - _GetchWindows.__init__(self) (line 166)
+  - _GetchWindows.__call__(self) (line 169)
+  - ComPort.__init__(self, usb_device, start) (line 176)
+  - ComPort._startRx(self) (line 242)
+  - ComPort._endRx(self) (line 252)
+  - ComPort._read(self) (line 256)
+  - ComPort._getRxLen(self) (line 278)
+  - ComPort.readBytes(self) (line 283)
+  - ComPort.readText(self) (line 290)
+  - ComPort.write(self, data) (line 294)
+  - ComPort.setControlLineState(self, RTS, DTR) (line 309)
+  - ComPort.setLineCoding(self, baudrate, parity, databits, stopbits) (line 330)
+  - ComPort._setBaudFTDI(self, baudrate) (line 392)
+  - ComPort._setLineCodeFTDI(self, bits, stopbits, parity, breaktype) (line 414)
+  - ComPort._resetFTDI(self) (line 436)
+  - ComPort._flushFTDI(self, rx, tx) (line 453)
+  - ComPort.getLineCoding(self) (line 479)
+  - ComPort.disconnect(self) (line 506)
+  - configLog() (line 531)
+  - selectDevice() (line 544)
+  - configInputQueue() (line 599)
+  - fmt_text(text) (line 621)
+  - runTerminal(d) (line 633)
+  - ftdi_to_clkbits(baudrate) (line 657)
+  note: Compact signatures retained; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 6
+  driver_function_count: 27
+  related_tag_count: 1

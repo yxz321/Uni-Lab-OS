@@ -14,6 +14,13 @@ device-local files and batch manifest as the source of truth.
 Improve `info.txt` for each device in this batch so that it is more useful for
 downstream structured parsing and later device-space analysis.
 
+Quality target: good enough and consistent with the accepted prototype
+examples. Do not optimize for perfection at the expense of batch-scalable
+throughput or honesty.
+
+Use `schema_version: prototype_v0.3` for outputs produced under the current
+workflow.
+
 ## Required pass order
 
 1. Description extraction pass
@@ -62,11 +69,21 @@ description is one of the inputs for tag determination.
 
 ## Action and function summary rules
 
-- Compress docstrings into a few words.
-- If docstrings are absent, infer from method name, arguments, decorators, and
-  nearby code.
+- Prefer evidence in this order:
+  - docstring
+  - leading inline comment block attached to the method body
+  - nearby code comments tied to the operation
+  - method/action name plus parameters
+- Compress the best available evidence into a few words.
+- If only naming evidence is available, use a concise heuristic and do not make
+  unsupported claims.
 - Prefer short stable summaries over clever phrasing.
 - Keep the structure easy to convert into JSON later.
+
+For `driver_functions`, keep the section concise by default. Most semantic
+detail should live in `atom_actions`. Only add richer function summaries when
+they contribute evidence not already obvious from the action section or
+signature.
 
 ## Formatting guidance
 
@@ -111,6 +128,8 @@ Write one short batch report that includes:
 - Do not edit devices outside this batch.
 - Prefer concise English descriptions.
 - Do not include a `categories` section in the final `info.txt`.
+- Do not introduce a tag-confidence scoring system during this stage unless the
+  batch explicitly asks for it.
 
 
 ## Batch paths

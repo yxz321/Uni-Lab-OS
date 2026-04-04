@@ -1,28 +1,104 @@
-Device: concrete_port
-Registry Key: concrete_port
-Short Description: 硬件设备通信端口抽象层，提供统一的设备连接与数据传输接口。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (7):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-get_access_mode -> get_access_mode [UniLabJsonCommand] goal_params: none
-- auto-is_open -> is_open [UniLabJsonCommand] goal_params: none
-- auto-open -> open [UniLabJsonCommand] goal_params: port_object
-- auto-port -> port [UniLabJsonCommand] goal_params: none
-- auto-read -> read [UniLabJsonCommand] goal_params: address, length
-- auto-write -> write [UniLabJsonCommand] goal_params: address, value
-
-Driver Functions (8):
-- ConcretePort.__init__(self, port_object) (line 104)
-- ConcretePort.port(self) (line 116)
-- ConcretePort.is_open(self) (line 120)
-- ConcretePort.write(self, address, value) (line 124)
-- ConcretePort.read(self, address, length) (line 128)
-- ConcretePort.open(self, port_object) (line 133)
-- ConcretePort.close(self) (line 137)
-- ConcretePort.get_access_mode(self) (line 141)
+device: concrete_port
+registry_key: concrete_port
+device_identity:
+  manufacturer: Open Standard
+  model:
+    name: GenICam concrete port wrapper
+    type: device_interface
+  name: ConcretePort (GenICam Port wrapper)
+  module_path: unilabos.devices.universal.concrete_port:ConcretePort
+description:
+  text_en: Concrete port wrapper around a GenICam transport Port object, exposing register-level read/write
+    and open/close access-mode checks for machine-vision or instrument buses.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - Class docstring identifies object-oriented wrapper over Port implementation.
+  - Methods proxy read/write/access mode operations to genicam Port object.
+related_tags:
+- id: 4313
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: 4313
+  rationale: Register read/write port operations support active instrument execution and configuration
+    tasks.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-close
+  title: close
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Release bound port object and mark as closed.
+  evidence_source: name_params
+- name: auto-is_open
+  title: is_open
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return whether a Port object is currently bound.
+  evidence_source: name_params
+- name: auto-open
+  title: open
+  parameters:
+  - port_object
+  command_type: UniLabJsonCommand
+  description_en: Bind a provided Port object for access.
+  evidence_source: name_params
+- name: auto-read
+  title: read
+  parameters:
+  - address
+  - length
+  command_type: UniLabJsonCommand
+  description_en: Read bytes from port register address range.
+  evidence_source: name_params
+- name: auto-write
+  title: write
+  parameters:
+  - address
+  - value
+  command_type: UniLabJsonCommand
+  description_en: Write value to port register address.
+  evidence_source: name_params
+- name: auto-port
+  title: port
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return current underlying Port object handle.
+  evidence_source: name_params
+- name: auto-get_access_mode
+  title: get_access_mode
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return RW or NA access mode based on open state.
+  evidence_source: name_params
+driver_functions:
+  compact_signatures:
+  - ConcretePort.__init__(self, port_object) (line 104)
+  - ConcretePort.port(self) (line 116)
+  - ConcretePort.is_open(self) (line 120)
+  - ConcretePort.write(self, address, value) (line 124)
+  - ConcretePort.read(self, address, length) (line 128)
+  - ConcretePort.open(self, port_object) (line 133)
+  - ConcretePort.close(self) (line 137)
+  - ConcretePort.get_access_mode(self) (line 141)
+  note: Compact signatures retained; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 7
+  driver_function_count: 8
+  related_tag_count: 1

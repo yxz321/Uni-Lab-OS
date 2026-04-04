@@ -1,0 +1,171 @@
+device: driver_socket
+registry_key: driver_socket
+device_identity:
+  manufacturer: Autolab (software)
+  model:
+    name: Autolab socket server interface
+    type: software
+  name: Autolab driver socket
+  module_path: autolab.core.server:Driver_SOCKET
+description:
+  text_en: Autolab driver socket is a TCP socket server/client layer that exchanges pickled command objects, performs handshake, manages client threads, and routes device-status and device-structure requests within the Autolab control stack.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'driver.header: Original: autolab/core/server.py'
+  - 'driver.classes: Driver_SOCKET read/write with pickled messages; Server manages client threads; Driver_REMOTE handles connect/handshake.'
+registry_identity_conflict:
+  registry_manufacturer: Metrohm Autolab
+  registry_model_name: Metrohm Autolab Driver Socket 电化学工作站
+  chosen_manufacturer: Autolab (software)
+  chosen_model_name: Autolab socket server interface
+  rationale: Driver implements a socket server/client layer, not a physical electrochemical workstation.
+related_tags:
+- id: 4425
+  name: 电化学工作站
+  name_en: Electrochemical Workstation
+  type: device_template_tag
+tag_evidence:
+- tag_id: 4425
+  rationale: The socket layer is part of the Autolab electrochemical workstation control stack.
+  signals:
+  - registry.category
+  - registry.name
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-read
+  title: read
+  parameters:
+  - length
+  command_type: UniLabJsonCommand
+  description_en: Read a pickled object from the socket with a specified buffer length.
+  evidence_source: docstring
+- name: auto-write
+  title: write
+  parameters:
+  - object
+  command_type: UniLabJsonCommand
+  description_en: Send a pickled object over the socket.
+  evidence_source: docstring
+- name: auto-handshake
+  title: handshake
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Verify client identity and accept or refuse the connection.
+  evidence_source: docstring
+- name: auto-listen
+  title: listen
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Listen for client commands and dispatch them for processing.
+  evidence_source: docstring
+- name: auto-process_command
+  title: process_command
+  parameters:
+  - command
+  command_type: UniLabJsonCommand
+  description_en: Process a received command and route to device-status or device-structure handlers.
+  evidence_source: docstring
+- name: auto-request_close
+  title: request_close
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Request client thread shutdown and close the socket.
+  evidence_source: docstring
+- name: auto-clean_client_threads
+  title: clean_client_threads
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Remove finished client threads from the server list.
+  evidence_source: docstring
+- name: auto-close_client_threads
+  title: close_client_threads
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Close any existing client threads.
+  evidence_source: docstring
+- name: auto-log
+  title: log
+  parameters:
+  - log
+  command_type: UniLabJsonCommand
+  description_en: Print a timestamped server log message.
+  evidence_source: docstring
+- name: auto-get_devices_status
+  title: get_devices_status
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Request the current devices status list from the server.
+  evidence_source: code
+- name: auto-get_driver_model
+  title: get_driver_model
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Build a driver model for connected devices (stub/partial in driver).
+  evidence_source: code
+- name: auto-get_device
+  title: get_device
+  parameters:
+  - dev_name
+  command_type: UniLabJsonCommand
+  description_en: Fetch a device by name (stub in driver).
+  evidence_source: code
+- name: auto-get_device_structure
+  title: get_device_structure
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Retrieve the structure of a device (stub in driver).
+  evidence_source: code
+- name: auto-interact
+  title: interact
+  parameters:
+  - address
+  command_type: UniLabJsonCommand
+  description_en: Placeholder interaction handler for device elements.
+  evidence_source: code
+driver_functions:
+  compact_signatures:
+  - Driver_SOCKET.__init__(self, *args, **kwargs) (line 83)
+  - Driver_SOCKET.read(self, length) (line 89)
+  - Driver_SOCKET.write(self, object) (line 107)
+  - ClientThread.__init__(self, client_socket, server) (line 116)
+  - ClientThread.run(self) (line 123)
+  - ClientThread.handshake(self) (line 133)
+  - ClientThread.listen(self) (line 173)
+  - ClientThread.process_command(self, command) (line 182)
+  - ClientThread.close(self) (line 201)
+  - ClientThread.request_close(self) (line 211)
+  - Server.__init__(self, port) (line 220)
+  - Server.start(self) (line 239)
+  - Server.listen(self) (line 248)
+  - Server.clean_client_threads(self) (line 264)
+  - Server.close_client_threads(self) (line 268)
+  - Server.log(self, log) (line 278)
+  - Server.close(self) (line 284)
+  - Driver_REMOTE.__init__(self, address, port) (line 293)
+  - Driver_REMOTE.connect(self) (line 310)
+  - Driver_REMOTE.handshake(self) (line 318)
+  - Driver_REMOTE.disconnect(self) (line 327)
+  - Driver_REMOTE.get_devices_status(self) (line 333)
+  - Driver_REMOTE.get_driver_model(self) (line 337)
+  - Driver_REMOTE.get_device(self, dev_name) (line 346)
+  - Driver_REMOTE.get_device_structure(self) (line 349)
+  - FakeDriver.__init__(self, driver_remote, name, status) (line 358)
+  - FakeDriver.get_driver_model(self) (line 364)
+  - FakeDriver.interact(interaction_type, address) (line 383)
+  note: Compact signatures retained; action semantics are documented in atom_actions.
+schema_version: v3
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 14
+  driver_function_count: 28
+  related_tag_count: 1

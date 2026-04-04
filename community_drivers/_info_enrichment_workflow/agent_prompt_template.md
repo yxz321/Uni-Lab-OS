@@ -1,6 +1,6 @@
 # Device Info Enrichment Batch Prompt
 
-You are working on a prototype batch for `community_drivers`.
+You are working on a production batch for `community_drivers`.
 
 ## Scope
 
@@ -18,16 +18,41 @@ Quality target: good enough and consistent with the accepted prototype
 examples. Do not optimize for perfection at the expense of batch-scalable
 throughput or honesty.
 
+Use `schema_version: v3` for outputs produced under the current
+workflow unless a batch explicitly validates and adopts a newer workflow
+version.
+
+When the batch is a policy-validation run rather than a normal production
+batch, prefer temp/staged outputs and only replace the live `info.txt` files
+if the new workflow is visibly better.
+
 ## Required pass order
 
-1. Description extraction pass
+1. Local evidence collection pass
 2. Action summary pass
 3. Driver function summary pass
-4. Tag determination pass
-5. Final formatting and validation pass
+4. Description extraction pass
+5. Tag determination pass
+6. Final formatting and validation pass
 
 The description pass must happen before the tag pass. The extracted
-description is one of the inputs for tag determination.
+description should use the action and driver summaries as inputs.
+
+## Device identity rules
+
+- Start from registry manufacturer/model/name, but do not preserve them blindly.
+- If registry identity is clearly contradicted by stronger driver or web
+  evidence, override `device_identity` with the corrected identity.
+- Strong evidence includes module/class naming, class docstrings, source-origin
+  comments, action surface, and vendor/manual pages.
+- When you override identity, add an optional top-level
+  `registry_identity_conflict` section after `description_evidence` with:
+  - `registry_manufacturer`
+  - `registry_model_name`
+  - `chosen_manufacturer`
+  - `chosen_model_name`
+  - `rationale`
+- Keep the conflict note short and factual.
 
 ## Description rules
 
@@ -35,12 +60,21 @@ description is one of the inputs for tag determination.
 - Prefer vendor/manual/web retrieval when it gives a materially better device
   description.
 - Summarize what the device is and what it does in lab use.
+- Describe the device first, not the software wrapper.
+- Avoid phrases like `device backend` or `backend for ...` unless that is
+  truly the best available identity.
 - If web evidence is weak, infer from local signals:
   - registry metadata
+  - action summaries
+  - driver function summaries
   - driver docstrings
   - action names
   - function names and nearby code
 - Avoid generic descriptions like "professional laboratory equipment".
+- The final description must not be worse than the best readable local source
+  such as `registry.description`.
+- If evidence is sparse, prefer a short plain device description over a long
+  action-list paraphrase.
 
 ## Tag rules
 
@@ -61,7 +95,7 @@ description is one of the inputs for tag determination.
   - driver function names and summaries
   - docstrings
 - If a useful tag appears to be missing from `tag 标签列表.csv`, do not add it
-  automatically during prototype batches. Record it in the report with a short
+  automatically during production batches. Record it in the report with a short
   rationale.
 
 ## Action and function summary rules
@@ -94,6 +128,7 @@ Suggested sections:
 - `device_identity`
 - `description`
 - `description_evidence`
+- optional `registry_identity_conflict`
 - `related_tags`
 - `tag_evidence`
 - `atom_actions`
@@ -117,6 +152,8 @@ Write one short batch report that includes:
 - what worked well
 - what still needs fixing
 - proposed new tags or tag gaps
+- 2-5 sampled final descriptions from the batch
+- 2-5 sampled atom-action or driver-function summaries from the batch
 - any prompt adjustments recommended before the next batch
 
 ## Constraints

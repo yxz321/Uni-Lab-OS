@@ -1,46 +1,192 @@
-Device: bimo
-Registry Key: bimo
-Short Description: Bimo设备驱动。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (16):
-- auto-available -> available [UniLabJsonCommand] goal_params: none
-- auto-calibrate -> calibrate [UniLabJsonCommand] goal_params: none
-- auto-calibrate_servos -> calibrate_servos [UniLabJsonCommand] goal_params: none
-- auto-capture_image -> capture_image [UniLabJsonCommand] goal_params: camera
-- auto-clip_actions -> clip_actions [UniLabJsonCommand] goal_params: array
-- auto-deg2servo -> deg2servo [UniLabJsonCommand] goal_params: angles
-- auto-init_cameras -> init_cameras [UniLabJsonCommand] goal_params: resolution
-- auto-init_mcu_comms -> init_mcu_comms [UniLabJsonCommand] goal_params: baudrate, timeout
-- auto-initialize -> initialize [UniLabJsonCommand] goal_params: baudrate, calibrate, camera_resolution, timeout
-- auto-port -> port [UniLabJsonCommand] goal_params: none
-- auto-quaternion_to_euler -> quaternion_to_euler [UniLabJsonCommand] goal_params: quat
-- auto-request_state_data -> request_state_data [UniLabJsonCommand] goal_params: none
-- auto-scale_value -> scale_value [UniLabJsonCommand] goal_params: maxs, mins, values
-- auto-send_positions -> send_positions [UniLabJsonCommand] goal_params: actions
-- auto-servo2deg -> servo2deg [UniLabJsonCommand] goal_params: mapped
-- auto-update_imu_offsets -> update_imu_offsets [UniLabJsonCommand] goal_params: none
-
-Driver Functions (17):
-- Bimo.__init__(self) (line 83)
-- Bimo.initialize(self, calibrate, baudrate, timeout, camera_resolution) (line 106)
-- Bimo.calibrate(self) (line 137)
-- Bimo.update_imu_offsets(self) (line 164)
-- Bimo.init_mcu_comms(self, baudrate, timeout) (line 181)
-- Bimo.request_state_data(self) (line 203)
-- Bimo.send_positions(self, actions) (line 236)
-- Bimo.calibrate_servos(self) (line 242)
-- Bimo.available(self) (line 247)
-- Bimo.port(self) (line 259)
-- Bimo.init_cameras(self, resolution) (line 264)
-- Bimo.capture_image(self, camera) (line 316)
-- Bimo.scale_value(self, values, mins, maxs) (line 334)
-- Bimo.clip_actions(self, array) (line 364)
-- Bimo.quaternion_to_euler(self, quat) (line 374)
-- Bimo.servo2deg(self, mapped) (line 411)
-- Bimo.deg2servo(self, angles) (line 435)
+device: bimo
+registry_key: bimo
+device_identity:
+  manufacturer: Open Source
+  model:
+    name: Bimo
+    type: device
+  module_path: unilabos.devices.generic.bimo:Bimo
+description:
+  text_en: Control driver for the Bimo robotics kit, including MCU communication, servo calibration/position
+    commands, IMU state retrieval, and dual-camera capture.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'registry.description: Bimo设备驱动。Bimo Robotics Kit control class'
+  - 'actions include: initialize, calibrate, update_imu_offsets, init_mcu_comms, request_state_data, send_positions,
+    calibrate_servos, available'
+  - 'driver functions include: Bimo.__init__, Bimo.initialize, Bimo.calibrate, Bimo.update_imu_offsets,
+    Bimo.init_mcu_comms, Bimo.request_state_data'
+  - description synthesized from registry metadata + action/function evidence (local pass)
+related_tags:
+- id: '4313'
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+- id: '4317'
+  name: 物流/机械
+  name_en: Logistics / Machinery
+  type: experimental_step
+tag_evidence:
+- tag_id: '4313'
+  rationale: Matched from registry metadata plus action/description/module signals.
+  signals:
+  - registry.category
+  - registry.tags
+  - module_path
+  - description
+  - atom_actions
+- tag_id: '4317'
+  rationale: Matched from registry metadata plus action/description/module signals.
+  signals:
+  - registry.category
+  - registry.tags
+  - module_path
+  - description
+  - atom_actions
+atom_actions:
+- name: auto-initialize
+  title: initialize
+  parameters:
+  - calibrate
+  - baudrate
+  - timeout
+  - camera_resolution
+  command_type: UniLabJsonCommand
+  description_en: Initialize robot from sitting position.
+  evidence_source: driver_function
+- name: auto-calibrate
+  title: calibrate
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Run interactive servo calibration with ankle-centering step.
+  evidence_source: code_comment
+- name: auto-update_imu_offsets
+  title: update_imu_offsets
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Update IMU orientation offsets.
+  evidence_source: action_name_params
+- name: auto-init_mcu_comms
+  title: init_mcu_comms
+  parameters:
+  - baudrate
+  - timeout
+  command_type: UniLabJsonCommand
+  description_en: Probe serial ports and retry MCU connection up to 5 attempts.
+  evidence_source: code_comment
+- name: auto-request_state_data
+  title: request_state_data
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Request robot state telemetry package.
+  evidence_source: action_name_params
+- name: auto-send_positions
+  title: send_positions
+  parameters:
+  - actions
+  command_type: UniLabJsonCommand
+  description_en: Send target servo positions to MCU.
+  evidence_source: action_name_params
+- name: auto-calibrate_servos
+  title: calibrate_servos
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Send servo calibration command.
+  evidence_source: action_name_params
+- name: auto-available
+  title: available
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Check module/device availability state.
+  evidence_source: action_name_params
+- name: auto-port
+  title: port
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read physical or logical port identifier.
+  evidence_source: action_name_params
+- name: auto-init_cameras
+  title: init_cameras
+  parameters:
+  - resolution
+  command_type: UniLabJsonCommand
+  description_en: Initialize robot cameras with target resolution.
+  evidence_source: action_name_params
+- name: auto-capture_image
+  title: capture_image
+  parameters:
+  - camera
+  command_type: UniLabJsonCommand
+  description_en: Capture one frame from selected camera.
+  evidence_source: action_name_params
+- name: auto-scale_value
+  title: scale_value
+  parameters:
+  - values
+  - mins
+  - maxs
+  command_type: UniLabJsonCommand
+  description_en: Scale value(s) from native range to [-1,1].
+  evidence_source: action_name_params
+- name: auto-clip_actions
+  title: clip_actions
+  parameters:
+  - array
+  command_type: UniLabJsonCommand
+  description_en: Clip motion commands to servo limits.
+  evidence_source: action_name_params
+- name: auto-quaternion_to_euler
+  title: quaternion_to_euler
+  parameters:
+  - quat
+  command_type: UniLabJsonCommand
+  description_en: Convert quaternion orientation to Euler angles.
+  evidence_source: action_name_params
+- name: auto-servo2deg
+  title: servo2deg
+  parameters:
+  - mapped
+  command_type: UniLabJsonCommand
+  description_en: Convert servo ticks to degree values.
+  evidence_source: action_name_params
+- name: auto-deg2servo
+  title: deg2servo
+  parameters:
+  - angles
+  command_type: UniLabJsonCommand
+  description_en: Convert degree commands to servo ticks.
+  evidence_source: action_name_params
+driver_functions:
+  compact_signatures:
+  - Bimo.__init__(self) (line 83)
+  - Bimo.initialize(self, calibrate, baudrate, timeout, camera_resolution) (line 106)
+  - Bimo.calibrate(self) (line 137)
+  - Bimo.update_imu_offsets(self) (line 164)
+  - Bimo.init_mcu_comms(self, baudrate, timeout) (line 181)
+  - Bimo.request_state_data(self) (line 203)
+  - Bimo.send_positions(self, actions) (line 236)
+  - Bimo.calibrate_servos(self) (line 242)
+  - Bimo.available(self) (line 247)
+  - Bimo.port(self) (line 259)
+  - Bimo.init_cameras(self, resolution) (line 264)
+  - Bimo.capture_image(self, camera) (line 316)
+  - Bimo.scale_value(self, values, mins, maxs) (line 334)
+  - Bimo.clip_actions(self, array) (line 364)
+  - Bimo.quaternion_to_euler(self, quat) (line 374)
+  - Bimo.servo2deg(self, mapped) (line 411)
+  - Bimo.deg2servo(self, angles) (line 435)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 16
+  driver_function_count: 17
+  related_tag_count: 2

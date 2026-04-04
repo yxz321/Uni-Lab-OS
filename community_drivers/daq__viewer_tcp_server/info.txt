@@ -1,60 +1,178 @@
-Device: daq__viewer_tcp_server
-Registry Key: daq__viewer_tcp_server
-Short Description: DAQ Viewer TCP Server是由National Instruments生产的表征设备，主要功能包括停止、关闭、初始化、扫描、状态查询、读取数据。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (13):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-command_done -> command_done [UniLabJsonCommand] goal_params: command_sock
-- auto-command_to_from_client -> command_to_from_client [UniLabJsonCommand] goal_params: command
-- auto-commit_settings -> commit_settings [UniLabJsonCommand] goal_params: param
-- auto-data_ready -> data_ready [UniLabJsonCommand] goal_params: data
-- auto-grab_data -> grab_data [UniLabJsonCommand] goal_params: Naverage
-- auto-ini_detector -> ini_detector [UniLabJsonCommand] goal_params: controller
-- auto-read_data -> read_data [UniLabJsonCommand] goal_params: sock
-- auto-send_data -> send_data [UniLabJsonCommand] goal_params: data, sock
-- auto-set_0D_Mock_data -> set_0D_Mock_data [UniLabJsonCommand] goal_params: none
-- auto-set_1D_Mock_data -> set_1D_Mock_data [UniLabJsonCommand] goal_params: none
-- auto-set_2D_Mock_data -> set_2D_Mock_data [UniLabJsonCommand] goal_params: none
-- auto-stop -> stop [UniLabJsonCommand] goal_params: none
-
-Driver Functions (34):
-- main(plugin_file, init, title) (line 164)
-- DAQ_Viewer_base.__init__(self, parent, params_state) (line 224)
-- DAQ_Viewer_base.is_master(self) (line 268)
-- DAQ_Viewer_base._emit_dte(self, dte) (line 275)
-- DAQ_Viewer_base._emit_dte_temp(self, dte) (line 283)
-- DAQ_Viewer_base.ini_attributes(self) (line 291)
-- DAQ_Viewer_base.ini_detector_init(self, old_controller, new_controller, slave_controller) (line 297)
-- DAQ_Viewer_base.ini_detector(self, controller) (line 333)
-- DAQ_Viewer_base.close(self) (line 341)
-- DAQ_Viewer_base.grab_data(self, Naverage, **kwargs) (line 349)
-- DAQ_Viewer_base.stop(self) (line 357)
-- DAQ_Viewer_base.commit_settings(self, param) (line 364)
-- DAQ_Viewer_base.roi_select(self, roi_info, ind_viewer) (line 370)
-- DAQ_Viewer_base.crosshair(self, crosshair_info, ind_viewer) (line 384)
-- DAQ_Viewer_base.emit_status(self, status) (line 398)
-- DAQ_Viewer_base.update_scanner(self, scan_parameters) (line 413)
-- DAQ_Viewer_base.update_settings(self, settings_parameter_dict) (line 418)
-- DAQ_Viewer_base.send_param_status(self, param, changes) (line 463)
-- DAQ_Viewer_TCP_server.__init__(self, parent, params_state, grabber_type) (line 520)
-- DAQ_Viewer_TCP_server.command_to_from_client(self, command) (line 541)
-- DAQ_Viewer_TCP_server.send_data(self, sock, data) (line 564)
-- DAQ_Viewer_TCP_server.read_data(self, sock) (line 582)
-- DAQ_Viewer_TCP_server.data_ready(self, data) (line 588)
-- DAQ_Viewer_TCP_server.command_done(self, command_sock) (line 595)
-- DAQ_Viewer_TCP_server.commit_settings(self, param) (line 612)
-- DAQ_Viewer_TCP_server.ini_detector(self, controller) (line 627)
-- DAQ_Viewer_TCP_server.close(self) (line 651)
-- DAQ_Viewer_TCP_server.get_xaxis(self) (line 663)
-- DAQ_Viewer_TCP_server.get_yaxis(self) (line 676)
-- DAQ_Viewer_TCP_server.grab_data(self, Naverage, **kwargs) (line 689)
-- DAQ_Viewer_TCP_server.stop(self) (line 714)
-- DAQ_Viewer_TCP_server.set_0D_Mock_data(self) (line 722)
-- DAQ_Viewer_TCP_server.set_1D_Mock_data(self) (line 731)
-- DAQ_Viewer_TCP_server.set_2D_Mock_data(self) (line 738)
+device: daq__viewer_tcp_server
+registry_key: daq__viewer_tcp_server
+device_identity:
+  manufacturer: Open Source (PyMoDAQ)
+  model:
+    name: PyMoDAQ DAQ Viewer TCP Server
+    type: device
+  name: DAQ Viewer TCP Server (PyMoDAQ)
+  module_path: unilabos.devices.generic_tcp.daq_viewer_tcp_server:DAQ_Viewer_TCP_server
+description:
+  text_en: TCP server bridge for remote detector clients that exchanges commands and measurement payloads,
+    with optional mock data generation for DAQ viewer testing.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'driver header origin: packages/pymodaq/src/pymodaq/control_modules/viewer_utility_classes.py'
+  - DAQ_Viewer_TCP_server class extends DAQ_Viewer_base and TCPServer
+  - methods command_to_from_client(), send_data(), read_data(), and set_*_Mock_data() show network bridge
+    behavior
+registry_identity_conflict:
+  registry_manufacturer: National Instruments
+  registry_model_name: National Instruments DAQ Viewer Tcp
+  chosen_manufacturer: Open Source (PyMoDAQ)
+  chosen_model_name: PyMoDAQ DAQ Viewer TCP Server
+  rationale: Code is a generic PyMoDAQ TCP server utility for DAQ viewer communication, not an NI-specific
+    instrument model.
+related_tags:
+- id: '4316'
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: '4316'
+  rationale: Data exchange/readout for detector streams supports characterization workflows.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-close
+  title: close
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute close.
+  evidence_source: action_name_params
+- name: auto-command_done
+  title: command_done
+  parameters:
+  - command_sock
+  command_type: UniLabJsonCommand
+  description_en: Execute command done with command_sock.
+  evidence_source: action_name_params
+- name: auto-command_to_from_client
+  title: command_to_from_client
+  parameters:
+  - command
+  command_type: UniLabJsonCommand
+  description_en: Forward command payloads between server and connected client.
+  evidence_source: docstring
+- name: auto-commit_settings
+  title: commit_settings
+  parameters:
+  - param
+  command_type: UniLabJsonCommand
+  description_en: Execute commit settings with param.
+  evidence_source: action_name_params
+- name: auto-data_ready
+  title: data_ready
+  parameters:
+  - data
+  command_type: UniLabJsonCommand
+  description_en: Execute data ready with data.
+  evidence_source: action_name_params
+- name: auto-grab_data
+  title: grab_data
+  parameters:
+  - Naverage
+  command_type: UniLabJsonCommand
+  description_en: Request detector data acquisition with averaging.
+  evidence_source: docstring
+- name: auto-ini_detector
+  title: ini_detector
+  parameters:
+  - controller
+  command_type: UniLabJsonCommand
+  description_en: Execute ini detector with controller.
+  evidence_source: action_name_params
+- name: auto-read_data
+  title: read_data
+  parameters:
+  - sock
+  command_type: UniLabJsonCommand
+  description_en: Read and deserialize data payload from client socket.
+  evidence_source: docstring
+- name: auto-send_data
+  title: send_data
+  parameters:
+  - data
+  - sock
+  command_type: UniLabJsonCommand
+  description_en: Serialize and send DAQ data payload to client socket.
+  evidence_source: docstring
+- name: auto-set_0D_Mock_data
+  title: set_0D_Mock_data
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Generate mock scalar data for testing without hardware.
+  evidence_source: action_name_params
+- name: auto-set_1D_Mock_data
+  title: set_1D_Mock_data
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Generate mock 1D data for testing without hardware.
+  evidence_source: action_name_params
+- name: auto-set_2D_Mock_data
+  title: set_2D_Mock_data
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Generate mock 2D data for testing without hardware.
+  evidence_source: action_name_params
+- name: auto-stop
+  title: stop
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute stop.
+  evidence_source: action_name_params
+driver_functions:
+  compact_signatures:
+  - main(plugin_file, init, title) (line 164)
+  - DAQ_Viewer_base.__init__(self, parent, params_state) (line 224)
+  - DAQ_Viewer_base.is_master(self) (line 268)
+  - DAQ_Viewer_base._emit_dte(self, dte) (line 275)
+  - DAQ_Viewer_base._emit_dte_temp(self, dte) (line 283)
+  - DAQ_Viewer_base.ini_attributes(self) (line 291)
+  - DAQ_Viewer_base.ini_detector_init(self, old_controller, new_controller, slave_controller) (line 297)
+  - DAQ_Viewer_base.ini_detector(self, controller) (line 333)
+  - DAQ_Viewer_base.close(self) (line 341)
+  - DAQ_Viewer_base.grab_data(self, Naverage, **kwargs) (line 349)
+  - DAQ_Viewer_base.stop(self) (line 357)
+  - DAQ_Viewer_base.commit_settings(self, param) (line 364)
+  - DAQ_Viewer_base.roi_select(self, roi_info, ind_viewer) (line 370)
+  - DAQ_Viewer_base.crosshair(self, crosshair_info, ind_viewer) (line 384)
+  - DAQ_Viewer_base.emit_status(self, status) (line 398)
+  - DAQ_Viewer_base.update_scanner(self, scan_parameters) (line 413)
+  - DAQ_Viewer_base.update_settings(self, settings_parameter_dict) (line 418)
+  - DAQ_Viewer_base.send_param_status(self, param, changes) (line 463)
+  - DAQ_Viewer_TCP_server.__init__(self, parent, params_state, grabber_type) (line 520)
+  - DAQ_Viewer_TCP_server.command_to_from_client(self, command) (line 541)
+  - DAQ_Viewer_TCP_server.send_data(self, sock, data) (line 564)
+  - DAQ_Viewer_TCP_server.read_data(self, sock) (line 582)
+  - DAQ_Viewer_TCP_server.data_ready(self, data) (line 588)
+  - DAQ_Viewer_TCP_server.command_done(self, command_sock) (line 595)
+  - DAQ_Viewer_TCP_server.commit_settings(self, param) (line 612)
+  - DAQ_Viewer_TCP_server.ini_detector(self, controller) (line 627)
+  - DAQ_Viewer_TCP_server.close(self) (line 651)
+  - DAQ_Viewer_TCP_server.get_xaxis(self) (line 663)
+  - DAQ_Viewer_TCP_server.get_yaxis(self) (line 676)
+  - DAQ_Viewer_TCP_server.grab_data(self, Naverage, **kwargs) (line 689)
+  - DAQ_Viewer_TCP_server.stop(self) (line 714)
+  - DAQ_Viewer_TCP_server.set_0D_Mock_data(self) (line 722)
+  - DAQ_Viewer_TCP_server.set_1D_Mock_data(self) (line 731)
+  - DAQ_Viewer_TCP_server.set_2D_Mock_data(self) (line 738)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v3
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 13
+  driver_function_count: 34
+  related_tag_count: 1

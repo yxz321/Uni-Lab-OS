@@ -1,49 +1,123 @@
-Device: connection
-Registry Key: connection
-Short Description: Instrument Connection Handler驱动，支持connect/send/listen/close/receive data等6个操作。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (6):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-connect -> connect [UniLabJsonCommand] goal_params: connected
-- auto-discover -> discover [UniLabJsonCommand] goal_params: parse_procedural_parameter
-- auto-listen -> listen [UniLabJsonCommand] goal_params: callback, ip_address, port
-- auto-receive_data -> receive_data [UniLabJsonCommand] goal_params: none
-- auto-send -> send [UniLabJsonCommand] goal_params: connected, request, slot
-
-Driver Functions (30):
-- Connection.__init__(self, parent) (line 98)
-- Connection.connect(self, connected) (line 123)
-- Connection.send(self, request, connected, slot) (line 130)
-- Connection.listen(self, ip_address, callback, port) (line 151)
-- Connection.close(self) (line 165)
-- Connection._connect(self, connected) (line 172)
-- Connection._close_connection(self) (line 244)
-- Connection._get_bytes(self, data, connected) (line 265)
-- Connection.receive_data(self) (line 290)
-- Connection._wait_for_connection(self) (line 313)
-- Connection._wait_for_message(self) (line 333)
-- Connection._extract_packet(self, eip_command, packet) (line 409)
-- Connection._build_register_session(self) (line 426)
-- Connection._register_session_reply(self) (line 451)
-- Connection._build_unregister_session(self) (line 477)
-- Connection._forward_open(self) (line 497)
-- Connection._forward_open_reply(self) (line 523)
-- Connection._build_forward_open_packet(self) (line 546)
-- Connection._build_cip_forward_open(self) (line 555)
-- Connection._build_forward_close_packet(self) (line 625)
-- Connection._build_forward_close(self) (line 634)
-- Connection._build_forward_close_reply(self) (line 671)
-- Connection._build_rr_data_header(self, frame_len) (line 687)
-- Connection._build_unconnected_send(self, service_size) (line 722)
-- Connection._build_eip_header(self, ioi) (line 750)
-- Connection._send_unit_data_reply(self, payload) (line 801)
-- Connection._connected_path(self) (line 849)
-- Connection._unconnected_path(self, slot) (line 888)
-- Connection.discover(self, parse_procedural_parameter) (line 922)
-- Connection._build_list_identity(self) (line 984)
+device: connection
+registry_key: connection
+device_identity:
+  manufacturer: Open Standard
+  model:
+    name: EtherNet/IP connection handler
+    type: device_interface
+  name: Instrument Ethernet/IP Connection Handler
+  module_path: unilabos.devices.universal.connection:Connection
+description:
+  text_en: EtherNet/IP connection handler for PLC-style laboratory controllers, managing CIP session connect/send/listen
+    cycles, packet receive, and network device discovery.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - Original source is pylogix connection layer for Ethernet/IP and CIP messaging.
+  - Method docstrings describe PLC connect/send behavior and list-identity discovery broadcasts.
+related_tags:
+- id: 4313
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: 4313
+  rationale: Connection/session and CIP messaging operations are used directly to execute control commands
+    on networked instruments.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-connect
+  title: connect
+  parameters:
+  - connected
+  command_type: UniLabJsonCommand
+  description_en: Open connection to PLC/instrument endpoint.
+  evidence_source: docstring
+- name: auto-send
+  title: send
+  parameters:
+  - request
+  - connected
+  - slot
+  command_type: UniLabJsonCommand
+  description_en: Send CIP request and return status/data response.
+  evidence_source: docstring
+- name: auto-listen
+  title: listen
+  parameters:
+  - ip_address
+  - callback
+  - port
+  command_type: UniLabJsonCommand
+  description_en: Listen for incoming CIP data-table-write messages.
+  evidence_source: docstring
+- name: auto-close
+  title: close
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Close active network connection/session.
+  evidence_source: docstring
+- name: auto-receive_data
+  title: receive_data
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Receive complete socket payload using advertised length.
+  evidence_source: docstring
+- name: auto-discover
+  title: discover
+  parameters:
+  - parse_procedural_parameter
+  command_type: UniLabJsonCommand
+  description_en: Broadcast list-identity request to discover devices.
+  evidence_source: docstring
+driver_functions:
+  compact_signatures:
+  - Connection.__init__(self, parent) (line 98)
+  - Connection.connect(self, connected) (line 123)
+  - Connection.send(self, request, connected, slot) (line 130)
+  - Connection.listen(self, ip_address, callback, port) (line 151)
+  - Connection.close(self) (line 165)
+  - Connection._connect(self, connected) (line 172)
+  - Connection._close_connection(self) (line 244)
+  - Connection._get_bytes(self, data, connected) (line 265)
+  - Connection.receive_data(self) (line 290)
+  - Connection._wait_for_connection(self) (line 313)
+  - Connection._wait_for_message(self) (line 333)
+  - Connection._extract_packet(self, eip_command, packet) (line 409)
+  - Connection._build_register_session(self) (line 426)
+  - Connection._register_session_reply(self) (line 451)
+  - Connection._build_unregister_session(self) (line 477)
+  - Connection._forward_open(self) (line 497)
+  - Connection._forward_open_reply(self) (line 523)
+  - Connection._build_forward_open_packet(self) (line 546)
+  - Connection._build_cip_forward_open(self) (line 555)
+  - Connection._build_forward_close_packet(self) (line 625)
+  - Connection._build_forward_close(self) (line 634)
+  - Connection._build_forward_close_reply(self) (line 671)
+  - Connection._build_rr_data_header(self, frame_len) (line 687)
+  - Connection._build_unconnected_send(self, service_size) (line 722)
+  - Connection._build_eip_header(self, ioi) (line 750)
+  - Connection._send_unit_data_reply(self, payload) (line 801)
+  - Connection._connected_path(self) (line 849)
+  - Connection._unconnected_path(self, slot) (line 888)
+  - Connection.discover(self, parse_procedural_parameter) (line 922)
+  - Connection._build_list_identity(self) (line 984)
+  note: Compact signatures retained; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 6
+  driver_function_count: 30
+  related_tag_count: 1

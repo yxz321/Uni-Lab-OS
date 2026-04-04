@@ -2,13 +2,57 @@
 
 Versioning rule:
 
-- During the prototype phase, use `prototype_vX.Y`.
-- `schema_version` in generated `info.txt` should match this changelog version
-  exactly.
-- Example mapping: changelog `prototype_v0.3` <-> `schema_version:
-  prototype_v0.3`
+- Historical prototype versions use `prototype_vX.Y`.
+- Active production versions use `vN`.
+- `schema_version` in generated `info.txt` should match the active workflow
+  version exactly.
+- Batch folders in production should use `batch_001`, `batch_002`, and so on.
 
-## prototype_v0.3
+## v3
+
+- Promoted the validated identity-conflict fix into the active production
+  workflow.
+- `device_identity` may now override registry manufacturer/model/name when the
+  registry is clearly contradicted by stronger driver or web evidence.
+- Added optional `registry_identity_conflict` trace metadata after
+  `description_evidence` to document registry-vs-chosen identity differences.
+- Kept the output structure backward-compatible while improving identity
+  fidelity on noisy registry entries.
+- Validation trigger set:
+  - `blockly_tool` from `batch_010`
+  - `bio_tek_plate_reader_backend` from `batch_010`
+  - `cc_core` from `batch_013`
+
+## v2
+
+- Promoted the validated description-generation fix into the active production
+  workflow.
+- Active workflow now writes descriptions after action and driver summaries.
+- Added a description quality floor: final description must not be worse than
+  the best readable local source.
+- Explicitly prefer device-first wording over software-wrapper wording such as
+  `backend`.
+- Batch reports should now include sampled final descriptions and sampled
+  action/function summaries for review.
+- Clarified that trigger-device validation runs may advance a few devices ahead
+  of the main production queue.
+- Added guidance to prefer temp/staged outputs during policy-update validation
+  runs, replacing the live file only when the new workflow is visibly better.
+- Clarified that scaling decisions must consider validator status, agent
+  feedback, and manual sampled review together; validator PASS alone does not
+  define batch success.
+
+## v1
+
+- Promoted the approved prototype workflow into production naming.
+- Production outputs should now use `schema_version: v1`.
+- Production batches should use `batch_###` naming instead of
+  `prototype_batch_###`.
+- Prototype entries below are retained only as historical development record.
+
+## Historical prototype lineage
+
+### prototype_v0.3
 
 - Added explicit summary evidence priority:
   - docstring
@@ -22,7 +66,7 @@ Versioning rule:
 - Added a recommendation for a lightweight structural schema validator.
 - Explicitly chose not to add a tag-confidence scoring system at this stage.
 
-## prototype_v0.2
+### prototype_v0.2
 
 - Reordered the recommended pass sequence to:
   - description extraction

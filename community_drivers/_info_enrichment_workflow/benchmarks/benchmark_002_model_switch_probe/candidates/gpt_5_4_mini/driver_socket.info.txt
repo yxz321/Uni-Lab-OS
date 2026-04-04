@@ -1,0 +1,198 @@
+device: driver_socket
+registry_key: driver_socket
+device_identity:
+  manufacturer: Metrohm Autolab
+  model_name: Driver Socket
+  name: Metrohm Autolab socket driver
+description: Socket-based Autolab control bridge that wraps client/server messaging, device discovery, and remote interaction
+  with connected instrument drivers.
+description_evidence:
+- source: driver.class
+  value: class Driver_SOCKET, ClientThread, Server, Driver_REMOTE
+- source: driver.docstrings
+  value: read/write pickled objects, handshake, listen, process commands, get device models
+- source: registry.description
+  value: Metrohm Autolab Driver Socket
+related_tags:
+- id: 4425
+  name: 电化学工作站
+  name_en: Electrochemical Workstation
+  type: device_template_tag
+tag_evidence:
+- tag_id: 4425
+  reason: The socket layer is explicitly for Autolab instrument control and device-model exchange in an electrochemistry context.
+atom_actions:
+- name: auto-clean_client_threads
+  driver_function: clean_client_threads
+  parameters: []
+  short_description: Remove finished client threads.
+  evidence: code
+- name: auto-close_client_threads
+  driver_function: close_client_threads
+  parameters: []
+  short_description: Request all active client threads to close.
+  evidence: code
+- name: auto-get_device
+  driver_function: get_device
+  parameters:
+  - dev_name
+  short_description: Request a device object by name from the remote side.
+  evidence: code
+- name: auto-get_device_structure
+  driver_function: get_device_structure
+  parameters: []
+  short_description: Request a device structure from the remote side.
+  evidence: code
+- name: auto-get_devices_status
+  driver_function: get_devices_status
+  parameters: []
+  short_description: Request the current device status map.
+  evidence: code
+- name: auto-get_driver_model
+  driver_function: get_driver_model
+  parameters: []
+  short_description: Build a driver model from the remote device list.
+  evidence: code
+- name: auto-handshake
+  driver_function: handshake
+  parameters: []
+  short_description: Validate the Autolab handshake.
+  evidence: code
+- name: auto-interact
+  driver_function: interact
+  parameters:
+  - address
+  short_description: Interact with a remote device element by address.
+  evidence: code
+- name: auto-listen
+  driver_function: listen
+  parameters: []
+  short_description: Listen for client commands.
+  evidence: code
+- name: auto-log
+  driver_function: log
+  parameters:
+  - log
+  short_description: Print a timestamped server log message.
+  evidence: code
+- name: auto-process_command
+  driver_function: process_command
+  parameters:
+  - command
+  short_description: Dispatch a received client command.
+  evidence: code
+- name: auto-read
+  driver_function: read
+  parameters:
+  - length
+  short_description: Read and unpickle a framed message from the socket.
+  evidence: code
+- name: auto-request_close
+  driver_function: request_close
+  parameters: []
+  short_description: Request thread shutdown and socket close.
+  evidence: code
+- name: auto-write
+  driver_function: write
+  parameters:
+  - object
+  short_description: Serialize and send a framed message over the socket.
+  evidence: code
+driver_functions:
+  Driver_SOCKET.__init__(self, *args, **kwargs):
+    short_description: Base socket wrapper initialization.
+    evidence: code
+  Driver_SOCKET.read(self, length):
+    short_description: Read and unpickle a framed message from the socket.
+    evidence: code
+  Driver_SOCKET.write(self, object):
+    short_description: Serialize and send a framed message over the socket.
+    evidence: code
+  ClientThread.__init__(self, client_socket, server):
+    short_description: Bind a client socket to the server thread.
+    evidence: code
+  ClientThread.run(self):
+    short_description: Handshake, listen, and close the client connection.
+    evidence: code
+  ClientThread.handshake(self):
+    short_description: Validate an Autolab handshake and claim the active connection.
+    evidence: code
+  ClientThread.listen(self):
+    short_description: Loop while receiving client commands.
+    evidence: code
+  ClientThread.process_command(self, command):
+    short_description: Handle control and device-model requests.
+    evidence: code
+  ClientThread.close(self):
+    short_description: Close the socket and release active connection state.
+    evidence: code
+  ClientThread.request_close(self):
+    short_description: Signal shutdown and join the thread.
+    evidence: code
+  Server.__init__(self, port):
+    short_description: Load config, start the server, and enter the listen loop.
+    evidence: code
+  Server.start(self):
+    short_description: Bind and start the listening socket.
+    evidence: code
+  Server.listen(self):
+    short_description: Accept connections and spawn client threads.
+    evidence: code
+  Server.clean_client_threads(self):
+    short_description: Drop finished client threads from the list.
+    evidence: code
+  Server.close_client_threads(self):
+    short_description: Request shutdown for all client threads.
+    evidence: code
+  Server.log(self, log):
+    short_description: Print a timestamped log line.
+    evidence: code
+  Server.close(self):
+    short_description: Close the server socket and client threads.
+    evidence: code
+  Driver_REMOTE.__init__(self, address, port):
+    short_description: Connect to a remote Autolab server and fetch device status.
+    evidence: code
+  Driver_REMOTE.connect(self):
+    short_description: Open the TCP connection to the server.
+    evidence: code
+  Driver_REMOTE.handshake(self):
+    short_description: Send the remote handshake and verify the reply.
+    evidence: code
+  Driver_REMOTE.disconnect(self):
+    short_description: Close the remote server connection.
+    evidence: code
+  Driver_REMOTE.get_devices_status(self):
+    short_description: Request the current device-status map.
+    evidence: code
+  Driver_REMOTE.get_driver_model(self):
+    short_description: Attempt to build a model for remote devices.
+    evidence: code
+  Driver_REMOTE.get_device(self, dev_name):
+    short_description: Stub for requesting a remote device object.
+    evidence: code
+  Driver_REMOTE.get_device_structure(self):
+    short_description: Stub for requesting remote device structure.
+    evidence: code
+  FakeDriver.__init__(self, driver_remote, name, status):
+    short_description: Store the remote driver handle, device name, and status.
+    evidence: code
+  FakeDriver.get_driver_model(self):
+    short_description: Build a remote-facing model for one device.
+    evidence: code
+  FakeDriver.interact(interaction_type, address):
+    short_description: Placeholder for remote element interaction.
+    evidence: code
+schema_version: v3
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_actions: 14
+  driver_functions: 28
+  related_tags: 1
+  evidence_scope: local-only

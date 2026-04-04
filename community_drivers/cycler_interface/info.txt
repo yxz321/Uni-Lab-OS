@@ -1,24 +1,80 @@
-Device: cycler_interface
-Registry Key: cycler_interface
-Short Description: Class for interfacing with Arbin battery cycler at a cycler level
-
-Categories:
-- devices
-- arbin_cycler
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (1):
-- auto-read_channel_status -> read_channel_status [UniLabJsonCommand] goal_params: channel
-
-Driver Functions (9):
-- CyclerInterface.__init__(self, config, env_path) (line 86)
-- CyclerInterface.get_num_channels(self) (line 114)
-- CyclerInterface.get_login_feedback(self) (line 121)
-- CyclerInterface.read_channel_status(self, channel) (line 128)
-- CyclerInterface._send_receive_msg(self, tx_msg) (line 166)
-- CyclerInterface.__create_connection(self, ip, port, timeout_s) (line 235)
-- CyclerInterface.__login(self, env_path) (line 267)
-- CyclerInterface.__reconnect(self) (line 318)
-- CyclerInterfaceConfig.__init__(self, *args, **kwargs) (line 350)
+device: cycler_interface
+registry_key: cycler_interface
+device_identity:
+  manufacturer: Arbin Instruments
+  model:
+    name: Arbin Battery Cycler Interface
+    type: device
+  name: Arbin Cycler Interface
+  module_path: unilabos.devices.devices.arbin_cycler.arbin_cycler_interface:CyclerInterface
+description:
+  text_en: Interface to an Arbin battery cycler controller that manages login/session communication and
+    reads per-channel battery test status over TCP.
+  method: web+local
+description_evidence:
+  web:
+  - https://www.arbin.com/
+  - https://www.arbin.com/mits-8-software/
+  local:
+  - 'class docstring: Class for interfacing with Arbin battery cycler at a cycler level'
+  - read_channel_status(channel) and login/connection helpers in driver
+  - registry module path points to arbin_cycler_interface
+related_tags:
+- id: '4316'
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+- id: '4427'
+  name: 电池测试柜
+  name_en: Battery Test Cabinet
+  type: device_template_tag
+tag_evidence:
+- tag_id: '4316'
+  rationale: Channel status readout and cycler data interactions are characterization-oriented battery
+    testing operations.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: '4427'
+  rationale: Identity and driver module indicate battery cycler/test-cabinet style usage.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-read_channel_status
+  title: read_channel_status
+  parameters:
+  - channel
+  command_type: UniLabJsonCommand
+  description_en: Read status for a selected cycler channel.
+  evidence_source: docstring
+driver_functions:
+  compact_signatures:
+  - CyclerInterface.__init__(self, config, env_path) (line 86)
+  - CyclerInterface.get_num_channels(self) (line 114)
+  - CyclerInterface.get_login_feedback(self) (line 121)
+  - CyclerInterface.read_channel_status(self, channel) (line 128)
+  - CyclerInterface._send_receive_msg(self, tx_msg) (line 166)
+  - CyclerInterface.__create_connection(self, ip, port, timeout_s) (line 235)
+  - CyclerInterface.__login(self, env_path) (line 267)
+  - CyclerInterface.__reconnect(self) (line 318)
+  - CyclerInterfaceConfig.__init__(self, *args, **kwargs) (line 350)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v3
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 1
+  driver_function_count: 9
+  related_tag_count: 2

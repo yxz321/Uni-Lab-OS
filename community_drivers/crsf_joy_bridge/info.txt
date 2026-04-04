@@ -1,29 +1,103 @@
-Device: crsf_joy_bridge
-Registry Key: crsf_joy_bridge
-Short Description: Crsf JOY Bridge是一款实验执行&合成设备，主要功能包括启动、读取数据。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (5):
-- auto-destroy_node -> destroy_node [UniLabJsonCommand] goal_params: none
-- auto-handle_crsf_packet -> handle_crsf_packet [UniLabJsonCommand] goal_params: data, ptype
-- auto-publish_joy -> publish_joy [UniLabJsonCommand] goal_params: none
-- auto-serial_reader -> serial_reader [UniLabJsonCommand] goal_params: none
-- auto-start_serial -> start_serial [UniLabJsonCommand] goal_params: none
-
-Driver Functions (11):
-- crc8_dvb_s2(crc, a) (line 87)
-- crc8_data(data) (line 112)
-- crsf_validate_frame(frame) (line 132)
-- n(val) (line 149)
-- CrsfJoyBridge.__init__(self) (line 177)
-- CrsfJoyBridge.start_serial(self) (line 209)
-- CrsfJoyBridge.serial_reader(self) (line 224)
-- CrsfJoyBridge.handle_crsf_packet(self, ptype, data) (line 254)
-- CrsfJoyBridge.publish_joy(self) (line 302)
-- CrsfJoyBridge.destroy_node(self) (line 310)
-- main(args) (line 323)
+device: crsf_joy_bridge
+registry_key: crsf_joy_bridge
+device_identity:
+  manufacturer: Open Source
+  model:
+    name: CRSF to ROS2 Joy Bridge
+    type: device
+  name: CRSF Joy Bridge
+  module_path: unilabos.devices.generic.crsf_joy_bridge:CrsfJoyBridge
+description:
+  text_en: ROS2 bridge node that reads CRSF radio-control frames from serial input
+    and publishes normalized joystick axes/buttons as `sensor_msgs/Joy` for robot
+    teleoperation.
+  method: local+web
+description_evidence:
+  web:
+  - https://github.com/iOperator/CRSF-HLA
+  local:
+  - 'registry.description: Crsf JOY Bridge是一款实验执行&合成设备，主要功能包括启动、读取数据。支持Signal, Slot,
+    crc8 data等操作。'
+  - 'registry.name: Enumeration of CRSF packet types'
+  - 'registry.manufacturer: Open Source'
+  - 'registry.class.module: unilabos.devices.generic.crsf_joy_bridge:CrsfJoyBridge'
+  - 'actions include: start_serial, serial_reader, handle_crsf_packet, publish_joy,
+    destroy_node'
+  - 'driver header: Original: unitree/go2_sdk/go2_sdk/crsf_controller.py'
+related_tags:
+- id: '4317'
+  name: 物流/机械
+  name_en: Logistics / Machinery
+  type: experimental_step
+tag_evidence:
+- tag_id: '4317'
+  rationale: Matched from registry signals and action/description semantics.
+  signals:
+  - registry.category
+  - registry.tags
+  - name
+  - model
+  - manufacturer
+  - module_path
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-start_serial
+  title: start_serial
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Start serial receiver thread for CRSF frame ingestion.
+  evidence_source: docstring
+- name: auto-serial_reader
+  title: serial_reader
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read serial bytes, validate CRSF frames, and dispatch packet handling.
+  evidence_source: docstring
+- name: auto-handle_crsf_packet
+  title: handle_crsf_packet
+  parameters:
+  - ptype
+  - data
+  command_type: UniLabJsonCommand
+  description_en: Decode CRSF packet payload into joystick axes/buttons state.
+  evidence_source: docstring
+- name: auto-publish_joy
+  title: publish_joy
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Publish latest normalized joystick state to ROS2 Joy topic.
+  evidence_source: docstring
+- name: auto-destroy_node
+  title: destroy_node
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Stop serial loop and cleanly destroy ROS2 node resources.
+  evidence_source: docstring
+driver_functions:
+  compact_signatures:
+  - crc8_dvb_s2(crc, a) (line 87)
+  - crc8_data(data) (line 112)
+  - crsf_validate_frame(frame) (line 132)
+  - n(val) (line 149)
+  - CrsfJoyBridge.__init__(self) (line 177)
+  - CrsfJoyBridge.start_serial(self) (line 209)
+  - CrsfJoyBridge.serial_reader(self) (line 224)
+  - CrsfJoyBridge.handle_crsf_packet(self, ptype, data) (line 254)
+  - CrsfJoyBridge.publish_joy(self) (line 302)
+  - CrsfJoyBridge.destroy_node(self) (line 310)
+  - main(args) (line 323)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v3
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 5
+  driver_function_count: 11
+  related_tag_count: 1

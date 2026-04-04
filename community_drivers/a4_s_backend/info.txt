@@ -1,44 +1,147 @@
-Device: a4_s_backend
-Registry Key: a4_s_backend
-Short Description: A4 S Backend驱动，支持close/open/seal/send command/set heater等13个操作。
-
-Categories:
-- 移液工作站
-
-Related Tags (from tag 标签列表.csv):
-- [4436] 移液工作站 / Liquid Handling Workstation (device_template_tag)
-
-Atom Actions (13):
-- auto-close -> close [UniLabJsonCommandAsync] goal_params: none
-- auto-get_remaining_time -> get_remaining_time [UniLabJsonCommand] goal_params: none
-- auto-get_status -> get_status [UniLabJsonCommand] goal_params: none
-- auto-get_temperature -> get_temperature [UniLabJsonCommand] goal_params: none
-- auto-open -> open [UniLabJsonCommandAsync] goal_params: none
-- auto-seal -> seal [UniLabJsonCommandAsync] goal_params: duration, temperature
-- auto-send_command -> send_command [UniLabJsonCommandAsync] goal_params: command
-- auto-set_heater -> set_heater [UniLabJsonCommandAsync] goal_params: on
-- auto-set_temperature -> set_temperature [UniLabJsonCommandAsync] goal_params: temperature
-- auto-set_time -> set_time [UniLabJsonCommandAsync] goal_params: seconds
-- auto-setup -> setup [UniLabJsonCommandAsync] goal_params: none
-- auto-stop -> stop [UniLabJsonCommandAsync] goal_params: none
-- auto-system_reset -> system_reset [UniLabJsonCommandAsync] goal_params: none
-
-Driver Functions (18):
-- A4SBackend.__init__(self, port, timeout) (line 82)
-- A4SBackend.setup(self) [async] (line 95)
-- A4SBackend.stop(self) [async] (line 100)
-- A4SBackend.set_heater(self, on) [async] (line 105)
-- A4SBackend._read_message(self) [async] (line 147)
-- A4SBackend.get_status(self) [async] (line 166)
-- A4SBackend._wait_for_status(self, statuses) [async] (line 208)
-- A4SBackend.send_command(self, command) [async] (line 225)
-- A4SBackend.seal(self, temperature, duration) [async] (line 232)
-- A4SBackend._wait_for_temperature(self, degrees, timeout, tolerance) [async] (line 242)
-- A4SBackend._wait_for_shuttle_open_sensor(self, shuttle_open, timeout) [async] (line 253)
-- A4SBackend.set_temperature(self, temperature) [async] (line 265)
-- A4SBackend.set_time(self, seconds) [async] (line 273)
-- A4SBackend.open(self) [async] (line 281)
-- A4SBackend.close(self) [async] (line 286)
-- A4SBackend.system_reset(self) [async] (line 291)
-- A4SBackend.get_temperature(self) [async] (line 296)
-- A4SBackend.get_remaining_time(self) [async] (line 301)
+device: a4_s_backend
+registry_key: a4_s_backend
+device_identity:
+  manufacturer: Opentrons
+  model:
+    name: Generic A4 S Backend 后端控制器
+    type: device
+  module_path: unilabos.devices.arm.a4_s_backend:A4SBackend
+description:
+  text_en: Device backend for command execution, setup, and runtime control in laboratory automation workflows.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'registry.description: A4 S Backend驱动，支持close/open/seal/send command/set heater等13个操作。'
+  - 'actions include: close, open, seal, send_command, set_heater, set_temperature, set_time, setup'
+  - 'driver functions include: Execute init with port, timeout. Execute setup. Execute stop.'
+related_tags:
+- id: 4436
+  name: 移液工作站
+  name_en: Liquid Handling Workstation
+  type: device_template_tag
+tag_evidence:
+- tag_id: 4436
+  rationale: Direct registry tag/category match, supported by action and description context.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+atom_actions:
+- name: auto-close
+  title: close
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Execute close.
+  evidence_source: driver_function
+- name: auto-open
+  title: open
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Execute open.
+  evidence_source: driver_function
+- name: auto-seal
+  title: seal
+  parameters:
+  - duration
+  - temperature
+  command_type: UniLabJsonCommandAsync
+  description_en: Execute seal with temperature, duration.
+  evidence_source: driver_function
+- name: auto-send_command
+  title: send_command
+  parameters:
+  - command
+  command_type: UniLabJsonCommandAsync
+  description_en: 'command accepted: *Y01PL!.'
+  evidence_source: driver_function
+- name: auto-set_heater
+  title: set_heater
+  parameters:
+  - 'on'
+  command_type: UniLabJsonCommandAsync
+  description_en: Execute set heater with on.
+  evidence_source: driver_function
+- name: auto-set_temperature
+  title: set_temperature
+  parameters:
+  - temperature
+  command_type: UniLabJsonCommandAsync
+  description_en: Execute set temperature with temperature.
+  evidence_source: driver_function
+- name: auto-set_time
+  title: set_time
+  parameters:
+  - seconds
+  command_type: UniLabJsonCommandAsync
+  description_en: Execute set time with seconds.
+  evidence_source: driver_function
+- name: auto-setup
+  title: setup
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Execute setup.
+  evidence_source: driver_function
+- name: auto-stop
+  title: stop
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Execute stop.
+  evidence_source: driver_function
+- name: auto-system_reset
+  title: system_reset
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Execute system reset.
+  evidence_source: driver_function
+- name: auto-get_status
+  title: get_status
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: read until we get a system status message.
+  evidence_source: driver_function
+- name: auto-get_temperature
+  title: get_temperature
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute get temperature.
+  evidence_source: driver_function
+- name: auto-get_remaining_time
+  title: get_remaining_time
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute get remaining time.
+  evidence_source: driver_function
+driver_functions:
+  compact_signatures:
+  - A4SBackend.__init__(self, port, timeout) (line 82)
+  - A4SBackend.setup(self) [async] (line 95)
+  - A4SBackend.stop(self) [async] (line 100)
+  - A4SBackend.set_heater(self, on) [async] (line 105)
+  - A4SBackend._read_message(self) [async] (line 147)
+  - A4SBackend.get_status(self) [async] (line 166)
+  - A4SBackend._wait_for_status(self, statuses) [async] (line 208)
+  - A4SBackend.send_command(self, command) [async] (line 225)
+  - A4SBackend.seal(self, temperature, duration) [async] (line 232)
+  - A4SBackend._wait_for_temperature(self, degrees, timeout, tolerance) [async] (line 242)
+  - A4SBackend._wait_for_shuttle_open_sensor(self, shuttle_open, timeout) [async] (line 253)
+  - A4SBackend.set_temperature(self, temperature) [async] (line 265)
+  - A4SBackend.set_time(self, seconds) [async] (line 273)
+  - A4SBackend.open(self) [async] (line 281)
+  - A4SBackend.close(self) [async] (line 286)
+  - A4SBackend.system_reset(self) [async] (line 291)
+  - A4SBackend.get_temperature(self) [async] (line 296)
+  - A4SBackend.get_remaining_time(self) [async] (line 301)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v1
+processing_pass_order:
+- description_extraction
+- action_summary
+- driver_function_summary
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 13
+  driver_function_count: 18
+  related_tag_count: 1

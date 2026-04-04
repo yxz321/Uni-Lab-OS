@@ -1,30 +1,116 @@
-Device: coherent_obis_laser
-Registry Key: coherent_obis_laser
-Short Description: CoherentOBISLaser
-
-Categories:
-- lasers
-- coherent_obis
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (7):
-- auto-Close -> Close [UniLabJsonCommand] goal_params: none
-- auto-GetPower -> GetPower [UniLabJsonCommand] goal_params: none
-- auto-IsOn -> IsOn [UniLabJsonCommand] goal_params: none
-- auto-SetPower -> SetPower [UniLabJsonCommand] goal_params: power
-- auto-TurnOff -> TurnOff [UniLabJsonCommand] goal_params: none
-- auto-TurnOn -> TurnOn [UniLabJsonCommand] goal_params: none
-- auto-query -> query [UniLabJsonCommand] goal_params: command, lines_expected
-
-Driver Functions (9):
-- CoherentOBISLaser.__init__(self, serial_port, turn_on, name, init_power, reply_ok, **kwargs) (line 106)
-- CoherentOBISLaser.query(self, command, lines_expected) (line 146)
-- CoherentOBISLaser.IsOn(self) (line 180)
-- CoherentOBISLaser.TurnOn(self) (line 185)
-- CoherentOBISLaser.TurnOff(self) (line 190)
-- CoherentOBISLaser.SetPower(self, power) (line 196)
-- CoherentOBISLaser.GetPower(self) (line 212)
-- CoherentOBISLaser.Close(self) (line 216)
-- CoherentOBISLaser.__del__(self) (line 222)
+device: coherent_obis_laser
+registry_key: coherent_obis_laser
+device_identity:
+  manufacturer: Coherent Corp.
+  model:
+    name: OBIS laser
+    type: device
+  name: Coherent OBIS Laser
+  module_path: unilabos.devices.lasers.coherent_obis.coherent_obis_laser:CoherentOBISLaser
+description:
+  text_en: Coherent OBIS is a compact OEM continuous-wave laser module used in fluorescence and bioimaging
+    instruments, with serial commands for emission on/off control and milliwatt-level power setpoints.
+  method: web+local
+description_evidence:
+  web:
+  - https://www.coherent.com/content/dam/coherent/site/en/resources/datasheet/lasers/obis-core-ds.pdf
+  local:
+  - Driver sends OBIS SCPI-like commands for emission enable and power level (SOUR:AM:STAT, SOUR:POW:LEV:IMM:AMPL).
+  - Initialization reads low/high power limits from instrument replies.
+related_tags:
+- id: 4313
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+- id: 4316
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: 4313
+  rationale: Emission switching and power setpoint control are direct experiment-execution operations.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: 4316
+  rationale: OBIS modules are widely integrated into optical detection/imaging platforms.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-query
+  title: query
+  parameters:
+  - command
+  - lines_expected
+  command_type: UniLabJsonCommand
+  description_en: Send serial command and return requested reply lines.
+  evidence_source: docstring
+- name: auto-IsOn
+  title: IsOn
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return cached laser emission state flag.
+  evidence_source: code_comments
+- name: auto-TurnOn
+  title: TurnOn
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Enable laser emission output.
+  evidence_source: name_params
+- name: auto-TurnOff
+  title: TurnOff
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Disable laser emission output.
+  evidence_source: name_params
+- name: auto-SetPower
+  title: SetPower
+  parameters:
+  - power
+  command_type: UniLabJsonCommand
+  description_en: Set optical output power in mW via laser command interface.
+  evidence_source: docstring
+- name: auto-GetPower
+  title: GetPower
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return cached optical power setpoint value.
+  evidence_source: name_params
+- name: auto-Close
+  title: Close
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Turn laser output off and perform shutdown delay.
+  evidence_source: code_comments
+driver_functions:
+  compact_signatures:
+  - CoherentOBISLaser.__init__(self, serial_port, turn_on, name, init_power, reply_ok, **kwargs) (line
+    106)
+  - CoherentOBISLaser.query(self, command, lines_expected) (line 146)
+  - CoherentOBISLaser.IsOn(self) (line 180)
+  - CoherentOBISLaser.TurnOn(self) (line 185)
+  - CoherentOBISLaser.TurnOff(self) (line 190)
+  - CoherentOBISLaser.SetPower(self, power) (line 196)
+  - CoherentOBISLaser.GetPower(self) (line 212)
+  - CoherentOBISLaser.Close(self) (line 216)
+  - CoherentOBISLaser.__del__(self) (line 222)
+  note: Compact signatures retained; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 7
+  driver_function_count: 9
+  related_tag_count: 2

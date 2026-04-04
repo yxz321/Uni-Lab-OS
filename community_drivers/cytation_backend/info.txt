@@ -1,62 +1,263 @@
-Device: cytation_backend
-Registry Key: cytation_backend
-Short Description: BioTek Cytation Multi-Mode Reader 酶标仪是由Agilent (BioTek)生产的专业实验设备。
-
-Categories:
-- 酶标仪
-
-Related Tags (from tag 标签列表.csv):
-- [4457] 酶标仪 / Microplate Reader (device_template_tag)
-
-Atom Actions (17):
-- auto-capture -> capture [UniLabJsonCommand] goal_params: auto_stop_acquisition, center_position, color_processing_algorithm, column, coverage, exposure_time, focal_height, gain, led_intensity, mode, objective, overlap, pixel_format, plate, row
-- auto-filters -> filters [UniLabJsonCommand] goal_params: none
-- auto-led_off -> led_off [UniLabJsonCommand] goal_params: none
-- auto-led_on -> led_on [UniLabJsonCommand] goal_params: intensity
-- auto-objectives -> objectives [UniLabJsonCommand] goal_params: none
-- auto-select -> select [UniLabJsonCommand] goal_params: column, row
-- auto-set_auto_exposure -> set_auto_exposure [UniLabJsonCommand] goal_params: auto_exposure
-- auto-set_exposure -> set_exposure [UniLabJsonCommand] goal_params: exposure
-- auto-set_focus -> set_focus [UniLabJsonCommand] goal_params: focal_position
-- auto-set_gain -> set_gain [UniLabJsonCommand] goal_params: gain
-- auto-set_imaging_mode -> set_imaging_mode [UniLabJsonCommand] goal_params: led_intensity, mode
-- auto-set_objective -> set_objective [UniLabJsonCommand] goal_params: objective
-- auto-set_position -> set_position [UniLabJsonCommand] goal_params: x, y
-- auto-start_acquisition -> start_acquisition [UniLabJsonCommand] goal_params: none
-- auto-stop_acquisition -> stop_acquisition [UniLabJsonCommand] goal_params: none
-- auto-supports_cooling -> supports_cooling [UniLabJsonCommand] goal_params: none
-- auto-supports_heating -> supports_heating [UniLabJsonCommand] goal_params: none
-
-Driver Functions (32):
-- retry(func, *args, **kwargs) (line 121)
-- CytationBackend.__init__(self, timeout, device_id, imaging_config) (line 149)
-- CytationBackend.setup(self, use_cam) [async] (line 174)
-- CytationBackend.stop(self) [async] (line 191)
-- CytationBackend.supports_heating(self) (line 218)
-- CytationBackend.supports_cooling(self) (line 223)
-- CytationBackend._set_up_camera(self) [async] (line 227)
-- CytationBackend.objectives(self) (line 345)
-- CytationBackend.filters(self) (line 352)
-- CytationBackend._load_filters(self) [async] (line 358)
-- CytationBackend._load_objectives(self) [async] (line 398)
-- CytationBackend._stop_camera(self) (line 494)
-- CytationBackend._reset_trigger(self) (line 507)
-- CytationBackend._get_device_info(self, cam) (line 527)
-- CytationBackend.start_acquisition(self) (line 576)
-- CytationBackend.stop_acquisition(self) (line 585)
-- CytationBackend.led_on(self, intensity) [async] (line 594)
-- CytationBackend.led_off(self) [async] (line 604)
-- CytationBackend.set_focus(self, focal_position) [async] (line 608)
-- CytationBackend.set_position(self, x, y) [async] (line 635)
-- CytationBackend.set_auto_exposure(self, auto_exposure) [async] (line 680)
-- CytationBackend.set_exposure(self, exposure) [async] (line 697)
-- CytationBackend.select(self, row, column) [async] (line 730)
-- CytationBackend.set_gain(self, gain) [async] (line 741)
-- CytationBackend._imaging_mode_code(self, mode) (line 787)
-- CytationBackend._objective_code(self, objective) (line 793)
-- CytationBackend.set_objective(self, objective) [async] (line 797)
-- CytationBackend.set_imaging_mode(self, mode, led_intensity) [async] (line 815)
-- CytationBackend._acquire_image(self, color_processing_algorithm, pixel_format) [async] (line 863)
-- CytationBackend.capture(self, row, column, mode, objective, exposure_time, focal_height, gain, plate, led_intensity, coverage, center_position, overlap, color_processing_algorithm, pixel_format, auto_stop_acquisition) [async] (line 904)
-- Cytation5ImagingConfig.__init__(self, *args, **kwargs) (line 1021)
-- Cytation5Backend.__init__(self, *args, **kwargs) (line 1030)
+device: cytation_backend
+registry_key: cytation_backend
+device_identity:
+  manufacturer: Agilent BioTek
+  model:
+    name: Cytation Cell Imaging Multimode Reader
+    type: device
+  name: BioTek Cytation Multi-Mode Reader
+  module_path: unilabos.devices.plate_reader.cytation_backend:CytationBackend
+description:
+  text_en: Automated microplate reader with integrated cellular imaging and fluorescence/brightfield optics,
+    used for plate-based assay readout and well imaging.
+  method: web+local
+description_evidence:
+  web:
+  - https://www.agilent.com/en/product/cell-analysis/cell-imaging-microscopy/cell-imaging-multimode-readers/biotek-cytation-5-cell-imaging-multimode-reader-1623202
+  - https://www.agilent.com/cs/library/specifications/public/Cytation-5-technical-details-5994-3580EN-agilent.pdf
+  local:
+  - 'driver class docstring: Backend for Agilent BioTek Cytation plate readers'
+  - actions cover objectives/filters, autofocus/exposure/gain, stage position, and capture
+  - registry description names BioTek Cytation multi-mode reader
+related_tags:
+- id: '4457'
+  name: 酶标仪
+  name_en: Microplate Reader
+  type: device_template_tag
+- id: '4460'
+  name: 高内涵细胞成像分析系统
+  name_en: High Content Cell Imaging Analysis System
+  type: device_template_tag
+- id: '4316'
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+- id: '4318'
+  name: 生命体系
+  name_en: Life Sciences
+  type: experimental_domain
+- id: '4330'
+  name: 细胞生物学研究
+  name_en: Cell Biology Research
+  type: experimental_scene
+tag_evidence:
+- tag_id: '4457'
+  rationale: Core action set includes plate-reader acquisition and readout operations.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: '4460'
+  rationale: Integrated imaging controls (objective/filter/mode/capture) match high-content cell imaging
+    usage.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: '4316'
+  rationale: Instrument is primarily used for assay readout and image-based characterization.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: '4318'
+  rationale: Commonly used in life-science plate and cell assay workflows.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: '4330'
+  rationale: Cell-imaging and plate-assay operations are compatible with cell biology research scenes.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-capture
+  title: capture
+  parameters:
+  - auto_stop_acquisition
+  - center_position
+  - color_processing_algorithm
+  - column
+  - coverage
+  - exposure_time
+  - focal_height
+  - gain
+  - led_intensity
+  - mode
+  - objective
+  - overlap
+  - pixel_format
+  - plate
+  - row
+  command_type: UniLabJsonCommand
+  description_en: Capture a well image using selected mode/objective/exposure and positioning settings.
+  evidence_source: docstring
+- name: auto-filters
+  title: filters
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute filters.
+  evidence_source: action_name_params
+- name: auto-led_off
+  title: led_off
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute led off.
+  evidence_source: action_name_params
+- name: auto-led_on
+  title: led_on
+  parameters:
+  - intensity
+  command_type: UniLabJsonCommand
+  description_en: Execute led on with intensity.
+  evidence_source: action_name_params
+- name: auto-objectives
+  title: objectives
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute objectives.
+  evidence_source: action_name_params
+- name: auto-select
+  title: select
+  parameters:
+  - column
+  - row
+  command_type: UniLabJsonCommand
+  description_en: Execute select with column, row.
+  evidence_source: action_name_params
+- name: auto-set_auto_exposure
+  title: set_auto_exposure
+  parameters:
+  - auto_exposure
+  command_type: UniLabJsonCommand
+  description_en: Set auto exposure using auto_exposure.
+  evidence_source: action_name_params
+- name: auto-set_exposure
+  title: set_exposure
+  parameters:
+  - exposure
+  command_type: UniLabJsonCommand
+  description_en: Set integration exposure time or machine-auto mode.
+  evidence_source: docstring
+- name: auto-set_focus
+  title: set_focus
+  parameters:
+  - focal_position
+  command_type: UniLabJsonCommand
+  description_en: Set focal position (mm-scale conversion in driver).
+  evidence_source: docstring
+- name: auto-set_gain
+  title: set_gain
+  parameters:
+  - gain
+  command_type: UniLabJsonCommand
+  description_en: Set camera gain or machine-auto gain.
+  evidence_source: docstring
+- name: auto-set_imaging_mode
+  title: set_imaging_mode
+  parameters:
+  - led_intensity
+  - mode
+  command_type: UniLabJsonCommand
+  description_en: Select imaging/filter mode and adjust illumination.
+  evidence_source: code_comments
+- name: auto-set_objective
+  title: set_objective
+  parameters:
+  - objective
+  command_type: UniLabJsonCommand
+  description_en: Set objective using objective.
+  evidence_source: action_name_params
+- name: auto-set_position
+  title: set_position
+  parameters:
+  - x
+  - y
+  command_type: UniLabJsonCommand
+  description_en: Set position using x, y.
+  evidence_source: action_name_params
+- name: auto-start_acquisition
+  title: start_acquisition
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Start camera acquisition.
+  evidence_source: action_name_params
+- name: auto-stop_acquisition
+  title: stop_acquisition
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Stop camera acquisition.
+  evidence_source: action_name_params
+- name: auto-supports_cooling
+  title: supports_cooling
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute supports cooling.
+  evidence_source: action_name_params
+- name: auto-supports_heating
+  title: supports_heating
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute supports heating.
+  evidence_source: action_name_params
+driver_functions:
+  compact_signatures:
+  - retry(func, *args, **kwargs) (line 121)
+  - CytationBackend.__init__(self, timeout, device_id, imaging_config) (line 149)
+  - CytationBackend.setup(self, use_cam) [async] (line 174)
+  - CytationBackend.stop(self) [async] (line 191)
+  - CytationBackend.supports_heating(self) (line 218)
+  - CytationBackend.supports_cooling(self) (line 223)
+  - CytationBackend._set_up_camera(self) [async] (line 227)
+  - CytationBackend.objectives(self) (line 345)
+  - CytationBackend.filters(self) (line 352)
+  - CytationBackend._load_filters(self) [async] (line 358)
+  - CytationBackend._load_objectives(self) [async] (line 398)
+  - CytationBackend._stop_camera(self) (line 494)
+  - CytationBackend._reset_trigger(self) (line 507)
+  - CytationBackend._get_device_info(self, cam) (line 527)
+  - CytationBackend.start_acquisition(self) (line 576)
+  - CytationBackend.stop_acquisition(self) (line 585)
+  - CytationBackend.led_on(self, intensity) [async] (line 594)
+  - CytationBackend.led_off(self) [async] (line 604)
+  - CytationBackend.set_focus(self, focal_position) [async] (line 608)
+  - CytationBackend.set_position(self, x, y) [async] (line 635)
+  - CytationBackend.set_auto_exposure(self, auto_exposure) [async] (line 680)
+  - CytationBackend.set_exposure(self, exposure) [async] (line 697)
+  - CytationBackend.select(self, row, column) [async] (line 730)
+  - CytationBackend.set_gain(self, gain) [async] (line 741)
+  - CytationBackend._imaging_mode_code(self, mode) (line 787)
+  - CytationBackend._objective_code(self, objective) (line 793)
+  - CytationBackend.set_objective(self, objective) [async] (line 797)
+  - CytationBackend.set_imaging_mode(self, mode, led_intensity) [async] (line 815)
+  - CytationBackend._acquire_image(self, color_processing_algorithm, pixel_format) [async] (line 863)
+  - CytationBackend.capture(self, row, column, mode, objective, exposure_time, focal_height, gain, plate,
+    led_intensity, coverage, center_position, overlap, color_processing_algorithm, pixel_format, auto_stop_acquisition)
+    [async] (line 904)
+  - Cytation5ImagingConfig.__init__(self, *args, **kwargs) (line 1021)
+  - Cytation5Backend.__init__(self, *args, **kwargs) (line 1030)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v3
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 17
+  driver_function_count: 32
+  related_tag_count: 5

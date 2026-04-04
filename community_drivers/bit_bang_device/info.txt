@@ -1,27 +1,102 @@
-Device: bit_bang_device
-Registry Key: bit_bang_device
-Short Description: BrainBit DragonEEG多功能 21 通道脑电无线系统驱动（武汉提沃克科技有限公司），支持direction/latch/open/port/read pins。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (5):
-- auto-direction -> direction [UniLabJsonCommand] goal_params: new_dir
-- auto-latch -> latch [UniLabJsonCommand] goal_params: value
-- auto-open -> open [UniLabJsonCommand] goal_params: none
-- auto-port -> port [UniLabJsonCommand] goal_params: value
-- auto-read_pins -> read_pins [UniLabJsonCommand] goal_params: none
-
-Driver Functions (9):
-- BitBangDevice.__init__(self, device_id, direction, lazy_open, sync, bitbang_mode, interface_select, **kwargs) (line 107)
-- BitBangDevice.open(self) (line 140)
-- BitBangDevice.read_pins(self) (line 150)
-- BitBangDevice.latch(self) (line 165)
-- BitBangDevice.latch(self, value) (line 183)
-- BitBangDevice.direction(self) (line 190)
-- BitBangDevice.direction(self, new_dir) (line 199)
-- BitBangDevice.port(self) (line 210)
-- BitBangDevice.port(self, value) (line 236)
+device: bit_bang_device
+registry_key: bit_bang_device
+device_identity:
+  manufacturer: 武汉提沃克科技有限公司
+  model:
+    name: BrainBit DragonEEG多功能 21 通道脑电无线系统
+    type: device
+  name: BrainBit DragonEEG多功能 21
+  module_path: unilabos.devices.generic.bit_bang_device:BitBangDevice
+description:
+  text_en: An FTDI USB bit-bang I/O interface that exposes configurable digital pin direction and latch/port
+    state control for external electronics.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'registry.description: BrainBit DragonEEG多功能 21 通道脑电无线系统驱动（武汉提沃克科技有限公司），支持direction/latch/open/port/read
+    pins。'
+  - Driver docstring describes FTDI bit-bang mode with direction/port/latch pin control.
+related_tags:
+- id: 4316
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+- id: 4317
+  name: 物流/机械
+  name_en: Logistics / Machinery
+  type: experimental_step
+tag_evidence:
+- tag_id: 4316
+  rationale: Functions are centered on instrument readout, electrical state readback, or data capture
+    for characterization.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: 4317
+  rationale: Functions support hardware/control integration and automation infrastructure operations.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-direction
+  title: direction
+  parameters:
+  - new_dir
+  command_type: UniLabJsonCommand
+  description_en: Set GPIO direction bitmask (1 output, 0 input).
+  evidence_source: docstring
+- name: auto-latch
+  title: latch
+  parameters:
+  - value
+  command_type: UniLabJsonCommand
+  description_en: Set output latch value for mixed-direction pin control.
+  evidence_source: docstring
+- name: auto-open
+  title: open
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Open FTDI connection and apply configured direction mode.
+  evidence_source: docstring
+- name: auto-port
+  title: port
+  parameters:
+  - value
+  command_type: UniLabJsonCommand
+  description_en: Set/read 8-bit port state with input/output masking behavior.
+  evidence_source: docstring
+- name: auto-read_pins
+  title: read_pins
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read instantaneous physical pin states as an 8-bit value.
+  evidence_source: docstring
+driver_functions:
+  compact_signatures:
+  - BitBangDevice.__init__(self, device_id, direction, lazy_open, sync, bitbang_mode, interface_select,
+    **kwargs) (line 107)
+  - BitBangDevice.direction(self, new_dir) (line 199)
+  - BitBangDevice.latch(self, value) (line 183)
+  - BitBangDevice.open(self) (line 140)
+  - BitBangDevice.port(self, value) (line 236)
+  - BitBangDevice.read_pins(self) (line 150)
+  note: Compact signatures retained; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 5
+  driver_function_count: 6
+  related_tag_count: 2

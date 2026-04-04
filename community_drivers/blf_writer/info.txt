@@ -1,31 +1,83 @@
-Device: blf_writer
-Registry Key: blf_writer
-Short Description: BLF Writer是一款实验执行&合成设备，主要功能包括停止、日志记录。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (4):
-- auto-file_size -> file_size [UniLabJsonCommand] goal_params: none
-- auto-log_event -> log_event [UniLabJsonCommand] goal_params: text, timestamp
-- auto-on_message_received -> on_message_received [UniLabJsonCommand] goal_params: msg
-- auto-stop -> stop [UniLabJsonCommand] goal_params: none
-
-Driver Functions (14):
-- timestamp_to_systemtime(timestamp) (line 175)
-- systemtime_to_timestamp(systemtime) (line 192)
-- BLFReader.__init__(self, file, **kwargs) (line 217)
-- BLFReader.__iter__(self) (line 246)
-- BLFReader._parse_container(self, data) (line 275)
-- BLFReader._parse_data(self, data) (line 286)
-- BLFWriter.__init__(self, file, append, channel, compression_level, **kwargs) (line 455)
-- BLFWriter._write_header(self, filesize) (line 518)
-- BLFWriter.on_message_received(self, msg) (line 529)
-- BLFWriter.log_event(self, text, timestamp) (line 582)
-- BLFWriter._add_object(self, obj_type, data, timestamp) (line 604)
-- BLFWriter._flush(self) (line 636)
-- BLFWriter.file_size(self) (line 670)
-- BLFWriter.stop(self) (line 675)
+device: blf_writer
+registry_key: blf_writer
+device_identity:
+  manufacturer: Open Source
+  model:
+    name: BLF Writer
+    type: device
+  name: Blf Writer
+  module_path: unilabos.devices.generic.blf_writer:BLFWriter
+description:
+  text_en: A Vector BLF CAN logging writer that records CAN/CAN-FD traffic into Binary Logging Format
+    files for later analysis.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'registry.description: BLF Writer是一款实验执行&合成设备，主要功能包括停止、日志记录。支持Signal, Slot, file size等操作。'
+  - Module docstring states BLF is Vector CAN binary logging format and implements log writing.
+related_tags:
+- id: 4316
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: 4316
+  rationale: Functions are centered on instrument readout, electrical state readback, or data capture
+    for characterization.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-on_message_received
+  title: on_message_received
+  parameters:
+  - msg
+  command_type: UniLabJsonCommand
+  description_en: Encode incoming CAN/CAN-FD message objects into BLF records.
+  evidence_source: code_comments
+- name: auto-log_event
+  title: log_event
+  parameters:
+  - text
+  - timestamp
+  command_type: UniLabJsonCommand
+  description_en: Add a text event marker into the BLF file timeline.
+  evidence_source: docstring
+- name: auto-file_size
+  title: file_size
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return estimated current BLF file size in bytes.
+  evidence_source: docstring
+- name: auto-stop
+  title: stop
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Flush buffered objects, finalize header, and close writer.
+  evidence_source: docstring
+driver_functions:
+  compact_signatures:
+  - BLFWriter.__init__(self, file, append, channel, compression_level, **kwargs) (line 455)
+  - BLFWriter.on_message_received(self, msg) (line 529)
+  - BLFWriter.log_event(self, text, timestamp) (line 582)
+  - BLFWriter.file_size(self) (line 670)
+  - BLFWriter.stop(self) (line 675)
+  - BLFWriter._add_object(self, obj_type, data, timestamp) (line 604)
+  - BLFWriter._flush(self) (line 636)
+  note: Compact signatures retained; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 4
+  driver_function_count: 7
+  related_tag_count: 1

@@ -1,27 +1,110 @@
-Device: base_instrument
-Registry Key: base_instrument
-Short Description: Base Instrument 基础仪器驱动是Jeio Tech Co.
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (5):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-query -> query [UniLabJsonCommand] goal_params: check_complete, command
-- auto-set_opc_timeout -> set_opc_timeout [UniLabJsonCommand] goal_params: poll_interval, timeout
-- auto-wait_opc -> wait_opc [UniLabJsonCommand] goal_params: opc_poll_interval, timeout
-- auto-write -> write [UniLabJsonCommand] goal_params: check_complete, command
-
-Driver Functions (9):
-- handle_instrument_error(func) (line 83)
-- BaseInstrument.__init__(self, address, config_path, model) (line 99)
-- BaseInstrument._get_instrument_address(self, address, config_path) (line 130)
-- BaseInstrument._connect_instrument(self) (line 166)
-- BaseInstrument.write(self, command, check_complete) (line 205)
-- BaseInstrument.query(self, command, check_complete) (line 223)
-- BaseInstrument.set_opc_timeout(self, timeout, poll_interval) (line 250)
-- BaseInstrument.wait_opc(self, timeout, opc_poll_interval) (line 264)
-- BaseInstrument.close(self) (line 300)
+device: base_instrument
+registry_key: base_instrument
+device_identity:
+  manufacturer: Jeio Tech Co., Ltd - 上海代表处
+  model:
+    name: 韩国ilSHinBioBase 进口深冷冻箱 GUDERO CHEST系列
+    type: device
+  module_path: unilabos.devices.unilabos.device.instruments.base_instrument:BaseInstrument
+description:
+  text_en: Generic SCPI/VISA instrument base class for command write/query operations with optional *OPC
+    synchronization and timeout control.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'registry.description: Base Instrument 基础仪器驱动是Jeio Tech Co., Ltd - 上海代表处提供的设备驱动，提供query, set_opc_timeout,
+    wait_opc等5个控制接口。'
+  - 'actions include: close, query, set_opc_timeout, wait_opc, write'
+  - 'driver functions include: handle_instrument_error, BaseInstrument.__init__, BaseInstrument._get_instrument_address,
+    BaseInstrument._connect_instrument, BaseInstrument.write, BaseInstrument.query'
+  - description synthesized from registry metadata + action/function evidence (local pass)
+related_tags:
+- id: '4313'
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+- id: '4316'
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: '4313'
+  rationale: Matched from registry metadata plus action/description/module signals.
+  signals:
+  - registry.category
+  - registry.tags
+  - module_path
+  - description
+  - atom_actions
+- tag_id: '4316'
+  rationale: Matched from registry metadata plus action/description/module signals.
+  signals:
+  - registry.category
+  - registry.tags
+  - module_path
+  - description
+  - atom_actions
+atom_actions:
+- name: auto-close
+  title: close
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Close active device/connection handle.
+  evidence_source: action_name_params
+- name: auto-query
+  title: query
+  parameters:
+  - check_complete
+  - command
+  command_type: UniLabJsonCommand
+  description_en: Send SCPI query and return response.
+  evidence_source: driver_function
+- name: auto-set_opc_timeout
+  title: set_opc_timeout
+  parameters:
+  - poll_interval
+  - timeout
+  command_type: UniLabJsonCommand
+  description_en: Set temporary OPC timeout and polling interval.
+  evidence_source: action_name_params
+- name: auto-wait_opc
+  title: wait_opc
+  parameters:
+  - opc_poll_interval
+  - timeout
+  command_type: UniLabJsonCommand
+  description_en: Wait until instrument OPC completion or timeout.
+  evidence_source: action_name_params
+- name: auto-write
+  title: write
+  parameters:
+  - check_complete
+  - command
+  command_type: UniLabJsonCommand
+  description_en: Write SCPI command to instrument.
+  evidence_source: driver_function
+driver_functions:
+  compact_signatures:
+  - handle_instrument_error(func) (line 83)
+  - BaseInstrument.__init__(self, address, config_path, model) (line 99)
+  - BaseInstrument._get_instrument_address(self, address, config_path) (line 130)
+  - BaseInstrument._connect_instrument(self) (line 166)
+  - BaseInstrument.write(self, command, check_complete) (line 205)
+  - BaseInstrument.query(self, command, check_complete) (line 223)
+  - BaseInstrument.set_opc_timeout(self, timeout, poll_interval) (line 250)
+  - BaseInstrument.wait_opc(self, timeout, opc_poll_interval) (line 264)
+  - BaseInstrument.close(self) (line 300)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 5
+  driver_function_count: 9
+  related_tag_count: 2

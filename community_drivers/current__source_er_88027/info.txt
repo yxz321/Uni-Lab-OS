@@ -1,23 +1,88 @@
-Device: current__source_er_88027
-Registry Key: current__source_er_88027
-Short Description: Current Source Er 88027是由Earth Research生产的实验执行&合成设备，主要功能包括测量。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (3):
-- auto-measureR -> measureR [UniLabJsonCommand] goal_params: none
-- auto-measurei -> measurei [UniLabJsonCommand] goal_params: none
-- auto-seti -> seti [UniLabJsonCommand] goal_params: value
-
-Driver Functions (7):
-- Current_Source_ER_88027.__init__(self, name, Keithley_Vsource, Keithley_instr, **kwargs) (line 80)
-- Current_Source_ER_88027._get_I(self) (line 98)
-- Current_Source_ER_88027._set_I(self, value) (line 102)
-- Current_Source_ER_88027.seti(self, value) (line 107)
-- Current_Source_ER_88027.measurei(self) (line 111)
-- Current_Source_ER_88027.measureR(self) (line 115)
-- convert_I(dacV) (line 124)
+device: current__source_er_88027
+registry_key: current__source_er_88027
+device_identity:
+  manufacturer: Earth Research
+  model:
+    name: ER 88027 Current Source
+    type: device
+  name: Earth Research Current Source ER 88027
+  module_path: unilabos.devices.custom.current__source_er_88027:Current_Source_ER_88027
+description:
+  text_en: Programmable current source interface used to source current through a connected Keithley setup
+    and read back current/resistance values for electrical test workflows.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'driver header origin: pycqed/instrument_drivers/meta_instrument/Current_Source_ER_88027.py'
+  - methods seti(), measurei(), and measureR() indicate current sourcing and readback behavior
+  - convert_I() and Keithley source integration appear in driver code
+related_tags:
+- id: '4313'
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+- id: '4425'
+  name: 电化学工作站
+  name_en: Electrochemical Workstation
+  type: device_template_tag
+tag_evidence:
+- tag_id: '4313'
+  rationale: Current-source control and measurement operations fit experiment execution instrumentation.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: '4425'
+  rationale: Current sourcing plus measurement workflow aligns with electrochemical/electrical workstation
+    behavior.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-measureR
+  title: measureR
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Estimate resistance from current-dependent logic.
+  evidence_source: code_comments
+- name: auto-measurei
+  title: measurei
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read current from the instrument.
+  evidence_source: action_name_params
+- name: auto-seti
+  title: seti
+  parameters:
+  - value
+  command_type: UniLabJsonCommand
+  description_en: Set output current setpoint.
+  evidence_source: action_name_params
+driver_functions:
+  compact_signatures:
+  - Current_Source_ER_88027.__init__(self, name, Keithley_Vsource, Keithley_instr, **kwargs) (line 80)
+  - Current_Source_ER_88027._get_I(self) (line 98)
+  - Current_Source_ER_88027._set_I(self, value) (line 102)
+  - Current_Source_ER_88027.seti(self, value) (line 107)
+  - Current_Source_ER_88027.measurei(self) (line 111)
+  - Current_Source_ER_88027.measureR(self) (line 115)
+  - convert_I(dacV) (line 124)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v3
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 3
+  driver_function_count: 7
+  related_tag_count: 2

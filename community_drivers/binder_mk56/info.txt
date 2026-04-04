@@ -1,23 +1,86 @@
-Device: binder_mk56
-Registry Key: binder_mk56
-Short Description: Binder Mk56是由BINDER GmbH生产的实验执行&合成设备，主要功能包括打开、温度设置。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (3):
-- auto-get_door_open -> get_door_open [UniLabJsonCommand] goal_params: none
-- auto-get_mode -> get_mode [UniLabJsonCommand] goal_params: none
-- auto-set_temperature -> set_temperature [UniLabJsonCommand] goal_params: reps, temperature
-
-Driver Functions (7):
-- binderMK56.__init__(self, *args, **kwargs) (line 87)
-- binderMK56.get_door_open(self) (line 94)
-- binderMK56.get_mode(self) (line 98)
-- binderMK56.set_temperature(self, temperature, reps) (line 102)
-- binderMK56._parse_read_response(self, msgbytes) (line 117)
-- binderMK56._parse_write_response(self, msgbytes) (line 138)
-- binderMK56._parse_error_response(self, msgbytes) (line 151)
+device: binder_mk56
+registry_key: binder_mk56
+device_identity:
+  manufacturer: BINDER GmbH
+  model:
+    name: Binder Mk56
+    type: device
+  name: BINDER GmbH Binder MK 56 climate chamber
+  module_path: unilabos.devices.generic.binder_mk56:binderMK56
+description:
+  text_en: BINDER MK 56 is a dynamic climate chamber for controlled temperature conditioning and programmed
+    thermal test cycles.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'registry.description: Binder Mk56是由BINDER GmbH生产的实验执行&合成设备，主要功能包括打开、温度设置。支持Signal, Slot, get mode等操作。'
+  - Driver class docstring identifies Binder MK 56 climate chamber over RS-422.
+related_tags:
+- id: 4313
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+- id: 4387
+  name: 微生物培养箱
+  name_en: Microbial Incubator
+  type: device_template_tag
+tag_evidence:
+- tag_id: 4313
+  rationale: Device role and actions match experiment execution/control workflows.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: 4387
+  rationale: Chamber behavior and temperature-setpoint control fit incubator-style environmental conditioning.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-get_door_open
+  title: get_door_open
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Door-status query is not implemented for this model in current driver.
+  evidence_source: code
+- name: auto-get_mode
+  title: get_mode
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Mode query is not implemented for this model in current driver.
+  evidence_source: code
+- name: auto-set_temperature
+  title: set_temperature
+  parameters:
+  - temperature
+  - reps
+  command_type: UniLabJsonCommand
+  description_en: Set target temperature with range checks and retry-on-runtime-warning behavior.
+  evidence_source: code_comments
+driver_functions:
+  compact_signatures:
+  - binderMK56.__init__(self, *args, **kwargs) (line 87)
+  - binderMK56.get_door_open(self) (line 94)
+  - binderMK56.get_mode(self) (line 98)
+  - binderMK56.set_temperature(self, temperature, reps) (line 102)
+  - binderMK56._parse_read_response(self, msgbytes) (line 117)
+  - binderMK56._parse_write_response(self, msgbytes) (line 138)
+  note: Compact signatures retained; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 3
+  driver_function_count: 6
+  related_tag_count: 2

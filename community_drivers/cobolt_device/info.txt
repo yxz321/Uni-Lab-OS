@@ -1,53 +1,171 @@
-Device: cobolt_device
-Registry Key: cobolt_device
-Short Description: Cobolt Device是由Cobolt AB (HÜBNER Photonics)生产的专业实验设备。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (15):
-- auto-autostartIsOn -> autostartIsOn [UniLabJsonCommand] goal_params: none
-- auto-doGetAutostart -> doGetAutostart [UniLabJsonCommand] goal_params: none
-- auto-doGetInterlockState -> doGetInterlockState [UniLabJsonCommand] goal_params: none
-- auto-doGetLaserSerialNumber -> doGetLaserSerialNumber [UniLabJsonCommand] goal_params: none
-- auto-doGetOnOffState -> doGetOnOffState [UniLabJsonCommand] goal_params: none
-- auto-doGetPower -> doGetPower [UniLabJsonCommand] goal_params: none
-- auto-doInitializeDevice -> doInitializeDevice [UniLabJsonCommand] goal_params: none
-- auto-doSetPower -> doSetPower [UniLabJsonCommand] goal_params: powerInWatts
-- auto-doShutdownDevice -> doShutdownDevice [UniLabJsonCommand] goal_params: none
-- auto-doTurnAutostartOff -> doTurnAutostartOff [UniLabJsonCommand] goal_params: none
-- auto-doTurnAutostartOn -> doTurnAutostartOn [UniLabJsonCommand] goal_params: none
-- auto-doTurnOff -> doTurnOff [UniLabJsonCommand] goal_params: none
-- auto-doTurnOn -> doTurnOn [UniLabJsonCommand] goal_params: none
-- auto-turnAutostartOff -> turnAutostartOff [UniLabJsonCommand] goal_params: none
-- auto-turnAutostartOn -> turnAutostartOn [UniLabJsonCommand] goal_params: none
-
-Driver Functions (25):
-- CoboltDevice.__init__(self, bsdPath, portPath, serialNumber, idProduct, idVendor) (line 82)
-- CoboltDevice.__del__(self) (line 103)
-- CoboltDevice.autostartIsOn(self) (line 110)
-- CoboltDevice.turnAutostartOn(self) (line 115)
-- CoboltDevice.turnAutostartOff(self) (line 119)
-- CoboltDevice.doInitializeDevice(self) (line 123)
-- CoboltDevice.doShutdownDevice(self) (line 149)
-- CoboltDevice.doGetInterlockState(self) (line 155)
-- CoboltDevice.doGetLaserSerialNumber(self) (line 161)
-- CoboltDevice.doGetOnOffState(self) (line 165)
-- CoboltDevice.doTurnOn(self) (line 171)
-- CoboltDevice.doTurnOff(self) (line 178)
-- CoboltDevice.doGetAutostart(self) (line 182)
-- CoboltDevice.doTurnAutostartOn(self) (line 188)
-- CoboltDevice.doTurnAutostartOff(self) (line 193)
-- CoboltDevice.doSetPower(self, powerInWatts) (line 198)
-- CoboltDevice.doGetPower(self) (line 212)
-- CoboltDebugSerial.__init__(self) (line 218)
-- CoboltDebugSerial.is_open(self) (line 228)
-- CoboltDebugSerial.open(self) (line 231)
-- CoboltDebugSerial.close(self) (line 240)
-- CoboltDebugSerial.flush(self) (line 246)
-- CoboltDebugSerial.read(self, length) (line 249)
-- CoboltDebugSerial.write(self, data) (line 262)
-- increasePowerSlowlyInBackground(port, endPower, duration) (line 360)
+device: cobolt_device
+registry_key: cobolt_device
+device_identity:
+  manufacturer: Cobolt AB (HÜBNER Photonics)
+  model:
+    name: Cobolt laser source device controller
+    type: device
+  module_path: unilabos.devices.lasers.cobolt_device:CoboltDevice
+description:
+  text_en: Cobolt laser source controller over serial communication, including initialization,
+    autostart/interlock checks, on-off control, serial number query, and closed-loop
+    power set/read operations.
+  method: web+local
+description_evidence:
+  web:
+  - https://hubner-photonics.com/wp-content/uploads/2014/11/D0951-B-Manual-Cobolt-06-01-Series-12-V.pdf
+    (Cobolt 06-01 series owner manual)
+  local:
+  - driver commands include ilk?, sn?, l1/l0, @cobas, p, pa?
+  - 'registry module: unilabos.devices.lasers.cobolt_device:CoboltDevice'
+related_tags:
+- id: '4316'
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: '4316'
+  rationale: Matched from registry metadata and action/description semantics.
+  signals:
+  - registry.tags
+  - registry.category
+  - name
+  - model
+  - manufacturer
+  - module_path
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-autostartIsOn
+  title: autostartIsOn
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read cached autostart state after querying device.
+  evidence_source: code
+- name: auto-doGetAutostart
+  title: doGetAutostart
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Query autostart mode from controller (@cobas?).
+  evidence_source: code
+- name: auto-doGetInterlockState
+  title: doGetInterlockState
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Query interlock state from laser controller (ilk?).
+  evidence_source: code
+- name: auto-doGetLaserSerialNumber
+  title: doGetLaserSerialNumber
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read laser serial number from controller (sn?).
+  evidence_source: code
+- name: auto-doGetOnOffState
+  title: doGetOnOffState
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Query emission on/off state (l?).
+  evidence_source: code
+- name: auto-doGetPower
+  title: doGetPower
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read output power value (pa?).
+  evidence_source: code
+- name: auto-doInitializeDevice
+  title: doInitializeDevice
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Open port and initialize serial/autostart/interlock/power state.
+  evidence_source: code
+- name: auto-doSetPower
+  title: doSetPower
+  parameters:
+  - powerInWatts
+  command_type: UniLabJsonCommand
+  description_en: Set output power and poll until near requested power.
+  evidence_source: code
+- name: auto-doShutdownDevice
+  title: doShutdownDevice
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Close and release serial port resources.
+  evidence_source: code
+- name: auto-doTurnAutostartOff
+  title: doTurnAutostartOff
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Disable autostart mode on controller.
+  evidence_source: code
+- name: auto-doTurnAutostartOn
+  title: doTurnAutostartOn
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Enable autostart mode on controller.
+  evidence_source: code
+- name: auto-doTurnOff
+  title: doTurnOff
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Send laser-off command to controller.
+  evidence_source: code
+- name: auto-doTurnOn
+  title: doTurnOn
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Send laser-on command when autostart is not enabled.
+  evidence_source: code
+- name: auto-turnAutostartOff
+  title: turnAutostartOff
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Wrapper to disable autostart mode.
+  evidence_source: code
+- name: auto-turnAutostartOn
+  title: turnAutostartOn
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Wrapper to enable autostart mode.
+  evidence_source: code
+driver_functions:
+  compact_signatures:
+  - CoboltDevice.__init__(self, bsdPath, portPath, serialNumber, idProduct, idVendor)
+    (line 82)
+  - CoboltDevice.__del__(self) (line 103)
+  - CoboltDevice.autostartIsOn(self) (line 110)
+  - CoboltDevice.turnAutostartOn(self) (line 115)
+  - CoboltDevice.turnAutostartOff(self) (line 119)
+  - CoboltDevice.doInitializeDevice(self) (line 123)
+  - CoboltDevice.doShutdownDevice(self) (line 149)
+  - CoboltDevice.doGetInterlockState(self) (line 155)
+  - CoboltDevice.doGetLaserSerialNumber(self) (line 161)
+  - CoboltDevice.doGetOnOffState(self) (line 165)
+  - CoboltDevice.doTurnOn(self) (line 171)
+  - CoboltDevice.doTurnOff(self) (line 178)
+  - CoboltDevice.doGetAutostart(self) (line 182)
+  - CoboltDevice.doTurnAutostartOn(self) (line 188)
+  - CoboltDevice.doTurnAutostartOff(self) (line 193)
+  - CoboltDevice.doSetPower(self, powerInWatts) (line 198)
+  - CoboltDevice.doGetPower(self) (line 212)
+  - CoboltDebugSerial.__init__(self) (line 218)
+  - CoboltDebugSerial.is_open(self) (line 228)
+  - CoboltDebugSerial.open(self) (line 231)
+  - CoboltDebugSerial.close(self) (line 240)
+  - CoboltDebugSerial.flush(self) (line 246)
+  - CoboltDebugSerial.read(self, length) (line 249)
+  - CoboltDebugSerial.write(self, data) (line 262)
+  - increasePowerSlowlyInBackground(port, endPower, duration) (line 360)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 15
+  driver_function_count: 25
+  related_tag_count: 1

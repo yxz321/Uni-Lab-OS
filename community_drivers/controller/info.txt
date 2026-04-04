@@ -1,25 +1,109 @@
-Device: controller
-Registry Key: controller
-Short Description: Controller设备驱动。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (5):
-- auto-command -> command [UniLabJsonCommand] goal_params: newfocus_command
-- auto-parse_command -> parse_command [UniLabJsonCommand] goal_params: newfocus_command
-- auto-parse_reply -> parse_reply [UniLabJsonCommand] goal_params: reply
-- auto-send_command -> send_command [UniLabJsonCommand] goal_params: get_reply, usb_command
-- auto-start_console -> start_console [UniLabJsonCommand] goal_params: none
-
-Driver Functions (7):
-- Controller.__init__(self, idProduct, idVendor) (line 126)
-- Controller._connect(self) (line 140)
-- Controller.send_command(self, usb_command, get_reply) (line 201)
-- Controller.parse_command(self, newfocus_command) (line 219)
-- Controller.parse_reply(self, reply) (line 263)
-- Controller.command(self, newfocus_command) (line 279)
-- Controller.start_console(self) (line 305)
+device: controller
+registry_key: controller
+device_identity:
+  manufacturer: Newport / New Focus
+  model:
+    name: 8742 Picomotor Controller
+    type: device
+  name: Picomotor Controller
+  module_path: unilabos.devices.generic.controller:Controller
+description:
+  text_en: USB/Ethernet motion controller for Newport/New Focus Picomotor actuators,
+    used to send low-level motor commands and read controller replies for precision
+    alignment stages.
+  method: local+web
+description_evidence:
+  web:
+  - https://www.newport.com/p/8742
+  local:
+  - 'registry.description: Controller设备驱动。Picomotor Controller'
+  - 'registry.name: Picomotor'
+  - 'registry.manufacturer: Open Source'
+  - 'registry.class.module: unilabos.devices.generic.controller:Controller'
+  - 'actions include: send_command, parse_command, parse_reply, command, start_console'
+  - 'driver header: Original: newport.py'
+registry_identity_conflict:
+  registry_manufacturer: Open Source
+  registry_model_name: Controller
+  chosen_manufacturer: Newport / New Focus
+  chosen_model_name: 8742 Picomotor Controller
+  rationale: Driver docstrings and commands (VE?, QM?, NewFocus command parsing) match
+    the Newport/New Focus Picomotor controller family.
+related_tags:
+- id: '4313'
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: '4313'
+  rationale: Matched from registry signals and action/description semantics.
+  signals:
+  - registry.category
+  - registry.tags
+  - name
+  - model
+  - manufacturer
+  - module_path
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-send_command
+  title: send_command
+  parameters:
+  - usb_command
+  - get_reply
+  command_type: UniLabJsonCommand
+  description_en: Send a formatted command to the USB endpoint and optionally read
+    reply bytes.
+  evidence_source: docstring
+- name: auto-parse_command
+  title: parse_command
+  parameters:
+  - newfocus_command
+  command_type: UniLabJsonCommand
+  description_en: Convert NewFocus-style command syntax into controller USB command
+    format.
+  evidence_source: docstring
+- name: auto-parse_reply
+  title: parse_reply
+  parameters:
+  - reply
+  command_type: UniLabJsonCommand
+  description_en: Parse raw controller reply bytes into cleaned string output.
+  evidence_source: docstring
+- name: auto-command
+  title: command
+  parameters:
+  - newfocus_command
+  command_type: UniLabJsonCommand
+  description_en: Compose, send, and parse a complete controller command transaction.
+  evidence_source: docstring
+- name: auto-start_console
+  title: start_console
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Start interactive console loop for manual motor command entry.
+  evidence_source: docstring
+driver_functions:
+  compact_signatures:
+  - Controller.__init__(self, idProduct, idVendor) (line 126)
+  - Controller._connect(self) (line 140)
+  - Controller.send_command(self, usb_command, get_reply) (line 201)
+  - Controller.parse_command(self, newfocus_command) (line 219)
+  - Controller.parse_reply(self, reply) (line 263)
+  - Controller.command(self, newfocus_command) (line 279)
+  - Controller.start_console(self) (line 305)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v3
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 5
+  driver_function_count: 7
+  related_tag_count: 1

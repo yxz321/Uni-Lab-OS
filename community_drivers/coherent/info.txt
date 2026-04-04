@@ -1,54 +1,210 @@
-Device: coherent
-Registry Key: coherent
-Short Description: Coherent是由Coherent Corp.
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (19):
-- auto-clearBuffer -> clearBuffer [UniLabJsonCommand] goal_params: none
-- auto-clearGDD -> clearGDD [UniLabJsonCommand] goal_params: none
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-getAlignment -> getAlignment [UniLabJsonCommand] goal_params: none
-- auto-getComp -> getComp [UniLabJsonCommand] goal_params: none
-- auto-getGDD -> getGDD [UniLabJsonCommand] goal_params: none
-- auto-getGDDMinMax -> getGDDMinMax [UniLabJsonCommand] goal_params: none
-- auto-getPower -> getPower [UniLabJsonCommand] goal_params: none
-- auto-getShutter -> getShutter [UniLabJsonCommand] goal_params: none
-- auto-getWavelength -> getWavelength [UniLabJsonCommand] goal_params: none
-- auto-getWavelengthRange -> getWavelengthRange [UniLabJsonCommand] goal_params: none
-- auto-isTuning -> isTuning [UniLabJsonCommand] goal_params: none
-- auto-read -> read [UniLabJsonCommand] goal_params: none
-- auto-readPacket -> readPacket [UniLabJsonCommand] goal_params: block, expect, timeout
-- auto-setAlignment -> setAlignment [UniLabJsonCommand] goal_params: align
-- auto-setGDD -> setGDD [UniLabJsonCommand] goal_params: gddValue
-- auto-setShutter -> setShutter [UniLabJsonCommand] goal_params: val
-- auto-setWavelength -> setWavelength [UniLabJsonCommand] goal_params: block, wl
-- auto-write -> write [UniLabJsonCommand] goal_params: data
-
-Driver Functions (22):
-- Coherent.__init__(self, port, baud) (line 79)
-- Coherent.getPower(self) (line 95)
-- Coherent.getWavelength(self) (line 104)
-- Coherent.setWavelength(self, wl, block) (line 108)
-- Coherent.getWavelengthRange(self) (line 119)
-- Coherent.getGDDMinMax(self) (line 123)
-- Coherent.getGDD(self) (line 132)
-- Coherent.getComp(self) (line 136)
-- Coherent.setGDD(self, gddValue) (line 141)
-- Coherent.clearGDD(self) (line 152)
-- Coherent.isTuning(self) (line 160)
-- Coherent.getShutter(self) (line 165)
-- Coherent.setShutter(self, val) (line 170)
-- Coherent.setAlignment(self, align) (line 175)
-- Coherent.getAlignment(self) (line 182)
-- Coherent.__getitem__(self, arg) (line 186)
-- Coherent.__setitem__(self, arg, val) (line 193)
-- Coherent.clearBuffer(self) (line 200)
-- Coherent.read(self) (line 209)
-- Coherent.write(self, data) (line 217)
-- Coherent.close(self) (line 222)
-- Coherent.readPacket(self, expect, timeout, block) (line 239)
+device: coherent
+registry_key: coherent
+device_identity:
+  manufacturer: Coherent Corp.
+  model:
+    name: Coherent (serial tunable laser controller)
+    type: device
+  name: Coherent Tunable Laser
+  module_path: unilabos.devices.generic.coherent:Coherent
+description:
+  text_en: Coherent tunable ultrafast-laser controller over serial interface, providing wavelength tuning,
+    GDD precompensation, shutter control, and alignment-state operations for Ti:sapphire-class lab lasers.
+  method: web+local
+description_evidence:
+  web:
+  - https://www.coherent.com/lasers/oscillators/chameleon-ultra
+  - https://www.coherent.com/content/dam/coherent/site/en/service/chameleon/discovery-nx-operators-manual-1412963.pdf
+  local:
+  - Driver implements wavelength, GDD, shutter, and alignment commands (get/setWavelength, get/setGDD,
+    get/setShutter, setAlignment).
+  - Serial packet parser reads CRLF-delimited instrument responses (readPacket).
+related_tags:
+- id: 4313
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+- id: 4316
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: 4313
+  rationale: The driver performs active laser-state changes (wavelength, shutter, alignment) during experiment
+    execution.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: 4316
+  rationale: Wavelength/GDD control and shutter operations align with optical characterization and microscopy
+    setups.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-getPower
+  title: getPower
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read laser output power value.
+  evidence_source: name_params
+- name: auto-getWavelength
+  title: getWavelength
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read current wavelength in nm.
+  evidence_source: name_params
+- name: auto-setWavelength
+  title: setWavelength
+  parameters:
+  - wl
+  - block
+  command_type: UniLabJsonCommand
+  description_en: Set wavelength in nm; optionally block until tuning completes.
+  evidence_source: docstring
+- name: auto-getWavelengthRange
+  title: getWavelengthRange
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read supported wavelength range limits.
+  evidence_source: name_params
+- name: auto-getGDDMinMax
+  title: getGDDMinMax
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read valid GDD compensation range for current wavelength.
+  evidence_source: docstring
+- name: auto-getGDD
+  title: getGDD
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read current GDD compensation setting.
+  evidence_source: name_params
+- name: auto-getComp
+  title: getComp
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read compensation mode/status value.
+  evidence_source: name_params
+- name: auto-setGDD
+  title: setGDD
+  parameters:
+  - gddValue
+  command_type: UniLabJsonCommand
+  description_en: Set GDD value if within allowed range.
+  evidence_source: docstring
+- name: auto-clearGDD
+  title: clearGDD
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Reset to default no-dispersion GDD curve.
+  evidence_source: docstring
+- name: auto-isTuning
+  title: isTuning
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return whether wavelength tuning is in progress.
+  evidence_source: docstring
+- name: auto-getShutter
+  title: getShutter
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return whether output shutter is open.
+  evidence_source: docstring
+- name: auto-setShutter
+  title: setShutter
+  parameters:
+  - val
+  command_type: UniLabJsonCommand
+  description_en: Open or close output shutter.
+  evidence_source: docstring
+- name: auto-setAlignment
+  title: setAlignment
+  parameters:
+  - align
+  command_type: UniLabJsonCommand
+  description_en: Enable or disable alignment mode.
+  evidence_source: docstring
+- name: auto-getAlignment
+  title: getAlignment
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read alignment mode state.
+  evidence_source: name_params
+- name: auto-clearBuffer
+  title: clearBuffer
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Drain buffered serial bytes before next command cycle.
+  evidence_source: code_comments
+- name: auto-read
+  title: read
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read all available serial bytes without blocking.
+  evidence_source: code_comments
+- name: auto-write
+  title: write
+  parameters:
+  - data
+  command_type: UniLabJsonCommand
+  description_en: Write command data to serial interface after buffer clear.
+  evidence_source: code_comments
+- name: auto-close
+  title: close
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Close serial connection to laser controller.
+  evidence_source: name_params
+- name: auto-readPacket
+  title: readPacket
+  parameters:
+  - expect
+  - timeout
+  - block
+  command_type: UniLabJsonCommand
+  description_en: Read CRLF-terminated response packet with timeout handling.
+  evidence_source: code_comments
+driver_functions:
+  compact_signatures:
+  - Coherent.__init__(self, port, baud) (line 79)
+  - Coherent.getPower(self) (line 95)
+  - Coherent.getWavelength(self) (line 104)
+  - Coherent.setWavelength(self, wl, block) (line 108)
+  - Coherent.getWavelengthRange(self) (line 119)
+  - Coherent.getGDDMinMax(self) (line 123)
+  - Coherent.getGDD(self) (line 132)
+  - Coherent.getComp(self) (line 136)
+  - Coherent.setGDD(self, gddValue) (line 141)
+  - Coherent.clearGDD(self) (line 152)
+  - Coherent.isTuning(self) (line 160)
+  - Coherent.getShutter(self) (line 165)
+  - Coherent.setShutter(self, val) (line 170)
+  - Coherent.setAlignment(self, align) (line 175)
+  - Coherent.getAlignment(self) (line 182)
+  - Coherent.__getitem__(self, arg) (line 186)
+  - Coherent.__setitem__(self, arg, val) (line 193)
+  - Coherent.clearBuffer(self) (line 200)
+  - Coherent.read(self) (line 209)
+  - Coherent.write(self, data) (line 217)
+  - Coherent.close(self) (line 222)
+  - Coherent.readPacket(self, expect, timeout, block) (line 239)
+  note: Compact signatures retained; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 19
+  driver_function_count: 22
+  related_tag_count: 2

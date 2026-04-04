@@ -1,0 +1,172 @@
+device: bio_shake
+registry_key: bio_shake
+device_identity:
+  manufacturer: Q.Instruments (Analytik Jena)
+  model:
+    name: Q.Instruments BioShake iQ Microplate Shaker 微孔板
+    type: device
+  name: BioShake iQ Microplate Shaker
+  module_path: unilabos.devices.heater_shaker.bioshake:BioShake
+description:
+  text_en: BioShake iQ is a Q.Instruments (Analytik Jena) microplate heater-shaker that pairs orbital mixing (30–300 rpm)
+    with temperature control, active cooling, and plate locking to keep 96-well assays stable while issued
+    commands validate speed, acceleration, and temperature ranges up front.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'registry.description: BioShake iQ Microplate Shaker 恒温摇床是由Q.Instruments (Analytik Jena)生产的恒温摇床，主要功能包括停止、冷却、复位、归零、温度设置、电流读取。'
+  - 'driver.py: inherits pylabrobot.heating_shaking.HeaterShakerBackend and opens a serial backend that uses _send_command to flush buffers, issue shake/edit commands, and poll the device for OK, errors, or temperature feedback.'
+  - 'driver.py: shake, set_temperature, and stop_shaking query min/max ranges via getShakeMinRpm/getTempMin before writing commands, while reset/home loop until initialization messages appear.'
+related_tags:
+- id: 4389
+  name: 恒温摇床
+  name_en: Constant Temperature Shaker
+  type: device_template_tag
+- id: 4318
+  name: 生命体系
+  name_en: Life Sciences
+  type: experimental_domain
+- id: 4330
+  name: 细胞生物学研究
+  name_en: Cell Biology Research
+  type: experimental_scene
+tag_evidence:
+- tag_id: 4389
+  rationale: Shaking, temperature control, and locking operations match a constant-temperature shaker profile.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: 4318
+  rationale: Plate handling, incubation, and assay support align with life-science workflows.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: 4330
+  rationale: Temperature control and shaking for plate based assays are central to cell-biology pipelines.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-deactivate
+  title: deactivate
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Stop temperature control output by turning off the heater loop.
+  evidence_source: driver_function
+- name: auto-home
+  title: home
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Move the shaker to its home position via the serial shakeGoHome command.
+  evidence_source: driver_function
+- name: auto-lock_plate
+  title: lock_plate
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Engage the plate lock actuator to keep the microplate clamped.
+  evidence_source: driver_function
+- name: auto-reset
+  title: reset
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: 'Reset the device, flush buffers, and wait for the "Initialization complete" trace before exiting.'
+  evidence_source: driver_function
+- name: auto-set_temperature
+  title: set_temperature
+  parameters:
+  - temperature
+  command_type: UniLabJsonCommandAsync
+  description_en: Validate temperature against getTempMin/getTempMax, convert to device steps, then start temperature control.
+  evidence_source: driver_function
+- name: auto-setup
+  title: setup
+  parameters:
+  - skip_home
+  command_type: UniLabJsonCommandAsync
+  description_en: Open the serial backend, optionally home the shaker, and respect the skip_home flag.
+  evidence_source: driver_function
+- name: auto-shake
+  title: shake
+  parameters:
+  - acceleration
+  - speed
+  command_type: UniLabJsonCommandAsync
+  description_en: Validate speed/acceleration against getShakeMinRpm/getShakeMaxRpm and getShakeAcceleration bounds before sending shakeOn.
+  evidence_source: driver_function
+- name: auto-stop
+  title: stop
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Stop the machine backend and serial stream, halting active operations.
+  evidence_source: driver_function
+- name: auto-stop_shaking
+  title: stop_shaking
+  parameters:
+  - deceleration
+  command_type: UniLabJsonCommandAsync
+  description_en: Decelerate using setShakeAcceleration then issue shakeOff.
+  evidence_source: driver_function
+- name: auto-unlock_plate
+  title: unlock_plate
+  parameters: []
+  command_type: UniLabJsonCommandAsync
+  description_en: Release the plate lock using setElmUnlockPos.
+  evidence_source: driver_function
+- name: auto-supports_locking
+  title: supports_locking
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Report that the device exposes a locking actuator.
+  evidence_source: driver_function
+- name: auto-supports_active_cooling
+  title: supports_active_cooling
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Report that active cooling support is wired into the backend.
+  evidence_source: driver_function
+- name: auto-get_current_temperature
+  title: get_current_temperature
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read the current shaker temperature via getTempActual.
+  evidence_source: driver_function
+driver_functions:
+  compact_signatures:
+  - BioShake.__init__(self, port, timeout) (line 85)
+  - BioShake.deactivate(self) [async] (line 331)
+  - BioShake.home(self) [async] (line 198)
+  - BioShake.lock_plate(self) [async] (line 285)
+  - BioShake.reset(self) [async] (line 165)
+  - BioShake.set_temperature(self, temperature) [async] (line 298)
+  - BioShake.setup(self, skip_home) [async] (line 148)
+  - BioShake.shake(self, speed, acceleration) [async] (line 203)
+  - BioShake.stop(self) [async] (line 160)
+  - BioShake.stop_shaking(self, deceleration) [async] (line 253)
+  - BioShake.unlock_plate(self) [async] (line 289)
+  - BioShake.supports_locking(self) (line 281)
+  - BioShake.supports_active_cooling(self) (line 294)
+  - BioShake.get_current_temperature(self) [async] (line 326)
+  - BioShake._send_command(self, cmd, delay, timeout) [async] (line 105)
+  note: Compact signatures retained; action semantics are documented in atom_actions.
+schema_version: v3
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 13
+  driver_function_count: 15
+  related_tag_count: 3

@@ -1,54 +1,201 @@
-Device: basic_serial_instrument
-Registry Key: basic_serial_instrument
-Short Description: 通用RS-232串口仪器通信驱动，适配标准SCPI协议仪器。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (16):
-- auto-available -> available [UniLabJsonCommand] goal_params: none
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-communications_lock -> communications_lock [UniLabJsonCommand] goal_params: none
-- auto-confirm_available -> confirm_available [UniLabJsonCommand] goal_params: none
-- auto-describe -> describe [UniLabJsonCommand] goal_params: none
-- auto-find_port -> find_port [UniLabJsonCommand] goal_params: none
-- auto-float_query -> float_query [UniLabJsonCommand] goal_params: query_string
-- auto-flush_input_buffer -> flush_input_buffer [UniLabJsonCommand] goal_params: none
-- auto-int_query -> int_query [UniLabJsonCommand] goal_params: query_string
-- auto-open -> open [UniLabJsonCommand] goal_params: port, quiet
-- auto-parsed_query -> parsed_query [UniLabJsonCommand] goal_params: parse_function, query_string, re_flags, response_string
-- auto-query -> query [UniLabJsonCommand] goal_params: multiline, queryString, termination_line, timeout
-- auto-read_multiline -> read_multiline [UniLabJsonCommand] goal_params: termination_line, timeout
-- auto-readline -> readline [UniLabJsonCommand] goal_params: timeout
-- auto-test_communications -> test_communications [UniLabJsonCommand] goal_params: none
-- auto-write -> write [UniLabJsonCommand] goal_params: query_string
-
-Driver Functions (25):
-- BasicSerialInstrument.__init__(self, port, **kwargs) (line 123)
-- BasicSerialInstrument.open(self, port, quiet) (line 131)
-- BasicSerialInstrument.close(self) (line 150)
-- BasicSerialInstrument.__del__(self) (line 159)
-- BasicSerialInstrument.__enter__(self) (line 167)
-- BasicSerialInstrument.__exit__(self, type, value, traceback) (line 173)
-- BasicSerialInstrument.write(self, query_string) (line 181)
-- BasicSerialInstrument.flush_input_buffer(self) (line 194)
-- BasicSerialInstrument.readline(self, timeout) (line 199)
-- BasicSerialInstrument.communications_lock(self) (line 207)
-- BasicSerialInstrument.read_multiline(self, termination_line, timeout) (line 235)
-- BasicSerialInstrument.query(self, queryString, multiline, termination_line, timeout) (line 252)
-- BasicSerialInstrument.parsed_query(self, query_string, response_string, re_flags, parse_function, **kwargs) (line 277)
-- BasicSerialInstrument.int_query(self, query_string, **kwargs) (line 346)
-- BasicSerialInstrument.float_query(self, query_string, **kwargs) (line 350)
-- BasicSerialInstrument.test_communications(self) (line 359)
-- BasicSerialInstrument.find_port(self) (line 369)
-- OptionalModule.__init__(self, available, parent, module_type, model) (line 403)
-- OptionalModule.available(self) (line 416)
-- OptionalModule.confirm_available(self) (line 419)
-- OptionalModule.describe(self) (line 423)
-- QueriedProperty.__init__(self, get_cmd, set_cmd, validate, valrange, fdel, doc, response_string, ack_writes) (line 461)
-- QueriedProperty.__get__(self, obj, objtype) (line 474)
-- QueriedProperty.__set__(self, obj, value) (line 497)
-- QueriedProperty.__delete__(self, obj) (line 520)
+device: basic_serial_instrument
+registry_key: basic_serial_instrument
+device_identity:
+  manufacturer: Open Standard
+  model:
+    name: 通用串口仪器接口
+    type: device
+  module_path: unilabos.devices.generic.basic_serial_instrument:BasicSerialInstrument
+description:
+  text_en: Generic RS-232 serial instrument interface for command/response workflows, including auto port
+    discovery, buffered reads, parsed queries, and thread-safe communication locks.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'registry.description: 通用RS-232串口仪器通信驱动，适配标准SCPI协议仪器。'
+  - 'actions include: open, close, write, flush_input_buffer, readline, read_multiline, query, parsed_query'
+  - 'driver functions include: BasicSerialInstrument.__init__, BasicSerialInstrument.open, BasicSerialInstrument.close,
+    BasicSerialInstrument.__del__, BasicSerialInstrument.__enter__, BasicSerialInstrument.__exit__'
+  - description synthesized from registry metadata + action/function evidence (local pass)
+related_tags:
+- id: '4313'
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+- id: '4316'
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: '4313'
+  rationale: Matched from registry metadata plus action/description/module signals.
+  signals:
+  - registry.category
+  - registry.tags
+  - module_path
+  - description
+  - atom_actions
+- tag_id: '4316'
+  rationale: Matched from registry metadata plus action/description/module signals.
+  signals:
+  - registry.category
+  - registry.tags
+  - module_path
+  - description
+  - atom_actions
+atom_actions:
+- name: auto-open
+  title: open
+  parameters:
+  - port
+  - quiet
+  command_type: UniLabJsonCommand
+  description_en: Open communication port.
+  evidence_source: action_name_params
+- name: auto-close
+  title: close
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Close active device/connection handle.
+  evidence_source: action_name_params
+- name: auto-write
+  title: write
+  parameters:
+  - query_string
+  command_type: UniLabJsonCommand
+  description_en: Write command/request to device interface.
+  evidence_source: action_name_params
+- name: auto-flush_input_buffer
+  title: flush_input_buffer
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Flush pending input buffer data.
+  evidence_source: action_name_params
+- name: auto-readline
+  title: readline
+  parameters:
+  - timeout
+  command_type: UniLabJsonCommand
+  description_en: Read one line from device interface.
+  evidence_source: action_name_params
+- name: auto-read_multiline
+  title: read_multiline
+  parameters:
+  - termination_line
+  - timeout
+  command_type: UniLabJsonCommand
+  description_en: Read multiline response until termination marker.
+  evidence_source: action_name_params
+- name: auto-query
+  title: query
+  parameters:
+  - queryString
+  - multiline
+  - termination_line
+  - timeout
+  command_type: UniLabJsonCommand
+  description_en: Send command and return response data.
+  evidence_source: action_name_params
+- name: auto-parsed_query
+  title: parsed_query
+  parameters:
+  - query_string
+  - response_string
+  - re_flags
+  - parse_function
+  command_type: UniLabJsonCommand
+  description_en: Query and parse response using template/regex.
+  evidence_source: action_name_params
+- name: auto-int_query
+  title: int_query
+  parameters:
+  - query_string
+  command_type: UniLabJsonCommand
+  description_en: Run query and parse integer result(s).
+  evidence_source: action_name_params
+- name: auto-float_query
+  title: float_query
+  parameters:
+  - query_string
+  command_type: UniLabJsonCommand
+  description_en: Run query and parse float result(s).
+  evidence_source: action_name_params
+- name: auto-test_communications
+  title: test_communications
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Probe whether communication channel is responsive.
+  evidence_source: action_name_params
+- name: auto-find_port
+  title: find_port
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Auto-detect matching serial port.
+  evidence_source: action_name_params
+- name: auto-communications_lock
+  title: communications_lock
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Access thread-safe communication lock object.
+  evidence_source: action_name_params
+- name: auto-available
+  title: available
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Check module/device availability state.
+  evidence_source: action_name_params
+- name: auto-confirm_available
+  title: confirm_available
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Check if module is available, no return, will raise exception if not available!
+  evidence_source: driver_function
+- name: auto-describe
+  title: describe
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Consistently spaced desciption for listing modules
+  evidence_source: driver_function
+driver_functions:
+  compact_signatures:
+  - BasicSerialInstrument.__init__(self, port, **kwargs) (line 123)
+  - BasicSerialInstrument.open(self, port, quiet) (line 131)
+  - BasicSerialInstrument.close(self) (line 150)
+  - BasicSerialInstrument.__del__(self) (line 159)
+  - BasicSerialInstrument.__enter__(self) (line 167)
+  - BasicSerialInstrument.__exit__(self, type, value, traceback) (line 173)
+  - BasicSerialInstrument.write(self, query_string) (line 181)
+  - BasicSerialInstrument.flush_input_buffer(self) (line 194)
+  - BasicSerialInstrument.readline(self, timeout) (line 199)
+  - BasicSerialInstrument.communications_lock(self) (line 207)
+  - BasicSerialInstrument.read_multiline(self, termination_line, timeout) (line 235)
+  - BasicSerialInstrument.query(self, queryString, multiline, termination_line, timeout) (line 252)
+  - BasicSerialInstrument.parsed_query(self, query_string, response_string, re_flags, parse_function,
+    **kwargs) (line 277)
+  - BasicSerialInstrument.int_query(self, query_string, **kwargs) (line 346)
+  - BasicSerialInstrument.float_query(self, query_string, **kwargs) (line 350)
+  - BasicSerialInstrument.test_communications(self) (line 359)
+  - BasicSerialInstrument.find_port(self) (line 369)
+  - OptionalModule.__init__(self, available, parent, module_type, model) (line 403)
+  - OptionalModule.available(self) (line 416)
+  - OptionalModule.confirm_available(self) (line 419)
+  - OptionalModule.describe(self) (line 423)
+  - QueriedProperty.__init__(self, get_cmd, set_cmd, validate, valrange, fdel, doc, response_string, ack_writes)
+    (line 461)
+  - QueriedProperty.__get__(self, obj, objtype) (line 474)
+  - QueriedProperty.__set__(self, obj, value) (line 497)
+  - QueriedProperty.__delete__(self, obj) (line 520)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 16
+  driver_function_count: 25
+  related_tag_count: 2

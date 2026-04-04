@@ -1,42 +1,174 @@
-Device: communication_port
-Registry Key: communication_port
-Short Description: Communication Port是由Open Standard生产的实验执行&合成设备，主要功能包括关闭、写入数据、打开、读取数据。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (14):
-- auto-bytesAvailable -> bytesAvailable [UniLabJsonCommand] goal_params: none
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-flush -> flush [UniLabJsonCommand] goal_params: none
-- auto-isNotOpen -> isNotOpen [UniLabJsonCommand] goal_params: none
-- auto-isOpen -> isOpen [UniLabJsonCommand] goal_params: none
-- auto-open -> open [UniLabJsonCommand] goal_params: none
-- auto-readData -> readData [UniLabJsonCommand] goal_params: endPoint, length
-- auto-readMatchingGroups -> readMatchingGroups [UniLabJsonCommand] goal_params: alternatePattern, endPoint, replyPattern
-- auto-readString -> readString [UniLabJsonCommand] goal_params: endPoint
-- auto-writeData -> writeData [UniLabJsonCommand] goal_params: data, endPoint
-- auto-writeString -> writeString [UniLabJsonCommand] goal_params: endPoint, string
-- auto-writeStringExpectMatchingString -> writeStringExpectMatchingString [UniLabJsonCommand] goal_params: alternatePattern, endPoints, replyPattern, string
-- auto-writeStringReadFirstMatchingGroup -> writeStringReadFirstMatchingGroup [UniLabJsonCommand] goal_params: alternatePattern, endPoints, replyPattern, string
-- auto-writeStringReadMatchingGroups -> writeStringReadMatchingGroups [UniLabJsonCommand] goal_params: alternatePattern, endPoints, replyPattern, string
-
-Driver Functions (15):
-- CommunicationPort.__init__(self) (line 93)
-- CommunicationPort.isOpen(self) (line 100)
-- CommunicationPort.isNotOpen(self) (line 106)
-- CommunicationPort.open(self) (line 110)
-- CommunicationPort.close(self) (line 115)
-- CommunicationPort.bytesAvailable(self) (line 120)
-- CommunicationPort.flush(self) (line 125)
-- CommunicationPort.readData(self, length, endPoint) (line 130)
-- CommunicationPort.writeData(self, data, endPoint) (line 135)
-- CommunicationPort.readString(self, endPoint) (line 140)
-- CommunicationPort.writeString(self, string, endPoint) (line 158)
-- CommunicationPort.writeStringExpectMatchingString(self, string, replyPattern, alternatePattern, endPoints) (line 167)
-- CommunicationPort.writeStringReadFirstMatchingGroup(self, string, replyPattern, alternatePattern, endPoints) (line 182)
-- CommunicationPort.writeStringReadMatchingGroups(self, string, replyPattern, alternatePattern, endPoints) (line 191)
-- CommunicationPort.readMatchingGroups(self, replyPattern, alternatePattern, endPoint) (line 204)
+device: communication_port
+registry_key: communication_port
+device_identity:
+  manufacturer: Open Standard
+  model:
+    name: Abstract serial communication port
+    type: device_interface
+  name: CommunicationPort Base Interface
+  module_path: unilabos.devices.generic.communication_port:CommunicationPort
+description:
+  text_en: Abstract serial communication-port layer for instruments, providing standardized open/close,
+    byte and string transfers, and regex-based reply matching helpers.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - Class docstring describes basic application-level protocol handling for string I/O abstraction.
+  - Methods enforce derived-class implementation for transport primitives and provide shared matching
+    helpers.
+related_tags:
+- id: 4313
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: 4313
+  rationale: The port abstraction underpins command execution and reply parsing for instrument control
+    flows.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-isOpen
+  title: isOpen
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return whether underlying port is open.
+  evidence_source: name_params
+- name: auto-isNotOpen
+  title: isNotOpen
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return inverse of port-open status.
+  evidence_source: name_params
+- name: auto-open
+  title: open
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Open underlying communication port.
+  evidence_source: name_params
+- name: auto-close
+  title: close
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Close underlying communication port.
+  evidence_source: name_params
+- name: auto-bytesAvailable
+  title: bytesAvailable
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Return number of available bytes to read.
+  evidence_source: name_params
+- name: auto-flush
+  title: flush
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Flush communication buffers on underlying port.
+  evidence_source: name_params
+- name: auto-readData
+  title: readData
+  parameters:
+  - length
+  - endPoint
+  command_type: UniLabJsonCommand
+  description_en: Read raw bytes from underlying port endpoint.
+  evidence_source: name_params
+- name: auto-writeData
+  title: writeData
+  parameters:
+  - data
+  - endPoint
+  command_type: UniLabJsonCommand
+  description_en: Write raw bytes to underlying port endpoint.
+  evidence_source: name_params
+- name: auto-readString
+  title: readString
+  parameters:
+  - endPoint
+  command_type: UniLabJsonCommand
+  description_en: Read bytes until terminator and decode UTF-8 string.
+  evidence_source: name_params
+- name: auto-writeString
+  title: writeString
+  parameters:
+  - string
+  - endPoint
+  command_type: UniLabJsonCommand
+  description_en: Encode and write UTF-8 string to port.
+  evidence_source: name_params
+- name: auto-writeStringExpectMatchingString
+  title: writeStringExpectMatchingString
+  parameters:
+  - string
+  - replyPattern
+  - alternatePattern
+  - endPoints
+  command_type: UniLabJsonCommand
+  description_en: Write string and validate reply against regex pattern.
+  evidence_source: name_params
+- name: auto-writeStringReadFirstMatchingGroup
+  title: writeStringReadFirstMatchingGroup
+  parameters:
+  - string
+  - replyPattern
+  - alternatePattern
+  - endPoints
+  command_type: UniLabJsonCommand
+  description_en: Write string and return first captured regex group.
+  evidence_source: name_params
+- name: auto-writeStringReadMatchingGroups
+  title: writeStringReadMatchingGroups
+  parameters:
+  - string
+  - replyPattern
+  - alternatePattern
+  - endPoints
+  command_type: UniLabJsonCommand
+  description_en: Write string and return all captured regex groups.
+  evidence_source: name_params
+- name: auto-readMatchingGroups
+  title: readMatchingGroups
+  parameters:
+  - replyPattern
+  - alternatePattern
+  - endPoint
+  command_type: UniLabJsonCommand
+  description_en: Read reply and return regex-matched capture groups.
+  evidence_source: name_params
+driver_functions:
+  compact_signatures:
+  - CommunicationPort.__init__(self) (line 93)
+  - CommunicationPort.isOpen(self) (line 100)
+  - CommunicationPort.isNotOpen(self) (line 106)
+  - CommunicationPort.open(self) (line 110)
+  - CommunicationPort.close(self) (line 115)
+  - CommunicationPort.bytesAvailable(self) (line 120)
+  - CommunicationPort.flush(self) (line 125)
+  - CommunicationPort.readData(self, length, endPoint) (line 130)
+  - CommunicationPort.writeData(self, data, endPoint) (line 135)
+  - CommunicationPort.readString(self, endPoint) (line 140)
+  - CommunicationPort.writeString(self, string, endPoint) (line 158)
+  - CommunicationPort.writeStringExpectMatchingString(self, string, replyPattern, alternatePattern, endPoints)
+    (line 167)
+  - CommunicationPort.writeStringReadFirstMatchingGroup(self, string, replyPattern, alternatePattern,
+    endPoints) (line 182)
+  - CommunicationPort.writeStringReadMatchingGroups(self, string, replyPattern, alternatePattern, endPoints)
+    (line 191)
+  - CommunicationPort.readMatchingGroups(self, replyPattern, alternatePattern, endPoint) (line 204)
+  note: Compact signatures retained; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 14
+  driver_function_count: 15
+  related_tag_count: 1

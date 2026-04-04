@@ -1,45 +1,156 @@
-Device: client
-Registry Key: client
-Short Description: Client设备驱动，用于实验室自动化控制与数据采集。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (12):
-- auto-build -> build [UniLabJsonCommand] goal_params: experimental_features, log, major_ver, rev, variant
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-get_json -> get_json [UniLabJsonCommand] goal_params: variant
-- auto-get_single_variant -> get_single_variant [UniLabJsonCommand] goal_params: error_msg
-- auto-get_variants -> get_variants [UniLabJsonCommand] goal_params: none
-- auto-init_websocket -> init_websocket [UniLabJsonCommand] goal_params: none
-- auto-login -> login [UniLabJsonCommand] goal_params: password, username
-- auto-passwd -> passwd [UniLabJsonCommand] goal_params: password
-- auto-read_json -> read_json [UniLabJsonCommand] goal_params: none
-- auto-read_line -> read_line [UniLabJsonCommand] goal_params: none
-- auto-read_reply -> read_reply [UniLabJsonCommand] goal_params: none
-- auto-send_command -> send_command [UniLabJsonCommand] goal_params: none
-
-Driver Functions (20):
-- get_artiq_rev() (line 85)
-- get_artiq_major_version() (line 96)
-- zip_unarchive(data, directory) (line 105)
-- Client.__init__(self, server, port, cafile) (line 112)
-- Client.connect(self) [async] (line 120)
-- Client.init_websocket(self) [async] (line 130)
-- Client.close(self) [async] (line 144)
-- Client.send_command(self, *command) [async] (line 150)
-- Client.read_line(self) [async] (line 154)
-- Client.read_reply(self) [async] (line 161)
-- Client.read_json(self) [async] (line 165)
-- Client.login(self, username, password) [async] (line 169)
-- Client.build(self, major_ver, rev, variant, log, experimental_features) [async] (line 174)
-- Client.passwd(self, password) [async] (line 219)
-- Client.get_variants(self) [async] (line 224)
-- Client.get_single_variant(self, error_msg) [async] (line 232)
-- Client.get_json(self, variant) [async] (line 245)
-- get_argparser() (line 258)
-- main_async() [async] (line 282)
-- main() (line 374)
+device: client
+registry_key: client
+device_identity:
+  manufacturer: Open Source
+  model:
+    name: Client
+    type: device
+  module_path: unilabos.devices.generic.client:Client
+description:
+  text_en: TCP/TLS lab automation server client for login, command exchange, firmware
+    build requests, and artifact retrieval in experiment-control workflows.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - 'registry.name: Client'
+  - 'registry.device_params.功能: 通用设备客户端通信模块'
+  - 'driver code: LOGIN/BUILD/GET_VARIANTS/GET_JSON command flow and websocket+TLS
+    setup'
+related_tags:
+- id: '4313'
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: '4313'
+  rationale: Matched from registry metadata and action/description semantics.
+  signals:
+  - registry.tags
+  - registry.category
+  - name
+  - model
+  - manufacturer
+  - module_path
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-init_websocket
+  title: init_websocket
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Initialize HTTP websocket upgrade handshake before TLS switch.
+  evidence_source: code
+- name: auto-close
+  title: close
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Close the current client connection cleanly.
+  evidence_source: code
+- name: auto-send_command
+  title: send_command
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Send a plain-text command line to the server.
+  evidence_source: code
+- name: auto-read_line
+  title: read_line
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read one ASCII line from server stream.
+  evidence_source: code
+- name: auto-read_reply
+  title: read_reply
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read and split one whitespace-delimited reply.
+  evidence_source: code
+- name: auto-read_json
+  title: read_json
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read one line and decode JSON payload.
+  evidence_source: code
+- name: auto-login
+  title: login
+  parameters:
+  - username
+  - password
+  command_type: UniLabJsonCommand
+  description_en: Authenticate with LOGIN username and password.
+  evidence_source: code
+- name: auto-build
+  title: build
+  parameters:
+  - major_ver
+  - rev
+  - variant
+  - log
+  - experimental_features
+  command_type: UniLabJsonCommand
+  description_en: Trigger BUILD for a variant and download product bytes on success.
+  evidence_source: code
+- name: auto-passwd
+  title: passwd
+  parameters:
+  - password
+  command_type: UniLabJsonCommand
+  description_en: Send PASSWD request to update user password.
+  evidence_source: code
+- name: auto-get_variants
+  title: get_variants
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Request available firmware variants from server.
+  evidence_source: code
+- name: auto-get_single_variant
+  title: get_single_variant
+  parameters:
+  - error_msg
+  command_type: UniLabJsonCommand
+  description_en: Ensure exactly one variant is available or abort with message.
+  evidence_source: code
+- name: auto-get_json
+  title: get_json
+  parameters:
+  - variant
+  command_type: UniLabJsonCommand
+  description_en: Request and read JSON description for one variant.
+  evidence_source: code
+driver_functions:
+  compact_signatures:
+  - get_artiq_rev() (line 85)
+  - get_artiq_major_version() (line 96)
+  - zip_unarchive(data, directory) (line 105)
+  - Client.__init__(self, server, port, cafile) (line 112)
+  - Client.connect(self) [async] (line 120)
+  - Client.init_websocket(self) [async] (line 130)
+  - Client.close(self) [async] (line 144)
+  - Client.send_command(self, *command) [async] (line 150)
+  - Client.read_line(self) [async] (line 154)
+  - Client.read_reply(self) [async] (line 161)
+  - Client.read_json(self) [async] (line 165)
+  - Client.login(self, username, password) [async] (line 169)
+  - Client.build(self, major_ver, rev, variant, log, experimental_features) [async]
+    (line 174)
+  - Client.passwd(self, password) [async] (line 219)
+  - Client.get_variants(self) [async] (line 224)
+  - Client.get_single_variant(self, error_msg) [async] (line 232)
+  - Client.get_json(self, variant) [async] (line 245)
+  - get_argparser() (line 258)
+  - main_async() [async] (line 282)
+  - main() (line 374)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 12
+  driver_function_count: 20
+  related_tag_count: 1

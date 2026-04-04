@@ -1,26 +1,81 @@
-Device: d435_rgb_stream
-Registry Key: d435_rgb_stream
-Short Description: D435 RGB Stream是由Intel RealSense生产的表征设备，主要功能包括成像、设置。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (3):
-- auto-camera_response_callback -> camera_response_callback [UniLabJsonCommand] goal_params: msg
-- auto-process_and_queue_image -> process_and_queue_image [UniLabJsonCommand] goal_params: image_data
-- auto-setup_ffmpeg_stream -> setup_ffmpeg_stream [UniLabJsonCommand] goal_params: none
-
-Driver Functions (10):
-- D435RGBStream.__init__(self) (line 88)
-- D435RGBStream._calculate_fps(self) (line 133)
-- D435RGBStream._should_restart_process(self, new_fps) (line 153)
-- D435RGBStream.setup_ffmpeg_stream(self) (line 161)
-- D435RGBStream.camera_response_callback(self, msg) (line 239)
-- D435RGBStream.process_and_queue_image(self, image_data) (line 255)
-- D435RGBStream._writer_thread(self) (line 311)
-- D435RGBStream._is_process_healthy(self) (line 358)
-- D435RGBStream.__del__(self) (line 365)
-- main(args) (line 387)
+device: d435_rgb_stream
+registry_key: d435_rgb_stream
+device_identity:
+  manufacturer: Intel RealSense
+  model:
+    name: Intel RealSense D435 RGB-D Camera
+    type: device
+  name: Intel RealSense D435 RGB Stream
+  module_path: unilabos.devices.camera.realsense.d435_rgb_stream:D435RGBStream
+description:
+  text_en: RGB stream service for an Intel RealSense D435 camera, subscribing to ROS2 image frames and
+    pushing encoded video through an FFmpeg pipeline for remote viewing.
+  method: web+local
+description_evidence:
+  web:
+  - https://www.intel.com/content/www/us/en/products/sku/128255/intel-realsense-depth-camera-d435/specifications.html
+  - https://www.intelrealsense.com/depth-camera-d435/
+  local:
+  - 'class docstring: ROS2 node that reads RGB images from D435 and streams video using FFmpeg'
+  - camera_response_callback() and process_and_queue_image() implement frame ingest and conversion
+  - setup_ffmpeg_stream() manages output encoder process
+related_tags:
+- id: '4316'
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: '4316'
+  rationale: Imaging stream acquisition is a characterization/data-capture workflow.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-camera_response_callback
+  title: camera_response_callback
+  parameters:
+  - msg
+  command_type: UniLabJsonCommand
+  description_en: Handle incoming ROS image messages from camera topic.
+  evidence_source: docstring
+- name: auto-process_and_queue_image
+  title: process_and_queue_image
+  parameters:
+  - image_data
+  command_type: UniLabJsonCommand
+  description_en: Convert/queue image frames for writer thread and stream output.
+  evidence_source: code_comments
+- name: auto-setup_ffmpeg_stream
+  title: setup_ffmpeg_stream
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Initialize FFmpeg process used for outbound video stream.
+  evidence_source: code_comments
+driver_functions:
+  compact_signatures:
+  - D435RGBStream.__init__(self) (line 88)
+  - D435RGBStream._calculate_fps(self) (line 133)
+  - D435RGBStream._should_restart_process(self, new_fps) (line 153)
+  - D435RGBStream.setup_ffmpeg_stream(self) (line 161)
+  - D435RGBStream.camera_response_callback(self, msg) (line 239)
+  - D435RGBStream.process_and_queue_image(self, image_data) (line 255)
+  - D435RGBStream._writer_thread(self) (line 311)
+  - D435RGBStream._is_process_healthy(self) (line 358)
+  - D435RGBStream.__del__(self) (line 365)
+  - main(args) (line 387)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v3
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 3
+  driver_function_count: 10
+  related_tag_count: 1

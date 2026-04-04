@@ -1,47 +1,170 @@
-Device: data_source
-Registry Key: data_source
-Short Description: DataRay 中红外光束质量分析仪是由杭州谱镭光电技术有限公司生产的专业实验设备。
-
-Categories:
-- 红外光谱仪
-
-Related Tags (from tag 标签列表.csv):
-- [4440] 红外光谱仪 / Infrared Spectrometer (device_template_tag)
-
-Atom Actions (13):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-data -> data [UniLabJsonCommand] goal_params: none
-- auto-get_data -> get_data [UniLabJsonCommand] goal_params: channel, position, resolution, timepoint, z
-- auto-get_shape_from_metadata -> get_shape_from_metadata [UniLabJsonCommand] goal_params: none
-- auto-mode -> mode [UniLabJsonCommand] goal_params: mode_str
-- auto-nbytes -> nbytes [UniLabJsonCommand] goal_params: none
-- auto-read -> read [UniLabJsonCommand] goal_params: none
-- auto-set_metadata -> set_metadata [UniLabJsonCommand] goal_params: metadata_config
-- auto-set_metadata_from_configuration_experiment -> set_metadata_from_configuration_experiment [UniLabJsonCommand] goal_params: configuration, microscope_name
-- auto-setup -> setup [UniLabJsonCommand] goal_params: none
-- auto-shape -> shape [UniLabJsonCommand] goal_params: none
-- auto-voxel_size -> voxel_size [UniLabJsonCommand] goal_params: none
-- auto-write -> write [UniLabJsonCommand] goal_params: data
-
-Driver Functions (21):
-- DataSource.__init__(self, file_name, mode) (line 117)
-- DataSource.nbytes(self) (line 199)
-- DataSource.mode(self) (line 224)
-- DataSource.mode(self, mode_str) (line 236)
-- DataSource.data(self) (line 255)
-- DataSource.voxel_size(self) (line 273)
-- DataSource.shape(self) (line 285)
-- DataSource.setup(self) (line 296)
-- DataSource.set_metadata_from_configuration_experiment(self, configuration, microscope_name) (line 301)
-- DataSource.set_metadata(self, metadata_config) (line 318)
-- DataSource.get_shape_from_metadata(self) (line 330)
-- DataSource._cztp_indices(self, frame_id, per_stack) (line 344)
-- DataSource._check_shape(self, max_frame, per_stack) (line 397)
-- DataSource._mode_checks(self) (line 437)
-- DataSource.write(self, data, **kw) (line 450)
-- DataSource.read(self) (line 469)
-- DataSource.get_data(self, timepoint, position, channel, z, resolution) (line 481)
-- DataSource.close(self) (line 521)
-- DataSource.__del__(self) (line 526)
-- DataReader.__init__(self, *args, **kwargs) (line 535)
-- DataReader.shape(self) (line 540)
+device: data_source
+registry_key: data_source
+device_identity:
+  manufacturer: Open Source (Navigate)
+  model:
+    name: Navigate DataSource Base Class
+    type: device
+  name: Navigate Data Source
+  module_path: unilabos.devices.universal.data_source:DataSource
+description:
+  text_en: File-backed imaging data source interface that reads/writes microscopy frames, tracks voxel/shape metadata, and exposes indexed access by timepoint, position, channel, and z slice.
+  method: local
+description_evidence:
+  web: []
+  local:
+  - driver header origin points to src/navigate/model/data_sources/data_source.py
+  - class docstring defines base class for read/write data sources with metadata pointers
+  - get_data(timepoint, position, channel, z, resolution) indicates multidimensional microscopy data access
+registry_identity_conflict:
+  registry_manufacturer: 杭州谱镭光电技术有限公司
+  registry_model_name: DataRay 中红外光束质量分析仪
+  chosen_manufacturer: Open Source (Navigate)
+  chosen_model_name: Navigate DataSource Base Class
+  rationale: Driver source is Navigate software data-source code and does not implement DataRay spectrometer hardware control.
+related_tags:
+- id: '4316'
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+- id: '4314'
+  name: 后处理设备
+  name_en: Post-processing Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: '4316'
+  rationale: The interface serves structured access to acquired measurement/image data.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: '4314'
+  rationale: Metadata shaping and file I/O support downstream data handling after acquisition.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-mode
+  title: mode
+  parameters:
+  - mode_str
+  command_type: UniLabJsonCommand
+  description_en: Set or query mode using mode_str.
+  evidence_source: action_name_params
+- name: auto-setup
+  title: setup
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute setup.
+  evidence_source: action_name_params
+- name: auto-set_metadata_from_configuration_experiment
+  title: set_metadata_from_configuration_experiment
+  parameters:
+  - configuration
+  - microscope_name
+  command_type: UniLabJsonCommand
+  description_en: Set metadata from configuration experiment using configuration, microscope_name.
+  evidence_source: action_name_params
+- name: auto-set_metadata
+  title: set_metadata
+  parameters:
+  - metadata_config
+  command_type: UniLabJsonCommand
+  description_en: Set metadata using metadata_config.
+  evidence_source: action_name_params
+- name: auto-write
+  title: write
+  parameters:
+  - data
+  command_type: UniLabJsonCommand
+  description_en: Write data using data.
+  evidence_source: action_name_params
+- name: auto-read
+  title: read
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read data.
+  evidence_source: action_name_params
+- name: auto-close
+  title: close
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Close device/session.
+  evidence_source: action_name_params
+- name: auto-nbytes
+  title: nbytes
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute nbytes.
+  evidence_source: action_name_params
+- name: auto-data
+  title: data
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute data.
+  evidence_source: action_name_params
+- name: auto-voxel_size
+  title: voxel_size
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute voxel size.
+  evidence_source: action_name_params
+- name: auto-shape
+  title: shape
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Execute shape.
+  evidence_source: action_name_params
+- name: auto-get_shape_from_metadata
+  title: get_shape_from_metadata
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Get shape from metadata.
+  evidence_source: action_name_params
+- name: auto-get_data
+  title: get_data
+  parameters:
+  - timepoint
+  - position
+  - channel
+  - z
+  - resolution
+  command_type: UniLabJsonCommand
+  description_en: Get data with provided parameters.
+  evidence_source: action_name_params
+driver_functions:
+  compact_signatures:
+  - DataSource.__init__(self, file_name, mode) (line 117)
+  - DataSource.nbytes(self) (line 199)
+  - DataSource.mode(self) (line 224)
+  - DataSource.mode(self, mode_str) (line 236)
+  - DataSource.data(self) (line 255)
+  - DataSource.voxel_size(self) (line 273)
+  - DataSource.shape(self) (line 285)
+  - DataSource.setup(self) (line 296)
+  - DataSource.set_metadata_from_configuration_experiment(self, configuration, microscope_name) (line 301)
+  - DataSource.set_metadata(self, metadata_config) (line 318)
+  - DataSource.get_shape_from_metadata(self) (line 330)
+  - DataSource.write(self, data) (line 450)
+  - DataSource.read(self) (line 469)
+  - DataSource.get_data(self, timepoint, position, channel, z, resolution) (line 481)
+  - DataSource.close(self) (line 521)
+  - DataReader.__init__(self) (line 535)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v3
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 13
+  driver_function_count: 16
+  related_tag_count: 2

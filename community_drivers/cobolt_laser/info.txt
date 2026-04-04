@@ -1,25 +1,85 @@
-Device: cobolt_laser
-Registry Key: cobolt_laser
-Short Description: Cobolt Laser是由Cobolt AB (HÜBNER Photonics)生产的实验执行&合成设备，主要功能包括关闭、写入数据、打开、读取数据。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (2):
-- auto-power -> power [UniLabJsonCommand] goal_params: none
-- auto-setPower -> setPower [UniLabJsonCommand] goal_params: powerInWatts
-
-Driver Functions (10):
-- CoboltDebugSerial.__init__(self) (line 76)
-- CoboltDebugSerial.open(self) (line 83)
-- CoboltDebugSerial.close(self) (line 91)
-- CoboltDebugSerial.read(self, length) (line 99)
-- CoboltDebugSerial.write(self, data) (line 111)
-- CoboltDebugSerial.readline(self) (line 133)
-- CoboltLaser.__init__(self, portName) (line 150)
-- CoboltLaser.__del__(self) (line 160)
-- CoboltLaser.setPower(self, powerInWatts) (line 165)
-- CoboltLaser.power(self) (line 172)
+device: cobolt_laser
+registry_key: cobolt_laser
+device_identity:
+  manufacturer: Cobolt AB (HUBNER Photonics)
+  model:
+    name: Cobolt Laser
+    type: device
+  name: Cobolt Laser
+  module_path: unilabos.devices.generic.cobolt_laser:CoboltLaser
+description:
+  text_en: Cobolt laser is a compact continuous-wave laboratory laser source used to set and monitor optical
+    output power for alignment, excitation, and measurement workflows.
+  method: web+local
+description_evidence:
+  web:
+  - https://hubner-photonics.com/product-category/lasers/dpss-lasers/
+  - https://hubner-photonics.com/products/lasers/single-frequency-laser/
+  local:
+  - Driver methods expose direct laser power set/read commands over serial (setPower, power).
+  - Registry metadata identifies Cobolt AB as manufacturer and Cobolt Laser as model family.
+related_tags:
+- id: 4313
+  name: 实验执行&合成设备
+  name_en: Experiment Execution & Synthesis Equipment
+  type: experimental_step
+- id: 4316
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: 4313
+  rationale: Laser output control is used as an active execution element in automated experiment sequences.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+- tag_id: 4316
+  rationale: Stable CW laser sources are commonly used in optical characterization and spectroscopy setups.
+  signals:
+  - registry.category
+  - registry.tags
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-setPower
+  title: setPower
+  parameters:
+  - powerInWatts
+  command_type: UniLabJsonCommand
+  description_en: Set laser output power setpoint in watts.
+  evidence_source: name_params
+- name: auto-power
+  title: power
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Read current optical output power from laser.
+  evidence_source: name_params
+driver_functions:
+  compact_signatures:
+  - CoboltDebugSerial.__init__(self) (line 76)
+  - CoboltDebugSerial.open(self) (line 83)
+  - CoboltDebugSerial.close(self) (line 91)
+  - CoboltDebugSerial.read(self, length) (line 99)
+  - CoboltDebugSerial.write(self, data) (line 111)
+  - CoboltDebugSerial.readline(self) (line 133)
+  - CoboltLaser.__init__(self, portName) (line 150)
+  - CoboltLaser.__del__(self) (line 160)
+  - CoboltLaser.setPower(self, powerInWatts) (line 165)
+  - CoboltLaser.power(self) (line 172)
+  note: Compact signatures retained; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 2
+  driver_function_count: 10
+  related_tag_count: 2

@@ -1,25 +1,72 @@
-Device: cobalt_laser_e
-Registry Key: cobalt_laser_e
-Short Description: CobaltLaserE
-
-Categories:
-- generic
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (1):
-- auto-TurnOn -> TurnOn [UniLabJsonCommand] goal_params: none
-
-Driver Functions (11):
-- CobaltLaser.__init__(self, name, turnOn, portname, maxpower, **kwargs) (line 98)
-- CobaltLaser.IsOn(self) (line 110)
-- CobaltLaser._TurnOn(self) (line 113)
-- CobaltLaser.TurnOn(self) (line 120)
-- CobaltLaser.TurnOff(self) (line 126)
-- CobaltLaser.SetPower(self, power) (line 133)
-- CobaltLaser._getOutputPower(self) (line 141)
-- CobaltLaser.GetPower(self) (line 150)
-- CobaltLaser.checkfault(self) (line 153)
-- CobaltLaserE.__init__(self, name, turnOn, portname, minpower, maxpower, **kwargs) (line 162)
-- CobaltLaserE.TurnOn(self) (line 169)
+device: cobalt_laser_e
+registry_key: cobalt_laser_e
+device_identity:
+  manufacturer: Cobolt / HÜBNER Photonics
+  model:
+    name: Cobolt laser E-variant (serial controlled)
+    type: device
+  module_path: unilabos.devices.generic.cobalt_laser_e:CobaltLaserE
+description:
+  text_en: Cobolt laser variant with startup sequence that clears faults and handles
+    interlock-sensitive restart before applying power setpoint.
+  method: web+local
+description_evidence:
+  web:
+  - https://hubner-photonics.com/wp-content/uploads/2014/11/D0951-B-Manual-Cobolt-06-01-Series-12-V.pdf
+    (Cobolt 06-01 series owner manual)
+  local:
+  - 'driver comments: Cobolt 405 nm restart workaround in TurnOn'
+  - registry action mapping exposes TurnOn entry
+related_tags:
+- id: '4316'
+  name: 表征设备
+  name_en: Characterization Equipment
+  type: experimental_step
+tag_evidence:
+- tag_id: '4316'
+  rationale: Matched from registry metadata and action/description semantics.
+  signals:
+  - registry.tags
+  - registry.category
+  - name
+  - model
+  - manufacturer
+  - module_path
+  - description
+  - atom_actions
+  - driver_functions
+atom_actions:
+- name: auto-TurnOn
+  title: TurnOn
+  parameters: []
+  command_type: UniLabJsonCommand
+  description_en: Send Cobolt startup sequence (@cobas 0, cf, l1, p ...) and enable
+    emission.
+  evidence_source: code
+driver_functions:
+  compact_signatures:
+  - CobaltLaser.__init__(self, name, turnOn, portname, maxpower, **kwargs) (line 98)
+  - CobaltLaser.IsOn(self) (line 110)
+  - CobaltLaser._TurnOn(self) (line 113)
+  - CobaltLaser.TurnOn(self) (line 120)
+  - CobaltLaser.TurnOff(self) (line 126)
+  - CobaltLaser.SetPower(self, power) (line 133)
+  - CobaltLaser._getOutputPower(self) (line 141)
+  - CobaltLaser.GetPower(self) (line 150)
+  - CobaltLaser.checkfault(self) (line 153)
+  - CobaltLaserE.__init__(self, name, turnOn, portname, minpower, maxpower, **kwargs)
+    (line 162)
+  - CobaltLaserE.TurnOn(self) (line 169)
+  note: Compact list retained by design; action semantics are documented in atom_actions.
+schema_version: v2
+processing_pass_order:
+- local_evidence_collection
+- action_summary
+- driver_function_summary
+- description_extraction
+- tag_determination
+- final_formatting_validation
+stats:
+  atom_action_count: 1
+  driver_function_count: 11
+  related_tag_count: 1
