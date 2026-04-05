@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lightweight structural validator for enriched info.txt files."""
+"""Structural validator for v4 enriched info.txt files."""
 
 from __future__ import annotations
 
@@ -10,28 +10,36 @@ from pathlib import Path
 import yaml
 
 
-REQUIRED_TOP_LEVEL = [
-    "device",
-    "registry_key",
-    "device_identity",
+# ─── Device entry required fields ───
+DEVICE_ENTRY_REQUIRED = [
+    "name",
+    "name_en",
+    "manufacturer",
+    "category",
+    "tags",
     "description",
-    "description_evidence",
-    "related_tags",
-    "tag_evidence",
-    "atom_actions",
-    "driver_functions",
-    "schema_version",
-    "processing_pass_order",
-    "stats",
+    "description_en",
+    "class",
 ]
 
-IDENTITY_CONFLICT_KEYS = [
-    "registry_manufacturer",
-    "registry_model_name",
-    "chosen_manufacturer",
-    "chosen_model_name",
-    "rationale",
+# ─── auto_annotation_metadata required fields ───
+METADATA_REQUIRED = [
+    "registry_key",
+    "annotation_workflow_version",
+    "tag_hints",
+    "tags",
+    "processing_pass_order",
 ]
+
+# ─── Tag types that must each have >= 1 entry ───
+REQUIRED_TAG_TYPES = [
+    "experimental_step",
+    "experimental_domain",
+    "experimental_scene",
+    "device_template_tag",
+]
+
+TAG_REQUIRED_FIELDS = ["id", "name", "name_en", "type"]
 
 
 def load_paths(manifest: Path | None, files: list[Path]) -> list[Path]:
@@ -56,34 +64,101 @@ def validate_file(path: Path) -> list[str]:
         return [f"{path}: top_level_not_mapping"]
 
     keys = list(data.keys())
-    for req in REQUIRED_TOP_LEVEL:
-        if req not in data:
-            errs.append(f"{path}: missing_key:{req}")
 
-    if "categories" in data:
-        errs.append(f"{path}: forbidden_key:categories")
+    # ── Must have exactly 2 top-level keys: <device_key> and auto_annotation_metadata ──
+    if "auto_annotation_metadata" not in data:
+        errs.append(f"{path}: missing_key:auto_annotation_metadata")
 
-    if keys[:4] != ["device", "registry_key", "device_identity", "description"]:
-        errs.append(f"{path}: unexpected_key_order_prefix:{keys[:4]}")
+    device_keys = [k for k in keys if k != "auto_annotation_metadata"]
+    if len(device_keys) == 0:
+        errs.append(f"{path}: missing_device_entry")
+        return errs
+    if len(device_keys) > 1:
+        errs.append(f"{path}: multiple_device_entries:{device_keys}")
 
-    if "related_tags" in data and not isinstance(data["related_tags"], list):
-        errs.append(f"{path}: related_tags_not_list")
+    device_key = device_keys[0]
+    entry = data[device_key]
 
-    if "atom_actions" in data and not isinstance(data["atom_actions"], list):
-        errs.append(f"{path}: atom_actions_not_list")
+    # ── Device key should come first ──
+    if keys[0] == "auto_annotation_metadata":
+        errs.append(f"{path}: device_entry_should_precede_metadata")
 
-    if "driver_functions" in data and not isinstance(data["driver_functions"], dict):
-        errs.append(f"{path}: driver_functions_not_mapping")
+    # ── Validate device entry ──
+    if not isinstance(entry, dict):
+        errs.append(f"{path}: device_entry_not_mapping")
+        return errs
 
-    if "registry_identity_conflict" in data:
-        if not isinstance(data["registry_identity_conflict"], dict):
-            errs.append(f"{path}: registry_identity_conflict_not_mapping")
-        else:
-            for key in IDENTITY_CONFLICT_KEYS:
-                if key not in data["registry_identity_conflict"]:
-                    errs.append(f"{path}: registry_identity_conflict_missing:{key}")
-        if "description_evidence" in data and keys.index("registry_identity_conflict") < keys.index("description_evidence"):
-            errs.append(f"{path}: registry_identity_conflict_wrong_order")
+    for req in DEVICE_ENTRY_REQUIRED:
+        if req not in entry:
+            errs.append(f"{path}: device_entry_missing:{req}")
+
+    if "category" in entry and not isinstance(entry["category"], list):
+        errs.append(f"{path}: category_not_list")
+
+    if "tags" in entry:
+        if not isinstance(entry["tags"], list):
+            errs.append(f"{path}: device_tags_not_list")
+        elif not all(isinstance(t, str) for t in entry["tags"]):
+            errs.append(f"{path}: device_tags_items_not_strings")
+
+    # ── Validate class.action_value_mappings ──
+    cls = entry.get("class")
+    if isinstance(cls, dict):
+        avm = cls.get("action_value_mappings")
+        if avm is not None and not isinstance(avm, dict):
+            errs.append(f"{path}: action_value_mappings_not_mapping")
+        elif isinstance(avm, dict):
+            for action_name, action_spec in avm.items():
+                if not isinstance(action_spec, dict):
+                    continue
+                schema = action_spec.get("schema")
+                if not isinstance(schema, dict):
+                    errs.append(f"{path}: action:{action_name}:missing_schema")
+                    continue
+                if "description" not in schema:
+                    errs.append(f"{path}: action:{action_name}:schema_missing_description")
+
+    # ── Validate auto_annotation_metadata ──
+    meta = data.get("auto_annotation_metadata")
+    if isinstance(meta, dict):
+        for req in METADATA_REQUIRED:
+            if req not in meta:
+                errs.append(f"{path}: metadata_missing:{req}")
+
+        # ── Validate tag_hints ──
+        hints = meta.get("tag_hints")
+        if hints is not None and not isinstance(hints, list):
+            errs.append(f"{path}: tag_hints_not_list")
+
+        # ── Validate tags list ──
+        tags = meta.get("tags")
+        if tags is not None:
+            if not isinstance(tags, list):
+                errs.append(f"{path}: tags_not_list")
+            else:
+                # Check each tag has required fields
+                for i, tag in enumerate(tags):
+                    if not isinstance(tag, dict):
+                        errs.append(f"{path}: tag[{i}]_not_mapping")
+                        continue
+                    for field in TAG_REQUIRED_FIELDS:
+                        if field not in tag:
+                            errs.append(f"{path}: tag[{i}]_missing:{field}")
+
+                # Check >= 1 tag per required type
+                type_counts = {}
+                for tag in tags:
+                    if isinstance(tag, dict):
+                        t = tag.get("type", "")
+                        type_counts[t] = type_counts.get(t, 0) + 1
+                for req_type in REQUIRED_TAG_TYPES:
+                    if type_counts.get(req_type, 0) < 1:
+                        errs.append(f"{path}: tags_missing_type:{req_type}")
+
+        # ── Reject removed fields ──
+        for removed in ["action_function_links", "useful_registry_metadata"]:
+            if removed in meta:
+                errs.append(f"{path}: metadata_unexpected_key:{removed}")
 
     return errs
 
@@ -104,7 +179,7 @@ def main() -> None:
             print(err)
         raise SystemExit(1)
 
-    print(f"validated {len(paths)} files")
+    print(f"validated {len(paths)} files, no errors")
 
 
 if __name__ == "__main__":

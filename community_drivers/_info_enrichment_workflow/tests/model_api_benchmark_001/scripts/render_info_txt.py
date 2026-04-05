@@ -1,0 +1,177 @@
+#!/usr/bin/env python3
+"""
+Merge intermediate artifacts into 03_enriched_payload.json and render info.txt.
+
+Inputs per device (all in the same directory):
+  01_local_signals.json    — deterministic extraction
+  02_device_profile_api.json — Pass A parsed result
+  _batch_tag_api.json      — Pass B device-level result
+
+Output per device:
+  03_enriched_payload.json — single source of truth
+  info.txt                 — final YAML output (written to community_drivers/<device>/)
+"""
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+
+COMMUNITY_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
+
+
+def load_json(path: Path) -> dict[str, Any]:
+    return json.loads(path.read_text(encoding='utf-8'))
+
+
+def merge_payload(signals: dict[str, Any],
+                  profile: dict[str, Any],
+                  tag_result: dict[str, Any] | None) -> dict[str, Any]:
+    """Build 03_enriched_payload.json from 01, 02, and batch tag results."""
+    registry = signals['registry']
+    parsed = profile.get('parsed', {})
+
+    # Actions: start from registry actions, add LLM descriptions
+    action_descs = {a['action_name']: a for a in parsed.get('actions', [])}
+    action_mappings: dict[str, Any] = {}
+
+    registry_actions = (
+        (registry.get('class', {}) if isinstance(registry, dict) else {})
+    )
+    # registry.actions is the simplified list from 01_local_signals
+    for action_str in registry.get('actions', []):
+        # Parse "auto-foo (from foo())" or plain "auto-foo"
+        action_name = action_str.split(' (from ')[0].strip()
+        schema: dict[str, Any] = {}
+        if action_name in action_descs:
+            desc = action_descs[action_name]
+            schema['description'] = desc.get('description', '')
+            schema['description_en'] = desc.get('description_en', '')
+        action_mappings[action_name] = {'schema': schema}
+
+    # If no registry actions, generate from focal methods
+    if not action_mappings:
+        driver = signals.get('driver', {})
+        for m in driver.get('focal_methods', []):
+            func_name = m['function'].split('(')[0]
+            action_name = f'auto-{func_name}'
+            schema = {}
+            if action_name in action_descs:
+                desc = action_descs[action_name]
+                schema['description'] = desc.get('description', '')
+                schema['description_en'] = desc.get('description_en', '')
+            action_mappings[action_name] = {'schema': schema}
+
+    # Tags
+    tags: list[dict[str, str]] = []
+    proposed_new_tags: list[dict[str, str]] = []
+    if tag_result:
+        tags = tag_result.get('tags', [])
+        proposed_new_tags = tag_result.get('proposed_new_tags', [])
+
+    # Short tag names for device entry
+    tag_names_cn = list(dict.fromkeys(t.get('name', '') for t in tags if t.get('name')))
+
+    return {
+        'device': signals['device'],
+        'device_entry': {
+            'name': parsed.get('name', ''),
+            'name_en': parsed.get('name_en', ''),
+            'manufacturer': parsed.get('manufacturer', ''),
+            'category': registry.get('category', []),
+            'tags': tag_names_cn,
+            'description': parsed.get('description', ''),
+            'description_en': parsed.get('description_en', ''),
+            'class': {
+                'action_value_mappings': action_mappings,
+            },
+        },
+        'auto_annotation_metadata': {
+            'registry_key': signals['device'],
+            'annotation_workflow_version': 'v4',
+            'tag_hints': parsed.get('tag_hints', []),
+            'tags': tags,
+            'proposed_new_tags': proposed_new_tags,
+            'websearch_evidence': {
+                'used': False,
+                'findings': [],
+            },
+            'processing_pass_order': [
+                'deterministic_local_extraction',
+                'per_device_semantic_profile',
+                'agent_conflict_check_and_web_search',
+                'batch_tag_pass',
+                'payload_merge',
+                'render_info_txt',
+                'validate_and_review',
+            ],
+        },
+    }
+
+
+def render_info_txt(payload: dict[str, Any]) -> str:
+    """Render info.txt YAML from 03_enriched_payload.json."""
+    device_key = payload['device']
+    info = {
+        device_key: payload['device_entry'],
+        'auto_annotation_metadata': payload['auto_annotation_metadata'],
+    }
+    return yaml.dump(info, default_flow_style=False, allow_unicode=True,
+                     sort_keys=False)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--signals-dir', type=Path, required=True,
+                        help='Directory containing per-device artifact dirs')
+    parser.add_argument('--write-info-txt', action='store_true',
+                        help='Also write info.txt to community_drivers/<device>/')
+    args = parser.parse_args()
+
+    device_dirs = sorted([p for p in args.signals_dir.iterdir() if p.is_dir()
+                          if not p.name.startswith('_')])
+
+    for device_dir in device_dirs:
+        signals_path = device_dir / '01_local_signals.json'
+        profile_path = device_dir / '02_device_profile_api.json'
+        if not signals_path.exists() or not profile_path.exists():
+            print(f'skip {device_dir.name}: missing 01 or 02')
+            continue
+
+        signals = load_json(signals_path)
+        profile = load_json(profile_path)
+
+        # Batch tag result is optional (may not have run Pass B yet)
+        tag_result = None
+        batch_tag_path = device_dir / '_batch_tag_api.json'
+        if batch_tag_path.exists():
+            batch_data = load_json(batch_tag_path)
+            tag_result = batch_data.get('device_result')
+
+        payload = merge_payload(signals, profile, tag_result)
+
+        # Write 03_enriched_payload.json
+        (device_dir / '03_enriched_payload.json').write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + '\n',
+            encoding='utf-8',
+        )
+
+        # Render info.txt
+        info_yaml = render_info_txt(payload)
+
+        if args.write_info_txt:
+            info_path = COMMUNITY_DIR / payload['device'] / 'info.txt'
+            info_path.write_text(info_yaml, encoding='utf-8')
+            print(f'wrote {info_path}')
+        else:
+            # Write to output dir for review
+            (device_dir / 'info.txt').write_text(info_yaml, encoding='utf-8')
+            print(f'wrote {device_dir / "info.txt"}')
+
+
+if __name__ == '__main__':
+    main()

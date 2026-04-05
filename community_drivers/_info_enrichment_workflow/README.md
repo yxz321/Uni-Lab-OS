@@ -11,17 +11,18 @@ Current active workflow/schema version: `v3`
 ## Local API secret setup
 
 If we use plain model API calls for semantic substeps, keep credentials outside
-the repo and prefer the OS keyring.
+the repo.
 
-Recommended keyring entry:
+Recommended local secret file:
 
-- service: `unilabos-openai`
-- username: `default`
+- path: `~/.config/unilabos/openai.env`
 
-Store it locally with:
+Contents:
 
 ```bash
-keyring set unilabos-openai default
+export OPENAI_API_KEY='your_real_key_here'
+# optional
+export OPENAI_BASE_URL='https://api.openai.com/v1'
 ```
 
 A lightweight connectivity helper is available at:
@@ -29,7 +30,7 @@ A lightweight connectivity helper is available at:
 - `community_drivers/_info_enrichment_workflow/test_openai_api.py`
 
 It reads credentials from the current environment first, then falls back to the
-OS keyring.
+local env file above.
 
 ## Design principle
 
