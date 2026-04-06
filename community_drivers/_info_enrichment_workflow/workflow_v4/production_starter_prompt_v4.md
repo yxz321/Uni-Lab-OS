@@ -64,6 +64,7 @@ Critical loop rule:
 - append next-cycle TODOs before waiting on subagents
 - append next-cycle TODOs before dispatching the next normal batch
 - append next-cycle TODOs before entering workflow-update mode
+- keep the IDE todo stack in sync with the active next-cycle steps; do not let it go empty while waiting or during workflow-update mode
 
 This rule applies even when no workflow change is needed.
 

@@ -150,3 +150,16 @@ Write one short batch report that includes:
 Use the shared production scripts and the assigned production prompt/template.
 Do not improvise a different workflow.
 Do not make model-specific prompt changes unless you document them clearly in the report.
+
+## Assigned Batch
+
+- batch_name: `validate_websearch_tune_001`
+- batch_dir: `/home/xzye/projects/DPTech/community_drivers/Uni-Lab-OS/community_drivers/_info_enrichment_workflow/batches/validate_websearch_tune_001`
+- devices_file: `/home/xzye/projects/DPTech/community_drivers/Uni-Lab-OS/community_drivers/_info_enrichment_workflow/batches/validate_websearch_tune_001/devices.txt`
+- manifest: `/home/xzye/projects/DPTech/community_drivers/Uni-Lab-OS/community_drivers/_info_enrichment_workflow/batches/validate_websearch_tune_001/manifest.json`
+- workflow_doc: `/home/xzye/projects/DPTech/community_drivers/Uni-Lab-OS/community_drivers/_info_enrichment_workflow/workflow_v4/workflow_v4.md`
+- state_file: `/home/xzye/projects/DPTech/community_drivers/Uni-Lab-OS/community_drivers/_info_enrichment_workflow/production_state_v4.json`
+- subagent_model: `gpt-5.3-codex`
+- api_model: `Vendor2/GPT-5.4`
+- reasoning_effort: `medium`
+- write the report to: `/home/xzye/projects/DPTech/community_drivers/Uni-Lab-OS/community_drivers/_info_enrichment_workflow/batches/validate_websearch_tune_001/report.md`

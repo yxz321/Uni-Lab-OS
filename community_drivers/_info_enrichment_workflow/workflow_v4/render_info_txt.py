@@ -24,6 +24,23 @@ def load_optional_json(path: Path) -> dict[str, Any] | None:
     return load_json(path)
 
 
+def resolve_websearch_evidence(device_dir: Path, profile: dict[str, Any]) -> dict[str, Any] | None:
+    evidence_path: Path | None = None
+    raw_path = str(profile.get('websearch_evidence_path', '')).strip()
+    if raw_path:
+        evidence_path = Path(raw_path)
+        if not evidence_path.is_absolute():
+            evidence_path = device_dir / evidence_path.name
+    else:
+        local_evidence = device_dir / 'websearch_evidence.json'
+        if local_evidence.exists():
+            evidence_path = local_evidence
+
+    if evidence_path is None:
+        return None
+    return load_optional_json(evidence_path)
+
+
 def dedupe_tags(tags: list[dict[str, Any]]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     seen: set[tuple[str, str, str]] = set()
@@ -76,12 +93,7 @@ def merge_payload(signals: dict[str, Any], profile: dict[str, Any], tag_result: 
     tag_names_cn = list(dict.fromkeys(t.get('name', '') for t in combined_tags if t.get('name')))
     category_names_cn = list(dict.fromkeys(t.get('name', '') for t in combined_tags if t.get('name') and t.get('type') == 'device_template_tag'))
 
-    websearch_evidence = None
-    if profile.get('websearch_evidence_path'):
-        evidence_path = Path(profile.get('websearch_evidence_path', ''))
-        if not evidence_path.is_absolute():
-            evidence_path = device_dir / evidence_path.name
-        websearch_evidence = load_optional_json(evidence_path)
+    websearch_evidence = resolve_websearch_evidence(device_dir, profile)
 
     return {
         'device': signals['device'],

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import json
 import os
 import urllib.error
@@ -143,11 +144,102 @@ def build_user_prompt(signals: dict[str, Any]) -> str:
     return '\n'.join(parts)
 
 
+def process_device(
+    device_dir: Path,
+    *,
+    model: str,
+    reasoning_effort: str,
+    base_url: str,
+    api_key: str,
+    dry_run: bool,
+) -> bool:
+    signals_path = device_dir / '01_local_signals.json'
+    if not signals_path.exists():
+        print(f'skip {device_dir.name}: no 01_local_signals.json')
+        return False
+
+    signals = json.loads(signals_path.read_text(encoding='utf-8'))
+    user_prompt = build_user_prompt(signals)
+
+    payload = {
+        'model': model,
+        'reasoning': {'effort': reasoning_effort},
+        'text': {
+            'format': {
+                'type': 'json_schema',
+                'name': RESPONSE_SCHEMA['name'],
+                'schema': RESPONSE_SCHEMA['schema'],
+                'strict': True,
+            },
+        },
+        'input': [
+            {'role': 'system', 'content': [{'type': 'input_text', 'text': SYSTEM_PROMPT}]},
+            {'role': 'user', 'content': [{'type': 'input_text', 'text': user_prompt}]},
+        ],
+    }
+
+    out_path = device_dir / '02_device_profile_api.json'
+    trace_path = device_dir / '_02_device_profile_api_trace.json'
+
+    if dry_run:
+        trace_path.write_text(json.dumps({'request': payload}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+        print(f'dry-run: wrote request to {trace_path}')
+        return False
+
+    req = urllib.request.Request(
+        f'{base_url}/responses',
+        data=json.dumps(payload).encode('utf-8'),
+        headers={
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json',
+        },
+        method='POST',
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=240) as resp:
+            raw_response = json.loads(resp.read().decode('utf-8'))
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode('utf-8', errors='replace')
+        trace_path.write_text(
+            json.dumps({'request': payload, 'http_error': {'code': exc.code, 'reason': exc.reason, 'body': body}}, ensure_ascii=False, indent=2) + '\n',
+            encoding='utf-8',
+        )
+        print(f'ERROR: HTTP {exc.code} for {device_dir.name}')
+        return True
+    except Exception as exc:
+        trace_path.write_text(json.dumps({'request': payload, 'error': str(exc)}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+        print(f'ERROR: request failed for {device_dir.name}: {exc}')
+        return True
+
+    text = extract_output_text_compat(raw_response)
+    trace_doc = {'request': payload, 'response': raw_response, 'output_text': text}
+    trace_path.write_text(json.dumps(trace_doc, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    if not text:
+        print(f'ERROR: no output_text for {device_dir.name}')
+        return True
+
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError as exc:
+        print(f'ERROR: invalid JSON for {device_dir.name}: {exc}')
+        return True
+
+    usage = raw_response.get('usage', {})
+    out_path.write_text(
+        json.dumps({'model': model, 'reasoning_effort': reasoning_effort, 'usage': usage, 'parsed': parsed}, ensure_ascii=False, indent=2) + '\n',
+        encoding='utf-8',
+    )
+    print(f'wrote {out_path}')
+    return False
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--model', default='Vendor2/GPT-5.4')
     parser.add_argument('--signals-dir', type=Path, required=True, help='Directory containing per-device 01_local_signals.json')
     parser.add_argument('--reasoning-effort', default='medium')
+    parser.add_argument('--max-concurrency', type=int, default=4, help='Maximum number of per-device Pass A requests to run in parallel')
     parser.add_argument('--limit', type=int)
     parser.add_argument('--dry-run', action='store_true', help='Write request payloads only, do not call API')
     args = parser.parse_args()
@@ -162,90 +254,24 @@ def main() -> None:
     if args.limit is not None:
         device_dirs = device_dirs[:args.limit]
 
+    max_workers = max(1, min(args.max_concurrency, len(device_dirs) or 1))
     failures = 0
-    for device_dir in device_dirs:
-        signals_path = device_dir / '01_local_signals.json'
-        if not signals_path.exists():
-            print(f'skip {device_dir.name}: no 01_local_signals.json')
-            continue
-
-        signals = json.loads(signals_path.read_text(encoding='utf-8'))
-        user_prompt = build_user_prompt(signals)
-
-        payload = {
-            'model': args.model,
-            'reasoning': {'effort': args.reasoning_effort},
-            'text': {
-                'format': {
-                    'type': 'json_schema',
-                    'name': RESPONSE_SCHEMA['name'],
-                    'schema': RESPONSE_SCHEMA['schema'],
-                    'strict': True,
-                },
-            },
-            'input': [
-                {'role': 'system', 'content': [{'type': 'input_text', 'text': SYSTEM_PROMPT}]},
-                {'role': 'user', 'content': [{'type': 'input_text', 'text': user_prompt}]},
-            ],
-        }
-
-        out_path = device_dir / '02_device_profile_api.json'
-        trace_path = device_dir / '_02_device_profile_api_trace.json'
-
-        if args.dry_run:
-            trace_path.write_text(json.dumps({'request': payload}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-            print(f'dry-run: wrote request to {trace_path}')
-            continue
-
-        req = urllib.request.Request(
-            f'{base_url}/responses',
-            data=json.dumps(payload).encode('utf-8'),
-            headers={
-                'Authorization': f'Bearer {api_key}',
-                'Content-Type': 'application/json',
-            },
-            method='POST',
-        )
-
-        try:
-            with urllib.request.urlopen(req, timeout=240) as resp:
-                raw_response = json.loads(resp.read().decode('utf-8'))
-        except urllib.error.HTTPError as exc:
-            body = exc.read().decode('utf-8', errors='replace')
-            trace_path.write_text(
-                json.dumps({'request': payload, 'http_error': {'code': exc.code, 'reason': exc.reason, 'body': body}}, ensure_ascii=False, indent=2) + '\n',
-                encoding='utf-8',
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [
+            executor.submit(
+                process_device,
+                device_dir,
+                model=args.model,
+                reasoning_effort=args.reasoning_effort,
+                base_url=base_url,
+                api_key=api_key,
+                dry_run=args.dry_run,
             )
-            failures += 1
-            print(f'ERROR: HTTP {exc.code} for {device_dir.name}')
-            continue
-        except Exception as exc:
-            trace_path.write_text(json.dumps({'request': payload, 'error': str(exc)}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-            failures += 1
-            print(f'ERROR: request failed for {device_dir.name}: {exc}')
-            continue
-
-        text = extract_output_text_compat(raw_response)
-        trace_doc = {'request': payload, 'response': raw_response, 'output_text': text}
-        trace_path.write_text(json.dumps(trace_doc, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-        if not text:
-            failures += 1
-            print(f'ERROR: no output_text for {device_dir.name}')
-            continue
-
-        try:
-            parsed = json.loads(text)
-        except json.JSONDecodeError as exc:
-            failures += 1
-            print(f'ERROR: invalid JSON for {device_dir.name}: {exc}')
-            continue
-
-        usage = raw_response.get('usage', {})
-        out_path.write_text(
-            json.dumps({'model': args.model, 'reasoning_effort': args.reasoning_effort, 'usage': usage, 'parsed': parsed}, ensure_ascii=False, indent=2) + '\n',
-            encoding='utf-8',
-        )
-        print(f'wrote {out_path}')
+            for device_dir in device_dirs
+        ]
+        for future in concurrent.futures.as_completed(futures):
+            if future.result():
+                failures += 1
 
     if failures:
         raise SystemExit(f'Pass A failed for {failures} device(s)')

@@ -49,6 +49,17 @@ Versioning rule:
   `devices.txt` or `manifest.json` when present, instead of excluding names
   that begin with `_`. This preserves valid underscore-prefixed device ids in
   Pass A, compare, Pass B, render, and proposed-tag collection.
+- Pass A now supports parallel per-device API fan-out with a small default
+  concurrency, instead of waiting strictly device-by-device.
+- Relaxed the web-search trigger guidance so coherent driver-derived Pass A
+  profiles are trusted more often when the conflict is only weak registry
+  metadata, backend/wrapper wording, or missing manufacturer.
+- Renderer now auto-loads batch-local `websearch_evidence.json` when present,
+  even if `02_device_profile_api.json` does not explicitly carry a
+  `websearch_evidence_path`.
+- Documented that the IDE todo stack must be kept synchronized with the
+  persistent JSON TODO queue so autonomous continuation does not stall across
+  turn boundaries.
 
 ## v3
 
