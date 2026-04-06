@@ -1,21 +1,17 @@
 # Device Info Enrichment Workflow
 
-This folder documents the reusable batch workflow for improving `info.txt`
-files in `community_drivers`.
+This folder documents the active production workflow for generating enriched
+`info.txt` files in `community_drivers`.
 
-The prototype phase has been completed. The active workflow below is now the
-approved production workflow for batch-by-batch execution.
-
-Current active workflow/schema version: `v3`
+Current active workflow/schema version: `v4`
 
 ## Local API secret setup
 
 If we use plain model API calls for semantic substeps, keep credentials outside
-the repo.
+this repo.
 
 Recommended local secret file:
-
-- path: `~/.config/unilabos/openai.env`
+- `~/.config/unilabos/openai.env`
 
 Contents:
 
@@ -25,336 +21,166 @@ export OPENAI_API_KEY='your_real_key_here'
 export OPENAI_BASE_URL='https://api.openai.com/v1'
 ```
 
-A lightweight connectivity helper is available at:
-
+Connectivity helper:
 - `community_drivers/_info_enrichment_workflow/test_openai_api.py`
-
-It reads credentials from the current environment first, then falls back to the
-local env file above.
 
 ## Design principle
 
 This is a large-scale enrichment task. The goal is useful, consistent, and
 honest metadata, not perfection.
 
-- A quality level comparable to the current accepted prototypes is good enough.
-- Do not over-invest in polishing individual devices beyond the level needed to
+- A quality level comparable to the accepted current examples is good enough.
+- Do not over-invest in polishing individual devices beyond what is needed to
   keep the corpus broadly useful.
-- Prefer steady batch throughput and consistent rules over isolated
-  high-effort edits.
+- Prefer steady throughput and consistent rules over isolated high-effort edits.
 
-## Why batches
+## Active architecture
 
-The full corpus is large enough that enrichment quality should be validated in
-small consecutive batches. After each batch, review:
+Workflow `v4` has two distinct agent roles.
 
-- description quality
-- tag assignment quality
-- action/function summary quality
-- formatting stability
-- missing tag proposals
+### Main orchestrator
 
-Then update the prompt or extraction rules before running the next batch.
+The main orchestrator:
+- reads the root workflow docs and state
+- chooses the next devices in sorted order
+- creates production batches under `_info_enrichment_workflow/batches/`
+- generates the device-reasoning subagent prompt from the shared template
+- dispatches subagents
+- reads validator results and subagent reports
+- decides whether a workflow update is needed
+- appends next-cycle TODOs into `_info_enrichment_workflow/production_state_v4.json`
 
-The prompt and extraction rules should therefore be versioned and written to
-this folder, alongside a changelog documenting:
+Default main orchestrator model:
+- `GPT-5.4`
 
-- workflow version
-- changes
-- batch or devices processed under that version
-- lessons learned
+### Device-reasoning subagents
 
-## Recommended workflow
+The device-reasoning subagent:
+- works on one batch folder only
+- runs deterministic extraction, Pass A, compare, optional web search,
+  Pass B, render, validation, and reporting
+- writes final `info.txt` to `community_drivers/<device>/info.txt`
+- keeps all intermediate files in the assigned batch folder
 
-1. Generate a batch manifest and agent prompt with `prepare_batch.py`.
-2. Dispatch one agent for that batch only.
-3. Review the changed `info.txt` files and the agent report.
-4. Adjust the prompt/template/rules if needed.
-5. Move on to the next batch.
+Default device-reasoning model:
+- `gpt-5.3-codex`
 
-In autonomous production mode, a workflow update is part of the loop, not the
-end of the loop:
+Default semantic API model:
+- `Vendor2/GPT-5.4`
 
-- if review triggers a workflow update, enter the workflow-update cycle
-- validate the candidate on trigger devices
-- adopt the update only if the result is visibly better
-- then immediately append the next production tasks and continue at reduced
-  parallelism until the new workflow proves stable
-- do not wait for additional user approval after a validated workflow update
-  unless the change has unusual risk beyond the normal batch policy
+## Production file layout
 
-If a workflow rule is changed because of a concrete device-level issue, rerun
-the device or small batch that triggered the change and only keep the workflow
-update if it produces a visible improvement.
+Workflow source files live under:
+- `_info_enrichment_workflow/workflow_v4/`
 
-Those trigger devices may therefore advance to a newer workflow version earlier
-than the main batch queue. That is acceptable, as long as the batch queue still
-continues in strict order for normal production processing.
+Persistent state lives at:
+- `_info_enrichment_workflow/production_state_v4.json`
+
+Batch-local artifacts live under:
+- `_info_enrichment_workflow/batches/<batch_id>/`
+
+Each batch folder should contain:
+- `manifest.json`
+- `devices.txt`
+- `agent_prompt.md`
+- `report.md`
+- one subfolder per device for intermediate artifacts and trace files
+- optional validation-diff or trigger-validation artifacts
+
+Final outputs live directly in device folders:
+- `community_drivers/<device>/info.txt`
+
+## Normal production flow
+
+1. Run a 2-device production verification batch first.
+2. After the verification batch succeeds, continue with 10-device batches.
+3. Use the first devices in sorted order.
+4. Treat all devices as needing rerun because `v4` changes `info.txt`
+   structure materially from `v3`.
+5. Keep working state in batch folders and persistent state at the root.
+
+Production helpers:
+- `_info_enrichment_workflow/workflow_v4/prepare_batch_v4.py`
+- `_info_enrichment_workflow/workflow_v4/build_agent_prompt.py`
+- `_info_enrichment_workflow/workflow_v4/extract_info_raw.py`
+- `_info_enrichment_workflow/workflow_v4/run_pass_a.py`
+- `_info_enrichment_workflow/workflow_v4/compare_profile_vs_registry.py`
+- `_info_enrichment_workflow/workflow_v4/run_pass_b.py`
+- `_info_enrichment_workflow/workflow_v4/render_info_txt.py`
+- `_info_enrichment_workflow/workflow_v4/collect_proposed_tags.py`
+- `_info_enrichment_workflow/workflow_v4/validate_info_txt.py`
+
+## Autonomy rules
+
+The main orchestrator should continue autonomously through normal production.
+
+Before waiting on subagents, before starting the next normal batch, and before
+entering workflow-update mode, append the next-cycle TODOs into
+`production_state_v4.json`.
+
+This applies both when a workflow update is needed and when no workflow update
+is needed.
+
+API patience rule:
+- do not interrupt slow Pass A or Pass B runs just because they are quiet
+- only react to concrete failures such as HTTP errors, timeouts, schema
+  failures, or missing output artifacts
+
+## Policy-update validation runs
+
+When testing a workflow change on trigger devices:
+
+- commit locally before entering the workflow-update cycle
+- start the commit message with the workflow version, for example `v4: ...`
+- prefer prompt changes in Pass A, Pass B, and the subagent prompt over
+  script-based semantic patching
+- prefer writing candidate outputs to staged or temp files first
+- compare old vs new result
+- only adopt the update if the new result is visibly better
+- append next-cycle TODOs before entering the update cycle so the autonomous
+  loop does not stop
+- after a validated update, continue from the current device cursor rather than
+  restarting the corpus
+
+The only full-rerun exception is the initial promotion from `v3` to `v4`,
+because the `info.txt` structure changed materially.
 
 ## Success criteria for scaling
 
 A batch counts as successful only if all of the following are true:
 
-- the lightweight validator passes
-- the agent report does not surface a blocking or workflow-changing issue
-- sampled descriptions look readable and device-first
-- sampled action/function summaries are acceptable for the current quality bar
-- my own review does not identify a workflow change that should be made before
-  continuing
+- the structural validator passes
+- the subagent report does not surface a blocking or workflow-changing issue
+- sampled `name`, `description`, `tags`, and 3 sampled action summaries in the
+  report look acceptable for the current quality bar
+- my own review of the report does not identify a workflow change that should
+  be made before continuing
 
 Passing validation alone is not enough.
 
 If a review suggests a workflow change, enter the workflow-update cycle and
 reset the scaling success streak after the change is adopted.
 
-## Pass order
+## Proposed tags
 
-Each batch should follow this order:
+Proposed tags append to:
+- `community_drivers/tag_additions_proposed.csv`
 
-1. Local evidence collection pass
-2. Atom action summary pass
-3. Driver function summary pass
-4. Description extraction pass
-5. Tag determination pass
-6. Final formatting and validation pass
-
-Why this order:
-
-- Local evidence collection still happens first.
-- Description should be written after action and function summaries, because
-  those summaries often expose device semantics more clearly than raw metadata.
-- Tagging should happen after action and function summaries, because those
-  summaries often expose device semantics more clearly than raw method names.
-- The extracted description is therefore one input to tag determination, not
-  the only semantic input.
-
-## Device identity pass
-
-`device_identity` should usually start from registry metadata, but it does not
-have to remain registry-bound when the registry is clearly wrong.
-
-Identity rules:
-
-- Prefer registry manufacturer/model/name when they are broadly consistent with
-  driver module, docstrings, actions, and web evidence.
-- If registry identity is clearly contradicted by stronger evidence, override
-  `device_identity` with the corrected identity.
-- Stronger evidence can include:
-  - driver module/class naming
-  - class docstrings
-  - source-origin comments
-  - action surface that clearly matches another device family
-  - vendor/manual/product pages
-- If identity is overridden, add an optional
-  `registry_identity_conflict` section after `description_evidence` to preserve
-  traceability.
-- Keep the conflict note concise. It should capture the registry identity,
-  chosen identity, and a short rationale.
-
-## Description pass
-
-For each device, extract a better English description by combining:
-
-- metadata collection from local files
-- search-and-infer using web search plus semantic summarization when helpful
-- fallback inference from local evidence when web evidence is weak
-
-Avoid generic descriptions like "professional laboratory equipment".
-
-Description rules:
-
-- Describe the device first, not the software wrapper.
-- Avoid phrasing like `device backend` or `pump-control backend` unless that is
-  genuinely the most accurate device identity available.
-- The final description should be at least as readable and specific as the best
-  local source available.
-- Do not let an action-list heuristic produce a description worse than
-  `registry.description`.
-- If local evidence is sparse, prefer a short plain device description over a
-  verbose pseudo-summary built from action names.
-
-## Summary extraction priority
-
-When summarizing atom actions or driver functions, prefer real evidence in this
-order:
-
-1. docstring
-2. leading inline comment block attached to the method body
-3. nearby code comments tied to the operation
-4. method or action name plus parameters
-
-If the only usable evidence is the name and parameters, it is acceptable to
-fall back to a concise naming heuristic. Do not invent semantics that are not
-supported by source evidence.
-
-## Policy-update validation runs
-
-When testing a workflow change on trigger devices:
-
-- prefer writing candidate outputs to temp or staged files first
-- compare old vs new result
-- only replace the live `info.txt` if the new workflow produces a visible
-  improvement
-
-This helps avoid keeping weaker outputs from experimental policy changes.
-
-## Local signals available to the agent
-
-- `registry.yaml`: category, tags, manufacturer, model, name, description
-- `driver.py`: AST signatures, docstrings, nearby code comments
-- current `info.txt`
-- `tag 标签列表.csv`
-- `tag_additions_proposed.csv`
-
-## Optional debug artifacts
-
-These are useful for batch preparation, QA, or corpus-wide diagnostics, but
-they should not be treated as normal agent context during enrichment:
-
-- `_device_capability_summary.csv`
-- `_unmatched_categories_for_tags.csv`
-
-## Tagging policy
-
-- Assign multiple related tags when supported by evidence.
-- Use all available signals:
-  - registry tags
-  - registry category
-  - name
-  - model
-  - manufacturer
-  - module path
-  - extracted description
-  - atom action names and summaries
-  - driver function names and summaries
-  - docstrings
-- Prefer mitigating false negatives over false positives.
-- It is acceptable if a few devices receive slightly broader tags than needed.
-- Prioritize discoverability: users should be able to find devices by device
-  type, subject/domain, and scene when the evidence is at least plausible.
-- Existing subject/domain/scene tags in `tag 标签列表.csv` should be considered
-  alongside device-template tags, not treated as optional extras.
-
-`category` is still a useful input signal, but it should not be emitted as a
-top-level section in the final `info.txt` because it is redundant once richer
-tags and descriptions are present.
-
-At this stage, explicit tag-confidence scoring is not required. The current
-policy is recall-first tagging with human review between batches.
-
-## Output expectations
-
-- improved `info.txt` for the selected devices only
-- one short report describing:
-  - what worked
-  - what still looks weak
-  - proposed new tags or tagging gaps
-  - sampled final descriptions
-  - sampled action or function summaries for review
-
-## Preferred `info.txt` layout
-
-Keep device identity and description first for readability. Put workflow
-metadata later in the file.
-
-Recommended section order:
-
-1. `device`
-2. `registry_key`
-3. `device_identity`
-4. `description`
-5. `description_evidence`
-6. optional `registry_identity_conflict`
-7. `related_tags`
-8. `tag_evidence`
-9. `atom_actions`
-10. `driver_functions`
-11. `schema_version`
-12. `processing_pass_order`
-13. `stats`
-
-Do not include a `categories` section in the final `info.txt`.
-
-## Driver section redundancy
-
-`registry.yaml` and `driver.py` are complementary, not interchangeable:
-
-- `registry.yaml` describes the exposed device interface, metadata, and atom
-  actions.
-- `driver.py` provides implementation details, hidden helpers, docstrings, and
-  operational comments.
-
-For the final `info.txt`, the `atom_actions` section should carry most of the
-semantic detail because it is closest to the exposed action space.
-
-The `driver_functions` section can stay concise by default. A compact format is
-preferred, especially when the function is already represented by an atom
-action. For example:
-
-```text
-Driver Functions (16):
-- IncubatorShakerStack.__init__(self, backend) (line 85)
-- IncubatorShakerStack.num_units(self) (line 102)
-- IncubatorShakerStack.setup(self, **backend_kwargs) [async] (line 145)
-- IncubatorShakerStack.stop(self) [async] (line 195)
-```
-
-Only add richer function summaries when they provide extra evidence that is not
-already obvious from the atom-action section or signature.
-
-## Identity conflict handling
-
-When a device lands in the wrong product family because of noisy registry
-metadata, it is better to emit the corrected identity than to preserve a
-misleading one.
-
-Examples of valid overrides:
-
-- spectroscopy instrument registry text on a robotics Blockly tool
-- flow-cytometer registry text on a microplate-reader backend
-- pipette registry text on a quantum-control controller
-
-This is a meaningful workflow improvement, not perfectionist cleanup. The goal
-is to prevent obviously wrong `device_identity` fields from propagating through
-the corpus.
-
-## Lightweight validator
-
-A lightweight schema validator is recommended before scaling, but it should
-only enforce structure, not meaning. It should check things like:
-
-- required top-level sections exist
-- `device` and description-related sections appear first
-- `categories` is absent
-- `related_tags` entries have the expected keys
-- `atom_actions` entries have basic required fields
-- `driver_functions` entries have basic required fields
-- `schema_version` and `processing_pass_order` are present
-
-This keeps the format stable without adding a high-overhead quality-scoring
-system.
-
-## Notes on new tags
-
-Do not automatically edit `tag 标签列表.csv` during early prototype batches
-unless the review explicitly approves it. During prototyping, record proposed
-tags in the batch report first. After prototyping, stage new tags first in
-`tag_additions_proposed.csv` rather than directly mutating `tag 标签列表.csv`,
-but with the same format and compatible IDs to allow easy future merge.
+Operational rule:
+- preserve mixed Chinese/English text correctly with UTF-8-safe handling
+- parallel runs may introduce duplicate ids or repeated signals
+- do not block production on cleanup now; clean them later in a separate pass
 
 ## Versioning convention
 
-The prototype phase and the production phase must stay clearly separated.
+Versioning is now split across workflow lineage and batch lineage.
 
 - Historical prototype versions use `prototype_vX.Y`.
-- Active production versions use `vN`.
-- `schema_version` in `info.txt` should match the active workflow changelog
-  version one-to-one.
-- Batch folders in production should use names like `batch_001`,
-  `batch_002`, and so on.
-
-Example:
-
-- historical prototype run: `prototype_v0.3`
-- current production workflow: `v2`
-- current production batch: `batch_001`
+- Major production workflow versions use `vN`.
+- Generated `info.txt` should carry the active workflow version exactly in
+  `auto_annotation_metadata.annotation_workflow_version`.
+- Because `_info_enrichment_workflow/batches/` already contains historical
+  production batches, new `v4` major-rerun batches should use `v4_batch_###`
+  naming to avoid ambiguity.
+- Prompt-only updates within `v4` keep the same output structure and continue
+  from the current cursor.

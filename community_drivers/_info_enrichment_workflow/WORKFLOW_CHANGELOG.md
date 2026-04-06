@@ -3,10 +3,48 @@
 Versioning rule:
 
 - Historical prototype versions use `prototype_vX.Y`.
-- Active production versions use `vN`.
-- `schema_version` in generated `info.txt` should match the active workflow
-  version exactly.
-- Batch folders in production should use `batch_001`, `batch_002`, and so on.
+- Major production versions use `vN`.
+- Generated `info.txt` should carry the active workflow version exactly in
+  `auto_annotation_metadata.annotation_workflow_version`.
+- Because `_info_enrichment_workflow/batches/` already contains historical
+  production batches, the new major `v4` rerun uses `v4_batch_###` naming to
+  avoid ambiguity.
+
+## v4
+
+- Promoted the benchmark-proven `v4` workflow into the real production layout.
+- `info.txt` structure changed materially from `v3`, so all devices must be
+  rerun under `v4`.
+- Added the two-agent production split:
+  - main orchestrator: `GPT-5.4`
+  - device-reasoning subagents: `gpt-5.3-codex`
+  - semantic API default: `Vendor2/GPT-5.4`
+- Moved production source-of-truth scripts and prompts into:
+  - `_info_enrichment_workflow/workflow_v4/`
+- Kept all batch-local artifacts under:
+  - `_info_enrichment_workflow/batches/<batch_id>/`
+- Final rendered output now writes directly to:
+  - `community_drivers/<device>/info.txt`
+- Duplicated `validate_info_txt.py` into `workflow_v4/` because workflow
+  structure can evolve across major versions.
+- Increased Pass A / Pass B request timeout to `240s`.
+- Kept the `v4` semantic boundary intact:
+  - scripts do deterministic extraction, transport compatibility, merge/render,
+    and structural validation only
+  - scripts do not perform semantic repair
+  - schema drift is a batch failure with preserved traces
+- Clarified the strict web-search trigger flow:
+  - Pass A derives the profile from driver evidence
+  - compare script produces side-by-side five-field comparison
+  - agent decides whether to web search by reading only that compare artifact
+  - web findings refine only the five identity/description fields in `02`
+- Clarified autonomous continuation rules:
+  - append next-cycle TODOs before waiting, before dispatching the next normal
+    batch, and before entering workflow-update mode
+- Promotion defaults:
+  - verification batch size: `2`
+  - normal production batch size: `10`
+  - reasoning effort: `medium`
 
 ## v3
 
@@ -37,7 +75,7 @@ Versioning rule:
 - Clarified that trigger-device validation runs may advance a few devices ahead
   of the main production queue.
 - Added guidance to prefer temp/staged outputs during policy-update validation
-  runs, replacing the live file only when the new workflow is visibly better.
+  runs, replacing the live file only when the new result is visibly better.
 - Clarified that scaling decisions must consider validator status, agent
   feedback, and manual sampled review together; validator PASS alone does not
   define batch success.
