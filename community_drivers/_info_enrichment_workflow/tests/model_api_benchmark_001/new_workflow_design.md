@@ -55,11 +55,11 @@ missing, the first class in `driver.py` is used as fallback.
 
 ### 3. Registry field reliability
 
-**More reliable** (use directly): `category`, `class.action_value_mappings`,
-`class.module`, `tags`, `scene`, `class.status_types`
+**More reliable**: `class.action_value_mappings`,
+`class.module`, `class.status_types`
 
 **Less reliable** (treat with caution): `description`, `device_params`,
-`manufacturer`, `model`, `name`
+`manufacturer`, `model`, `name`, `category`，`tags`, `scene`
 
 The enrichment workflow derives less-reliable fields from driver evidence via
 LLM, not from registry.
@@ -73,18 +73,24 @@ descriptions.
 
 ## Category handling
 
-Category is pulled from `registry.yaml` as-is. The enrichment workflow does
-**not** attempt to assign, improve, or validate category values.
+Registry `category` is treated as unreliable and is not passed into the API
+tagging flow.
+
+In final `info.txt`, `category` is rendered scriptically from the combined
+`device_template_tag` names from `existing_tags + proposed_new_tags` for the
+device. This keeps the field close to downstream YAML shape without depending
+on stale registry categories.
 
 ## Tag system design
 
 ### Tag types and requirements
 
-Each device must have at least one tag from each of these four types:
+Each device must have at least one tag from each of these four types in the
+combined set of `existing_tags + proposed_new_tags`:
 
 - `experimental_step` (6 available, do not propose new ones)
-- `experimental_domain` (9 available)
-- `experimental_scene` (38 available)
+- `experimental_domain` (9 available, may propose new ones but must be broad)
+- `experimental_scene` (38 available, may propose new ones)
 - `device_template_tag` (63 available, may propose new ones)
 
 This is because the downstream panorama view lists `device_template_tag`
@@ -96,14 +102,27 @@ crossed with `experimental_step`.
 **Pass A (per-device API call):** produces `tag_hints` — a relevance-sorted
 list of keyword phrases. Kept in `info.txt` throughout.
 
-**Pass B (batch-level API call):** receives per-device `tag_hints`, `name`,
-`description` from info.txt, plus `scene`, `module`, `tags`, `category` from
-registry, plus the full tag list once. Outputs final tags per device.
+**Pass B (batch-level API call):** receives only the conflict-resolved
+per-device semantic profile from `02_device_profile_api.json`:
+
+- `name`
+- `name_en`
+- `manufacturer`
+- `description`
+- `description_en`
+- `tag_hints`
+- action descriptions
+
+plus the full tag list once.
+
+Registry entry data is not passed into Pass B.
 
 ### New tag proposals
 
-Proposed new tags must be `device_template_tag` type only. A proposed tag must
-be broad enough that multiple real-world devices would fall under it.
+Proposed new tags can only be of `device_template_tag`, `experimental_scene`, `experimental_domain`. 
+A proposed tag must be broad enough that multiple real-world devices would fall under `device_template_tag`,
+multiple real-world device templates (types) would fall under `experimental_scene`, and multiple real-world
+`experimental_scene` would fall under `experimental_domain`.
 
 Proposed tags use the same structure as regular tags (with `id` like
 `"P-xxxx"`) and are appended to `tag_additions_proposed.csv`.
@@ -121,10 +140,10 @@ digital_io:
   name_en: National Instruments Digital IO
   manufacturer: National Instruments
   category:
-    - 实验执行&合成设备
+    - 数字IO
   tags:
     - 实验执行&合成设备
-    - 电子天平
+    - 数字IO
   description: National Instruments 数字输入输出设备，用于配置数字线方向并读写数字线状态。
   description_en: >
     A National Instruments digital input/output device for configuring digital
@@ -147,12 +166,12 @@ auto_annotation_metadata:
     - digital IO control
     - line read/write
     - NI instrument
-  tags:
+  existing_tags:
     - id: "4313"
       name: 实验执行&合成设备
       name_en: Experiment Execution & Synthesis Equipment
       type: experimental_step
-      rationale: Existing registry category maps directly to this step tag.
+      rationale: Existing step tag selected from the provided tag list.
     - id: "4318"
       name: 生命体系
       name_en: Life Sciences
@@ -181,11 +200,16 @@ Conventions:
 
 - Natural-language fields without `_en` suffix are Chinese-preferred
 - `_en` suffix fields are English
-- `category` is pulled from `registry.yaml` as-is (list), not assigned by LLM
-- `tags` in device entry is a short list of Chinese tag names (strings)
-- `auto_annotation_metadata.tags` holds full tag objects with id, name,
-  name_en, type, and rationale
-- `proposed_new_tags` has the same structure as `tags`, with `id` like
+- `category` in device entry is rendered from combined `device_template_tag`
+  names, not copied from registry
+- `category` and `tags` in the device entry should be Chinese-preferred string
+  lists
+- `tag_hints` may be English or Chinese, but English is preferred
+- `tags` in device entry is a short list of Chinese tag names (strings) from
+  the combined set of `existing_tags + proposed_new_tags`
+- `auto_annotation_metadata.existing_tags` holds full tag objects selected from
+  the provided tag list
+- `proposed_new_tags` has the same structure as `existing_tags`, with `id` like
   `"P-xxxx"`
 
 ### Action handling in info.txt
@@ -204,6 +228,7 @@ _info_enrichment_workflow/
     <device>/
       01_local_signals.json
       02_device_profile_api.json
+      02_profile_registry_compare.json
       _batch_tag_api.json
       03_enriched_payload.json
       info.txt              (preview, not final)
@@ -276,7 +301,8 @@ Produced by `run_pass_a.py`. One Responses API call per device.
 Input: driver AST from `01_local_signals.json` only (no unreliable registry
 fields). Includes function-type hints for status-type methods.
 
-Contains `request`, `response` (raw API), and `parsed` (structured output):
+Contains sanitized metadata plus `parsed` (structured output). Raw request and
+response are stored separately in the trace file:
 
 ```json
 {
@@ -296,13 +322,70 @@ Contains `request`, `response` (raw API), and `parsed` (structured output):
 }
 ```
 
+### `02_profile_registry_compare.json`
+
+Produced by `compare_profile_vs_registry.py`. No model output.
+
+Contains only the side-by-side comparison needed for conflict review:
+
+- `name`
+- `name_en`
+- `manufacturer`
+- `description`
+- `description_en`
+
+The agent should use this file, not raw `01_local_signals.json` and not full
+`02_device_profile_api.json`, when deciding whether web search is needed.
+
+Example shape:
+
+```json
+{
+  "device": "cryo_tel_gt",
+  "target_profile_path": "02_device_profile_api.json",
+  "editable_profile_fields": [
+    "name",
+    "name_en",
+    "manufacturer",
+    "description",
+    "description_en"
+  ],
+  "profile": {
+    "name": "Sunpower CryoTel GT 低温冷却器",
+    "name_en": "Sunpower CryoTel GT Cryocooler",
+    "manufacturer": "Sunpower",
+    "description": "...",
+    "description_en": "..."
+  },
+  "registry": {
+    "name": "CryoTel GT",
+    "name_en": "",
+    "manufacturer": "",
+    "description": "",
+    "description_en": ""
+  },
+  "rows": [
+    {
+      "field": "name",
+      "profile_value": "Sunpower CryoTel GT 低温冷却器",
+      "registry_value": "CryoTel GT",
+      "profile_empty": false,
+      "registry_empty": false,
+      "exact_match": false
+    }
+  ]
+}
+```
+
 ### `_batch_tag_api.json`
 
 Produced by `run_pass_b.py`. One API call per batch, results distributed to
 each device directory.
 
-Contains `request_model`, `response` (raw batch API response), and
-`device_result` (this device's tags).
+Contains `request_model`, usage, and `device_result` with:
+
+- `existing_tags`
+- `proposed_new_tags`
 
 ### `03_enriched_payload.json`
 
@@ -320,17 +403,25 @@ Contains `device`, `device_entry` (the final device block), and
   types, produce `01_local_signals.json`
 - `run_pass_a.py`: call Responses API per device, produce
   `02_device_profile_api.json`
+- `compare_profile_vs_registry.py`: extract the five identity/description
+  fields side by side into `02_profile_registry_compare.json`
 - `run_pass_b.py`: call Responses API per batch for tags, produce
   `_batch_tag_api.json`
 - `render_info_txt.py`: merge artifacts into `03_enriched_payload.json`,
   render `info.txt`
 - `validate_info_txt.py`: validate final `info.txt` structure
 
+These scripts are intentionally limited to deterministic extraction,
+transport-level response parsing, direct merge/render, and structural
+validation. They must not synthesize manufacturer values, tag rationale,
+tag-language normalization, or semantic post-repair.
+
 ### Done by agent orchestration
 
-- Compare LLM-derived device profile with registry entry
+- Read `02_profile_registry_compare.json` to compare Pass A device profile
+  with the registry entry
 - If significant conflict or missing data, trigger web search
-- Refine info.txt fields based on web search results
+- Refine `02_device_profile_api.json` fields based on web search results
 - Review tag outliers and proposed new tags
 - Sample QA across a batch
 
@@ -339,11 +430,14 @@ Contains `device`, `device_entry` (the final device block), and
 Web search is **not** triggered by script heuristics. Instead:
 
 1. Pass A produces the device profile from driver evidence only
-2. The agent compares LLM output with the registry entry
-3. If significant conflict or important fields still empty, the agent triggers
+2. The comparison script produces `02_profile_registry_compare.json`
+3. The agent compares the LLM output with the registry entry by reading only
+   `02_profile_registry_compare.json`
+4. If significant conflict or important fields still empty, the agent triggers
    web search
-4. Web search results refine `name`, `manufacturer`, `description`,
-   `description_en` in info.txt
+5. Web search results refine `name`, `name_en`, `manufacturer`,
+   `description`, `description_en` in `02_device_profile_api.json`
+6. If manufacturer is still uncertain after web search, leave it empty
 
 Save only compact findings (URL, page title, short findings).
 
@@ -360,29 +454,52 @@ registry fields.
 Output: `name`, `name_en`, `manufacturer`, `description`, `description_en`,
 bilingual per-action descriptions, `tag_hints`.
 
+If manufacturer is still uncertain, the model should return an empty string.
+The script should not rewrite placeholder values after the fact.
+
 ### Pass B: batch-level tag pass
 
 Script: `run_pass_b.py`
 
-Input: per-device `tag_hints`, `name`, `description_en` from Pass A; `scene`,
-`module`, `tags`, `category` from registry; full tag list once.
+Input: only the conflict-resolved per-device semantic profile from Pass A:
 
-Output: final tags per device (>= 1 per type), proposed new
-`device_template_tag` entries.
+- `name`
+- `name_en`
+- `manufacturer`
+- `description`
+- `description_en`
+- `tag_hints`
+- action descriptions
+
+plus the full tag list once.
+
+Output: per device:
+
+- `existing_tags`
+- `proposed_new_tags`
+
+The combined set must cover all required tag types.
+Every returned tag object must already include a `rationale` field. The script
+should preserve it as returned rather than filling or normalizing it.
 
 ### Structured output
 
 Both passes use Responses API with `text.format` strict JSON schema.
+If Pass A or Pass B returns semantic JSON that does not match the required
+schema, the run should fail while preserving raw trace artifacts for review.
 
 ## Pass order
 
 1. `deterministic_local_extraction` — `extract_info_raw.py`
 2. `per_device_semantic_profile` — `run_pass_a.py`
-3. `agent_conflict_check_and_web_search` — agent compares LLM vs registry
-4. `batch_tag_pass` — `run_pass_b.py`
-5. `payload_merge` — `render_info_txt.py`
-6. `render_info_txt` — `render_info_txt.py --write-info-txt`
-7. `validate_and_review` — `validate_info_txt.py` + agent QA
+3. `profile_registry_compare` — `compare_profile_vs_registry.py`
+4. `agent_conflict_check_and_web_search` — agent reads only
+   `02_profile_registry_compare.json`, optionally does web search, and updates
+   `02_device_profile_api.json`
+5. `batch_tag_pass` — `run_pass_b.py`
+6. `payload_merge` — `render_info_txt.py`
+7. `render_info_txt` — `render_info_txt.py --write-info-txt`
+8. `validate_and_review` — `validate_info_txt.py` + agent QA
 
 ## Concrete implementation
 
@@ -392,6 +509,7 @@ Scripts in `_info_enrichment_workflow/tests/model_api_benchmark_001/scripts/`:
 |--------|---------|----------|
 | `extract_info_raw.py` | Deterministic local extraction | `01_local_signals.json` |
 | `run_pass_a.py` | Per-device semantic profile API | `02_device_profile_api.json` |
+| `compare_profile_vs_registry.py` | Side-by-side conflict review prep | `02_profile_registry_compare.json` |
 | `run_pass_b.py` | Batch-level tag assignment API | `_batch_tag_api.json` |
 | `render_info_txt.py` | Merge + render | `03_enriched_payload.json`, `info.txt` |
 | `collect_proposed_tags.py` | Collect + append proposed new tags | `tag_additions_proposed.csv` |
@@ -407,15 +525,20 @@ python3 scripts/extract_info_raw.py --devices-file devices.txt
 # Step 2: per-device semantic profile
 python3 scripts/run_pass_a.py --signals-dir ../../outputs
 
-# Step 3: agent reviews conflicts, optionally triggers web search
+# Step 3: prepare side-by-side comparison for agent review
+python3 scripts/compare_profile_vs_registry.py --signals-dir ../../outputs
 
-# Step 4: batch tag assignment
+# Step 4: agent reads only 02_profile_registry_compare.json,
+# optionally triggers web search, and manually updates the five
+# identity/description fields in 02_device_profile_api.json
+
+# Step 5: batch tag assignment
 python3 scripts/run_pass_b.py --signals-dir ../../outputs
 
-# Step 5: merge and render
+# Step 6: merge and render
 python3 scripts/render_info_txt.py --signals-dir ../../outputs
 
-# Step 6: validate
+# Step 7: validate
 python3 ../../validate_info_txt.py ../../outputs/*/info.txt
 
 # Step 7: review proposed new tags

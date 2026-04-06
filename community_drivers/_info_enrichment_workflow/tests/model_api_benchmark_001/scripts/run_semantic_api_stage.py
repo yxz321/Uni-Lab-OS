@@ -7,6 +7,8 @@ import os
 import urllib.request
 from pathlib import Path
 
+from responses_compat import extract_output_text_compat
+
 
 DEFAULT_BASE_URL = 'https://api.openai.com/v1'
 SECRET_ENV_PATH = Path.home() / '.config' / 'unilabos' / 'openai.env'
@@ -108,7 +110,7 @@ def main() -> None:
 
         (out_dir / 'response_raw.json').write_text(json.dumps(raw, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
-        text = raw.get('output_text')
+        text = extract_output_text_compat(raw)
         if not text:
             raise RuntimeError(f'No output_text for {device} using {args.model}')
         parsed = json.loads(text)

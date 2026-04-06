@@ -1,0 +1,292 @@
+{
+  "request": {
+    "model": "gpt-5.4-mini",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "batch_tag_results",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "devices": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "device": {
+                    "type": "string"
+                  },
+                  "existing_tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "name_en": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "rationale": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "name_en",
+                        "type",
+                        "rationale"
+                      ]
+                    }
+                  },
+                  "proposed_new_tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "name_en": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "rationale": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "name_en",
+                        "type",
+                        "rationale"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "device",
+                  "existing_tags",
+                  "proposed_new_tags"
+                ]
+              }
+            }
+          },
+          "required": [
+            "devices"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are assigning tags to lab devices using extracted evidence and a provided\nfull tag list.\n\nRules:\n- The response MUST follow the requested JSON schema exactly.\n- The top-level object must be:\n  {\"devices\": [ ... ]}.\n- Each device result object must contain exactly these keys:\n  `device`, `existing_tags`, `proposed_new_tags`.\n- Use the literal key `device`, never `device_name`.\n- Do not include extra per-device keys such as `name` or `name_en`.\n- Every tag object in both `existing_tags` and `proposed_new_tags` must\n  contain exactly these keys:\n  `id`, `name`, `name_en`, `type`, `rationale`.\n- The `type` field is mandatory on every tag object and must be one of:\n  `experimental_step`, `experimental_domain`, `experimental_scene`,\n  `device_template_tag`.\n- The combined set of `existing_tags` and `proposed_new_tags` MUST contain at\n  least 1 tag of each type:\n  experimental_step, experimental_domain, experimental_scene, device_template_tag.\n- Prefer existing tags whenever they are reasonably relevant.\n- It is desirable to include all relevant tags, not exactly one tag per type.\n- A good default is roughly 1-4 relevant tags per type when the evidence\n  supports them.\n- For experimental_step: choose ONLY from existing tags. Do NOT propose new ones.\n- For experimental_domain, experimental_scene, and device_template_tag:\n  choose from existing tags first, but you may propose multiple new tags if\n  the existing list is insufficient.\n- Proposed new tags are allowed only for:\n  experimental_domain, experimental_scene, device_template_tag.\n- Every tag object's `id` must be a string.\n- For existing tags, copy the provided tag id as a string.\n- For proposed new tags, create a string id like `P-0001`, `P-0002`, etc.\n- In every tag object, `name` should be Chinese-preferred and `name_en`\n  should be English.\n- Every selected or proposed tag MUST include a short, device-specific rationale.\n- Do not output IDs only. Return full tag objects.\n- Do not use bilingual mixed strings inside `name`.\n- Prefer recall over precision, but do not select obviously unrelated tags.\n- Use only the evidence provided in the device summaries. Do not assume any\n  hidden registry priors.\n- Output JSON only.\n\nRequired shape example:\n{\n  \"devices\": [\n    {\n      \"device\": \"bio_shake\",\n      \"existing_tags\": [\n        {\n          \"id\": \"4313\",\n          \"name\": \"实验执行&合成设备\",\n          \"name_en\": \"Experiment Execution & Synthesis Equipment\",\n          \"type\": \"experimental_step\",\n          \"rationale\": \"Device-specific reason.\"\n        }\n      ],\n      \"proposed_new_tags\": [\n        {\n          \"id\": \"P-0001\",\n          \"name\": \"微孔板恒温振荡器\",\n          \"name_en\": \"Microplate Thermoshaker\",\n          \"type\": \"device_template_tag\",\n          \"rationale\": \"Device-specific reason.\"\n        }\n      ]\n    }\n  ]\n}\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Available tags:\n  [4312] 备料&前处理设备 / Material Preparation & Pre-processing Equipment (experimental_step)\n  [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)\n  [4314] 后处理设备 / Post-processing Equipment (experimental_step)\n  [4315] 器件/细胞设备 / Device / Cell Equipment (experimental_step)\n  [4316] 表征设备 / Characterization Equipment (experimental_step)\n  [4317] 物流/机械 / Logistics / Machinery (experimental_step)\n  [4318] 生命体系 / Life Sciences (experimental_domain)\n  [4319] 溶液配制与反应 / Solution Preparation & Reaction (experimental_domain)\n  [4320] 溶液→固体反应 / Solution-to-Solid Reaction (experimental_domain)\n  [4321] 熔体/高粘体系 / Melt / High-Viscosity System (experimental_domain)\n  [4322] 表面/薄膜体系 / Surface / Thin Film System (experimental_domain)\n  [4323] 粉体&固相反应 / Powder & Solid-Phase Reaction (experimental_domain)\n  [4324] 金属熔炼/增材制造 / Metal Smelting / Additive Manufacturing (experimental_domain)\n  [4325] 智慧表征与检测中心 / Intelligent Characterization & Testing Center (experimental_domain)\n  [4326] 化工放大与连续工艺优化 / Chemical Scale-up & Continuous Process Optimization (experimental_domain)\n  [4327] 基因编辑、分子生物学与育种 / Gene Editing, Molecular Biology & Breeding (experimental_scene)\n  [4328] DNA文库构建测序与蛋白设计 / DNA Library Construction, Sequencing & Protein Design (experimental_scene)\n  [4329] 代谢组学研究 / Metabolomics Research (experimental_scene)\n  [4330] 细胞生物学研究 / Cell Biology Research (experimental_scene)\n  [4331] 动物实验 / Animal Experiments (experimental_scene)\n  [4332] 广州 π-hub / Guangzhou π-hub (experimental_scene)\n  [4333] 深研院 AI4LifeScience / SIAIS AI4LifeScience (experimental_scene)\n  [4334] 移液站产品 / Liquid Handling Station Products (experimental_scene)\n  [4335] ADC药物 / ADC Drugs (experimental_scene)\n  [4336] 多肽药物 / Peptide Drugs (experimental_scene)\n  [4337] 电解液配方与工艺 / Electrolyte Formulation & Process (experimental_scene)\n  [4338] 有机 SuperChemputer / Organic SuperChemputer (experimental_scene)\n  [4339] 流动化学 / Flow Chemistry (experimental_scene)\n  [4340] 小分子药物和PROTAC药物 / Small Molecule & PROTAC Drugs (experimental_scene)\n  [4341] 溶液反应教学 / Solution Reaction Teaching (experimental_scene)\n  [4342] 智能香氛仪 / Intelligent Fragrance Diffuser (experimental_scene)\n  [4343] 水热无机合成-纳米粒子MOF/COF / Hydrothermal Inorganic Synthesis - Nanoparticle MOF/COF (experimental_scene)\n  [4344] 涂层材料 / Coating Materials (experimental_scene)\n  [4345] 高分子/树脂粉末 / Polymer / Resin Powder (experimental_scene)\n  [4346] 水热无机合成-多孔催化剂 / Hydrothermal Inorganic Synthesis - Porous Catalyst (experimental_scene)\n  [4347] 钙钛矿薄膜电池 / Perovskite Thin Film Battery (experimental_scene)\n  [4348] 有机光伏材料（OPV和OLED） / Organic Photovoltaic Materials (OPV & OLED) (experimental_scene)\n  [4349] 二维材料 / 2D Materials (experimental_scene)\n  [4350] 稀土永磁与超导材料 / Rare Earth Permanent Magnet & Superconducting Materials (experimental_scene)\n  [4351] 固态电解质大装置 / Solid-State Electrolyte Large-Scale Facility (experimental_scene)\n  [4352] 硅酸盐与陶瓷材料 / Silicate & Ceramic Materials (experimental_scene)\n  [4353] 热处理工艺研发 / Heat Treatment Process R&D (experimental_scene)\n  [4354] 金属检测中心 / Metal Testing Center (experimental_scene)\n  [4355] 钢铁材料 / Steel Materials (experimental_scene)\n  [4356] 合金研发 / Alloy R&D (experimental_scene)\n  [4357] 物化表征测试中心 / Physicochemical Characterization & Testing Center (experimental_scene)\n  [4358] Hyper-FIB / Hyper-FIB (experimental_scene)\n  [4359] 纤维纺丝 / Fiber Spinning (experimental_scene)\n  [4360] AGV / AGV (device_template_tag)\n  [4361] DNA测序仪 / DNA Sequencer (device_template_tag)\n  [4362] X射线衍射仪 / X-Ray Diffractometer (device_template_tag)\n  [4363] 一体化配粉配液站 / Integrated Powder & Liquid Dispensing Station (device_template_tag)\n  [4426] 电子天平 / Electronic Balance (device_template_tag)\n  [4364] 万能试验机标准机 / Universal Testing Machine (device_template_tag)\n  [4365] 介电常数测定仪 / Dielectric Constant Meter (device_template_tag)\n  [4366] 低温/冷冻离心机 / Refrigerated Centrifuge (device_template_tag)\n  [4367] 低温冰箱 / Low-Temperature Freezer (device_template_tag)\n  [4368] 光化学反应器 / Photochemical Reactor (device_template_tag)\n  [4369] 冷热水机 / Chiller / Heater Unit (device_template_tag)\n  [4370] 凝胶渗透色谱仪 / Gel Permeation Chromatograph (device_template_tag)\n  [4371] 制备色谱仪 / Preparative Chromatograph (device_template_tag)\n  [4372] 匀胶机 / Spin Coater (device_template_tag)\n  [4373] 化学气相沉积设备 / Chemical Vapor Deposition System (device_template_tag)\n  [4374] 压片机 / Tablet Press (device_template_tag)\n  [4375] 反应釜 / Reactor Vessel (device_template_tag)\n  [4376] 合成反应仪 / Synthesis Reactor (device_template_tag)\n  [4377] 喷雾沉淀装置 / Spray Precipitation System (device_template_tag)\n  [4378] 固体称量工作站 / Solid Weighing Workstation (device_template_tag)\n  [4379] 固相萃取设备 / Solid Phase Extraction System (device_template_tag)\n  [4380] 基质辅助激光解吸电离飞行时间质谱仪 / MALDI-TOF Mass Spectrometer (device_template_tag)\n  [4381] 多肽合成仪 / Peptide Synthesizer (device_template_tag)\n  [4382] 多通阀 / Multi-Port Valve (device_template_tag)\n  [4383] 实时定量PCR仪 / Real-Time Quantitative PCR (device_template_tag)\n  [4384] 封膜仪 / Plate Sealer (device_template_tag)\n  [4385] 并行反应仪 / Parallel Reactor (device_template_tag)\n  [4386] 开关盖加液模块 / Cap/Decap Liquid Dispensing Module (device_template_tag)\n  [4387] 微生物培养箱 / Microbial Incubator (device_template_tag)\n  [4388] 微通道反应器 / Microreactor (device_template_tag)\n  [4389] 恒温摇床 / Constant Temperature Shaker (device_template_tag)\n  [4390] 扫描电子显微镜 / Scanning Electron Microscope (device_template_tag)\n  [4391] 抽提萃取设备 / Extraction Equipment (device_template_tag)\n  [4392] 拉曼光谱仪 / Raman Spectrometer (device_template_tag)\n  [4393] 振荡器（非恒温） / Oscillator (Non-Thermostatic) (device_template_tag)\n  [4394] 接种仪 / Inoculator (device_template_tag)\n  [4395] 控温磁力搅拌器 / Temperature-Controlled Magnetic Stirrer (device_template_tag)\n  [4396] 撕膜仪 / Plate Desealer (device_template_tag)\n  [4397] 旋转蒸发器 / Rotary Evaporator (device_template_tag)\n  [4398] 旋转黏度计 / Rotational Viscometer (device_template_tag)\n  [4399] 普通PCR仪 / Thermal Cycler (device_template_tag)\n  [4400] 普通光学显微镜 / Optical Microscope (device_template_tag)\n  [4401] 机械搅拌反应釜 / Mechanical Stirring Reactor (device_template_tag)\n  [4402] 机械臂 / Robotic Arm (device_template_tag)\n  [4403] 柱塞泵 / Plunger Pump (device_template_tag)\n  [4404] 核磁共振波谱仪 / NMR Spectrometer (device_template_tag)\n  [4405] 核酸合成仪 / Nucleic Acid Synthesizer (device_template_tag)\n  [4406] 核酸纯化仪 / Nucleic Acid Purification System (device_template_tag)\n  [4407] 模具电池组装工站 / Mold Cell Assembly Workstation (device_template_tag)\n  [4408] 毛细管电泳仪 / Capillary Electrophoresis System (device_template_tag)\n  [4409] 毛细管黏度计 / Capillary Viscometer (device_template_tag)\n  [4410] 气体保护干燥箱 / Gas-Protected Drying Oven (device_template_tag)\n  [4411] 气相色谱质谱联用仪 / GC-MS (device_template_tag)\n  [4412] 氮吹仪 / Nitrogen Evaporator (device_template_tag)\n  [4413] 注射泵 / Syringe Pump (device_template_tag)\n  [4414] 洗板机 / Microplate Washer (device_template_tag)\n  [4415] 流化床反应器 / Fluidized Bed Reactor (device_template_tag)\n  [4416] 流式细胞仪 / Flow Cytometer (device_template_tag)\n  [4417] 液体密度计 / Liquid Density Meter (device_template_tag)\n  [4418] 液相色谱质谱联用仪 / LC-MS (device_template_tag)\n  [4419] 深低温冰箱 / Ultra-Low Temperature Freezer (device_template_tag)\n  [4420] 热分析联用仪 / Thermal Analysis System (device_template_tag)\n  [4421] 热混匀仪 / Thermomixer (device_template_tag)\n  [4422] 球磨机 / Ball Mill (device_template_tag)\n  [4423] 生物分子相互作用分析仪 / Biomolecular Interaction Analyzer (device_template_tag)\n  [4424] 电化学反应器 / Electrochemical Reactor (device_template_tag)\n  [4425] 电化学工作站 / Electrochemical Workstation (device_template_tag)\n  [4427] 电池测试柜 / Battery Test Cabinet (device_template_tag)\n  [4428] 电热板 / Hot Plate (device_template_tag)\n  [4429] 电穿孔仪（电转化仪） / Electroporator (device_template_tag)\n  [4430] 真空干燥箱 / Vacuum Drying Oven (device_template_tag)\n  [4431] 真空离心浓缩仪 / Vacuum Centrifugal Concentrator (device_template_tag)\n  [4432] 磁珠纯化模块 / Magnetic Bead Purification Module (device_template_tag)\n  [4433] 示差扫描量热仪 / Differential Scanning Calorimeter (device_template_tag)\n  [4434] 离心机 / Centrifuge (device_template_tag)\n  [4435] 移液器 / Pipette (device_template_tag)\n  [4436] 移液工作站 / Liquid Handling Workstation (device_template_tag)\n  [4437] 移液管 / Pipette Tube (device_template_tag)\n  [4438] 箱式电阻炉 / Box Resistance Furnace (device_template_tag)\n  [4439] 紫外-可见分光光谱仪 / UV-Vis Spectrophotometer (device_template_tag)\n  [4440] 红外光谱仪 / Infrared Spectrometer (device_template_tag)\n  [4441] 纽扣电池组装工站 / Coin Cell Assembly Workstation (device_template_tag)\n  [4442] 组织培养试验箱 / Tissue Culture Chamber (device_template_tag)\n  [4443] 组织破碎机 / Tissue Homogenizer (device_template_tag)\n  [4444] 细胞分析仪 / Cell Analyzer (device_template_tag)\n  [4445] 细胞融合仪 / Cell Fusion System (device_template_tag)\n  [4446] 自动化耗材堆栈 / Automated Consumable Stack (device_template_tag)\n  [4447] 荧光显微镜 / Fluorescence Microscope (device_template_tag)\n  [4448] 落球黏度计 / Falling Ball Viscometer (device_template_tag)\n  [4449] 蒸镀仪 / Evaporation Coater (device_template_tag)\n  [4450] 薄层色谱仪 / Thin Layer Chromatograph (device_template_tag)\n  [4451] 蠕动泵 / Peristaltic Pump (device_template_tag)\n  [4452] 表面等离子体谐振分析仪 / Surface Plasmon Resonance Analyzer (device_template_tag)\n  [4453] 超声破碎仪 / Ultrasonic Homogenizer (device_template_tag)\n  [4454] 软包电池组装工站 / Pouch Cell Assembly Workstation (device_template_tag)\n  [4455] 过滤器 / Filter (device_template_tag)\n  [4456] 透射电子显微镜 / Transmission Electron Microscope (device_template_tag)\n  [4457] 酶标仪 / Microplate Reader (device_template_tag)\n  [4458] 顶置失重固体投料模块 / Overhead Loss-in-Weight Solid Feeder (device_template_tag)\n  [4459] 高低温金属浴 / High/Low Temperature Metal Bath (device_template_tag)\n  [4460] 高内涵细胞成像分析系统 / High Content Cell Imaging Analysis System (device_template_tag)\n  [4461] 高压反应器 / High Pressure Reactor (device_template_tag)\n  [4462] 蛋白质组学研究 / Proteomics Research (experimental_scene)\n  [4463] 高粘度高分子树脂/薄膜 / High-Viscosity Polymer Resin / Film (experimental_scene)\n  [4464] 粘接剂 / Adhesive (experimental_scene)\n  [P-001] 激光器 / Laser Module (device_template_tag)\n  [P-002] 可编程直流电源 / Programmable DC Power Supply (device_template_tag)\n  [P-003] 电动位移台 / Motorized Translation Stage (device_template_tag)\n  [P-004] HPLC泵 / HPLC Pump (device_template_tag)\n\n---\nDevices to tag:\n\nDevice: bio_shake\n  name: BioShake微孔板恒温振荡器\n  name_en: BioShake microplate thermoshaker\n  manufacturer: QINSTRUMENTS\n  description_zh: BioShake是一种用于微孔板样品处理的台式加热振荡设备，可对板内样品进行控温与振荡混匀，并支持夹板锁定。常用于分子生物学与生化实验中的孵育、溶解、反应混合和样品预处理。\n  description_en: BioShake is a benchtop microplate heater shaker for temperature-controlled incubation and shaking/mixing of plate-based samples, with plate locking support. It is commonly used in molecular biology and biochemistry workflows for incubation, dissolution, reaction mixing, and sample preparation.\n  tag_hints: ['heated shaker', 'temperature control', 'shaking', 'microplate incubation', 'plate locking', 'active cooling', 'sample mixing']\n  actions:\n    - auto-deactivate: Stop temperature control.\n    - auto-home: Home the device to its initial position.\n    - auto-lock_plate: Lock the plate.\n    - auto-reset: Reset the device to recover a ready state.\n    - auto-set_temperature: Set the target temperature.\n    - auto-setup: Reset first and then home the device to complete initialization.\n    - auto-shake: Start shaking at the specified speed and acceleration.\n    - auto-stop: Stop the current operation.\n    - auto-stop_shaking: Stop shaking and decelerate to a halt.\n    - auto-unlock_plate: Unlock the plate.\n    - auto-supports_locking: Get whether plate locking is supported.\n    - auto-supports_active_cooling: Get whether active cooling is supported.\n    - auto-get_current_temperature: Get the current temperature.\n\nDevice: cc_core\n  name: 中央控制器（CC）\n  name_en: Central Controller (CC)\n  manufacturer: QuTech\n  description_zh: 用于量子实验控制的中央时序与序列控制器，可运行硬件序列程序并通过数字接口模块（如 CCIO）分发/同步触发与数字控制信号；支持对数字 I/O 时序链路进行校准、延时调整与状态监测，常用于超导量子比特等实验系统的确定性时序控制与联机诊断。\n  description_en: A central timing and sequencing controller for quantum experiments. It runs hardware sequence programs and coordinates synchronized triggers and digital control via digital I/O modules (e.g., CCIO). It supports digital I/O link calibration, delay tuning, and status monitoring, commonly used for deterministic timing control and diagnostics in setups such as superconducting qubit experiments.\n  tag_hints: ['quantum control', 'pulse sequence programming', 'digital I/O calibration', 'SCPI instrument', 'qubit control', 'timing delay adjustment', 'QuTech']\n  actions:\n    - auto-assemble: Assemble a sequence program into an executable control sequence.\n    - auto-assemble_and_start: Assemble a sequence program and start the control sequence immediately.\n    - auto-calibrate_dio: Calibrate the digital I/O timing against an expected bit pattern.\n    - auto-debug_get_ccio_reg: Read a specified CCIO register for debugging.\n    - auto-debug_get_ccio_trace: Read debug trace data from a specified CCIO.\n    - auto-debug_get_traces: Read debug traces from multiple CCIOs selected by a mask.\n    - auto-debug_marker_in: Inject a debug marker on a specified bit line.\n    - auto-debug_marker_off: Turn off debug marker output for a specified CCIO.\n    - auto-debug_marker_out: Output a debug marker on a specified bit line.\n    - auto-debug_set_ccio_trace_on: Enable trace capture on a specified CCIO.\n    - auto-print_status_operation: Print the operation status summary.\n    - auto-print_status_questionable: Print the questionable status summary.\n    - auto-sequence_program_assemble: Define the sequence program string to upload.\n    - auto-set_q1_reg: Set the Q1 register of a specified CCIO.\n    - auto-set_seqbar_cnt: Set the sequence bar counter of a specified CCIO.\n    - auto-set_status_operation_run_enable: Define whether run status reporting is enabled.\n    - auto-set_status_questionable_bplink_enable: Define whether link questionable-status reporting is enabled.\n    - auto-set_status_questionable_config_enable: Define whether configuration questionable-status reporting is enabled.\n    - auto-set_status_questionable_frequency_enable: Define whether frequency questionable-status reporting is enabled.\n    - auto-set_status_questionable_instrument_enable: Define whether instrument questionable-status reporting is enabled.\n    - auto-set_status_questionable_instrument_idetail_bplink_enable: Define whether instrument bplink detail questionable-status reporting is enabled.\n    - auto-set_status_questionable_instrument_idetail_config_enable: Define whether instrument config detail questionable-status reporting is enabled.\n    - auto-set_status_questionable_instrument_idetail_diocal_enable: Define whether instrument DIO calibration detail questionable-status reporting is enabled.\n    - auto-set_status_questionable_instrument_idetail_freq_enable: Define whether instrument frequency detail questionable-status reporting is enabled.\n    - auto-set_status_questionable_instrument_isummary_enable: Define whether instrument summary questionable-status reporting is enabled.\n    - auto-set_vsm_delay_fall: Define the VSM falling-edge delay for a specified bit.\n    - auto-set_vsm_delay_rise: Define the VSM rising-edge delay for a specified bit.\n    - auto-start: Start the CC sequencers.\n    - auto-status_preset: Enable event reporting that is off by default.\n    - auto-stop: Stop the CC sequencers.\n    - auto-get_sequence_program_assemble: Get the sequence program string to upload.\n    - auto-get_assembler_success: Get whether sequence program assembly succeeded.\n    - auto-get_assembler_log: Get the sequence program assembly log.\n    - auto-get_q1_reg: Get the Q1 register value of a specified CCIO.\n    - auto-get_calibrate_dio_success: Get whether DIO calibration succeeded.\n    - auto-get_calibrate_dio_status: Get the DIO calibration status.\n    - auto-get_calibrate_dio_read_index: Get the DIO calibration read index.\n    - auto-get_calibrate_dio_margin: Get the DIO calibration margin.\n    - auto-get_vsm_delay_rise: Get the VSM rising-edge delay for a specified bit.\n    - auto-get_vsm_delay_fall: Get the VSM falling-edge delay for a specified bit.\n    - auto-get_status_questionable_frequency: Get the frequency questionable status.\n    - auto-get_status_questionable_frequency_enable: Get whether frequency questionable-status reporting is enabled.\n    - auto-get_status_questionable_config: Get the configuration questionable status.\n    - auto-get_status_questionable_config_enable: Get whether configuration questionable-status reporting is enabled.\n    - auto-get_status_questionable_bplink: Get the link questionable status.\n    - auto-get_status_questionable_bplink_enable: Get whether link questionable-status reporting is enabled.\n    - auto-get_status_operation_run: Get the run status.\n    - auto-get_status_operation_run_enable: Get whether run status reporting is enabled.\n    - auto-get_status_questionable_instrument: Get the instrument questionable status.\n    - auto-get_status_questionable_instrument_enable: Get whether instrument questionable-status reporting is enabled.\n    - auto-get_status_questionable_instrument_isummary: Get the instrument summary questionable status.\n    - auto-get_status_questionable_instrument_isummary_enable: Get whether instrument summary questionable-status reporting is enabled.\n    - auto-get_status_questionable_instrument_idetail_freq: Get the instrument frequency detail questionable status.\n    - auto-get_status_questionable_instrument_idetail_freq_enable: Get whether instrument frequency detail questionable-status reporting is enabled.\n    - auto-get_status_questionable_instrument_idetail_config: Get the instrument config detail questionable status.\n    - auto-get_status_questionable_instrument_idetail_config_enable: Get whether instrument config detail questionable-status reporting is enabled.\n    - auto-get_status_questionable_instrument_idetail_bplink: Get the instrument bplink detail questionable status.\n    - auto-get_status_questionable_instrument_idetail_bplink_enable: Get whether instrument bplink detail questionable-status reporting is enabled.\n    - auto-get_status_questionable_instrument_idetail_diocal: Get the instrument DIO calibration detail questionable status.\n    - auto-get_status_questionable_instrument_idetail_diocal_enable: Get whether instrument DIO calibration detail questionable-status reporting is enabled.\n\nDevice: cryo_tel_gt\n  name: CryoTel GT 低温制冷机\n  name_en: CryoTel GT Cryocooler\n  manufacturer: Sunpower\n  description_zh: Sunpower CryoTel GT 闭循环低温制冷机，用于实验室低温环境提供、样品冷却和温度维持。\n  description_en: A Sunpower CryoTel GT closed-cycle cryocooler used in laboratories for low-temperature generation, sample cooling, and temperature maintenance.\n  tag_hints: ['cryocooler', 'cryogenic cooling', 'closed-cycle refrigeration', 'temperature control', 'thermal stabilization', 'low-temperature laboratory equipment', 'Sunpower CryoTel GT']\n  actions:\n    - auto-at_temperature_band: define the temperature band threshold for the at-temperature indication/output.\n    - auto-control_mode: define the control mode (power mode or temperature mode).\n    - auto-ki: define the integral gain of the temperature control loop.\n    - auto-kp: define the proportional gain of the temperature control loop.\n    - auto-power_max: define the user-set maximum power limit.\n    - auto-power_min: define the user-set minimum power limit.\n    - auto-power_setpoint: define the target power used in power control mode.\n    - auto-query: send a query command to the cryocooler and read back the response.\n    - auto-query_multiline: send a multi-line query command and read the returned lines.\n    - auto-reset: reset the cryocooler to factory default settings.\n    - auto-save_control_mode: save the current control mode as the default control mode.\n    - auto-sendcmd: send a control command to the cryocooler.\n    - auto-stop: define whether the cryocooler is stopped or running.\n    - auto-stop_mode: define the stop mode (host control or digital I/O control).\n    - auto-temperature_setpoint: define the target temperature used in temperature control mode.\n    - auto-thermostat: define whether thermostat mode is enabled.\n    - auto-errors: read the currently active error codes.\n    - auto-power: read the current output power.\n    - auto-power_current_and_limits: read the current power and the allowable power limits.\n    - auto-serial_number: read the serial number and revision information.\n    - auto-state: read a list of control parameters and their current states.\n    - auto-temperature: read the current temperature.\n    - auto-thermostat_status: read the current thermostat mode status.\n\nDevice: cvd_control\n  name: 化学气相沉积控制器\n  name_en: Chemical Vapor Deposition Controller\n  manufacturer: \n  description_zh: 用于化学气相沉积（CVD）工艺的控制设备，可设置气体流量和温度等工艺参数，保存/载入配方，并启动或停止工艺运行。\n  description_en: A control unit for chemical vapor deposition (CVD) processes, used to set gas flows and temperature, save/load process recipes, and start or stop operation.\n  tag_hints: ['chemical vapor deposition', 'CVD process control', 'gas flow control', 'temperature setpoint', 'process recipe management', 'multi-gas mixing', 'trend plotting']\n  actions:\n    - auto-return_ui_fields: Read and refresh the process parameter fields shown in the interface.\n    - auto-save_recipe: Save the current process parameters and metadata to a recipe file.\n    - auto-open_recipe: Open a recipe file and load its process parameters.\n    - auto-update_plot: Update the run trend plots for gas flow and related variables.\n    - auto-start_recipe: Start recipe execution and show the running status.\n    - auto-stop_recipe: Stop recipe execution.\n    - auto-apply_setpoints: Apply the current setpoints, such as temperature and gas parameters.\n\nDevice: cytomat_backend\n  name: Cytomat 自动化培养箱\n  name_en: Cytomat Automated Incubator\n  manufacturer: Thermo Fisher Scientific\n  description_zh: 一款用于微孔板和样品托盘自动存取的培养/储存设备，通常配合机械臂使用；支持货架管理、转运位、门体控制、摇床以及温度、CO2、湿度和O2环境控制，常见于细胞培养和自动化实验流程。\n  description_en: An automated incubator and storage system for microplates and sample carriers, typically used with robotic handling; it supports rack management, a transfer station, door control, shaking, and environmental control of temperature, CO2, humidity, and O2 for cell culture and automated lab workflows.\n  tag_hints: ['automated incubator', 'microplate storage', 'robotic plate handling', 'temperature control', 'CO2 control', 'humidity control', 'oxygen control', 'shaking incubator']\n  actions:\n    - auto-action_exposed_to_storage: Move a plate from the exposed position back into storage.\n    - auto-action_exposed_to_wait: Move a plate from the exposed position back to the wait position.\n    - auto-action_read_barcode: Read the barcode at the specified storage locations.\n    - auto-action_storage_to_exposed: Move a plate from storage to the exposed position.\n    - auto-action_storage_to_transfer: Move a plate from storage to the transfer station.\n    - auto-action_storage_to_wait: Move a plate from storage to the wait position.\n    - auto-action_transfer_to_storage: Move a plate from the transfer station back into storage.\n    - auto-action_transfer_to_wait: Move a plate from the transfer station back to the wait position.\n    - auto-action_wait_to_exposed: Move a plate from the wait position to the exposed position.\n    - auto-action_wait_to_storage: Move a plate from the wait position into storage.\n    - auto-action_wait_to_transfer: Move a plate from the wait position to the transfer station.\n    - auto-close_door: Close the incubator door.\n    - auto-fetch_plate_to_loading_tray: Fetch a plate onto the loading tray.\n    - auto-init_shakers: Initialize the shaker units.\n    - auto-initialize: Initialize the incubator system.\n    - auto-open_door: Open the incubator door.\n    - auto-reset_error_register: Reset the error register.\n    - auto-send_action: Send an action command and wait for completion.\n    - auto-send_command: Send a low-level command to the controller.\n    - auto-serialize: Serialize the current device configuration or state.\n    - auto-set_racks: Define the internal rack layout.\n    - auto-set_shaking_frequency: Set the shaking frequency.\n    - auto-set_temperature: Set the incubation temperature.\n    - auto-setup: Prepare the incubator for operation.\n    - auto-shovel_in: Shovel a plate into the incubator.\n    - auto-shovel_out: Shovel a plate out of the incubator.\n    - auto-start_shaking: Start shaking.\n    - auto-stop: Stop the device.\n    - auto-stop_shaking: Stop shaking.\n    - auto-take_in_plate: Take in a plate from outside the device.\n    - auto-wait_for_task_completion: Wait for the current task to complete.\n    - auto-wait_for_transfer_station: Wait for the transfer station to become occupied or unoccupied.\n    - auto-get_overview_register: Get the overview register state.\n    - auto-get_warning_register: Get the warning register state.\n    - auto-get_error_register: Get the error register state.\n    - auto-get_action_register: Get the action register state.\n    - auto-get_swap_register: Get the swap register state.\n    - auto-get_sensor_register: Get the sensor register state.\n    - auto-get_incubation_query: Get the specified incubation query status.\n    - auto-get_co2: Get the CO2 level.\n    - auto-get_humidity: Get the humidity.\n    - auto-get_o2: Get the O2 level.\n    - auto-get_temperature: Get the temperature.\n"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "resp_05b55ebb73dc78e30069d3cc57389881a1bb2708c90bbabcef",
+    "object": "response",
+    "created_at": 1775488087,
+    "status": "completed",
+    "background": false,
+    "billing": {
+      "payer": "developer"
+    },
+    "completed_at": 1775488123,
+    "error": null,
+    "frequency_penalty": 0.0,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "gpt-5.4-mini-2026-03-17",
+    "output": [
+      {
+        "id": "rs_05b55ebb73dc78e30069d3cc57b27081a1ae6fd35743077ea7",
+        "type": "reasoning",
+        "summary": []
+      },
+      {
+        "id": "msg_05b55ebb73dc78e30069d3cc73a1e481a18407366637b85981",
+        "type": "message",
+        "status": "completed",
+        "content": [
+          {
+            "type": "output_text",
+            "annotations": [],
+            "logprobs": [],
+            "text": "{\"devices\":[{\"device\":\"bio_shake\",\"existing_tags\":[{\"id\":\"4312\",\"name\":\"备料&前处理设备\",\"name_en\":\"Material Preparation & Pre-processing Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备用于微孔板样品预处理、溶解和混匀，符合前处理环节。\"},{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"设备直接承担恒温振荡和孵育混合等实验执行操作。\"},{\"id\":\"4318\",\"name\":\"生命体系\",\"name_en\":\"Life Sciences\",\"type\":\"experimental_domain\",\"rationale\":\"描述明确提到分子生物学和生化实验，属于生命科学相关设备。\"},{\"id\":\"4319\",\"name\":\"溶液配制与反应\",\"name_en\":\"Solution Preparation & Reaction\",\"type\":\"experimental_domain\",\"rationale\":\"设备用于溶解、反应混合和样品预处理，属于溶液体系操作。\"},{\"id\":\"4389\",\"name\":\"恒温摇床\",\"name_en\":\"Constant Temperature Shaker\",\"type\":\"device_template_tag\",\"rationale\":\"BioShake本质上是带温控的摇床，功能与恒温摇床高度一致。\"},{\"id\":\"4421\",\"name\":\"热混匀仪\",\"name_en\":\"Thermomixer\",\"type\":\"device_template_tag\",\"rationale\":\"该设备同时具备加热与振荡混匀能力，与热混匀仪特征接近。\"}],\"proposed_new_tags\":[{\"id\":\"P-0001\",\"name\":\"分子生物学与生化实验\",\"name_en\":\"Molecular Biology & Biochemistry\",\"type\":\"experimental_scene\",\"rationale\":\"设备常用于分子生物学与生化实验中的孵育、溶解和混匀。\"},{\"id\":\"P-0002\",\"name\":\"微孔板恒温振荡器\",\"name_en\":\"Microplate Thermoshaker\",\"type\":\"device_template_tag\",\"rationale\":\"设备名称和功能都指向微孔板级恒温振荡混匀，这是更精确的模板标签。\"}]},{\"device\":\"cc_core\",\"existing_tags\":[{\"id\":\"4317\",\"name\":\"物流/机械\",\"name_en\":\"Logistics / Machinery\",\"type\":\"experimental_step\",\"rationale\":\"中央控制器属于实验系统中的核心控制硬件，可视作控制与联机机械/设备基础设施。\"},{\"id\":\"4315\",\"name\":\"器件/细胞设备\",\"name_en\":\"Device / Cell Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备是量子实验中的核心控制器件，属于实验控制设备范畴。\"}],\"proposed_new_tags\":[{\"id\":\"P-0003\",\"name\":\"量子实验控制\",\"name_en\":\"Quantum Experiment Control\",\"type\":\"experimental_domain\",\"rationale\":\"设备明确用于量子实验控制与数字时序同步，属于量子实验控制领域。\"},{\"id\":\"P-0004\",\"name\":\"超导量子比特控制\",\"name_en\":\"Superconducting Qubit Control\",\"type\":\"experimental_scene\",\"rationale\":\"描述中直接提到超导量子比特等系统的确定性时序控制。\"},{\"id\":\"P-0005\",\"name\":\"中央时序控制器\",\"name_en\":\"Central Timing Controller\",\"type\":\"device_template_tag\",\"rationale\":\"设备承担中央时序、序列分发和同步触发功能，最符合中央时序控制器模板。\"}]},{\"device\":\"cryo_tel_gt\",\"existing_tags\":[{\"id\":\"4317\",\"name\":\"物流/机械\",\"name_en\":\"Logistics / Machinery\",\"type\":\"experimental_step\",\"rationale\":\"闭循环低温制冷机属于实验室热管理与运行基础设备。\"},{\"id\":\"4369\",\"name\":\"冷热水机\",\"name_en\":\"Chiller / Heater Unit\",\"type\":\"device_template_tag\",\"rationale\":\"虽然不是传统冷水机，但同属提供温控与冷却能力的热管理设备。\"}],\"proposed_new_tags\":[{\"id\":\"P-0006\",\"name\":\"低温实验与样品冷却\",\"name_en\":\"Cryogenic Experiments & Sample Cooling\",\"type\":\"experimental_domain\",\"rationale\":\"设备用于低温环境提供、样品冷却和温度维持，直接对应低温实验需求。\"},{\"id\":\"P-0007\",\"name\":\"低温制冷与温度维持\",\"name_en\":\"Cryogenic Cooling & Temperature Maintenance\",\"type\":\"experimental_scene\",\"rationale\":\"描述强调低温生成、样品冷却和温度维持，这是该设备的典型场景。\"},{\"id\":\"P-0008\",\"name\":\"低温制冷机\",\"name_en\":\"Cryocooler\",\"type\":\"device_template_tag\",\"rationale\":\"设备名称就是 CryoTel GT 低温制冷机，模板应精确指向 cryocooler。\"}]},{\"device\":\"cvd_control\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"设备负责执行CVD工艺参数设置、启动和停止，属于实验执行环节。\"},{\"id\":\"4322\",\"name\":\"表面/薄膜体系\",\"name_en\":\"Surface / Thin Film System\",\"type\":\"experimental_domain\",\"rationale\":\"CVD常用于薄膜沉积，属于表面/薄膜体系。\"},{\"id\":\"4373\",\"name\":\"化学气相沉积设备\",\"name_en\":\"Chemical Vapor Deposition System\",\"type\":\"device_template_tag\",\"rationale\":\"该控制器专用于CVD工艺，和化学气相沉积设备强相关。\"}],\"proposed_new_tags\":[{\"id\":\"P-0009\",\"name\":\"化学气相沉积工艺\",\"name_en\":\"Chemical Vapor Deposition Process\",\"type\":\"experimental_scene\",\"rationale\":\"描述明确指出用于CVD工艺的配方管理、参数设置和运行控制。\"},{\"id\":\"P-0010\",\"name\":\"化学气相沉积控制器\",\"name_en\":\"Chemical Vapor Deposition Controller\",\"type\":\"device_template_tag\",\"rationale\":\"设备本身是CVD工艺的控制单元，比整机模板更准确。\"}]},{\"device\":\"cytomat_backend\",\"existing_tags\":[{\"id\":\"4315\",\"name\":\"器件/细胞设备\",\"name_en\":\"Device / Cell Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备直接服务于细胞培养与自动化实验流程，属于细胞相关设备。\"},{\"id\":\"4317\",\"name\":\"物流/机械\",\"name_en\":\"Logistics / Machinery\",\"type\":\"experimental_step\",\"rationale\":\"设备包含机械臂配合、货架转运和托盘搬运，具有明显自动化物流属性。\"},{\"id\":\"4318\",\"name\":\"生命体系\",\"name_en\":\"Life Sciences\",\"type\":\"experimental_domain\",\"rationale\":\"设备用于细胞培养和生物样品自动化存取，属于生命科学领域。\"},{\"id\":\"4330\",\"name\":\"细胞生物学研究\",\"name_en\":\"Cell Biology Research\",\"type\":\"experimental_scene\",\"rationale\":\"描述直接提到细胞培养、CO2/湿度/O2控制等，典型细胞生物学场景。\"},{\"id\":\"4442\",\"name\":\"组织培养试验箱\",\"name_en\":\"Tissue Culture Chamber\",\"type\":\"device_template_tag\",\"rationale\":\"该设备具备培养箱功能并用于细胞培养环境控制，与组织培养试验箱接近。\"}],\"proposed_new_tags\":[{\"id\":\"P-0011\",\"name\":\"细胞培养自动化\",\"name_en\":\"Cell Culture Automation\",\"type\":\"experimental_scene\",\"rationale\":\"设备强调与机械臂联动的自动存取、转运和环境控制，属于细胞培养自动化场景。\"},{\"id\":\"P-0012\",\"name\":\"自动化培养箱\",\"name_en\":\"Automated Incubator\",\"type\":\"device_template_tag\",\"rationale\":\"设备核心形态是支持自动存取和环境控制的培养箱，模板应突出自动化特征。\"}]}]}"
+          }
+        ],
+        "phase": "final_answer",
+        "role": "assistant"
+      }
+    ],
+    "parallel_tool_calls": true,
+    "presence_penalty": 0.0,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium",
+      "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "default",
+    "store": true,
+    "temperature": 1.0,
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "description": null,
+        "name": "batch_tag_results",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "devices": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "device": {
+                    "type": "string"
+                  },
+                  "existing_tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "name_en": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "rationale": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "name_en",
+                        "type",
+                        "rationale"
+                      ]
+                    }
+                  },
+                  "proposed_new_tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "name_en": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "rationale": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "name_en",
+                        "type",
+                        "rationale"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "device",
+                  "existing_tags",
+                  "proposed_new_tags"
+                ]
+              }
+            }
+          },
+          "required": [
+            "devices"
+          ]
+        },
+        "strict": true
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": "auto",
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0.98,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 7673,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 6324,
+      "output_tokens_details": {
+        "reasoning_tokens": 4582
+      },
+      "total_tokens": 13997
+    },
+    "user": null,
+    "metadata": {}
+  },
+  "output_text": "{\"devices\":[{\"device\":\"bio_shake\",\"existing_tags\":[{\"id\":\"4312\",\"name\":\"备料&前处理设备\",\"name_en\":\"Material Preparation & Pre-processing Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备用于微孔板样品预处理、溶解和混匀，符合前处理环节。\"},{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"设备直接承担恒温振荡和孵育混合等实验执行操作。\"},{\"id\":\"4318\",\"name\":\"生命体系\",\"name_en\":\"Life Sciences\",\"type\":\"experimental_domain\",\"rationale\":\"描述明确提到分子生物学和生化实验，属于生命科学相关设备。\"},{\"id\":\"4319\",\"name\":\"溶液配制与反应\",\"name_en\":\"Solution Preparation & Reaction\",\"type\":\"experimental_domain\",\"rationale\":\"设备用于溶解、反应混合和样品预处理，属于溶液体系操作。\"},{\"id\":\"4389\",\"name\":\"恒温摇床\",\"name_en\":\"Constant Temperature Shaker\",\"type\":\"device_template_tag\",\"rationale\":\"BioShake本质上是带温控的摇床，功能与恒温摇床高度一致。\"},{\"id\":\"4421\",\"name\":\"热混匀仪\",\"name_en\":\"Thermomixer\",\"type\":\"device_template_tag\",\"rationale\":\"该设备同时具备加热与振荡混匀能力，与热混匀仪特征接近。\"}],\"proposed_new_tags\":[{\"id\":\"P-0001\",\"name\":\"分子生物学与生化实验\",\"name_en\":\"Molecular Biology & Biochemistry\",\"type\":\"experimental_scene\",\"rationale\":\"设备常用于分子生物学与生化实验中的孵育、溶解和混匀。\"},{\"id\":\"P-0002\",\"name\":\"微孔板恒温振荡器\",\"name_en\":\"Microplate Thermoshaker\",\"type\":\"device_template_tag\",\"rationale\":\"设备名称和功能都指向微孔板级恒温振荡混匀，这是更精确的模板标签。\"}]},{\"device\":\"cc_core\",\"existing_tags\":[{\"id\":\"4317\",\"name\":\"物流/机械\",\"name_en\":\"Logistics / Machinery\",\"type\":\"experimental_step\",\"rationale\":\"中央控制器属于实验系统中的核心控制硬件，可视作控制与联机机械/设备基础设施。\"},{\"id\":\"4315\",\"name\":\"器件/细胞设备\",\"name_en\":\"Device / Cell Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备是量子实验中的核心控制器件，属于实验控制设备范畴。\"}],\"proposed_new_tags\":[{\"id\":\"P-0003\",\"name\":\"量子实验控制\",\"name_en\":\"Quantum Experiment Control\",\"type\":\"experimental_domain\",\"rationale\":\"设备明确用于量子实验控制与数字时序同步，属于量子实验控制领域。\"},{\"id\":\"P-0004\",\"name\":\"超导量子比特控制\",\"name_en\":\"Superconducting Qubit Control\",\"type\":\"experimental_scene\",\"rationale\":\"描述中直接提到超导量子比特等系统的确定性时序控制。\"},{\"id\":\"P-0005\",\"name\":\"中央时序控制器\",\"name_en\":\"Central Timing Controller\",\"type\":\"device_template_tag\",\"rationale\":\"设备承担中央时序、序列分发和同步触发功能，最符合中央时序控制器模板。\"}]},{\"device\":\"cryo_tel_gt\",\"existing_tags\":[{\"id\":\"4317\",\"name\":\"物流/机械\",\"name_en\":\"Logistics / Machinery\",\"type\":\"experimental_step\",\"rationale\":\"闭循环低温制冷机属于实验室热管理与运行基础设备。\"},{\"id\":\"4369\",\"name\":\"冷热水机\",\"name_en\":\"Chiller / Heater Unit\",\"type\":\"device_template_tag\",\"rationale\":\"虽然不是传统冷水机，但同属提供温控与冷却能力的热管理设备。\"}],\"proposed_new_tags\":[{\"id\":\"P-0006\",\"name\":\"低温实验与样品冷却\",\"name_en\":\"Cryogenic Experiments & Sample Cooling\",\"type\":\"experimental_domain\",\"rationale\":\"设备用于低温环境提供、样品冷却和温度维持，直接对应低温实验需求。\"},{\"id\":\"P-0007\",\"name\":\"低温制冷与温度维持\",\"name_en\":\"Cryogenic Cooling & Temperature Maintenance\",\"type\":\"experimental_scene\",\"rationale\":\"描述强调低温生成、样品冷却和温度维持，这是该设备的典型场景。\"},{\"id\":\"P-0008\",\"name\":\"低温制冷机\",\"name_en\":\"Cryocooler\",\"type\":\"device_template_tag\",\"rationale\":\"设备名称就是 CryoTel GT 低温制冷机，模板应精确指向 cryocooler。\"}]},{\"device\":\"cvd_control\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"设备负责执行CVD工艺参数设置、启动和停止，属于实验执行环节。\"},{\"id\":\"4322\",\"name\":\"表面/薄膜体系\",\"name_en\":\"Surface / Thin Film System\",\"type\":\"experimental_domain\",\"rationale\":\"CVD常用于薄膜沉积，属于表面/薄膜体系。\"},{\"id\":\"4373\",\"name\":\"化学气相沉积设备\",\"name_en\":\"Chemical Vapor Deposition System\",\"type\":\"device_template_tag\",\"rationale\":\"该控制器专用于CVD工艺，和化学气相沉积设备强相关。\"}],\"proposed_new_tags\":[{\"id\":\"P-0009\",\"name\":\"化学气相沉积工艺\",\"name_en\":\"Chemical Vapor Deposition Process\",\"type\":\"experimental_scene\",\"rationale\":\"描述明确指出用于CVD工艺的配方管理、参数设置和运行控制。\"},{\"id\":\"P-0010\",\"name\":\"化学气相沉积控制器\",\"name_en\":\"Chemical Vapor Deposition Controller\",\"type\":\"device_template_tag\",\"rationale\":\"设备本身是CVD工艺的控制单元，比整机模板更准确。\"}]},{\"device\":\"cytomat_backend\",\"existing_tags\":[{\"id\":\"4315\",\"name\":\"器件/细胞设备\",\"name_en\":\"Device / Cell Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备直接服务于细胞培养与自动化实验流程，属于细胞相关设备。\"},{\"id\":\"4317\",\"name\":\"物流/机械\",\"name_en\":\"Logistics / Machinery\",\"type\":\"experimental_step\",\"rationale\":\"设备包含机械臂配合、货架转运和托盘搬运，具有明显自动化物流属性。\"},{\"id\":\"4318\",\"name\":\"生命体系\",\"name_en\":\"Life Sciences\",\"type\":\"experimental_domain\",\"rationale\":\"设备用于细胞培养和生物样品自动化存取，属于生命科学领域。\"},{\"id\":\"4330\",\"name\":\"细胞生物学研究\",\"name_en\":\"Cell Biology Research\",\"type\":\"experimental_scene\",\"rationale\":\"描述直接提到细胞培养、CO2/湿度/O2控制等，典型细胞生物学场景。\"},{\"id\":\"4442\",\"name\":\"组织培养试验箱\",\"name_en\":\"Tissue Culture Chamber\",\"type\":\"device_template_tag\",\"rationale\":\"该设备具备培养箱功能并用于细胞培养环境控制，与组织培养试验箱接近。\"}],\"proposed_new_tags\":[{\"id\":\"P-0011\",\"name\":\"细胞培养自动化\",\"name_en\":\"Cell Culture Automation\",\"type\":\"experimental_scene\",\"rationale\":\"设备强调与机械臂联动的自动存取、转运和环境控制，属于细胞培养自动化场景。\"},{\"id\":\"P-0012\",\"name\":\"自动化培养箱\",\"name_en\":\"Automated Incubator\",\"type\":\"device_template_tag\",\"rationale\":\"设备核心形态是支持自动存取和环境控制的培养箱，模板应突出自动化特征。\"}]}]}"
+}

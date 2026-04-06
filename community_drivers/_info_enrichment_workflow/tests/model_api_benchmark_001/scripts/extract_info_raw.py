@@ -298,7 +298,7 @@ def build_local_signals(device: str, registry_signals: dict[str, Any],
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--devices-file', type=Path, default=TEST_ROOT / 'devices.txt')
-    parser.add_argument('--output-dir', type=Path, default=COMMUNITY_DIR / '_info_enrichment_workflow' / 'outputs')
+    parser.add_argument('--output-dir', type=Path, default=TEST_ROOT / 'materials')
     args = parser.parse_args()
 
     devices = [

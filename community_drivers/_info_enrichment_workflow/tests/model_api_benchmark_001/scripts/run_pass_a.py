@@ -4,16 +4,20 @@ Pass A: per-device semantic profile via OpenAI Responses API.
 
 Reads 01_local_signals.json (driver section only — no unreliable registry
 fields), sends to the API with function-type hints, writes
-02_device_profile_api.json with raw request/response and parsed result.
+02_device_profile_api.json with parsed result and
+_02_device_profile_api_trace.json with raw request/response.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
+
+from responses_compat import extract_output_text_compat
 
 
 DEFAULT_BASE_URL = 'https://api.openai.com/v1'
@@ -27,16 +31,28 @@ Task:
 - Infer the manufacturer from driver evidence (class name, module path,
   docstrings, comments). If unclear, output empty string.
 - Write a concise Chinese description and English description_en of the
-  physical device and its lab use. Describe the device, not the software.
+  physical device and its lab use. Describe the physical device, not the
+  software wrapper, backend, API, or driver implementation.
 - Write bilingual descriptions for each action.
+- For `actions[].action_name`, use the required action id exactly when one is
+  provided in the user message under "Required output action ids".
 - Some functions are annotated as status_getter or status_setter. These manage
   device properties. For these, the description should simply be
   "get/set/define <plain-text description of the property>".
 - Produce tag_hints: a relevance-sorted list of short keyword phrases the
   device relates to (e.g., "cryogenic cooling", "PID temperature control").
   These will be used downstream for tag assignment. Aim for 3-8 hints.
+  Prefer English for tag_hints, but Chinese is acceptable if needed.
 - Do not invent capabilities unsupported by the evidence.
 - If evidence is weak, stay generic rather than hallucinating.
+- `name` and `description` must be natural Chinese.
+- `name_en` and `description_en` must be natural English.
+- Do not copy English text into the Chinese fields.
+- Do not describe the result as a "backend", "driver", or "wrapper" unless the
+  evidence truly supports only a software component and no physical device can
+  be identified.
+- Use module path, class name, action surface, and method comments to infer the
+  device family when possible.
 - Output JSON only.
 """
 
@@ -131,6 +147,10 @@ def build_user_prompt(signals: dict[str, Any]) -> str:
         parts.append('\nRegistry actions:')
         for a in registry['actions']:
             parts.append(f"  {a}")
+        parts.append('\nRequired output action ids:')
+        for a in registry['actions']:
+            action_id = a.split(' (from ')[0].strip()
+            parts.append(f"  {action_id}")
 
     return '\n'.join(parts)
 
@@ -183,13 +203,14 @@ def main() -> None:
         }
 
         out_path = device_dir / '02_device_profile_api.json'
+        trace_path = device_dir / '_02_device_profile_api_trace.json'
 
         if args.dry_run:
-            out_path.write_text(
+            trace_path.write_text(
                 json.dumps({'request': payload}, ensure_ascii=False, indent=2) + '\n',
                 encoding='utf-8',
             )
-            print(f'dry-run: wrote request to {out_path}')
+            print(f'dry-run: wrote request to {trace_path}')
             continue
 
         req = urllib.request.Request(
@@ -202,19 +223,52 @@ def main() -> None:
             method='POST',
         )
 
-        with urllib.request.urlopen(req, timeout=120) as resp:
-            raw_response = json.loads(resp.read().decode('utf-8'))
+        try:
+            with urllib.request.urlopen(req, timeout=180) as resp:
+                raw_response = json.loads(resp.read().decode('utf-8'))
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode('utf-8', errors='replace')
+            trace_path.write_text(
+                json.dumps({
+                    'request': payload,
+                    'http_error': {
+                        'code': exc.code,
+                        'reason': exc.reason,
+                        'body': body,
+                    },
+                }, ensure_ascii=False, indent=2) + '\n',
+                encoding='utf-8',
+            )
+            print(f'ERROR: HTTP {exc.code} for {device_dir.name}')
+            continue
 
-        text = raw_response.get('output_text')
+        text = extract_output_text_compat(raw_response)
         if not text:
+            trace_path.write_text(
+                json.dumps({
+                    'request': payload,
+                    'response': raw_response,
+                }, ensure_ascii=False, indent=2) + '\n',
+                encoding='utf-8',
+            )
             print(f'ERROR: no output_text for {device_dir.name}')
             continue
         parsed = json.loads(text)
 
-        out_path.write_text(
+        trace_path.write_text(
             json.dumps({
                 'request': payload,
                 'response': raw_response,
+            }, ensure_ascii=False, indent=2) + '\n',
+            encoding='utf-8',
+        )
+
+        usage = raw_response.get('usage', {})
+        out_path.write_text(
+            json.dumps({
+                'model': args.model,
+                'reasoning_effort': args.reasoning_effort,
+                'usage': usage,
                 'parsed': parsed,
             }, ensure_ascii=False, indent=2) + '\n',
             encoding='utf-8',

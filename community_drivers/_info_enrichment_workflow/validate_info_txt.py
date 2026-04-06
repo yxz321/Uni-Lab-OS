@@ -27,7 +27,8 @@ METADATA_REQUIRED = [
     "registry_key",
     "annotation_workflow_version",
     "tag_hints",
-    "tags",
+    "existing_tags",
+    "proposed_new_tags",
     "processing_pass_order",
 ]
 
@@ -39,7 +40,24 @@ REQUIRED_TAG_TYPES = [
     "device_template_tag",
 ]
 
-TAG_REQUIRED_FIELDS = ["id", "name", "name_en", "type"]
+TAG_REQUIRED_FIELDS = ["id", "name", "name_en", "type", "rationale"]
+
+
+def validate_tag_list(path: Path, key_name: str, tags: object) -> list[str]:
+    errs: list[str] = []
+    if tags is None:
+        return errs
+    if not isinstance(tags, list):
+        return [f"{path}: {key_name}_not_list"]
+
+    for i, tag in enumerate(tags):
+        if not isinstance(tag, dict):
+            errs.append(f"{path}: {key_name}[{i}]_not_mapping")
+            continue
+        for field in TAG_REQUIRED_FIELDS:
+            if field not in tag:
+                errs.append(f"{path}: {key_name}[{i}]_missing:{field}")
+    return errs
 
 
 def load_paths(manifest: Path | None, files: list[Path]) -> list[Path]:
@@ -94,6 +112,10 @@ def validate_file(path: Path) -> list[str]:
 
     if "category" in entry and not isinstance(entry["category"], list):
         errs.append(f"{path}: category_not_list")
+    elif isinstance(entry.get("category"), list):
+        for i, item in enumerate(entry["category"]):
+            if not isinstance(item, str):
+                errs.append(f"{path}: category[{i}]_not_string")
 
     if "tags" in entry:
         if not isinstance(entry["tags"], list):
@@ -129,34 +151,32 @@ def validate_file(path: Path) -> list[str]:
         hints = meta.get("tag_hints")
         if hints is not None and not isinstance(hints, list):
             errs.append(f"{path}: tag_hints_not_list")
+        elif isinstance(hints, list):
+            for i, hint in enumerate(hints):
+                if not isinstance(hint, str):
+                    errs.append(f"{path}: tag_hints[{i}]_not_string")
 
-        # ── Validate tags list ──
-        tags = meta.get("tags")
-        if tags is not None:
-            if not isinstance(tags, list):
-                errs.append(f"{path}: tags_not_list")
-            else:
-                # Check each tag has required fields
-                for i, tag in enumerate(tags):
-                    if not isinstance(tag, dict):
-                        errs.append(f"{path}: tag[{i}]_not_mapping")
-                        continue
-                    for field in TAG_REQUIRED_FIELDS:
-                        if field not in tag:
-                            errs.append(f"{path}: tag[{i}]_missing:{field}")
+        existing_tags = meta.get("existing_tags")
+        proposed_new_tags = meta.get("proposed_new_tags")
+        errs.extend(validate_tag_list(path, "existing_tags", existing_tags))
+        errs.extend(validate_tag_list(path, "proposed_new_tags", proposed_new_tags))
 
-                # Check >= 1 tag per required type
-                type_counts = {}
-                for tag in tags:
-                    if isinstance(tag, dict):
-                        t = tag.get("type", "")
-                        type_counts[t] = type_counts.get(t, 0) + 1
-                for req_type in REQUIRED_TAG_TYPES:
-                    if type_counts.get(req_type, 0) < 1:
-                        errs.append(f"{path}: tags_missing_type:{req_type}")
+        combined_tags: list[dict] = []
+        if isinstance(existing_tags, list):
+            combined_tags.extend([t for t in existing_tags if isinstance(t, dict)])
+        if isinstance(proposed_new_tags, list):
+            combined_tags.extend([t for t in proposed_new_tags if isinstance(t, dict)])
+
+        type_counts = {}
+        for tag in combined_tags:
+            t = tag.get("type", "")
+            type_counts[t] = type_counts.get(t, 0) + 1
+        for req_type in REQUIRED_TAG_TYPES:
+            if type_counts.get(req_type, 0) < 1:
+                errs.append(f"{path}: combined_tags_missing_type:{req_type}")
 
         # ── Reject removed fields ──
-        for removed in ["action_function_links", "useful_registry_metadata"]:
+        for removed in ["action_function_links", "useful_registry_metadata", "tags"]:
             if removed in meta:
                 errs.append(f"{path}: metadata_unexpected_key:{removed}")
 
