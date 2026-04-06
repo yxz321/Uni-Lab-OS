@@ -10,6 +10,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from batch_devices import list_batch_device_dirs
 from responses_compat import extract_output_text_compat
 
 
@@ -157,7 +158,7 @@ def main() -> None:
     if not api_key and not args.dry_run:
         raise SystemExit(f'Missing OPENAI_API_KEY (checked env and {SECRET_ENV_PATH})')
 
-    device_dirs = sorted([p for p in args.signals_dir.iterdir() if p.is_dir() and not p.name.startswith('_')])
+    device_dirs = list_batch_device_dirs(args.signals_dir)
     if args.limit is not None:
         device_dirs = device_dirs[:args.limit]
 

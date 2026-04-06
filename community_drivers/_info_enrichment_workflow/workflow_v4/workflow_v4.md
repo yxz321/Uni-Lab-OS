@@ -99,6 +99,13 @@ Final output always lives directly in:
 No production `runs/`, `materials/`, or `reports/` subfolders are used under
 `workflow_v4/`.
 
+Batch-selection rule:
+- batch-level scripts should resolve device artifact directories from the
+  explicit batch metadata (`devices.txt`, or `manifest.json` as fallback) when
+  present
+- do not infer device inclusion by excluding directory names that begin with
+  `_`, because valid device ids in this corpus may start with underscores
+
 ## State file
 
 Production state is tracked at:

@@ -45,6 +45,10 @@ Versioning rule:
   - verification batch size: `2`
   - normal production batch size: `10`
   - reasoning effort: `medium`
+- Batch-level processing scripts now resolve device artifact directories from
+  `devices.txt` or `manifest.json` when present, instead of excluding names
+  that begin with `_`. This preserves valid underscore-prefixed device ids in
+  Pass A, compare, Pass B, render, and proposed-tag collection.
 
 ## v3
 

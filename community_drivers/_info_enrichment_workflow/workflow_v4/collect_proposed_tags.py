@@ -7,6 +7,7 @@ import csv
 import json
 from pathlib import Path
 
+from batch_devices import list_batch_device_dirs
 
 COMMUNITY_DIR = Path(__file__).resolve().parent.parent.parent
 TAG_PROPOSED_PATH = COMMUNITY_DIR / 'tag_additions_proposed.csv'
@@ -20,9 +21,7 @@ def main() -> None:
     args = parser.parse_args()
 
     proposals: list[tuple[str, dict]] = []
-    for device_dir in sorted(args.signals_dir.iterdir()):
-        if not device_dir.is_dir() or device_dir.name.startswith('_'):
-            continue
+    for device_dir in list_batch_device_dirs(args.signals_dir):
         batch_tag = device_dir / '_batch_tag_api.json'
         if not batch_tag.exists():
             continue

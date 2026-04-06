@@ -20,6 +20,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from batch_devices import list_batch_device_dirs
 
 FIELDS = [
     'name',
@@ -62,7 +63,7 @@ def main() -> None:
     parser.add_argument('--limit', type=int)
     args = parser.parse_args()
 
-    device_dirs = sorted([p for p in args.signals_dir.iterdir() if p.is_dir()])
+    device_dirs = list_batch_device_dirs(args.signals_dir)
     if args.limit is not None:
         device_dirs = device_dirs[:args.limit]
 

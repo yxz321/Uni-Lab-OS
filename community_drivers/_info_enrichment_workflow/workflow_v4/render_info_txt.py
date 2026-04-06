@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from batch_devices import list_batch_device_dirs
 import yaml
 
 
@@ -127,7 +128,7 @@ def main() -> None:
     parser.add_argument('--write-preview', action='store_true', help='Also write info.txt into the batch-local device artifact dir')
     args = parser.parse_args()
 
-    device_dirs = sorted([p for p in args.signals_dir.iterdir() if p.is_dir() and not p.name.startswith('_')])
+    device_dirs = list_batch_device_dirs(args.signals_dir)
     for device_dir in device_dirs:
         signals_path = device_dir / '01_local_signals.json'
         profile_path = device_dir / '02_device_profile_api.json'
