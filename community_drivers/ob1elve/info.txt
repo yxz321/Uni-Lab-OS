@@ -1,63 +1,162 @@
-Device: ob1elve
-Registry Key: ob1elve
-Short Description: Elveflow OB1 微流控压力控制器 注射泵是由Elveflow生产的专业实验设备。
-
-Categories:
-- 注射泵
-
-Related Tags (from tag 标签列表.csv):
-- [4413] 注射泵 / Syringe Pump (device_template_tag)
-
-Atom Actions (20):
-- auto-addSensor -> addSensor [UniLabJsonCommand] goal_params: channel, resolution, sensorCustVolt, sensorDig, sensorIPACalib, sensorType
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-getFlowUniversal -> getFlowUniversal [UniLabJsonCommand] goal_params: channel
-- auto-getPressure -> getPressure [UniLabJsonCommand] goal_params: channel
-- auto-getPressureUniversal -> getPressureUniversal [UniLabJsonCommand] goal_params: channel
-- auto-getSensorData -> getSensorData [UniLabJsonCommand] goal_params: channel
-- auto-loadCallibration -> loadCallibration [UniLabJsonCommand] goal_params: path
-- auto-loadDLL -> loadDLL [UniLabJsonCommand] goal_params: none
-- auto-open -> open [UniLabJsonCommand] goal_params: none
-- auto-performCallibration -> performCallibration [UniLabJsonCommand] goal_params: path
-- auto-remoteAddPID -> remoteAddPID [UniLabJsonCommand] goal_params: I, P, channelP, channelS, run
-- auto-remoteChangePID -> remoteChangePID [UniLabJsonCommand] goal_params: I, P, channel, reset
-- auto-remoteGetData -> remoteGetData [UniLabJsonCommand] goal_params: channel
-- auto-remotePausePID -> remotePausePID [UniLabJsonCommand] goal_params: channel
-- auto-remoteResetPID -> remoteResetPID [UniLabJsonCommand] goal_params: channel
-- auto-remoteSetTarget -> remoteSetTarget [UniLabJsonCommand] goal_params: channel, target
-- auto-remoteStartPID -> remoteStartPID [UniLabJsonCommand] goal_params: channel
-- auto-setPressure -> setPressure [UniLabJsonCommand] goal_params: channel, pressure
-- auto-startRemote -> startRemote [UniLabJsonCommand] goal_params: none
-- auto-stopRemote -> stopRemote [UniLabJsonCommand] goal_params: none
-
-Driver Functions (30):
-- OB1elve.__init__(self, elveflowDLL, elveflowSDK, deviceName, deviceRegulators, deviceID) (line 80)
-- OB1elve.open(self) (line 137)
-- OB1elve.close(self) (line 162)
-- OB1elve.loadDLL(self) (line 176)
-- OB1elve.loadCallibration(self, path) (line 189)
-- OB1elve.performCallibration(self, path) (line 213)
-- OB1elve.setPressure(self, channel, pressure) (line 253)
-- OB1elve.getPressure(self, channel) (line 273)
-- OB1elve.addSensor(self, channel, sensorType, resolution, sensorDig, sensorIPACalib, sensorCustVolt) (line 318)
-- OB1elve.getSensorData(self, channel) (line 357)
-- OB1elve.startRemote(self) (line 381)
-- OB1elve.stopRemote(self) (line 393)
-- OB1elve.remoteGetData(self, channel) (line 407)
-- OB1elve.remoteSetTarget(self, channel, target) (line 433)
-- OB1elve.remoteAddPID(self, channelP, channelS, P, I, run) (line 452)
-- OB1elve.remotePausePID(self, channel) (line 486)
-- OB1elve.remoteStartPID(self, channel) (line 493)
-- OB1elve._remoteStartstopPID(self, channel, run) (line 500)
-- OB1elve.remoteResetPID(self, channel) (line 511)
-- OB1elve.remoteChangePID(self, channel, P, I, reset) (line 523)
-- OB1elve._channelCheck(self, channel) (line 550)
-- OB1elve.getPressureUniversal(self, channel) (line 559)
-- OB1elve.getFlowUniversal(self, channel) (line 567)
-- OB1elve.__enter__(self) (line 577)
-- OB1elve.__exit__(self, exception_type, exception_value, exception_traceback) (line 582)
-- saveCalibration(calibrationData, location) (line 587)
-- loadCalibration(location) (line 599)
-- printSensorTypes() (line 615)
-- printRegulatorTypes() (line 634)
-- printSensorResolutions() (line 646)
+ob1elve:
+  name: Elveflow OB1‑Mk4 微流控压力控制器
+  name_en: Elveflow OB1-Mk4 microfluidic pressure controller
+  manufacturer: Elveflow
+  category:
+  - 微流控压力控制器
+  tags:
+  - 实验执行&合成设备
+  - 溶液配制与反应
+  - 液体输送与定量分配
+  - 微流控与流体操控
+  - 微流控压力驱动与流路控制
+  - 微流控压力控制器
+  description: 这是一款用于微流控实验的多通道压力控制器，可为芯片、储液器或流体回路提供精密气压驱动。设备可读取各压力通道数据，并可接入流量或压力传感器进行监测、校准与闭环
+    PID 控制，常用于稳定微流量输送、液滴生成和微流控芯片流路调节。
+  description_en: This device is a multi-channel pressure controller for microfluidic
+    experiments, providing precise pneumatic actuation for chips, reservoirs, and
+    fluidic circuits. It can read pressure on each channel and work with flow or pressure
+    sensors for monitoring, calibration, and closed-loop PID control, making it suitable
+    for stable low-flow delivery, droplet generation, and microfluidic flow regulation.
+  class:
+    action_value_mappings:
+      auto-open:
+        schema:
+          description: 连接到压力控制器。
+          description_en: Open a connection to the pressure controller.
+      auto-close:
+        schema:
+          description: 关闭与压力控制器的连接。
+          description_en: Close the connection to the pressure controller.
+      auto-loadDLL:
+        schema:
+          description: 加载访问控制器所需的厂商通信库。
+          description_en: Load the vendor communication library required to access
+            the controller.
+      auto-loadCallibration:
+        schema:
+          description: 加载压力通道的校准数据。
+          description_en: Load calibration data for the pressure channels.
+      auto-performCallibration:
+        schema:
+          description: 执行压力通道校准并保存校准数据。
+          description_en: Perform calibration of the pressure channels and save the
+            calibration data.
+      auto-setPressure:
+        schema:
+          description: 设置指定通道的目标压力。
+          description_en: Set the target pressure for a specified channel.
+      auto-getPressure:
+        schema:
+          description: 读取指定通道的压力。
+          description_en: Read the pressure of a specified channel.
+      auto-addSensor:
+        schema:
+          description: 为指定通道添加并配置传感器。
+          description_en: Add and configure a sensor on a specified channel.
+      auto-getSensorData:
+        schema:
+          description: 读取指定通道传感器的数据。
+          description_en: Read data from the sensor on a specified channel.
+      auto-startRemote:
+        schema:
+          description: 启动远程运行模式并开始后台控制循环。
+          description_en: Start remote operation mode and begin the background control
+            loop.
+      auto-stopRemote:
+        schema:
+          description: 停止远程运行模式。
+          description_en: Stop remote operation mode.
+      auto-remoteGetData:
+        schema:
+          description: 在远程模式下读取通道压力和传感器数据。
+          description_en: Read channel pressure and sensor data while in remote mode.
+      auto-remoteSetTarget:
+        schema:
+          description: 在远程模式下设置指定通道的控制目标。
+          description_en: Set the control target for a specified channel in remote
+            mode.
+      auto-remoteAddPID:
+        schema:
+          description: 在压力通道与传感器之间建立 PID 闭环控制。
+          description_en: Configure a PID control loop between a pressure channel
+            and a sensor.
+      auto-remotePausePID:
+        schema:
+          description: 暂停指定通道的 PID 控制。
+          description_en: Pause PID control for a specified channel.
+      auto-remoteStartPID:
+        schema:
+          description: 启动指定通道的 PID 控制。
+          description_en: Start PID control for a specified channel.
+      auto-remoteResetPID:
+        schema:
+          description: 重置指定通道的 PID 控制状态。
+          description_en: Reset the PID control state for a specified channel.
+      auto-remoteChangePID:
+        schema:
+          description: 修改指定通道的 PID 参数。
+          description_en: Change the PID parameters for a specified channel.
+      auto-getPressureUniversal:
+        schema:
+          description: 读取指定通道的压力，不受当前运行模式影响。
+          description_en: Read the pressure of a specified channel regardless of the
+            current operating mode.
+      auto-getFlowUniversal:
+        schema:
+          description: 读取指定通道的流量传感器数据，不受当前运行模式影响。
+          description_en: Read flow sensor data for a specified channel regardless
+            of the current operating mode.
+auto_annotation_metadata:
+  registry_key: ob1elve
+  annotation_workflow_version: v4
+  tag_hints:
+  - microfluidics
+  - pressure control
+  - multi-channel pressure regulation
+  - flow sensing
+  - closed-loop PID control
+  - pneumatic actuation
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该设备在微流控实验中提供多通道压力驱动并执行闭环控制，属于实验过程执行类设备。
+  - id: '4319'
+    name: 溶液配制与反应
+    name_en: Solution Preparation & Reaction
+    type: experimental_domain
+    rationale: 设备用于芯片、储液器和流体回路中的液体驱动与调节，服务于溶液体系实验。
+  - id: P-300006
+    name: 液体输送与定量分配
+    name_en: Liquid Transfer & Metered Dispensing
+    type: experimental_scene
+    rationale: 其稳定微流量输送和通道压力调节能力适合液体输送与定量分配场景。
+  proposed_new_tags:
+  - id: P-700001
+    name: 微流控与流体操控
+    name_en: Microfluidics & Fluid Handling
+    type: experimental_domain
+    rationale: 该设备专用于微流控实验中的气压驱动、流量调节和流体回路控制，现有领域标签覆盖不足。
+  - id: P-700002
+    name: 微流控压力驱动与流路控制
+    name_en: Pressure-Driven Microfluidic Flow & Channel Control
+    type: experimental_scene
+    rationale: 设备核心用途是对微流控芯片和储液器进行多通道压力驱动、传感监测与PID闭环控制。
+  - id: P-700003
+    name: 微流控压力控制器
+    name_en: Microfluidic Pressure Controller
+    type: device_template_tag
+    rationale: 设备名称和功能均指向用于微流控系统的多通道精密压力控制器。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

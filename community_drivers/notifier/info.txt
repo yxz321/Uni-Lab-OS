@@ -1,37 +1,90 @@
-Device: notifier
-Registry Key: notifier
-Short Description: Notifier是一款实验执行&合成设备，主要功能包括停止、运动控制。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (7):
-- auto-add_bus -> add_bus [UniLabJsonCommand] goal_params: bus
-- auto-add_listener -> add_listener [UniLabJsonCommand] goal_params: listener
-- auto-bus -> bus [UniLabJsonCommand] goal_params: none
-- auto-find_instances -> find_instances [UniLabJsonCommand] goal_params: bus
-- auto-remove_listener -> remove_listener [UniLabJsonCommand] goal_params: listener
-- auto-stop -> stop [UniLabJsonCommand] goal_params: timeout
-- auto-stopped -> stopped [UniLabJsonCommand] goal_params: none
-
-Driver Functions (17):
-- _NotifierRegistry.__init__(self) (line 107)
-- _NotifierRegistry.register(self, bus, notifier) (line 112)
-- _NotifierRegistry.unregister(self, bus, notifier) (line 132)
-- _NotifierRegistry.find_instances(self, bus) (line 150)
-- Notifier.__init__(self, bus, listeners, timeout, loop) (line 175)
-- Notifier.bus(self) (line 223)
-- Notifier.add_bus(self, bus) (line 230)
-- Notifier.stop(self, timeout) (line 266)
-- Notifier._rx_thread(self, bus) (line 293)
-- Notifier._on_message_available(self, bus) (line 322)
-- Notifier._on_message_received(self, msg) (line 327)
-- Notifier._on_error(self, exc) (line 337)
-- Notifier.add_listener(self, listener) (line 356)
-- Notifier.remove_listener(self, listener) (line 366)
-- Notifier.stopped(self) (line 378)
-- Notifier.find_instances(bus) (line 384)
-- Notifier.__exit__(self, exc_type, exc_value, traceback) (line 400)
+notifier:
+  name: CAN总线消息通知器
+  name_en: CAN Bus Notifier
+  manufacturer: ''
+  category:
+  - CAN总线消息通知器
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - CAN总线设备调试与集成
+  - CAN总线消息通知器
+  description: 这不是可明确识别的物理仪器，而是一个用于 CAN 总线的消息通知与分发组件。在实验室自动化或设备集成场景中，它用于监听一个或多个 CAN
+    总线上的报文，并将新到达的消息分发给已注册的监听器。
+  description_en: This is not a clearly identifiable physical instrument, but a CAN
+    bus message notification and dispatch component. In laboratory automation or instrument-integration
+    workflows, it is used to monitor one or more CAN buses and distribute newly received
+    messages to registered listeners.
+  class:
+    action_value_mappings:
+      auto-bus:
+        schema:
+          description: 获取关联的CAN总线对象
+          description_en: Get the associated CAN bus object(s).
+      auto-add_bus:
+        schema:
+          description: 向通知器添加CAN总线
+          description_en: Add a CAN bus to the notifier.
+      auto-stop:
+        schema:
+          description: 停止消息通知并停止监听器
+          description_en: Stop message notification and stop the listeners.
+      auto-add_listener:
+        schema:
+          description: 添加消息监听器
+          description_en: Add a message listener.
+      auto-remove_listener:
+        schema:
+          description: 移除消息监听器
+          description_en: Remove a message listener.
+      auto-stopped:
+        schema:
+          description: 获取通知器是否已停止
+          description_en: Get whether the notifier has been stopped.
+      auto-find_instances:
+        schema:
+          description: 查找与指定CAN总线关联的通知器实例
+          description_en: Find notifier instances associated with a specified CAN
+            bus.
+auto_annotation_metadata:
+  registry_key: notifier
+  annotation_workflow_version: v4
+  tag_hints:
+  - CAN bus
+  - message notification
+  - listener dispatch
+  - bus monitoring
+  - instrument integration
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件在实验运行期实时监听并分发CAN消息，属于在线控制与联动流程的一部分。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它服务于实验室自动化和设备集成中的CAN消息分发，不是独立测试仪器而是集成组件。
+  - id: P-20004
+    name: CAN总线设备调试与集成
+    name_en: CAN Device Debugging & Integration
+    type: experimental_scene
+    rationale: 该组件围绕CAN总线监听、监听器注册和消息分发，适合CAN设备调试与集成场景。
+  proposed_new_tags:
+  - id: P-700006
+    name: CAN总线消息通知器
+    name_en: CAN Bus Notifier
+    type: device_template_tag
+    rationale: 该对象是面向CAN总线监听与消息分发的通用通知组件，适合作为独立模板归类。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,68 +1,128 @@
-Device: oi_spectrometer
-Registry Key: oi_spectrometer
-Short Description: OI Spectrometer是由Ocean Insight生产的实验执行&合成设备，主要功能包括初始化、数据保存、状态查询、读取数据。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (16):
-- auto-doInitializeDevice -> doInitializeDevice [UniLabJsonCommand] goal_params: none
-- auto-doShutdownDevice -> doShutdownDevice [UniLabJsonCommand] goal_params: none
-- auto-flushEndpoints -> flushEndpoints [UniLabJsonCommand] goal_params: none
-- auto-getCalibration -> getCalibration [UniLabJsonCommand] goal_params: none
-- auto-getIntegrationTime -> getIntegrationTime [UniLabJsonCommand] goal_params: none
-- auto-getParameter -> getParameter [UniLabJsonCommand] goal_params: index
-- auto-getSerialNumber -> getSerialNumber [UniLabJsonCommand] goal_params: none
-- auto-getSpectrum -> getSpectrum [UniLabJsonCommand] goal_params: integrationTime
-- auto-getSpectrumData -> getSpectrumData [UniLabJsonCommand] goal_params: none
-- auto-getStatus -> getStatus [UniLabJsonCommand] goal_params: none
-- auto-isSpectrumReady -> isSpectrumReady [UniLabJsonCommand] goal_params: none
-- auto-isSpectrumRequested -> isSpectrumRequested [UniLabJsonCommand] goal_params: none
-- auto-readReply -> readReply [UniLabJsonCommand] goal_params: inputEndpoint, size, timeout, unpackingFormat
-- auto-requestSpectrum -> requestSpectrum [UniLabJsonCommand] goal_params: none
-- auto-sendCommand -> sendCommand [UniLabJsonCommand] goal_params: cmdBytes, payloadBytes
-- auto-setIntegrationTime -> setIntegrationTime [UniLabJsonCommand] goal_params: timeInMs
-
-Driver Functions (39):
-- OISpectrometer.__init__(self, serialNumber, idProduct, idVendor, model) (line 212)
-- OISpectrometer.doInitializeDevice(self) (line 294)
-- OISpectrometer.doShutdownDevice(self) (line 354)
-- OISpectrometer.flushEndpoints(self) (line 363)
-- OISpectrometer.setIntegrationTime(self, timeInMs) (line 377)
-- OISpectrometer.getIntegrationTime(self) (line 387)
-- OISpectrometer.getSerialNumber(self) (line 395)
-- OISpectrometer.getCalibration(self) (line 402)
-- OISpectrometer.getParameter(self, index) (line 419)
-- OISpectrometer.requestSpectrum(self) (line 474)
-- OISpectrometer.isSpectrumRequested(self) (line 488)
-- OISpectrometer.isSpectrumReady(self) (line 502)
-- OISpectrometer.getStatus(self) (line 514)
-- OISpectrometer.getSpectrumData(self) (line 542)
-- OISpectrometer.getSpectrum(self, integrationTime) (line 558)
-- OISpectrometer.sendCommand(self, cmdBytes, payloadBytes) (line 592)
-- OISpectrometer.readReply(self, inputEndpoint, size, unpackingFormat, timeout) (line 607)
-- USB2000.__init__(self, serialNumber, idProduct, idVendor) (line 671)
-- USB2000.doInitializeDevice(self) (line 676)
-- USB2000.getSpectrumData(self) (line 682)
-- USB2000.setIntegrationTime(self, timeInMs) (line 711)
-- USB4000_2000Plus.__init__(self, serialNumber, idProduct, idVendor, model) (line 767)
-- USB4000_2000Plus.doInitializeDevice(self) (line 776)
-- USB4000_2000Plus.getSpectrumData(self) (line 781)
-- USB4000_2000Plus.setIntegrationTime(self, timeInMs) (line 824)
-- USB4000_2000Plus.isSpectrumRequested(self) (line 831)
-- USB4000_2000Plus.isSpectrumReady(self) (line 852)
-- USB650.__init__(self, serialNumber, idProduct, idVendor) (line 878)
-- USB4000.__init__(self, serialNumber, idProduct, idVendor) (line 893)
-- USB2000Plus.__init__(self, serialNumber, idProduct, idVendor) (line 900)
-- SAS.__init__(self, serialNumber, idProduct, idVendor) (line 906)
-- DebugSpectro.__init__(self) (line 916)
-- DebugSpectro.getSerialNumber(self) (line 928)
-- DebugSpectro.getSpectrum(self) (line 931)
-- DebugSpectro.display(self) (line 948)
-- DebugSpectro.getIntegrationTime(self) (line 953)
-- DebugSpectro.setIntegrationTime(self, value) (line 956)
-- DebugSpectro.saveSpectrum(self, filepath, spectrum, whiteReference, darkReference) (line 959)
-- validateUSBBackend() (line 1000)
+oi_spectrometer:
+  name: Ocean Insight 光纤光谱仪
+  name_en: Ocean Insight fiber-optic spectrometer
+  manufacturer: Ocean Insight
+  category:
+  - 光谱仪
+  tags:
+  - 表征设备
+  - 光学与光谱实验
+  - 光谱采集与检测
+  - 光谱仪
+  description: 一种通过 USB 连接的紧凑型光纤光谱仪，用于测量不同波长处的光强分布。实验室中常用于光源与样品的光谱表征，例如透射、反射或发射测量，并可通过调节积分时间适配不同信号强度。
+  description_en: A compact USB-connected fiber-optic spectrometer used to measure
+    light intensity as a function of wavelength. In laboratories it is commonly used
+    for spectral characterization of light sources and samples, such as transmission,
+    reflection, or emission measurements, with adjustable integration time for different
+    signal levels.
+  class:
+    action_value_mappings:
+      auto-doInitializeDevice:
+        schema:
+          description: 初始化光谱仪并读取校准信息。
+          description_en: Initialize the spectrometer and load calibration information.
+      auto-doShutdownDevice:
+        schema:
+          description: 关闭光谱仪通信并释放设备连接。
+          description_en: Shut down spectrometer communication and release the device
+            connection.
+      auto-flushEndpoints:
+        schema:
+          description: 清空光谱仪的 USB 通信缓冲区。
+          description_en: Flush the spectrometer's USB communication buffers.
+      auto-setIntegrationTime:
+        schema:
+          description: 设置光谱采集积分时间。
+          description_en: Set the spectral acquisition integration time.
+      auto-getIntegrationTime:
+        schema:
+          description: 获取光谱采集积分时间。
+          description_en: Get the spectral acquisition integration time.
+      auto-getSerialNumber:
+        schema:
+          description: 获取光谱仪序列号。
+          description_en: Get the spectrometer serial number.
+      auto-getCalibration:
+        schema:
+          description: 获取光谱仪的波长校准参数。
+          description_en: Get the spectrometer wavelength calibration parameters.
+      auto-getParameter:
+        schema:
+          description: 获取设备内置参数。
+          description_en: Get a built-in device parameter.
+      auto-requestSpectrum:
+        schema:
+          description: 请求开始一次光谱采集。
+          description_en: Request a spectrum acquisition.
+      auto-isSpectrumRequested:
+        schema:
+          description: 查询是否已请求光谱采集。
+          description_en: Get whether a spectrum acquisition has been requested.
+      auto-isSpectrumReady:
+        schema:
+          description: 查询光谱数据是否已就绪。
+          description_en: Get whether the spectrum data is ready.
+      auto-getStatus:
+        schema:
+          description: 获取光谱仪状态。
+          description_en: Get the spectrometer status.
+      auto-getSpectrumData:
+        schema:
+          description: 读取已采集的光谱数据。
+          description_en: Retrieve the acquired spectrum data.
+      auto-getSpectrum:
+        schema:
+          description: 采集并返回一条完整光谱。
+          description_en: Acquire and return a complete spectrum.
+      auto-sendCommand:
+        schema:
+          description: 向光谱仪发送底层命令。
+          description_en: Send a low-level command to the spectrometer.
+      auto-readReply:
+        schema:
+          description: 读取光谱仪返回的底层响应数据。
+          description_en: Read low-level reply data returned by the spectrometer.
+auto_annotation_metadata:
+  registry_key: oi_spectrometer
+  annotation_workflow_version: v4
+  tag_hints:
+  - fiber optic spectrometer
+  - optical spectroscopy
+  - USB spectrometer
+  - integration time control
+  - wavelength calibration
+  - spectral acquisition
+  - Ocean Insight
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该设备用于透射、反射、发射等光谱表征，是典型光学表征仪器。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: 设备通过USB连接采集不同波长处的光强，属于光学与光谱实验范畴。
+  - id: P-3002
+    name: 光谱采集与检测
+    name_en: Spectral Acquisition & Detection
+    type: experimental_scene
+    rationale: 设备支持积分时间设置、请求采谱和读取光谱数据，符合光谱采集检测场景。
+  - id: P-9806
+    name: 光谱仪
+    name_en: Spectrometer
+    type: device_template_tag
+    rationale: 其本体就是紧凑型光纤光谱仪。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,68 +1,170 @@
-Device: oxxius_controller
-Registry Key: oxxius_controller
-Short Description: Oxxius 激光器控制器是由Oxxius SA生产的专业实验设备。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (27):
-- auto-Disconnect -> Disconnect [UniLabJsonCommand] goal_params: none
-- auto-LaserOFF -> LaserOFF [UniLabJsonCommand] goal_params: none
-- auto-LaserOn -> LaserOn [UniLabJsonCommand] goal_params: none
-- auto-Open -> Open [UniLabJsonCommand] goal_params: model_name
-- auto-Read -> Read [UniLabJsonCommand] goal_params: query_name
-- auto-Send -> Send [UniLabJsonCommand] goal_params: message
-- auto-Set -> Set [UniLabJsonCommand] goal_params: cmd_name, value
-- auto-activateLaser -> activateLaser [UniLabJsonCommand] goal_params: value
-- auto-getAnalogModulation -> getAnalogModulation [UniLabJsonCommand] goal_params: none
-- auto-getBaseTemperature -> getBaseTemperature [UniLabJsonCommand] goal_params: none
-- auto-getCurrent -> getCurrent [UniLabJsonCommand] goal_params: none
-- auto-getCurrentSetPoint -> getCurrentSetPoint [UniLabJsonCommand] goal_params: none
-- auto-getDigitalModulation -> getDigitalModulation [UniLabJsonCommand] goal_params: none
-- auto-getDiodeTemperature -> getDiodeTemperature [UniLabJsonCommand] goal_params: none
-- auto-getFault -> getFault [UniLabJsonCommand] goal_params: none
-- auto-getInterlock -> getInterlock [UniLabJsonCommand] goal_params: none
-- auto-getLaserInfo -> getLaserInfo [UniLabJsonCommand] goal_params: none
-- auto-getMode -> getMode [UniLabJsonCommand] goal_params: none
-- auto-getOperatingStatus -> getOperatingStatus [UniLabJsonCommand] goal_params: none
-- auto-getPower -> getPower [UniLabJsonCommand] goal_params: none
-- auto-getPowerSetPoint -> getPowerSetPoint [UniLabJsonCommand] goal_params: none
-- auto-isOpen -> isOpen [UniLabJsonCommand] goal_params: none
-- auto-setAnalogModulation -> setAnalogModulation [UniLabJsonCommand] goal_params: value
-- auto-setCurrent -> setCurrent [UniLabJsonCommand] goal_params: value
-- auto-setDigitalModulation -> setDigitalModulation [UniLabJsonCommand] goal_params: value
-- auto-setMode -> setMode [UniLabJsonCommand] goal_params: value
-- auto-setPower -> setPower [UniLabJsonCommand] goal_params: value
-
-Driver Functions (28):
-- OxxiusController.__init__(self) (line 152)
-- OxxiusController.isOpen(self) (line 169)
-- OxxiusController.Open(self, model_name) (line 173)
-- OxxiusController.Disconnect(self) (line 197)
-- OxxiusController.Send(self, message) (line 207)
-- OxxiusController.Read(self, query_name) (line 222)
-- OxxiusController.Set(self, cmd_name, value) (line 234)
-- OxxiusController.LaserOn(self) (line 243)
-- OxxiusController.LaserOFF(self) (line 255)
-- OxxiusController.activateLaser(self, value) (line 266)
-- OxxiusController.setMode(self, value) (line 285)
-- OxxiusController.getMode(self) (line 291)
-- OxxiusController.setCurrent(self, value) (line 303)
-- OxxiusController.getCurrent(self) (line 308)
-- OxxiusController.getCurrentSetPoint(self) (line 313)
-- OxxiusController.setPower(self, value) (line 319)
-- OxxiusController.getPower(self) (line 325)
-- OxxiusController.getPowerSetPoint(self) (line 330)
-- OxxiusController.setAnalogModulation(self, value) (line 336)
-- OxxiusController.getAnalogModulation(self) (line 340)
-- OxxiusController.setDigitalModulation(self, value) (line 346)
-- OxxiusController.getDigitalModulation(self) (line 351)
-- OxxiusController.getBaseTemperature(self) (line 357)
-- OxxiusController.getDiodeTemperature(self) (line 362)
-- OxxiusController.getOperatingStatus(self) (line 368)
-- OxxiusController.getFault(self) (line 379)
-- OxxiusController.getInterlock(self) (line 389)
-- OxxiusController.getLaserInfo(self) (line 394)
+oxxius_controller:
+  name: Oxxius 激光器控制器
+  name_en: Oxxius Laser Controller
+  manufacturer: Oxxius
+  category:
+  - 激光器控制器
+  tags:
+  - 实验执行&合成设备
+  - 光学与光谱实验
+  - 激光激发与光谱测量
+  - 激光器控制器
+  description: 用于控制和监测 Oxxius 实验室激光器的控制单元，可切换恒功率或恒电流模式，设置激光电流与输出功率，控制模拟/数字调制，并读取温度、联锁、故障和设备信息，常用于实验室激光光源的集成与运行监测。
+  description_en: A control unit for Oxxius laboratory lasers. It supports constant-power
+    or constant-current operation, current and output power control, analog and digital
+    modulation, and monitoring of temperatures, interlock, faults, and device information.
+    It is commonly used for laboratory laser source integration and operational monitoring.
+  class:
+    action_value_mappings:
+      auto-isOpen:
+        schema:
+          description: 获取设备连接状态
+          description_en: Get the device connection status
+      auto-Open:
+        schema:
+          description: 连接到激光器控制器
+          description_en: Connect to the laser controller
+      auto-Disconnect:
+        schema:
+          description: 断开与激光器控制器的连接
+          description_en: Disconnect from the laser controller
+      auto-Send:
+        schema:
+          description: 向设备发送原始命令
+          description_en: Send a raw command to the device
+      auto-Read:
+        schema:
+          description: 读取指定设备参数
+          description_en: Read a specified device parameter
+      auto-Set:
+        schema:
+          description: 设置指定设备参数
+          description_en: Set a specified device parameter
+      auto-LaserOn:
+        schema:
+          description: 开启激光输出
+          description_en: Turn on laser emission
+      auto-LaserOFF:
+        schema:
+          description: 关闭激光输出
+          description_en: Turn off laser emission
+      auto-activateLaser:
+        schema:
+          description: 设置激光激活状态
+          description_en: Set the laser activation state
+      auto-setMode:
+        schema:
+          description: 设置激光控制模式
+          description_en: Set the laser control mode
+      auto-getMode:
+        schema:
+          description: 获取激光控制模式
+          description_en: Get the laser control mode
+      auto-setCurrent:
+        schema:
+          description: 设置激光驱动电流
+          description_en: Set the laser drive current
+      auto-getCurrent:
+        schema:
+          description: 获取激光驱动电流
+          description_en: Get the laser drive current
+      auto-getCurrentSetPoint:
+        schema:
+          description: 获取激光电流设定值
+          description_en: Get the laser current setpoint
+      auto-setPower:
+        schema:
+          description: 设置激光输出功率
+          description_en: Set the laser output power
+      auto-getPower:
+        schema:
+          description: 获取激光输出功率
+          description_en: Get the laser output power
+      auto-getPowerSetPoint:
+        schema:
+          description: 获取激光功率设定值
+          description_en: Get the laser power setpoint
+      auto-setAnalogModulation:
+        schema:
+          description: 设置模拟调制状态
+          description_en: Set the analog modulation state
+      auto-getAnalogModulation:
+        schema:
+          description: 获取模拟调制状态
+          description_en: Get the analog modulation state
+      auto-setDigitalModulation:
+        schema:
+          description: 设置数字调制状态
+          description_en: Set the digital modulation state
+      auto-getDigitalModulation:
+        schema:
+          description: 获取数字调制状态
+          description_en: Get the digital modulation state
+      auto-getBaseTemperature:
+        schema:
+          description: 获取基座温度
+          description_en: Get the base temperature
+      auto-getDiodeTemperature:
+        schema:
+          description: 获取激光二极管温度
+          description_en: Get the laser diode temperature
+      auto-getOperatingStatus:
+        schema:
+          description: 获取设备运行状态
+          description_en: Get the device operating status
+      auto-getFault:
+        schema:
+          description: 获取设备故障状态
+          description_en: Get the device fault status
+      auto-getInterlock:
+        schema:
+          description: 获取联锁状态
+          description_en: Get the interlock state
+      auto-getLaserInfo:
+        schema:
+          description: 获取激光器信息
+          description_en: Get the laser information
+auto_annotation_metadata:
+  registry_key: oxxius_controller
+  annotation_workflow_version: v4
+  tag_hints:
+  - laser control
+  - constant power mode
+  - constant current mode
+  - analog modulation
+  - digital modulation
+  - interlock monitoring
+  - diode temperature
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该控制单元在实验运行中直接开启激光、设定功率/电流并调制输出，属于实验执行设备。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: 设备服务对象是实验室激光光源，主要用于光学与光谱类实验系统。
+  - id: P-3004
+    name: 激光激发与光谱测量
+    name_en: Laser Excitation & Spectroscopic Measurement
+    type: experimental_scene
+    rationale: 其功能覆盖激光输出控制、调制和状态监测，典型用于激光激发实验链路。
+  proposed_new_tags:
+  - id: P-900101
+    name: 激光器控制器
+    name_en: Laser Controller
+    type: device_template_tag
+    rationale: 该设备专门控制实验室激光器的电流、功率、调制、联锁和故障状态，适合作为激光器控制器模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

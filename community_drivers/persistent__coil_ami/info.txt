@@ -1,48 +1,151 @@
-Device: persistent__coil_ami
-Registry Key: persistent__coil_ami
-Short Description: AMI超导持续电流线圈控制器，用于超导磁体的持续电流模式管理。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (17):
-- auto-bring_source_to_field -> bring_source_to_field [UniLabJsonCommand] goal_params: none
-- auto-check_for_quench -> check_for_quench [UniLabJsonCommand] goal_params: none
-- auto-compensate_for_drift -> compensate_for_drift [UniLabJsonCommand] goal_params: compensation_factor
-- auto-curr_to_field -> curr_to_field [UniLabJsonCommand] goal_params: current
-- auto-fake_folder -> fake_folder [UniLabJsonCommand] goal_params: folder_name
-- auto-field_to_curr -> field_to_curr [UniLabJsonCommand] goal_params: field
-- auto-get_all -> get_all [UniLabJsonCommand] goal_params: none
-- auto-get_field -> get_field [UniLabJsonCommand] goal_params: none
-- auto-get_source_field -> get_source_field [UniLabJsonCommand] goal_params: none
-- auto-get_switch_state -> get_switch_state [UniLabJsonCommand] goal_params: none
-- auto-heater_enabled -> heater_enabled [UniLabJsonCommand] goal_params: none
-- auto-measure_field -> measure_field [UniLabJsonCommand] goal_params: none
-- auto-set_field -> set_field [UniLabJsonCommand] goal_params: field
-- auto-set_source_field -> set_source_field [UniLabJsonCommand] goal_params: field
-- auto-set_switch_state -> set_switch_state [UniLabJsonCommand] goal_params: desired_state
-- auto-step_field_to_value -> step_field_to_value [UniLabJsonCommand] goal_params: field
-- auto-turn_on_heater -> turn_on_heater [UniLabJsonCommand] goal_params: turn_on
-
-Driver Functions (18):
-- Persistent_Coil_AMI.__init__(self, name, current_source_AMI, field_to_current, min_field, max_field, switch_heater_current, MC_inst, ramp_rate_current, ramp_rate_field, **kw) (line 93)
-- Persistent_Coil_AMI.get_all(self) (line 177)
-- Persistent_Coil_AMI.check_for_quench(self) (line 188)
-- Persistent_Coil_AMI.set_source_field(self, field) (line 196)
-- Persistent_Coil_AMI.get_source_field(self) (line 205)
-- Persistent_Coil_AMI.heater_enabled(self) (line 210)
-- Persistent_Coil_AMI.turn_on_heater(self, turn_on) (line 215)
-- Persistent_Coil_AMI.get_switch_state(self) (line 222)
-- Persistent_Coil_AMI.set_switch_state(self, desired_state) (line 230)
-- Persistent_Coil_AMI.set_field(self, field) (line 292)
-- Persistent_Coil_AMI.get_field(self) (line 309)
-- Persistent_Coil_AMI.field_to_curr(self, field) (line 326)
-- Persistent_Coil_AMI.curr_to_field(self, current) (line 330)
-- Persistent_Coil_AMI.fake_folder(self, folder_name) (line 334)
-- Persistent_Coil_AMI.compensate_for_drift(self, compensation_factor) (line 349)
-- Persistent_Coil_AMI.bring_source_to_field(self) (line 365)
-- Persistent_Coil_AMI.step_field_to_value(self, field) (line 377)
-- Persistent_Coil_AMI.measure_field(self) (line 428)
+persistent__coil_ami:
+  name: AMI 持久模式超导磁体线圈
+  name_en: AMI Persistent-Mode Superconducting Magnet Coil
+  manufacturer: American Magnetics, Inc.
+  category:
+  - 超导磁体系统
+  tags:
+  - 实验执行&合成设备
+  - 低温与量子测量
+  - 电子与电气测试
+  - 超导磁体与低温磁场控制
+  - 磁场施加与扫描测量
+  - 超导磁体系统
+  description: 这是一种带持久开关加热器的超导磁体线圈，可由 AMI 磁体电源励磁，并在持久模式下维持稳定磁场。它常用于低温物理、量子器件和精密电学实验中，为样品提供稳定的直流磁场偏置。
+  description_en: A superconducting magnet coil with a persistent switch heater, intended
+    to be energized by an AMI magnet power supply and then operated in persistent
+    mode to maintain a stable magnetic field. It is commonly used in low-temperature
+    physics, quantum-device experiments, and precision electrical measurements to
+    provide a stable DC magnetic bias field.
+  class:
+    action_value_mappings:
+      auto-get_all:
+        schema:
+          description: 读取线圈及持久开关的全部可用状态信息。
+          description_en: Read all available status information of the coil and persistent
+            switch.
+      auto-check_for_quench:
+        schema:
+          description: 检查超导线圈是否发生失超。
+          description_en: Check whether the superconducting coil is in a quench state.
+      auto-set_source_field:
+        schema:
+          description: 设置电源侧目标磁场。
+          description_en: Set the target field on the power-supply side.
+      auto-get_source_field:
+        schema:
+          description: 获取电源侧磁场设定值或当前值。
+          description_en: Get the field setpoint or current value on the power-supply
+            side.
+      auto-heater_enabled:
+        schema:
+          description: 获取持久开关加热器是否开启。
+          description_en: Get whether the persistent switch heater is enabled.
+      auto-turn_on_heater:
+        schema:
+          description: 开启或关闭持久开关加热器。
+          description_en: Turn the persistent switch heater on or off.
+      auto-get_switch_state:
+        schema:
+          description: 获取持久开关状态。
+          description_en: Get the state of the persistent switch.
+      auto-set_switch_state:
+        schema:
+          description: 设置持久开关状态，在超导态与常导态之间切换。
+          description_en: Set the persistent switch state, switching between superconducting
+            and normal-conducting states.
+      auto-set_field:
+        schema:
+          description: 设置线圈的目标磁场。
+          description_en: Set the target magnetic field of the coil.
+      auto-get_field:
+        schema:
+          description: 获取线圈的持久磁场。
+          description_en: Get the persistent magnetic field of the coil.
+      auto-field_to_curr:
+        schema:
+          description: 将线圈磁场值换算为对应电流。
+          description_en: Convert a coil magnetic field value to the corresponding
+            current.
+      auto-curr_to_field:
+        schema:
+          description: 将线圈电流值换算为对应磁场。
+          description_en: Convert a coil current value to the corresponding magnetic
+            field.
+      auto-fake_folder:
+        schema:
+          description: 创建一个用于记录该线圈数据的虚拟测量文件夹。
+          description_en: Create a dummy measurement folder for recording data related
+            to the coil.
+      auto-compensate_for_drift:
+        schema:
+          description: 通过调整供电电流补偿持久模式下的磁场漂移。
+          description_en: Compensate field drift in persistent mode by adjusting the
+            supplied current.
+      auto-bring_source_to_field:
+        schema:
+          description: 将电源输出调整到与线圈当前持久磁场相匹配。
+          description_en: Bring the power-supply output into agreement with the coil's
+            current persistent field.
+      auto-step_field_to_value:
+        schema:
+          description: 以步进方式将线圈磁场缓慢扫到目标值。
+          description_en: Ramp the coil field to a target value in discrete steps.
+      auto-measure_field:
+        schema:
+          description: 测量线圈产生的磁场。
+          description_en: Measure the magnetic field produced by the coil.
+auto_annotation_metadata:
+  registry_key: persistent__coil_ami
+  annotation_workflow_version: v4
+  tag_hints:
+  - superconducting magnet
+  - persistent mode
+  - magnet power supply
+  - persistent switch heater
+  - quench detection
+  - magnetic field bias
+  - cryogenic experiments
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该线圈在实验过程中提供并维持稳定直流磁场偏置，属于实验执行阶段的核心装置。
+  - id: P-2003
+    name: 低温与量子测量
+    name_en: Cryogenic & Quantum Measurements
+    type: experimental_domain
+    rationale: 描述明确提到低温物理和量子器件实验，这正是该持久模式超导磁体线圈的主要应用领域。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: 设备也用于精密电学实验中的磁场偏置，和电学测试场景直接相关。
+  - id: P-2004
+    name: 超导磁体与低温磁场控制
+    name_en: Superconducting Magnet & Cryogenic Magnetic Field Control
+    type: experimental_scene
+    rationale: 该设备带持久开关加热器、可配合磁体电源励磁并切换持久模式，完全符合超导磁体与低温磁场控制场景。
+  - id: P-300004
+    name: 磁场施加与扫描测量
+    name_en: Magnetic Field Application & Sweep Measurement
+    type: experimental_scene
+    rationale: 支持设定目标磁场、阶梯扫场、漂移补偿和磁场测量，适用于磁场施加与扫描实验。
+  - id: P-2006
+    name: 超导磁体系统
+    name_en: Superconducting Magnet System
+    type: device_template_tag
+    rationale: 该设备本质上是用于低温实验的超导磁体线圈，最接近超导磁体系统模板。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

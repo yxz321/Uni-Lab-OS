@@ -1,54 +1,143 @@
-Device: o_scope
-Registry Key: o_scope
-Short Description: Digital Oscilloscope驱动，支持autoscale/chk/screenShot/selfSetup/waveGen等18个操作。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (18):
-- auto-autoscale -> autoscale [UniLabJsonCommand] goal_params: none
-- auto-burst -> burst [UniLabJsonCommand] goal_params: cycle, period, phase
-- auto-chk -> chk [UniLabJsonCommand] goal_params: none
-- auto-delay -> delay [UniLabJsonCommand] goal_params: none
-- auto-measureCurr -> measureCurr [UniLabJsonCommand] goal_params: none
-- auto-measureVolt -> measureVolt [UniLabJsonCommand] goal_params: none
-- auto-off -> off [UniLabJsonCommand] goal_params: none
-- auto-on -> on [UniLabJsonCommand] goal_params: none
-- auto-pulseWave -> pulseWave [UniLabJsonCommand] goal_params: Freq, amplitude, offset
-- auto-rampWave -> rampWave [UniLabJsonCommand] goal_params: Freq, amplitude, offset
-- auto-screenShot -> screenShot [UniLabJsonCommand] goal_params: color, name
-- auto-selfSetup -> selfSetup [UniLabJsonCommand] goal_params: none
-- auto-setCurr -> setCurr [UniLabJsonCommand] goal_params: Current
-- auto-setVolt -> setVolt [UniLabJsonCommand] goal_params: Volt
-- auto-sinWave -> sinWave [UniLabJsonCommand] goal_params: Freq, amplitude, offset, phase
-- auto-sqrWave -> sqrWave [UniLabJsonCommand] goal_params: Freq, amplitude, offset
-- auto-sweep -> sweep [UniLabJsonCommand] goal_params: Dtime, mode, start, stop
-- auto-waveGen -> waveGen [UniLabJsonCommand] goal_params: freq, type, volt
-
-Driver Functions (23):
-- OScope.__init__(self, IAddr) (line 80)
-- OScope.chk(self) (line 83)
-- OScope.screenShot(self, name, color) (line 90)
-- OScope.waveGen(self, freq, type, volt) (line 104)
-- OScope.selfSetup(self) (line 111)
-- OScope.autoscale(self) (line 118)
-- PSupply.__init__(self, IAddr) (line 133)
-- PSupply.chk(self) (line 136)
-- PSupply.delay(delay_Sec) (line 142)
-- PSupply.on(self) (line 145)
-- PSupply.off(self) (line 149)
-- PSupply.setVolt(self, Volt) (line 153)
-- PSupply.setCurr(self, Current) (line 157)
-- PSupply.measureVolt(self) (line 161)
-- PSupply.measureCurr(self) (line 164)
-- WGenerator.__init__(self, Iaddr) (line 174)
-- WGenerator.sinWave(self, Freq, amplitude, offset, phase) (line 183)
-- WGenerator.rampWave(self, Freq, amplitude, offset) (line 191)
-- WGenerator.pulseWave(self, Freq, amplitude, offset) (line 197)
-- WGenerator.sqrWave(self, Freq, amplitude, offset) (line 203)
-- WGenerator.burst(self, cycle, phase, period) (line 214)
-- WGenerator.sweep(self, mode, start, stop, Dtime) (line 227)
-- MMeter.__init__(self, Iaddr) (line 245)
+o_scope:
+  name: 数字示波器
+  name_en: Digital Oscilloscope
+  manufacturer: ''
+  category:
+  - 数字存储示波器
+  tags:
+  - 表征设备
+  - 电子与电气测试
+  - 射频与电子电路测试
+  - 瞬态信号采集与同步触发测量
+  - 数字存储示波器
+  description: 数字示波器是用于观察和测量电信号随时间变化的台式电子测试仪器，常用于波形捕获、幅度/频率/时序分析以及电路调试。根据配置，设备还可支持屏幕截图和内置信号发生器输出。
+  description_en: A digital oscilloscope is a benchtop electronic test instrument
+    used to view and measure how electrical signals change over time. It is commonly
+    used for waveform capture, amplitude, frequency, and timing analysis, as well
+    as circuit debugging. Depending on the configuration, the instrument may also
+    support screen capture and a built-in waveform generator.
+  class:
+    action_value_mappings:
+      auto-autoscale:
+        schema:
+          description: 自动调整显示与触发参数，使输入波形稳定显示。
+          description_en: Automatically adjust display and trigger settings so the
+            input waveform is shown stably.
+      auto-chk:
+        schema:
+          description: 检查仪器是否在线并能正常响应命令。
+          description_en: Check whether the instrument is online and responding normally
+            to commands.
+      auto-screenShot:
+        schema:
+          description: 截取当前屏幕图像并保存为文件。
+          description_en: Capture the current screen image and save it to a file.
+      auto-selfSetup:
+        schema:
+          description: 执行自设置，使仪器进入可用的测量状态。
+          description_en: Perform a self-setup so the instrument enters a usable measurement
+            state.
+      auto-waveGen:
+        schema:
+          description: 配置并输出指定频率、波形类型和电压的测试波形。
+          description_en: Configure and output a test waveform with the specified
+            frequency, waveform type, and voltage.
+      auto-delay:
+        schema:
+          description: 在自动化流程中等待指定时间。
+          description_en: Wait for a specified time during an automated procedure.
+      auto-on:
+        schema:
+          description: 开启输出。
+          description_en: Turn on the output.
+      auto-off:
+        schema:
+          description: 关闭输出。
+          description_en: Turn off the output.
+      auto-setVolt:
+        schema:
+          description: 设置输出电压。
+          description_en: Set the output voltage.
+      auto-setCurr:
+        schema:
+          description: 设置输出电流或电流限值。
+          description_en: Set the output current or current limit.
+      auto-measureVolt:
+        schema:
+          description: 测量电压。
+          description_en: Measure the voltage.
+      auto-measureCurr:
+        schema:
+          description: 测量电流。
+          description_en: Measure the current.
+      auto-sinWave:
+        schema:
+          description: 输出正弦波。
+          description_en: Output a sine wave.
+      auto-rampWave:
+        schema:
+          description: 输出斜坡波。
+          description_en: Output a ramp waveform.
+      auto-pulseWave:
+        schema:
+          description: 输出脉冲波。
+          description_en: Output a pulse waveform.
+      auto-sqrWave:
+        schema:
+          description: 输出方波。
+          description_en: Output a square wave.
+      auto-burst:
+        schema:
+          description: 配置或启用突发输出模式。
+          description_en: Configure or enable burst output mode.
+      auto-sweep:
+        schema:
+          description: 配置或启用扫描输出模式。
+          description_en: Configure or enable sweep output mode.
+auto_annotation_metadata:
+  registry_key: o_scope
+  annotation_workflow_version: v4
+  tag_hints:
+  - oscilloscope
+  - waveform capture
+  - timing analysis
+  - screen capture
+  - built-in waveform generator
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 数字示波器用于观察和测量电信号波形、幅值、频率和时序，属于典型表征测试设备。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: 该设备面向电信号随时间变化的测量与电路调试，直接对应电子与电气测试领域。
+  - id: P-0012
+    name: 射频与电子电路测试
+    name_en: RF & Electronic Circuit Testing
+    type: experimental_scene
+    rationale: 设备常用于电路调试、波形检查和频率/时序分析，适合电子电路测试场景。
+  - id: P-0024
+    name: 瞬态信号采集与同步触发测量
+    name_en: Transient Signal Acquisition & Synchronized Triggered Measurement
+    type: experimental_scene
+    rationale: 示波器的波形捕获、触发显示和时序分析能力与瞬态信号采集场景高度吻合。
+  - id: P-1002
+    name: 数字存储示波器
+    name_en: Digital Storage Oscilloscope
+    type: device_template_tag
+    rationale: 设备名称即数字示波器，且支持波形捕获、屏幕截图等典型数字存储示波器功能。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

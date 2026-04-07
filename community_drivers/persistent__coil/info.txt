@@ -1,48 +1,152 @@
-Device: persistent__coil
-Registry Key: persistent__coil
-Short Description: Persistent Current Superconducting Coil是由American Magnetics Inc.
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (17):
-- auto-bring_source_to_field -> bring_source_to_field [UniLabJsonCommand] goal_params: none
-- auto-check_for_quench -> check_for_quench [UniLabJsonCommand] goal_params: none
-- auto-compensate_for_drift -> compensate_for_drift [UniLabJsonCommand] goal_params: compensation_factor
-- auto-curr_to_field -> curr_to_field [UniLabJsonCommand] goal_params: current
-- auto-fake_folder -> fake_folder [UniLabJsonCommand] goal_params: folder_name
-- auto-field_to_curr -> field_to_curr [UniLabJsonCommand] goal_params: field
-- auto-get_all -> get_all [UniLabJsonCommand] goal_params: none
-- auto-get_field -> get_field [UniLabJsonCommand] goal_params: none
-- auto-get_heater_current -> get_heater_current [UniLabJsonCommand] goal_params: none
-- auto-get_source_current -> get_source_current [UniLabJsonCommand] goal_params: none
-- auto-get_switch_state -> get_switch_state [UniLabJsonCommand] goal_params: none
-- auto-measure_field -> measure_field [UniLabJsonCommand] goal_params: none
-- auto-set_field -> set_field [UniLabJsonCommand] goal_params: field
-- auto-set_heater_current -> set_heater_current [UniLabJsonCommand] goal_params: value
-- auto-set_source_current -> set_source_current [UniLabJsonCommand] goal_params: current
-- auto-set_switch_state -> set_switch_state [UniLabJsonCommand] goal_params: desired_state
-- auto-step_field_to_value -> step_field_to_value [UniLabJsonCommand] goal_params: field
-
-Driver Functions (18):
-- Persistent_Coil.__init__(self, name, Current_source_magnet, Current_source_heater, field_to_current, min_field, max_field, ramp_rate, switch_heater_current, MC_inst, **kw) (line 94)
-- Persistent_Coil.get_all(self) (line 148)
-- Persistent_Coil.check_for_quench(self) (line 159)
-- Persistent_Coil.get_source_current(self) (line 166)
-- Persistent_Coil.set_source_current(self, current) (line 170)
-- Persistent_Coil.get_heater_current(self) (line 175)
-- Persistent_Coil.set_heater_current(self, value) (line 179)
-- Persistent_Coil.get_switch_state(self) (line 187)
-- Persistent_Coil.set_switch_state(self, desired_state) (line 199)
-- Persistent_Coil.set_field(self, field) (line 258)
-- Persistent_Coil.get_field(self) (line 275)
-- Persistent_Coil.measure_field(self) (line 291)
-- Persistent_Coil.step_field_to_value(self, field) (line 300)
-- Persistent_Coil.field_to_curr(self, field) (line 324)
-- Persistent_Coil.curr_to_field(self, current) (line 328)
-- Persistent_Coil.fake_folder(self, folder_name) (line 332)
-- Persistent_Coil.compensate_for_drift(self, compensation_factor) (line 347)
-- Persistent_Coil.bring_source_to_field(self) (line 363)
+persistent__coil:
+  name: 超导持久磁体线圈
+  name_en: Persistent superconducting magnet coil
+  manufacturer: ''
+  category:
+  - 超导磁体系统
+  - 实验室磁体系统
+  tags:
+  - 实验执行&合成设备
+  - 低温与量子测量
+  - 超导磁体与低温磁场控制
+  - 磁场施加与扫描测量
+  - 超导磁体系统
+  - 实验室磁体系统
+  description: 这是一种带持久开关与加热器的超导磁体线圈，用于低温与量子器件实验中产生稳定磁场。实验时通常先由外部电流源给线圈充电，再切换到持久模式以在断开电源后维持磁场，并可进行失超检查、电流与磁场换算以及磁场缓慢扫场控制。
+  description_en: This is a superconducting magnet coil with a persistent switch and
+    heater, used in cryogenic and quantum-device experiments to generate stable magnetic
+    fields. The coil is typically energized by an external current source and then
+    switched into persistent mode so the field can be maintained after disconnecting
+    the source. It supports quench checking, current-field conversion, and controlled
+    field ramping.
+  class:
+    action_value_mappings:
+      auto-get_all:
+        schema:
+          description: 获取磁体线圈的整体状态信息。
+          description_en: Get the overall status information of the magnet coil.
+      auto-check_for_quench:
+        schema:
+          description: 检查线圈是否发生失超。
+          description_en: Check whether the coil is in a quench condition.
+      auto-get_source_current:
+        schema:
+          description: 获取外部电流源对线圈提供的电流。
+          description_en: Get the current supplied to the coil by the external current
+            source.
+      auto-set_source_current:
+        schema:
+          description: 设置外部电流源对线圈提供的电流。
+          description_en: Set the current supplied to the coil by the external current
+            source.
+      auto-get_heater_current:
+        schema:
+          description: 获取持久开关加热器电流。
+          description_en: Get the persistent-switch heater current.
+      auto-set_heater_current:
+        schema:
+          description: 设置持久开关加热器电流。
+          description_en: Set the persistent-switch heater current.
+      auto-get_switch_state:
+        schema:
+          description: 获取持久开关状态。
+          description_en: Get the persistent-switch state.
+      auto-set_switch_state:
+        schema:
+          description: 设置持久开关状态，使线圈在持久模式与常导供电模式之间切换。
+          description_en: Set the persistent-switch state to switch the coil between
+            persistent mode and externally powered normal-conducting mode.
+      auto-set_field:
+        schema:
+          description: 设置目标磁场。
+          description_en: Set the target magnetic field.
+      auto-get_field:
+        schema:
+          description: 获取当前保存或记录的磁场值。
+          description_en: Get the current stored or recorded magnetic field value.
+      auto-measure_field:
+        schema:
+          description: 测量线圈产生的磁场。
+          description_en: Measure the magnetic field produced by the coil.
+      auto-step_field_to_value:
+        schema:
+          description: 将磁场逐步扫到指定值。
+          description_en: Ramp the magnetic field step by step to a specified value.
+      auto-field_to_curr:
+        schema:
+          description: 将目标磁场换算为所需线圈电流。
+          description_en: Convert a target magnetic field to the required coil current.
+      auto-curr_to_field:
+        schema:
+          description: 将线圈电流换算为对应磁场。
+          description_en: Convert coil current to the corresponding magnetic field.
+      auto-fake_folder:
+        schema:
+          description: 创建一个用于磁体测量记录的占位数据文件夹。
+          description_en: Create a placeholder data folder for magnet measurement
+            records.
+      auto-compensate_for_drift:
+        schema:
+          description: 在线圈处于持久状态时补偿磁场漂移，或将源电流降至零以便断开电流源。
+          description_en: Compensate field drift while the coil is in persistent mode,
+            or ramp the source current to zero for source disconnection.
+      auto-bring_source_to_field:
+        schema:
+          description: 使外部电流源电流与当前持久磁场对应，便于后续切换开关或继续控场。
+          description_en: Bring the external source current into agreement with the
+            present persistent field for subsequent switch operation or further field
+            control.
+auto_annotation_metadata:
+  registry_key: persistent__coil
+  annotation_workflow_version: v4
+  tag_hints:
+  - superconducting magnet
+  - persistent switch
+  - magnetic field control
+  - quench detection
+  - current ramping
+  - cryogenic experiments
+  - quantum device measurement
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该超导磁体线圈在实验中主动提供和调节磁场，是实验执行过程中的核心装置。
+  - id: P-2003
+    name: 低温与量子测量
+    name_en: Cryogenic & Quantum Measurements
+    type: experimental_domain
+    rationale: 描述明确指出其用于低温与量子器件实验中的稳定磁场产生。
+  - id: P-2004
+    name: 超导磁体与低温磁场控制
+    name_en: Superconducting Magnet & Cryogenic Magnetic Field Control
+    type: experimental_scene
+    rationale: 设备具有持久开关、加热器和磁场控制功能，正是超导磁体低温控场场景。
+  - id: P-300004
+    name: 磁场施加与扫描测量
+    name_en: Magnetic Field Application & Sweep Measurement
+    type: experimental_scene
+    rationale: 其支持设定目标磁场、缓慢扫场和磁场漂移补偿，符合磁场施加与扫描测量。
+  - id: P-2006
+    name: 超导磁体系统
+    name_en: Superconducting Magnet System
+    type: device_template_tag
+    rationale: 该线圈用于建立持久超导磁场，可归入超导磁体系统。
+  - id: P-300005
+    name: 实验室磁体系统
+    name_en: Laboratory Magnet System
+    type: device_template_tag
+    rationale: 从功能上看，它是实验室中用于施加稳定磁场的磁体装置。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review
