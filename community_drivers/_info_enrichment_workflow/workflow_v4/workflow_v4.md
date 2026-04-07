@@ -377,6 +377,11 @@ Output per device:
 - `_batch_tag_api.json`
 - `_batch_tag_api_trace.json`
 
+Batch-level robustness behavior:
+- `run_pass_b.py` preserves `_batch_tag_request.json` with attempt history
+- it performs one bounded automatic retry for transient transport failures or
+  non-JSON / schema-invalid `output_text`
+
 Tagging rules:
 - the combined set of `existing_tags + proposed_new_tags` must include at least
   one tag of each type:
@@ -435,7 +440,9 @@ Rendering rules:
   - `proposed_new_tags`
   - `tag_hints`
   - optional `websearch_evidence`
-- renderer does not perform semantic cleanup or repair
+- renderer may backfill missing action-schema descriptions with structural
+  placeholder text when Pass A action summaries are incomplete, but it does not
+  perform broader semantic cleanup or identity repair
 
 ## Step 7: Validation
 

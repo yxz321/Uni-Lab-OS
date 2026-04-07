@@ -55,6 +55,21 @@ def dedupe_tags(tags: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
+def apply_action_schema_fallback(action_name: str, schema: dict[str, Any], desc: dict[str, Any] | None) -> None:
+    if desc is not None:
+        description = str(desc.get('description', '')).strip()
+        description_en = str(desc.get('description_en', '')).strip()
+        if description:
+            schema['description'] = description
+        if description_en:
+            schema['description_en'] = description_en
+
+    if not str(schema.get('description', '')).strip():
+        schema['description'] = f'参数定义：{action_name}'
+    if not str(schema.get('description_en', '')).strip():
+        schema['description_en'] = f'Parameter definition: {action_name}'
+
+
 def merge_payload(signals: dict[str, Any], profile: dict[str, Any], tag_result: dict[str, Any] | None, device_dir: Path) -> dict[str, Any]:
     registry = signals['registry']
     parsed = profile.get('parsed', {})
@@ -66,9 +81,7 @@ def merge_payload(signals: dict[str, Any], profile: dict[str, Any], tag_result: 
         action_name = action_str.split(' (from ')[0].strip()
         schema: dict[str, Any] = {}
         desc = action_descs.get(action_name)
-        if desc is not None:
-            schema['description'] = desc.get('description', '')
-            schema['description_en'] = desc.get('description_en', '')
+        apply_action_schema_fallback(action_name, schema, desc)
         action_mappings[action_name] = {'schema': schema}
 
     if not action_mappings:
@@ -76,11 +89,9 @@ def merge_payload(signals: dict[str, Any], profile: dict[str, Any], tag_result: 
         for m in driver.get('focal_methods', []):
             func_name = m['function'].split('(')[0]
             action_name = f'auto-{func_name}'
-            schema = {}
+            schema: dict[str, Any] = {}
             desc = action_descs.get(action_name)
-            if desc is not None:
-                schema['description'] = desc.get('description', '')
-                schema['description_en'] = desc.get('description_en', '')
+            apply_action_schema_fallback(action_name, schema, desc)
             action_mappings[action_name] = {'schema': schema}
 
     existing_tags: list[dict[str, str]] = []

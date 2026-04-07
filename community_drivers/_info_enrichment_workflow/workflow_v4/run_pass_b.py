@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 import os
+import socket
 import time
 import urllib.error
 import urllib.request
@@ -22,6 +23,8 @@ SECRET_ENV_PATH = Path.home() / '.config' / 'unilabos' / 'openai.env'
 TAG_CSV_PATH = COMMUNITY_DIR / 'tag 标签列表.csv'
 TAG_PROPOSED_PATH = COMMUNITY_DIR / 'tag_additions_proposed.csv'
 API_READ_TIMEOUT_SECONDS = 300
+MAX_API_ATTEMPTS = 2
+RETRY_BACKOFF_SECONDS = 5
 
 SYSTEM_PROMPT = """\
 You are assigning tags to lab devices using extracted evidence and a provided full tag list.
@@ -195,6 +198,109 @@ def validate_parsed_response(parsed: dict[str, Any]) -> list[dict[str, Any]]:
     return devices
 
 
+def write_trace_root(path: Path, payload: dict[str, Any], attempts: list[dict[str, Any]]) -> None:
+    trace: dict[str, Any] = {
+        'request': payload,
+        'attempts': attempts,
+    }
+    if attempts:
+        last_attempt = attempts[-1]
+        if 'response' in last_attempt:
+            trace['response'] = last_attempt['response']
+        if 'output_text' in last_attempt:
+            trace['output_text'] = last_attempt['output_text']
+        if 'error' in last_attempt:
+            trace['error'] = last_attempt['error']
+        if 'http_error' in last_attempt:
+            trace['http_error'] = last_attempt['http_error']
+    path.write_text(json.dumps(trace, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+
+def request_pass_b_with_retry(
+    request: urllib.request.Request,
+    *,
+    base_payload: dict[str, Any],
+    trace_root: Path,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    attempts: list[dict[str, Any]] = []
+
+    for attempt in range(1, MAX_API_ATTEMPTS + 1):
+        attempt_record: dict[str, Any] = {'attempt': attempt}
+        try:
+            with urllib.request.urlopen(request, timeout=API_READ_TIMEOUT_SECONDS) as resp:
+                raw_response = json.loads(resp.read().decode('utf-8'))
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode('utf-8', errors='replace')
+            attempt_record['http_error'] = {
+                'code': exc.code,
+                'reason': exc.reason,
+                'body': body,
+            }
+            attempts.append(attempt_record)
+            write_trace_root(trace_root, base_payload, attempts)
+            raise SystemExit(f'HTTP {exc.code} during Pass B; wrote {trace_root}')
+        except (urllib.error.URLError, TimeoutError, socket.timeout) as exc:
+            attempt_record['error'] = {
+                'type': type(exc).__name__,
+                'message': str(exc),
+            }
+            attempts.append(attempt_record)
+            write_trace_root(trace_root, base_payload, attempts)
+            if attempt < MAX_API_ATTEMPTS:
+                log_progress(
+                    'Pass B',
+                    f'批量标签请求第 {attempt}/{MAX_API_ATTEMPTS} 次失败（{type(exc).__name__}），{RETRY_BACKOFF_SECONDS}s 后重试',
+                )
+                time.sleep(RETRY_BACKOFF_SECONDS)
+                continue
+            raise SystemExit(f'Pass B request failed after {MAX_API_ATTEMPTS} attempts; wrote {trace_root}') from exc
+
+        output_text = extract_output_text_compat(raw_response)
+        attempt_record['response'] = raw_response
+        attempt_record['output_text'] = output_text
+
+        if not output_text:
+            attempt_record['error'] = {
+                'type': 'empty_output_text',
+                'message': 'No output_text in batch tag response',
+            }
+            attempts.append(attempt_record)
+            write_trace_root(trace_root, base_payload, attempts)
+            if attempt < MAX_API_ATTEMPTS:
+                log_progress(
+                    'Pass B',
+                    f'批量标签请求第 {attempt}/{MAX_API_ATTEMPTS} 次返回空输出，{RETRY_BACKOFF_SECONDS}s 后重试',
+                )
+                time.sleep(RETRY_BACKOFF_SECONDS)
+                continue
+            raise RuntimeError(f'No output_text in batch tag response after {MAX_API_ATTEMPTS} attempts; wrote {trace_root}')
+
+        try:
+            parsed = json.loads(output_text)
+            validate_parsed_response(parsed)
+        except (json.JSONDecodeError, RuntimeError) as exc:
+            attempt_record['error'] = {
+                'type': type(exc).__name__,
+                'message': str(exc),
+            }
+            attempts.append(attempt_record)
+            write_trace_root(trace_root, base_payload, attempts)
+            if attempt < MAX_API_ATTEMPTS:
+                log_progress(
+                    'Pass B',
+                    f'批量标签请求第 {attempt}/{MAX_API_ATTEMPTS} 次返回非结构化结果，{RETRY_BACKOFF_SECONDS}s 后重试',
+                )
+                time.sleep(RETRY_BACKOFF_SECONDS)
+                continue
+            raise RuntimeError(f'Pass B response was not valid JSON/schema after {MAX_API_ATTEMPTS} attempts; wrote {trace_root}') from exc
+
+        attempts.append(attempt_record)
+        write_trace_root(trace_root, base_payload, attempts)
+        return raw_response, attempts
+
+    raise RuntimeError(f'Pass B request exhausted retry budget; wrote {trace_root}')
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--model', default='Vendor2/GPT-5.4')
@@ -275,21 +381,9 @@ def main() -> None:
         headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
         method='POST',
     )
-
-    try:
-        with urllib.request.urlopen(req, timeout=API_READ_TIMEOUT_SECONDS) as resp:
-            raw_response = json.loads(resp.read().decode('utf-8'))
-    except urllib.error.HTTPError as exc:
-        body = exc.read().decode('utf-8', errors='replace')
-        trace_root.write_text(json.dumps({'request': payload, 'http_error': {'code': exc.code, 'reason': exc.reason, 'body': body}}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-        raise SystemExit(f'HTTP {exc.code} during Pass B; wrote {trace_root}')
-
-    text = extract_output_text_compat(raw_response)
-    trace_root.write_text(json.dumps({'request': payload, 'response': raw_response, 'output_text': text}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    if not text:
-        raise RuntimeError(f'No output_text in batch tag response; wrote {trace_root}')
-
-    parsed = json.loads(text)
+    raw_response, attempts = request_pass_b_with_retry(req, base_payload=payload, trace_root=trace_root)
+    final_output_text = attempts[-1].get('output_text', '')
+    parsed = json.loads(final_output_text)
     device_results = validate_parsed_response(parsed)
     results_by_device = {d['device']: d for d in device_results}
 

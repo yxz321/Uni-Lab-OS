@@ -1,0 +1,114 @@
+pv_positioner:
+  name: PV位置控制组件
+  name_en: PV Positioner Component
+  manufacturer: ''
+  category:
+  - 位置控制器
+  tags:
+  - 实验执行&合成设备
+  - 精密定位与运动控制
+  - 实验室自动化与仪器集成
+  - 样品/探针定位与运动控制
+  - 位置控制器
+  description: 用于通过过程变量接口执行位置设定与状态读写的非物理控制组件，可作为上层运动控制的抽象接口。
+  description_en: A non-physical control component that sets positions and reads/writes
+    status through process-variable interfaces, acting as an abstraction for higher-level
+    motion control.
+  class:
+    action_value_mappings:
+      auto-check_value:
+        schema:
+          description: 检查请求位置是否在软限位范围内。
+          description_en: Check whether the requested position is within the soft
+            limits.
+      auto-move:
+        schema:
+          description: 通过PV发起移动到目标位置，并可选择等待完成。
+          description_en: Initiate a move to the target position through PVs, optionally
+            waiting for completion.
+      auto-stop:
+        schema:
+          description: 通过停止信号中止当前移动。
+          description_en: Stop the current move using the configured stop signal.
+      auto-egu:
+        schema:
+          description: 获取位置的工程单位。
+          description_en: Get the engineering units for position.
+      auto-put_complete:
+        schema:
+          description: 获取是否使用异步写入完成作为完成判定。
+          description_en: Get whether asynchronous put completion is used to determine
+            move completion.
+      auto-moving:
+        schema:
+          description: 获取是否正在移动。
+          description_en: Get whether motion is in progress.
+      auto-report:
+        schema:
+          description: 获取位置器状态报告。
+          description_en: Get the positioner status report.
+      auto-limits:
+        schema:
+          description: 获取位置软限位范围。
+          description_en: Get the position soft-limit range.
+      auto-done_comparator:
+        schema:
+          description: 获取用于判断移动完成的比较规则。
+          description_en: Get the comparison rule used to determine move completion.
+auto_annotation_metadata:
+  registry_key: pv_positioner
+  annotation_workflow_version: v4
+  tag_hints:
+  - EPICS PV control
+  - positioner abstraction
+  - motion setpoint/readback
+  - soft limits
+  - move completion logic
+  - experimental automation
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件在实验执行过程中下发位置设定并控制运动完成。
+  - id: P-1009
+    name: 精密定位与运动控制
+    name_en: Precision Positioning & Motion Control
+    type: experimental_domain
+    rationale: 组件围绕位置设定、限位检查和运动状态判断展开。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 其控制接口基于过程变量，属于自动化控制抽象层。
+  - id: P-0038
+    name: 样品/探针定位与运动控制
+    name_en: Sample / Probe Positioning & Motion Control
+    type: experimental_scene
+    rationale: 该组件适合作为上层位置控制与运动调度接口。
+  - id: P-0027
+    name: 位置控制器
+    name_en: Positioner Controller
+    type: device_template_tag
+    rationale: 它直接提供move、stop、limits和done判断等典型位置控制能力。
+  proposed_new_tags: []
+  websearch_evidence:
+    device: pv_positioner
+    websearch_trigger: pass_a_and_registry_identity_fields_empty
+    updated_fields:
+    - name
+    - name_en
+    - manufacturer
+    - description
+    - description_en
+    evidence:
+    - query: EPICS positioner process variable
+      note: “positioner + PV”组合常对应控制抽象层；缺乏具体硬件品牌证据，保持软件/接口身份。
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review
