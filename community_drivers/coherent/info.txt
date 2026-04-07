@@ -1,210 +1,160 @@
-device: coherent
-registry_key: coherent
-device_identity:
-  manufacturer: Coherent Corp.
-  model:
-    name: Coherent (serial tunable laser controller)
-    type: device
-  name: Coherent Tunable Laser
-  module_path: unilabos.devices.generic.coherent:Coherent
-description:
-  text_en: Coherent tunable ultrafast-laser controller over serial interface, providing wavelength tuning,
-    GDD precompensation, shutter control, and alignment-state operations for Ti:sapphire-class lab lasers.
-  method: web+local
-description_evidence:
-  web:
-  - https://www.coherent.com/lasers/oscillators/chameleon-ultra
-  - https://www.coherent.com/content/dam/coherent/site/en/service/chameleon/discovery-nx-operators-manual-1412963.pdf
-  local:
-  - Driver implements wavelength, GDD, shutter, and alignment commands (get/setWavelength, get/setGDD,
-    get/setShutter, setAlignment).
-  - Serial packet parser reads CRLF-delimited instrument responses (readPacket).
-related_tags:
-- id: 4313
-  name: 实验执行&合成设备
-  name_en: Experiment Execution & Synthesis Equipment
-  type: experimental_step
-- id: 4316
-  name: 表征设备
-  name_en: Characterization Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: 4313
-  rationale: The driver performs active laser-state changes (wavelength, shutter, alignment) during experiment
-    execution.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-- tag_id: 4316
-  rationale: Wavelength/GDD control and shutter operations align with optical characterization and microscopy
-    setups.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-getPower
-  title: getPower
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read laser output power value.
-  evidence_source: name_params
-- name: auto-getWavelength
-  title: getWavelength
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read current wavelength in nm.
-  evidence_source: name_params
-- name: auto-setWavelength
-  title: setWavelength
-  parameters:
-  - wl
-  - block
-  command_type: UniLabJsonCommand
-  description_en: Set wavelength in nm; optionally block until tuning completes.
-  evidence_source: docstring
-- name: auto-getWavelengthRange
-  title: getWavelengthRange
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read supported wavelength range limits.
-  evidence_source: name_params
-- name: auto-getGDDMinMax
-  title: getGDDMinMax
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read valid GDD compensation range for current wavelength.
-  evidence_source: docstring
-- name: auto-getGDD
-  title: getGDD
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read current GDD compensation setting.
-  evidence_source: name_params
-- name: auto-getComp
-  title: getComp
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read compensation mode/status value.
-  evidence_source: name_params
-- name: auto-setGDD
-  title: setGDD
-  parameters:
-  - gddValue
-  command_type: UniLabJsonCommand
-  description_en: Set GDD value if within allowed range.
-  evidence_source: docstring
-- name: auto-clearGDD
-  title: clearGDD
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Reset to default no-dispersion GDD curve.
-  evidence_source: docstring
-- name: auto-isTuning
-  title: isTuning
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return whether wavelength tuning is in progress.
-  evidence_source: docstring
-- name: auto-getShutter
-  title: getShutter
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return whether output shutter is open.
-  evidence_source: docstring
-- name: auto-setShutter
-  title: setShutter
-  parameters:
-  - val
-  command_type: UniLabJsonCommand
-  description_en: Open or close output shutter.
-  evidence_source: docstring
-- name: auto-setAlignment
-  title: setAlignment
-  parameters:
-  - align
-  command_type: UniLabJsonCommand
-  description_en: Enable or disable alignment mode.
-  evidence_source: docstring
-- name: auto-getAlignment
-  title: getAlignment
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read alignment mode state.
-  evidence_source: name_params
-- name: auto-clearBuffer
-  title: clearBuffer
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Drain buffered serial bytes before next command cycle.
-  evidence_source: code_comments
-- name: auto-read
-  title: read
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read all available serial bytes without blocking.
-  evidence_source: code_comments
-- name: auto-write
-  title: write
-  parameters:
-  - data
-  command_type: UniLabJsonCommand
-  description_en: Write command data to serial interface after buffer clear.
-  evidence_source: code_comments
-- name: auto-close
-  title: close
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Close serial connection to laser controller.
-  evidence_source: name_params
-- name: auto-readPacket
-  title: readPacket
-  parameters:
-  - expect
-  - timeout
-  - block
-  command_type: UniLabJsonCommand
-  description_en: Read CRLF-terminated response packet with timeout handling.
-  evidence_source: code_comments
-driver_functions:
-  compact_signatures:
-  - Coherent.__init__(self, port, baud) (line 79)
-  - Coherent.getPower(self) (line 95)
-  - Coherent.getWavelength(self) (line 104)
-  - Coherent.setWavelength(self, wl, block) (line 108)
-  - Coherent.getWavelengthRange(self) (line 119)
-  - Coherent.getGDDMinMax(self) (line 123)
-  - Coherent.getGDD(self) (line 132)
-  - Coherent.getComp(self) (line 136)
-  - Coherent.setGDD(self, gddValue) (line 141)
-  - Coherent.clearGDD(self) (line 152)
-  - Coherent.isTuning(self) (line 160)
-  - Coherent.getShutter(self) (line 165)
-  - Coherent.setShutter(self, val) (line 170)
-  - Coherent.setAlignment(self, align) (line 175)
-  - Coherent.getAlignment(self) (line 182)
-  - Coherent.__getitem__(self, arg) (line 186)
-  - Coherent.__setitem__(self, arg, val) (line 193)
-  - Coherent.clearBuffer(self) (line 200)
-  - Coherent.read(self) (line 209)
-  - Coherent.write(self, data) (line 217)
-  - Coherent.close(self) (line 222)
-  - Coherent.readPacket(self, expect, timeout, block) (line 239)
-  note: Compact signatures retained; action semantics are documented in atom_actions.
-schema_version: v2
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 19
-  driver_function_count: 22
-  related_tag_count: 2
+coherent:
+  name: Coherent 可调谐超快激光器
+  name_en: Coherent tunable ultrafast laser
+  manufacturer: Coherent
+  category:
+  - 实验室激光光源
+  - 可调谐超快激光器
+  tags:
+  - 实验执行&合成设备
+  - 表征设备
+  - 光学与光谱实验
+  - 激光激发与光谱测量
+  - 显微成像与光学显微实验
+  - 实验室激光光源
+  - 可调谐超快激光器
+  description: 这是一类由 Coherent 生产的可调谐超快激光器，能够在一定波长范围内输出激光并进行波长调谐，同时支持群时延色散补偿、快门控制和对准模式。该类设备常用于双光子显微、超快光谱、非线性光学及其他需要可调谐短脉冲激光源的实验。
+  description_en: This is a tunable ultrafast laser made by Coherent. It provides
+    laser output over a selectable wavelength range and supports wavelength tuning,
+    group-delay-dispersion compensation, shutter control, and alignment mode. Such
+    systems are commonly used in multiphoton microscopy, ultrafast spectroscopy, nonlinear
+    optics, and other experiments requiring a tunable short-pulse laser source.
+  class:
+    action_value_mappings:
+      auto-getPower:
+        schema:
+          description: 获取激光器当前输出功率。
+          description_en: Get the current laser output power.
+      auto-getWavelength:
+        schema:
+          description: 获取当前输出波长。
+          description_en: Get the current output wavelength.
+      auto-setWavelength:
+        schema:
+          description: 设置目标输出波长。
+          description_en: Set the target output wavelength.
+      auto-getWavelengthRange:
+        schema:
+          description: 获取可调谐波长范围。
+          description_en: Get the tunable wavelength range.
+      auto-getGDDMinMax:
+        schema:
+          description: 获取当前波长下允许的群时延色散补偿范围。
+          description_en: Get the allowed group-delay-dispersion compensation range
+            at the current wavelength.
+      auto-getGDD:
+        schema:
+          description: 获取当前群时延色散补偿值。
+          description_en: Get the current group-delay-dispersion compensation value.
+      auto-getComp:
+        schema:
+          description: 获取当前色散补偿设置。
+          description_en: Get the current dispersion compensation setting.
+      auto-setGDD:
+        schema:
+          description: 设置群时延色散补偿值。
+          description_en: Set the group-delay-dispersion compensation value.
+      auto-clearGDD:
+        schema:
+          description: 清除群时延色散补偿并恢复为无色散补偿状态。
+          description_en: Clear the group-delay-dispersion compensation and return
+            to the no-compensation state.
+      auto-isTuning:
+        schema:
+          description: 获取波长调谐是否正在进行。
+          description_en: Get whether wavelength tuning is currently in progress.
+      auto-getShutter:
+        schema:
+          description: 获取激光快门开关状态。
+          description_en: Get the laser shutter state.
+      auto-setShutter:
+        schema:
+          description: 设置激光快门开关状态。
+          description_en: Set the laser shutter state.
+      auto-setAlignment:
+        schema:
+          description: 设置对准模式开关状态。
+          description_en: Set the alignment mode state.
+      auto-getAlignment:
+        schema:
+          description: 获取对准模式状态。
+          description_en: Get the alignment mode state.
+      auto-clearBuffer:
+        schema:
+          description: 清空激光器通信缓冲区。
+          description_en: Clear the laser communication buffer.
+      auto-read:
+        schema:
+          description: 读取激光器接口缓冲区中的原始数据。
+          description_en: Read raw data from the laser interface buffer.
+      auto-write:
+        schema:
+          description: 向激光器发送原始控制数据。
+          description_en: Write raw control data to the laser.
+      auto-close:
+        schema:
+          description: 关闭与激光器的通信连接。
+          description_en: Close the communication connection to the laser.
+      auto-readPacket:
+        schema:
+          description: 从激光器读取一条通信数据包。
+          description_en: Read a communication packet from the laser.
+auto_annotation_metadata:
+  registry_key: coherent
+  annotation_workflow_version: v4
+  tag_hints:
+  - tunable ultrafast laser
+  - wavelength tuning
+  - GDD compensation
+  - laser shutter control
+  - alignment mode
+  - multiphoton microscopy
+  - nonlinear optics
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该设备作为可调谐短脉冲光源，在实验运行中提供激光输出与调谐。
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 其常用于双光子显微和超快光谱，属于高级表征实验关键光源。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: 设备面向超快光谱、非线性光学等光学实验领域。
+  - id: P-3004
+    name: 激光激发与光谱测量
+    name_en: Laser Excitation & Spectroscopic Measurement
+    type: experimental_scene
+    rationale: 波长调谐、GDD 补偿和快门控制都围绕激光激发与光谱测量展开。
+  - id: P-0006
+    name: 显微成像与光学显微实验
+    name_en: Microscopy Imaging & Optical Microscopy Experiments
+    type: experimental_scene
+    rationale: 描述明确提到双光子显微应用。
+  - id: P-3005
+    name: 实验室激光光源
+    name_en: Laboratory Laser Source
+    type: device_template_tag
+    rationale: 该设备首先是一类实验室激光光源。
+  proposed_new_tags:
+  - id: P-0103
+    name: 可调谐超快激光器
+    name_en: Tunable Ultrafast Laser
+    type: device_template_tag
+    rationale: 现有“实验室激光光源”过于宽泛，无法体现该设备可调谐、超快脉冲的关键特征。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

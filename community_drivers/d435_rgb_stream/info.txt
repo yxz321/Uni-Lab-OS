@@ -1,81 +1,96 @@
-device: d435_rgb_stream
-registry_key: d435_rgb_stream
-device_identity:
-  manufacturer: Intel RealSense
-  model:
-    name: Intel RealSense D435 RGB-D Camera
-    type: device
-  name: Intel RealSense D435 RGB Stream
-  module_path: unilabos.devices.camera.realsense.d435_rgb_stream:D435RGBStream
-description:
-  text_en: RGB stream service for an Intel RealSense D435 camera, subscribing to ROS2 image frames and
-    pushing encoded video through an FFmpeg pipeline for remote viewing.
-  method: web+local
-description_evidence:
-  web:
-  - https://www.intel.com/content/www/us/en/products/sku/128255/intel-realsense-depth-camera-d435/specifications.html
-  - https://www.intelrealsense.com/depth-camera-d435/
-  local:
-  - 'class docstring: ROS2 node that reads RGB images from D435 and streams video using FFmpeg'
-  - camera_response_callback() and process_and_queue_image() implement frame ingest and conversion
-  - setup_ffmpeg_stream() manages output encoder process
-related_tags:
-- id: '4316'
-  name: 表征设备
-  name_en: Characterization Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: '4316'
-  rationale: Imaging stream acquisition is a characterization/data-capture workflow.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-camera_response_callback
-  title: camera_response_callback
-  parameters:
-  - msg
-  command_type: UniLabJsonCommand
-  description_en: Handle incoming ROS image messages from camera topic.
-  evidence_source: docstring
-- name: auto-process_and_queue_image
-  title: process_and_queue_image
-  parameters:
-  - image_data
-  command_type: UniLabJsonCommand
-  description_en: Convert/queue image frames for writer thread and stream output.
-  evidence_source: code_comments
-- name: auto-setup_ffmpeg_stream
-  title: setup_ffmpeg_stream
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Initialize FFmpeg process used for outbound video stream.
-  evidence_source: code_comments
-driver_functions:
-  compact_signatures:
-  - D435RGBStream.__init__(self) (line 88)
-  - D435RGBStream._calculate_fps(self) (line 133)
-  - D435RGBStream._should_restart_process(self, new_fps) (line 153)
-  - D435RGBStream.setup_ffmpeg_stream(self) (line 161)
-  - D435RGBStream.camera_response_callback(self, msg) (line 239)
-  - D435RGBStream.process_and_queue_image(self, image_data) (line 255)
-  - D435RGBStream._writer_thread(self) (line 311)
-  - D435RGBStream._is_process_healthy(self) (line 358)
-  - D435RGBStream.__del__(self) (line 365)
-  - main(args) (line 387)
-  note: Compact list retained by design; action semantics are documented in atom_actions.
-schema_version: v3
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 3
-  driver_function_count: 10
-  related_tag_count: 1
+d435_rgb_stream:
+  name: 英特尔 RealSense D435 深度相机
+  name_en: Intel RealSense D435 Depth Camera
+  manufacturer: Intel
+  category:
+  - 工业相机
+  - RGB-D深度相机
+  tags:
+  - 表征设备
+  - 机器人与移动平台
+  - 三维感知与空间测绘
+  - 实验成像与机器视觉
+  - 移动机器人与自动驾驶实验
+  - 工业相机
+  - RGB-D深度相机
+  description: 一款面向机器人与机器视觉实验的 RGB-D 深度相机，可采集彩色图像并支持空间感知。该设备常用于目标观察、场景记录、视觉算法测试和实验过程的实时视频采集；从当前证据看，此处主要使用其
+    RGB 视频输出能力。
+  description_en: An RGB-D depth camera for robotics and machine vision experiments,
+    capable of capturing color images and supporting spatial perception. It is commonly
+    used for target observation, scene recording, vision algorithm testing, and live
+    video capture during experiments; based on the available evidence, the RGB video
+    output is the primary function used here.
+  class:
+    action_value_mappings:
+      auto-setup_ffmpeg_stream:
+        schema:
+          description: 配置并启动相机 RGB 视频流的编码与推流输出。
+          description_en: Configure and start encoded streaming output for the camera's
+            RGB video feed.
+      auto-camera_response_callback:
+        schema:
+          description: 处理相机返回的响应消息。
+          description_en: Handle response messages returned by the camera.
+      auto-process_and_queue_image:
+        schema:
+          description: 处理采集到的 RGB 图像并加入视频输出队列。
+          description_en: Process captured RGB images and queue them for video output.
+auto_annotation_metadata:
+  registry_key: d435_rgb_stream
+  annotation_workflow_version: v4
+  tag_hints:
+  - Intel RealSense D435
+  - RGB video capture
+  - depth camera
+  - RGB-D imaging
+  - robot vision
+  - machine vision
+  - live video streaming
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 当前证据显示主要用于RGB视频采集、目标观察和实验过程记录，属于观察表征设备。
+  - id: P-0020
+    name: 机器人与移动平台
+    name_en: Robotics & Mobile Platforms
+    type: experimental_domain
+    rationale: 设备描述明确提到面向机器人实验与机器视觉。
+  - id: P-9001
+    name: 三维感知与空间测绘
+    name_en: 3D Perception & Spatial Mapping
+    type: experimental_domain
+    rationale: RealSense D435属于RGB-D深度相机，具备空间感知能力。
+  - id: P-8113
+    name: 实验成像与机器视觉
+    name_en: Laboratory Imaging & Machine Vision
+    type: experimental_scene
+    rationale: 该设备用于视觉算法测试、场景记录和实时视频采集，符合机器视觉实验场景。
+  - id: P-0021
+    name: 移动机器人与自动驾驶实验
+    name_en: Mobile Robotics & Autonomous Vehicle Experiments
+    type: experimental_scene
+    rationale: D435常用于机器人视觉与环境感知，和移动机器人实验场景相符。
+  - id: P-8114
+    name: 工业相机
+    name_en: Industrial Camera
+    type: device_template_tag
+    rationale: 从当前使用证据看主要输出RGB视频流，可近似归入实验成像相机类模板。
+  proposed_new_tags:
+  - id: P-9903
+    name: RGB-D深度相机
+    name_en: RGB-D Depth Camera
+    type: device_template_tag
+    rationale: 设备本体是带彩色与深度感知能力的RGB-D相机，较工业相机标签更完整准确。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

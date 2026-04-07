@@ -1,30 +1,105 @@
-Device: file_io
-Registry Key: file_io
-Short Description: File IO设备驱动。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (8):
-- auto-init -> init [UniLabJsonCommand] goal_params: sName
-- auto-makeFile -> makeFile [UniLabJsonCommand] goal_params: sFilepath
-- auto-read -> read [UniLabJsonCommand] goal_params: none
-- auto-readcsv -> readcsv [UniLabJsonCommand] goal_params: none
-- auto-readdict -> readdict [UniLabJsonCommand] goal_params: none
-- auto-set_filename -> set_filename [UniLabJsonCommand] goal_params: sFile
-- auto-write -> write [UniLabJsonCommand] goal_params: inStr
-- auto-write_raw -> write_raw [UniLabJsonCommand] goal_params: inStr
-
-Driver Functions (9):
-- FileIO.__init__(self) (line 75)
-- FileIO.makeFile(self, sFilepath) (line 81)
-- FileIO.init(self, sName) (line 90)
-- FileIO.set_filename(self, sFile) (line 97)
-- FileIO.read(self) (line 102)
-- FileIO.readcsv(self) (line 108)
-- FileIO.readdict(self) (line 117)
-- FileIO.write(self, inStr) (line 135)
-- FileIO.write_raw(self, inStr) (line 142)
+file_io:
+  name: 文件读写工具
+  name_en: File I/O Utility
+  manufacturer: ''
+  category:
+  - 实验数据文件读写器
+  tags:
+  - 实验执行&合成设备
+  - 后处理设备
+  - 实验数据管理与记录
+  - 追加式实验记录与索引访问
+  - 实验数据目录存储与资源管理
+  - 实验数据文件读写器
+  description: 通用文件读写工具，用于实验软件中创建、选择、读取和写入数据文件。适合记录实验日志、保存测量结果，以及读取文本、CSV 和简单键值文本数据。
+  description_en: A general file I/O utility used in laboratory software to create,
+    select, read, and write data files. It is suitable for experiment logging, saving
+    measurement results, and reading text, CSV, and simple key-value text data.
+  class:
+    action_value_mappings:
+      auto-makeFile:
+        schema:
+          description: 在给定路径所在目录中创建文件。
+          description_en: Create a file in the same directory as the given path.
+      auto-init:
+        schema:
+          description: 初始化并追加写入指定名称的数据记录文件。
+          description_en: Initialize and append to a data log file with the specified
+            name.
+      auto-set_filename:
+        schema:
+          description: 设置目标文件名。
+          description_en: Set the target filename.
+      auto-read:
+        schema:
+          description: 读取文件内容。
+          description_en: Read the file contents.
+      auto-readcsv:
+        schema:
+          description: 读取 CSV 文件内容。
+          description_en: Read the contents of a CSV file.
+      auto-readdict:
+        schema:
+          description: 读取以空格分隔的文本并解析为键值数据。
+          description_en: Read a space-delimited text file and parse it into key-value
+            data.
+      auto-write:
+        schema:
+          description: 向文件写入文本内容。
+          description_en: Write text content to the file.
+      auto-write_raw:
+        schema:
+          description: 向文件写入原始文本内容。
+          description_en: Write raw text content to the file.
+auto_annotation_metadata:
+  registry_key: file_io
+  annotation_workflow_version: v4
+  tag_hints:
+  - file I/O
+  - data logging
+  - text file read/write
+  - CSV parsing
+  - result storage
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该工具可在实验运行中初始化日志并持续写入结果文件，支持执行期数据记录。
+  - id: '4314'
+    name: 后处理设备
+    name_en: Post-processing Equipment
+    type: experimental_step
+    rationale: 它也用于读取文本、CSV 和键值文件，支持实验结果整理与后处理。
+  - id: P-9103
+    name: 实验数据管理与记录
+    name_en: Experimental Data Management & Logging
+    type: experimental_domain
+    rationale: 描述中明确包括实验日志、测量结果保存和文件型数据管理。
+  - id: P-9104
+    name: 追加式实验记录与索引访问
+    name_en: Append-Only Experimental Logging & Indexed Access
+    type: experimental_scene
+    rationale: auto-init 与写入接口非常符合实验日志追加记录场景。
+  - id: P-1104
+    name: 实验数据目录存储与资源管理
+    name_en: Experimental Data Directory Storage & Resource Management
+    type: experimental_scene
+    rationale: 该工具负责创建、选择、读取和写入实验文件，符合目录级资源管理。
+  proposed_new_tags:
+  - id: P-30001
+    name: 实验数据文件读写器
+    name_en: Experimental Data File Reader/Writer
+    type: device_template_tag
+    rationale: 该对象是通用实验软件中的文件创建、读取、写入与解析组件，可归为实验数据文件读写器模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

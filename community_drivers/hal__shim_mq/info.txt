@@ -1,47 +1,126 @@
-Device: hal__shim_mq
-Registry Key: hal__shim_mq
-Short Description: HAL Shim MQ是由QuTech生产的实验执行&合成设备，主要功能包括日志记录、读取数据。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (10):
-- auto-get_correlation_detector -> get_correlation_detector [UniLabJsonCommand] goal_params: always_prepare, qubits, seg_per_point, single_int_avg
-- auto-get_input_avg_det -> get_input_avg_det [UniLabJsonCommand] goal_params: none
-- auto-get_int_avg_det -> get_int_avg_det [UniLabJsonCommand] goal_params: integration_length
-- auto-get_int_logging_detector -> get_int_logging_detector [UniLabJsonCommand] goal_params: integration_length, qubits, result_logging_mode
-- auto-hal_get_flux_amp_parameter -> hal_get_flux_amp_parameter [UniLabJsonCommand] goal_params: q
-- auto-prepare_fluxing -> prepare_fluxing [UniLabJsonCommand] goal_params: qubits
-- auto-prepare_for_inspire -> prepare_for_inspire [UniLabJsonCommand] goal_params: none
-- auto-prepare_for_timedomain -> prepare_for_timedomain [UniLabJsonCommand] goal_params: bypass_flux, prepare_for_readout, qubits, reduced
-- auto-prepare_readout -> prepare_readout [UniLabJsonCommand] goal_params: qubits, reduced
-- auto-prepare_timing -> prepare_timing [UniLabJsonCommand] goal_params: none
-
-Driver Functions (24):
-- _acq_ch_map_to_IQ_ch_map(acq_ch_map) (line 99)
-- HAL_ShimMQ.__init__(self, *args, **kwargs) (line 111)
-- HAL_ShimMQ.__init__(self, name, **kw) (line 118)
-- HAL_ShimMQ.prepare_timing(self) (line 127)
-- HAL_ShimMQ.prepare_fluxing(self, qubits) (line 256)
-- HAL_ShimMQ.prepare_readout(self, qubits, reduced) (line 267)
-- HAL_ShimMQ.prepare_for_timedomain(self, qubits, reduced, bypass_flux, prepare_for_readout) (line 309)
-- HAL_ShimMQ.prepare_for_inspire(self) (line 340)
-- HAL_ShimMQ.hal_get_flux_amp_parameter(self, q) (line 400)
-- HAL_ShimMQ.get_correlation_detector(self, qubits, single_int_avg, seg_per_point, always_prepare) (line 425)
-- HAL_ShimMQ.get_int_logging_detector(self, qubits, integration_length, result_logging_mode) (line 469)
-- HAL_ShimMQ.get_input_avg_det(self, **kw) (line 522)
-- HAL_ShimMQ.get_int_avg_det(self, integration_length, **kw) (line 558)
-- HAL_ShimMQ._add_instr_parameters(self) (line 609)
-- HAL_ShimMQ._add_tim_parameters(self) (line 643)
-- HAL_ShimMQ._add_ro_parameters(self) (line 676)
-- HAL_ShimMQ._add_parameters(self) (line 789)
-- HAL_ShimMQ._set_dio_map(self, dio_map_dict) (line 842)
-- HAL_ShimMQ._prep_ro_sources(self, qubits) (line 855)
-- HAL_ShimMQ._prep_ro_assign_weights(self, qubits) (line 885)
-- HAL_ShimMQ._prep_ro_integration_weights(self, qubits) (line 951)
-- HAL_ShimMQ._prep_ro_pulses(self, qubits) (line 1042)
-- HAL_ShimMQ._prep_ro_instantiate_detectors(self) (line 1105)
-- HAL_ShimMQ._prep_td_configure_VSM(self) (line 1124)
+hal__shim_mq:
+  name: 多比特量子控制与读出系统
+  name_en: Multi-qubit Quantum Control and Readout System
+  manufacturer: ''
+  category:
+  - 量子实验控制器
+  tags:
+  - 实验执行&合成设备
+  - 表征设备
+  - 低温与量子测量
+  - 量子比特脉冲控制与读出
+  - 瞬态信号采集与同步触发测量
+  - 量子实验控制器
+  description: 用于超导量子比特实验的组合式电子测控系统，协同任意波形发生器、数字时序控制器、通量控制链路和积分采集读出设备，对多个量子比特进行时序对齐、通量脉冲控制与读出测量。常用于时域实验、单次读出、相关性测量和系统标定。
+  description_en: A composite electronic control and measurement system for superconducting
+    qubit experiments. It coordinates waveform generators, digital timing controllers,
+    flux-control lines, and integrated readout hardware to align timing, apply flux
+    pulses, and perform qubit readout across multiple qubits. It is commonly used
+    for time-domain experiments, single-shot readout, correlation measurements, and
+    calibration.
+  class:
+    action_value_mappings:
+      auto-prepare_timing:
+        schema:
+          description: 配置控制与读出通道的延迟和触发时序，使多台量子测控设备精确对齐。
+          description_en: Configure delays and trigger timing for control and readout
+            channels so multiple quantum-control instruments are precisely aligned.
+      auto-prepare_fluxing:
+        schema:
+          description: 为指定量子比特配置通量控制链路和相关脉冲设置。
+          description_en: Configure the flux-control path and related pulse settings
+            for the specified qubits.
+      auto-prepare_readout:
+        schema:
+          description: 为指定量子比特配置读出链路、采集通道和积分测量设置。
+          description_en: Configure the readout path, acquisition channels, and integration
+            settings for the specified qubits.
+      auto-prepare_for_timedomain:
+        schema:
+          description: 为时域实验联合准备量子比特控制、通量和读出测量配置。
+          description_en: Prepare the combined qubit-control, flux, and readout configuration
+            for a time-domain experiment.
+      auto-prepare_for_inspire:
+        schema:
+          description: 为特定量子实验流程准备读出与采集设置，适用于单次读出等测量。
+          description_en: Prepare readout and acquisition settings for a specific
+            quantum-experiment workflow, including single-shot style measurements.
+      auto-hal_get_flux_amp_parameter:
+        schema:
+          description: 获取指定量子比特的通量脉冲幅度参数。
+          description_en: Get the flux-pulse amplitude parameter for the specified
+            qubit.
+      auto-get_correlation_detector:
+        schema:
+          description: 获取用于多量子比特相关性读出测量的采集配置。
+          description_en: Get the acquisition configuration for correlation-based
+            readout measurements across multiple qubits.
+      auto-get_int_logging_detector:
+        schema:
+          description: 获取用于记录积分读出结果的采集配置。
+          description_en: Get the acquisition configuration for logging integrated
+            readout results.
+      auto-get_input_avg_det:
+        schema:
+          description: 获取用于输入信号平均测量的采集配置。
+          description_en: Get the acquisition configuration for averaged input-signal
+            measurements.
+      auto-get_int_avg_det:
+        schema:
+          description: 获取用于积分平均读出的采集配置。
+          description_en: Get the acquisition configuration for averaged integrated
+            readout measurements.
+auto_annotation_metadata:
+  registry_key: hal__shim_mq
+  annotation_workflow_version: v4
+  tag_hints:
+  - superconducting qubits
+  - quantum control electronics
+  - qubit readout
+  - flux pulse control
+  - timing synchronization
+  - time-domain experiments
+  - single-shot readout
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该系统直接完成多比特控制脉冲下发、通量配置和读出测量，是量子实验执行核心设备。
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 设备还用于系统标定、单次读出、相关性测量和平均读出配置，具有明显表征用途。
+  - id: P-2003
+    name: 低温与量子测量
+    name_en: Cryogenic & Quantum Measurements
+    type: experimental_domain
+    rationale: 描述明确指向超导量子比特与低温量子测量场景。
+  - id: P-3006
+    name: 量子比特脉冲控制与读出
+    name_en: Qubit Pulse Control & Readout
+    type: experimental_scene
+    rationale: 其核心功能就是多量子比特的时序对齐、通量脉冲控制和读出配置。
+  - id: P-0024
+    name: 瞬态信号采集与同步触发测量
+    name_en: Transient Signal Acquisition & Synchronized Triggered Measurement
+    type: experimental_scene
+    rationale: 设备强调控制与读出链路的精确同步、积分采集和相关性测量。
+  - id: P-3007
+    name: 量子实验控制器
+    name_en: Quantum Experiment Controller
+    type: device_template_tag
+    rationale: 该设备本质上是面向多量子比特实验的组合式控制与读出控制器。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,55 +1,161 @@
-Device: gripper
-Registry Key: gripper
-Short Description: Robotic Gripper驱动，支持cal crc/read uart/write uart/init state/set force等20个操作。
-
-Categories:
-- 机械臂
-
-Related Tags (from tag 标签列表.csv):
-- [4402] 机械臂 / Robotic Arm (device_template_tag)
-
-Atom Actions (20):
-- auto-cal_crc -> cal_crc [UniLabJsonCommand] goal_params: array
-- auto-init_dir -> init_dir [UniLabJsonCommand] goal_params: val
-- auto-init_feedback -> init_feedback [UniLabJsonCommand] goal_params: none
-- auto-init_rot_feedback -> init_rot_feedback [UniLabJsonCommand] goal_params: none
-- auto-init_state -> init_state [UniLabJsonCommand] goal_params: none
-- auto-read_cur -> read_cur [UniLabJsonCommand] goal_params: none
-- auto-read_err -> read_err [UniLabJsonCommand] goal_params: none
-- auto-read_pos -> read_pos [UniLabJsonCommand] goal_params: none
-- auto-read_rot -> read_rot [UniLabJsonCommand] goal_params: none
-- auto-read_rot_state -> read_rot_state [UniLabJsonCommand] goal_params: none
-- auto-read_state -> read_state [UniLabJsonCommand] goal_params: none
-- auto-read_uart -> read_uart [UniLabJsonCommand] goal_params: none
-- auto-set_abs_rot -> set_abs_rot [UniLabJsonCommand] goal_params: val
-- auto-set_force -> set_force [UniLabJsonCommand] goal_params: val
-- auto-set_pos -> set_pos [UniLabJsonCommand] goal_params: blocking, val
-- auto-set_rel_rot -> set_rel_rot [UniLabJsonCommand] goal_params: val
-- auto-set_rot_force -> set_rot_force [UniLabJsonCommand] goal_params: val
-- auto-set_rot_vel -> set_rot_vel [UniLabJsonCommand] goal_params: val
-- auto-set_vel -> set_vel [UniLabJsonCommand] goal_params: val
-- auto-write_uart -> write_uart [UniLabJsonCommand] goal_params: is_read, is_set, modbus_high_addr, modbus_low_addr, val
-
-Driver Functions (22):
-- in_range(val, val_min, val_max) (line 88)
-- Gripper.__init__(self, port) (line 106)
-- Gripper.cal_crc(self, array) (line 128)
-- Gripper.read_uart(self) (line 156)
-- Gripper.write_uart(self, modbus_high_addr, modbus_low_addr, val, is_set, is_read) (line 171)
-- Gripper.init_state(self) (line 241)
-- Gripper.set_force(self, val) (line 256)
-- Gripper.set_pos(self, val, blocking) (line 274)
-- Gripper.set_vel(self, val) (line 303)
-- Gripper.set_abs_rot(self, val) (line 321)
-- Gripper.set_rot_vel(self, val) (line 340)
-- Gripper.set_rot_force(self, val) (line 360)
-- Gripper.set_rel_rot(self, val) (line 369)
-- Gripper.init_feedback(self) (line 387)
-- Gripper.read_state(self) (line 413)
-- Gripper.read_pos(self) (line 429)
-- Gripper.read_cur(self) (line 445)
-- Gripper.read_err(self) (line 461)
-- Gripper.read_rot(self) (line 477)
-- Gripper.init_rot_feedback(self) (line 493)
-- Gripper.read_rot_state(self) (line 518)
-- Gripper.init_dir(self, val) (line 534)
+gripper:
+  name: 电动旋转夹爪
+  name_en: Electric Rotary Gripper
+  manufacturer: DH Robotics
+  category:
+  - 机器人电动夹爪
+  tags:
+  - 实验执行&合成设备
+  - 物流/机械
+  - 实验室自动化与仪器集成
+  - 机器人与移动平台
+  - 实验室机械臂自动化与样品搬运
+  - 实验室机器人操作与样品转运
+  - 机器人电动夹爪
+  description: 一种用于机器人末端执行的电动夹爪，具备夹持开合与旋转两个自由度，可设置夹持位置、速度、夹持力以及旋转角度。该设备常用于实验室自动化中的样品抓取、上下料、工件搬运和定位操作。
+  description_en: An electric robotic gripper with both gripping and rotational motion,
+    allowing control of grip position, speed, gripping force, and rotation angle.
+    It is commonly used in laboratory automation for sample handling, loading and
+    unloading, part transfer, and positioning tasks.
+  class:
+    action_value_mappings:
+      auto-cal_crc:
+        schema:
+          description: 计算通信数据帧的 CRC 校验值
+          description_en: Calculate the CRC checksum for a communication frame.
+      auto-read_uart:
+        schema:
+          description: 读取夹爪串口返回数据
+          description_en: Read serial data returned by the gripper.
+      auto-write_uart:
+        schema:
+          description: 通过串口/Modbus向夹爪发送命令并可读取响应
+          description_en: Send a command to the gripper over serial/Modbus and optionally
+            read the response.
+      auto-init_state:
+        schema:
+          description: 初始化夹爪
+          description_en: Initialize the gripper.
+      auto-set_force:
+        schema:
+          description: 设置夹持力
+          description_en: Set the gripping force.
+      auto-set_pos:
+        schema:
+          description: 设置夹爪开合位置
+          description_en: Set the gripper opening position.
+      auto-set_vel:
+        schema:
+          description: 设置夹爪开合速度
+          description_en: Set the gripper opening/closing speed.
+      auto-set_abs_rot:
+        schema:
+          description: 设置绝对旋转角度
+          description_en: Set the absolute rotation angle.
+      auto-set_rot_vel:
+        schema:
+          description: 设置旋转速度
+          description_en: Set the rotation speed.
+      auto-set_rot_force:
+        schema:
+          description: 设置旋转力
+          description_en: Set the rotation force.
+      auto-set_rel_rot:
+        schema:
+          description: 设置相对旋转角度
+          description_en: Set the relative rotation angle.
+      auto-init_feedback:
+        schema:
+          description: 初始化夹持反馈
+          description_en: Initialize gripping feedback.
+      auto-read_state:
+        schema:
+          description: 读取夹爪状态
+          description_en: Read the gripper state.
+      auto-read_pos:
+        schema:
+          description: 读取夹爪位置
+          description_en: Read the gripper position.
+      auto-read_cur:
+        schema:
+          description: 读取夹爪电流
+          description_en: Read the gripper current.
+      auto-read_err:
+        schema:
+          description: 读取错误状态
+          description_en: Read the error status.
+      auto-read_rot:
+        schema:
+          description: 读取旋转角度
+          description_en: Read the rotation angle.
+      auto-init_rot_feedback:
+        schema:
+          description: 初始化旋转反馈
+          description_en: Initialize rotation feedback.
+      auto-read_rot_state:
+        schema:
+          description: 读取旋转状态
+          description_en: Read the rotation state.
+      auto-init_dir:
+        schema:
+          description: 设置初始化方向（0 为打开，1 为闭合）
+          description_en: Set the initialization direction (0 for open, 1 for close).
+auto_annotation_metadata:
+  registry_key: gripper
+  annotation_workflow_version: v4
+  tag_hints:
+  - electric rotary gripper
+  - robotic end effector
+  - parallel gripping
+  - sample handling
+  - lab automation
+  - Modbus serial control
+  - force and position control
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 夹爪在实验流程中直接执行抓取、放置和定位动作。
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 该设备属于机器人末端执行与样品搬运机构。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 描述强调其用于实验室自动化中的样品抓取、上下料和搬运。
+  - id: P-0020
+    name: 机器人与移动平台
+    name_en: Robotics & Mobile Platforms
+    type: experimental_domain
+    rationale: 这是典型机器人末端电动夹持执行器。
+  - id: P-5007
+    name: 实验室机械臂自动化与样品搬运
+    name_en: Laboratory Robotic Arm Automation & Sample Handling
+    type: experimental_scene
+    rationale: 设备常用于与机械臂配合完成样品搬运和上下料。
+  - id: P-5001
+    name: 实验室机器人操作与样品转运
+    name_en: Laboratory Robotic Manipulation & Sample Transfer
+    type: experimental_scene
+    rationale: 其开合夹持与旋转自由度适合机器人样品转运和定位任务。
+  proposed_new_tags:
+  - id: P-20001
+    name: 机器人电动夹爪
+    name_en: Robotic Electric Gripper
+    type: device_template_tag
+    rationale: 该设备是可设定位置、速度和夹持力的电动机器人夹爪，适合作为通用夹爪模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

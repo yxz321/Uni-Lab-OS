@@ -1,172 +1,129 @@
-device: clock_line
-registry_key: clock_line
-device_identity:
-  manufacturer: Labscript Suite / Open Source
-  model:
-    name: Generic ClockLine / Pseudoclock timing core
-    type: device
-  module_path: unilabos.devices.generic.clock_line:ClockLine
-description:
-  text_en: Pseudoclock timing-line core used to schedule trigger and clock events
-    for hardware-synchronized experiment sequences; this is timing infrastructure,
-    not a standalone analyzer instrument.
-  method: local
-description_evidence:
-  web: []
-  local:
-  - 'driver module origin: labscript/core.py'
-  - 'driver class doc: Parent class of all pseudoclocks'
-  - 'driver methods: collect_change_times, expand_change_times, trigger, generate_clock'
-related_tags:
-- id: '4313'
-  name: 实验执行&合成设备
-  name_en: Experiment Execution & Synthesis Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: '4313'
-  rationale: Matched from registry metadata and action/description semantics.
-  signals:
-  - registry.tags
-  - registry.category
-  - name
-  - model
-  - manufacturer
-  - module_path
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-add_device
-  title: add_device
-  parameters:
-  - device
-  command_type: UniLabJsonCommand
-  description_en: Attach a child device to the clock hierarchy.
-  evidence_source: name_params
-- name: auto-clock_limit
-  title: clock_limit
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return effective maximum clock rate limit.
-  evidence_source: name_params
-- name: auto-minimum_clock_high_time
-  title: minimum_clock_high_time
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return minimum high-time constraint for clock pulses.
-  evidence_source: name_params
-- name: auto-collect_change_times
-  title: collect_change_times
-  parameters:
-  - all_outputs
-  - outputs_by_clockline
-  command_type: UniLabJsonCommand
-  description_en: Collect and merge output state-change times across clock lines.
-  evidence_source: docstring
-- name: auto-expand_change_times
-  title: expand_change_times
-  parameters:
-  - all_change_times
-  - change_times
-  - outputs_by_clockline
-  command_type: UniLabJsonCommand
-  description_en: Expand intervals into executable clock-tick schedule.
-  evidence_source: docstring
-- name: auto-get_outputs_by_clockline
-  title: get_outputs_by_clockline
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Group outputs by their clockline.
-  evidence_source: docstring
-- name: auto-generate_clock
-  title: generate_clock
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Generate pseudoclock timing data and per-output evaluation timeline.
-  evidence_source: docstring
-- name: auto-generate_code
-  title: generate_code
-  parameters:
-  - hdf5_file
-  command_type: UniLabJsonCommand
-  description_en: Emit generated timing code to HDF5 output.
-  evidence_source: name_params
-- name: auto-trigger
-  title: trigger
-  parameters:
-  - t
-  - duration
-  command_type: UniLabJsonCommand
-  description_en: Request a trigger pulse at time t with duration.
-  evidence_source: docstring
-- name: auto-do_checks
-  title: do_checks
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Run timing/trigger consistency checks before code generation.
-  evidence_source: docstring
-- name: auto-is_master_pseudoclock
-  title: is_master_pseudoclock
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Report whether this is the master pseudoclock device.
-  evidence_source: docstring
-- name: auto-set_initial_trigger_time
-  title: set_initial_trigger_time
-  parameters:
-  - t
-  command_type: UniLabJsonCommand
-  description_en: Set initial trigger time offset for sequence start.
-  evidence_source: docstring
-- name: auto-offset_instructions_from_trigger
-  title: offset_instructions_from_trigger
-  parameters:
-  - outputs
-  command_type: UniLabJsonCommand
-  description_en: Offset child instructions according to trigger times.
-  evidence_source: docstring
-driver_functions:
-  compact_signatures:
-  - IntermediateDevice.__init__(self, name, parent_device, **kwargs) (line 98)
-  - IntermediateDevice.minimum_clock_high_time(self) (line 126)
-  - ClockLine.__init__(self, name, pseudoclock, connection, ramping_allowed, **kwargs)
-    (line 143)
-  - ClockLine.add_device(self, device) (line 151)
-  - ClockLine.clock_limit(self) (line 167)
-  - ClockLine.minimum_clock_high_time(self) (line 184)
-  - Pseudoclock.__init__(self, name, pseudoclock_device, connection, **kwargs) (line
-    201)
-  - Pseudoclock.add_device(self, device) (line 214)
-  - Pseudoclock.collect_change_times(self, all_outputs, outputs_by_clockline) (line
-    221)
-  - Pseudoclock.expand_change_times(self, all_change_times, change_times, outputs_by_clockline)
-    (line 399)
-  - Pseudoclock.get_outputs_by_clockline(self) (line 613)
-  - Pseudoclock.generate_clock(self) (line 637)
-  - Pseudoclock.generate_code(self, hdf5_file) (line 672)
-  - TriggerableDevice.__init__(self, name, parent_device, connection, parentless,
-    **kwargs) (line 690)
-  - TriggerableDevice.trigger(self, t, duration) (line 730)
-  - TriggerableDevice.do_checks(self) (line 769)
-  - TriggerableDevice.generate_code(self, hdf5_file) (line 790)
-  - PseudoclockDevice.__init__(self, name, trigger_device, trigger_connection, **kwargs)
-    (line 808)
-  - PseudoclockDevice.is_master_pseudoclock(self) (line 852)
-  - PseudoclockDevice.set_initial_trigger_time(self, t) (line 856)
-  - PseudoclockDevice.trigger(self, t, duration, wait_delay) (line 877)
-  - PseudoclockDevice.do_checks(self, outputs) (line 899)
-  - PseudoclockDevice.offset_instructions_from_trigger(self, outputs) (line 908)
-  - PseudoclockDevice.generate_code(self, hdf5_file) (line 938)
-  note: Compact list retained by design; action semantics are documented in atom_actions.
-schema_version: v2
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 13
-  driver_function_count: 24
-  related_tag_count: 1
+clock_line:
+  name: 伪时钟时钟线
+  name_en: Pseudoclock Clock Line
+  manufacturer: ''
+  category:
+  - 数据采集与控制接口
+  - 伪时钟时钟线
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验仪器数据采集与联机控制
+  - 脉冲激励与时序控制
+  - 数据采集与控制接口
+  - 伪时钟时钟线
+  description: 伪时钟实验时序系统中的时钟输出线或时钟通道，用于向下游设备分发定时脉冲，协调数字量、模拟量等实验序列的同步运行。
+  description_en: A clock output line or channel in a pseudoclock-based experimental
+    timing system. It distributes timing pulses to downstream devices and synchronizes
+    digital, analog, and other time-sequenced laboratory operations.
+  class:
+    action_value_mappings:
+      auto-add_device:
+        schema:
+          description: 将下游设备接入该时钟线。
+          description_en: Attach a downstream device to this clock line.
+      auto-clock_limit:
+        schema:
+          description: 获取该时钟线的时钟频率上限。
+          description_en: Get the clock frequency limit of this clock line.
+      auto-minimum_clock_high_time:
+        schema:
+          description: 获取该时钟线时钟脉冲的最小高电平持续时间。
+          description_en: Get the minimum high-state duration of the clock pulses
+            on this clock line.
+      auto-collect_change_times:
+        schema:
+          description: 收集该时钟线上各输出需要变化的时间点。
+          description_en: Collect the times at which outputs on this clock line must
+            change.
+      auto-expand_change_times:
+        schema:
+          description: 将变化时间点展开为该时钟线的详细时序事件。
+          description_en: Expand change times into detailed timing events for this
+            clock line.
+      auto-get_outputs_by_clockline:
+        schema:
+          description: 获取由该时钟线驱动的输出通道。
+          description_en: Get the output channels driven by this clock line.
+      auto-generate_clock:
+        schema:
+          description: 为该时钟线生成时钟脉冲序列。
+          description_en: Generate the clock pulse sequence for this clock line.
+      auto-generate_code:
+        schema:
+          description: 生成该时钟线对应的时序控制代码。
+          description_en: Generate the timing control code for this clock line.
+      auto-trigger:
+        schema:
+          description: 触发该时钟线所属的时序开始运行。
+          description_en: Trigger the timing sequence associated with this clock line.
+      auto-do_checks:
+        schema:
+          description: 执行该时钟线的配置与时序检查。
+          description_en: Perform configuration and timing checks for this clock line.
+      auto-is_master_pseudoclock:
+        schema:
+          description: 判断该时钟线所属时序源是否为主伪时钟。
+          description_en: Determine whether the timing source associated with this
+            clock line is the master pseudoclock.
+      auto-set_initial_trigger_time:
+        schema:
+          description: 设置该时钟线的初始触发时间。
+          description_en: Set the initial trigger time for this clock line.
+      auto-offset_instructions_from_trigger:
+        schema:
+          description: 按触发时间对该时钟线的时序指令进行偏移。
+          description_en: Offset this clock line's timing instructions relative to
+            the trigger time.
+auto_annotation_metadata:
+  registry_key: clock_line
+  annotation_workflow_version: v4
+  tag_hints:
+  - pseudoclock timing
+  - clock pulse distribution
+  - experiment synchronization
+  - digital and analog sequencing
+  - laboratory automation
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该时钟线在实验运行中分发定时脉冲，直接驱动下游序列执行。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 设备用于协调多个下游设备的时序，是典型的实验室自动化同步基础部件。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 其核心用途是在线生成并下发时序控制，服务联机实验控制。
+  - id: P-7008
+    name: 脉冲激励与时序控制
+    name_en: Pulse Excitation & Timing Control
+    type: experimental_scene
+    rationale: 设备输出时钟脉冲并展开变更时间，明显属于时序控制场景。
+  - id: P-0004
+    name: 数据采集与控制接口
+    name_en: Data Acquisition and Control Interface
+    type: device_template_tag
+    rationale: 该时钟通道本质上是向下游设备提供定时控制信号的控制接口。
+  proposed_new_tags:
+  - id: P-0101
+    name: 伪时钟时钟线
+    name_en: Pseudoclock Clock Line
+    type: device_template_tag
+    rationale: 设备就是伪时钟系统中的时钟输出线/通道，现有模板标签不够具体。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,46 +1,135 @@
-Device: mercury
-Registry Key: mercury
-Short Description: Mercury是由Oxford Instruments生产的实验执行&合成设备，主要功能包括中止、位置设置、写入数据、初始化、归零、读取数据。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (15):
-- auto-LL -> LL [UniLabJsonCommand] goal_params: board_number
-- auto-abort -> abort [UniLabJsonCommand] goal_params: board_number
-- auto-find_edge -> find_edge [UniLabJsonCommand] goal_params: board_number, n
-- auto-get_board_number -> get_board_number [UniLabJsonCommand] goal_params: board_number
-- auto-get_channel -> get_channel [UniLabJsonCommand] goal_params: board_number
-- auto-get_position -> get_position [UniLabJsonCommand] goal_params: board_number
-- auto-go_home -> go_home [UniLabJsonCommand] goal_params: board_number
-- auto-init -> init [UniLabJsonCommand] goal_params: none
-- auto-motor_off -> motor_off [UniLabJsonCommand] goal_params: board_number
-- auto-motor_on -> motor_on [UniLabJsonCommand] goal_params: board_number
-- auto-move_relative -> move_relative [UniLabJsonCommand] goal_params: board_number, precision, value, wait
-- auto-read -> read [UniLabJsonCommand] goal_params: none
-- auto-set_home -> set_home [UniLabJsonCommand] goal_params: board_number
-- auto-set_position -> set_position [UniLabJsonCommand] goal_params: board_number, precision, value, wait
-- auto-write -> write [UniLabJsonCommand] goal_params: value
-
-Driver Functions (18):
-- Mercury.__init__(self, intf, conf) (line 99)
-- Mercury.init(self) (line 103)
-- Mercury.write(self, value) (line 112)
-- Mercury.read(self) (line 117)
-- Mercury._write_command(self, command, board_number) (line 122)
-- Mercury.get_board_number(self, board_number) (line 130)
-- Mercury.motor_on(self, board_number) (line 135)
-- Mercury.motor_off(self, board_number) (line 139)
-- Mercury.LL(self, board_number) (line 143)
-- Mercury.set_home(self, board_number) (line 146)
-- Mercury.go_home(self, board_number) (line 149)
-- Mercury.get_position(self, board_number) (line 152)
-- Mercury.get_channel(self, board_number) (line 157)
-- Mercury.set_position(self, value, precision, board_number, wait) (line 162)
-- Mercury.move_relative(self, value, precision, board_number, wait) (line 172)
-- Mercury.abort(self, board_number) (line 183)
-- Mercury.find_edge(self, n, board_number) (line 187)
-- Mercury._wait(self, board_number) (line 193)
+mercury:
+  name: Mercury精密运动控制器
+  name_en: Mercury Precision Motion Controller
+  manufacturer: Physik Instrumente (PI)
+  category:
+  - 位置控制器
+  tags:
+  - 实验执行&合成设备
+  - 精密定位与运动控制
+  - 光学与光谱实验
+  - 样品/探针定位与运动控制
+  - 位置控制器
+  description: 这是一款用于精密定位系统的运动控制器，可通过RS-232串口控制实验室中的电机位移台或其他运动机构。它支持电机使能、回零、绝对与相对移动、位置读取以及边缘搜索等功能，常用于光学实验、精密对准和自动化位移控制。
+  description_en: This is a motion controller for precision positioning systems, used
+    to control motorized stages or other motion assemblies in the lab via RS-232 serial
+    communication. It supports motor enable/disable, homing, absolute and relative
+    moves, position readback, and edge finding, and is commonly used for optical experiments,
+    precision alignment, and automated positioning.
+  class:
+    action_value_mappings:
+      auto-init:
+        schema:
+          description: 初始化运动控制器通信。
+          description_en: Initialize communication with the motion controller.
+      auto-write:
+        schema:
+          description: 向控制器发送原始命令。
+          description_en: Send a raw command to the controller.
+      auto-read:
+        schema:
+          description: 读取控制器的原始响应。
+          description_en: Read a raw response from the controller.
+      auto-get_board_number:
+        schema:
+          description: 获取控制板编号。
+          description_en: Get the controller board number.
+      auto-motor_on:
+        schema:
+          description: 开启电机驱动。
+          description_en: Enable the motor drive.
+      auto-motor_off:
+        schema:
+          description: 关闭电机驱动。
+          description_en: Disable the motor drive.
+      auto-LL:
+        schema:
+          description: 执行LL原生命令。
+          description_en: Execute the native LL command.
+      auto-set_home:
+        schema:
+          description: 将当前位置设为原点。
+          description_en: Set the current position as home.
+      auto-go_home:
+        schema:
+          description: 移动到原点位置。
+          description_en: Move to the home position.
+      auto-get_position:
+        schema:
+          description: 获取当前位置。
+          description_en: Get the current position.
+      auto-get_channel:
+        schema:
+          description: 获取当前通道或轴号。
+          description_en: Get the current channel or axis number.
+      auto-set_position:
+        schema:
+          description: 移动到指定绝对位置。
+          description_en: Move to a specified absolute position.
+      auto-move_relative:
+        schema:
+          description: 按相对位移移动。
+          description_en: Move by a relative displacement.
+      auto-abort:
+        schema:
+          description: 中止当前运动。
+          description_en: Abort the current motion.
+      auto-find_edge:
+        schema:
+          description: 执行边缘搜索。
+          description_en: Perform an edge-finding operation.
+auto_annotation_metadata:
+  registry_key: mercury
+  annotation_workflow_version: v4
+  tag_hints:
+  - motion control
+  - precision positioning
+  - motorized stage
+  - RS-232 serial control
+  - homing
+  - edge finding
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该控制器直接驱动位移台执行回零、绝对/相对移动和边缘搜索。
+  - id: P-1009
+    name: 精密定位与运动控制
+    name_en: Precision Positioning & Motion Control
+    type: experimental_domain
+    rationale: 设备核心用途是实验室精密定位系统和运动机构控制。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: 描述中明确指出其常用于光学实验和精密对准。
+  - id: P-0038
+    name: 样品/探针定位与运动控制
+    name_en: Sample / Probe Positioning & Motion Control
+    type: experimental_scene
+    rationale: 支持位置读取、回零、绝对/相对位移和边缘搜索，符合精密定位场景。
+  - id: P-0027
+    name: 位置控制器
+    name_en: Positioner Controller
+    type: device_template_tag
+    rationale: 该设备本质上是通过串口控制位移台的精密位置控制器。
+  proposed_new_tags: []
+  websearch_evidence:
+    device: mercury
+    checked_at: '2026-04-07'
+    need_websearch: true
+    resolved: true
+    decision: 保留Pass A结果，不修改五个身份字段。
+    sources:
+    - url: https://www.pressebox.com/pressrelease/physik-instrumente-pi-se-co-kg/stepper-motor-controller-for-cost-sensitive-applications/boxid/80772
+      note: PI发布信息中明确提及Mercury系列控制器用于多轴步进/运动控制，支持Pass A将设备归类为PI运动控制器。
+    profile_field_updates: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

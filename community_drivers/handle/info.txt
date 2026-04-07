@@ -1,61 +1,137 @@
-Device: handle
-Registry Key: handle
-Short Description: Handle驱动，支持write messages/bulkWrite/bulkRead/controlMsg/reset等16个操作。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (16):
-- auto-bulkRead -> bulkRead [UniLabJsonCommand] goal_params: ep, size, timeout
-- auto-bulkWrite -> bulkWrite [UniLabJsonCommand] goal_params: data, ep, size, timeout
-- auto-components_connected -> components_connected [UniLabJsonCommand] goal_params: layout
-- auto-controlMsg -> controlMsg [UniLabJsonCommand] goal_params: ctrl, ep, size
-- auto-initialize_values -> initialize_values [UniLabJsonCommand] goal_params: component
-- auto-input_pressed -> input_pressed [UniLabJsonCommand] goal_params: index
-- auto-input_released -> input_released [UniLabJsonCommand] goal_params: index
-- auto-input_rotation_left -> input_rotation_left [UniLabJsonCommand] goal_params: amount, index
-- auto-input_rotation_right -> input_rotation_right [UniLabJsonCommand] goal_params: amount, index
-- auto-input_slide_down -> input_slide_down [UniLabJsonCommand] goal_params: amount, index
-- auto-input_slide_up -> input_slide_up [UniLabJsonCommand] goal_params: amount, index
-- auto-layout_changed -> layout_changed [UniLabJsonCommand] goal_params: layout
-- auto-releaseInterface -> releaseInterface [UniLabJsonCommand] goal_params: none
-- auto-reset -> reset [UniLabJsonCommand] goal_params: none
-- auto-set_version_core -> set_version_core [UniLabJsonCommand] goal_params: version
-- auto-write_messages -> write_messages [UniLabJsonCommand] goal_params: messages
-
-Driver Functions (32):
-- make_quad(cur) (line 152)
-- make_slider_quad(cur) (line 191)
-- make_component_layout() (line 209)
-- Handle.__init__(self, layout) (line 263)
-- Handle._process_input(self, message, data) (line 278)
-- Handle._process_check(self, check) (line 302)
-- Handle._process_send_version(self) (line 307)
-- Handle._process_screen_write(self, index, image_bytes) (line 314)
-- Handle._process_start(self, start) (line 319)
-- Handle._process_stop(self) (line 326)
-- Handle._process_led(self, leds) (line 330)
-- Handle._write_layout(self) (line 337)
-- Handle.write_messages(self, messages) (line 344)
-- Handle._write(self, data) (line 349)
-- Handle._set_phase(self, phase) (line 359)
-- Handle.bulkWrite(self, ep, data, size, timeout) (line 367)
-- Handle.bulkRead(self, ep, size, timeout) (line 376)
-- Handle.controlMsg(self, ep, ctrl, size) (line 392)
-- Handle.reset(self) (line 415)
-- Handle.releaseInterface(self) (line 420)
-- Device.__init__(self, device_id, interface_id) (line 427)
-- Device.components_connected(self, layout) (line 438)
-- Device.layout_changed(self, layout) (line 446)
-- Device.set_version_core(self, version) (line 452)
-- Device.initialize_values(self, component) (line 455)
-- Device.open(self) (line 464)
-- Device.input_pressed(self, index) (line 472)
-- Device.input_released(self, index) (line 489)
-- Device.input_slide_up(self, index, amount) (line 506)
-- Device.input_slide_down(self, index, amount) (line 531)
-- Device.input_rotation_left(self, index, amount) (line 548)
-- Device.input_rotation_right(self, index, amount) (line 565)
+handle:
+  name: 模块化 USB 控制面板手柄
+  name_en: Modular USB Control Console Handle
+  manufacturer: ''
+  category:
+  - USB仪器通信接口
+  - 模块化实验控制面板
+  tags:
+  - 物流/机械
+  - 实验室自动化与仪器集成
+  - 实验仪器数据采集与联机控制
+  - USB仪器通信接口
+  - 人工输入与实验交互控制
+  - 模块化实验控制面板
+  description: 一种通过 USB 连接的模块化实体控制面板，可包含按键、滑条和旋钮等输入部件，用于人工输入、设备控制和实验流程中的交互操作。
+  description_en: A USB-connected modular physical control console that can include
+    buttons, sliders, and rotary controls, used for manual input, device control,
+    and interactive operation in laboratory workflows.
+  class:
+    action_value_mappings:
+      auto-write_messages:
+        schema:
+          description: 向控制面板写入消息数据。
+          description_en: Write message data to the control console.
+      auto-bulkWrite:
+        schema:
+          description: 通过 USB 批量端点向设备发送数据。
+          description_en: Send data to the device through a USB bulk endpoint.
+      auto-bulkRead:
+        schema:
+          description: 通过 USB 批量端点从设备读取数据。
+          description_en: Read data from the device through a USB bulk endpoint.
+      auto-controlMsg:
+        schema:
+          description: 发送 USB 控制消息以执行设备控制或配置。
+          description_en: Send a USB control message for device control or configuration.
+      auto-reset:
+        schema:
+          description: 复位设备连接或设备状态。
+          description_en: Reset the device connection or device state.
+      auto-releaseInterface:
+        schema:
+          description: 释放设备的 USB 接口占用。
+          description_en: Release the claimed USB interface of the device.
+      auto-components_connected:
+        schema:
+          description: 报告或处理已连接控制模块的状态。
+          description_en: Report or handle the status of connected control modules.
+      auto-layout_changed:
+        schema:
+          description: 报告或处理控制模块布局发生变化。
+          description_en: Report or handle a change in the control module layout.
+      auto-set_version_core:
+        schema:
+          description: 定义核心模块的版本信息。
+          description_en: Define the version information of the core module.
+      auto-initialize_values:
+        schema:
+          description: 初始化控制部件的默认数值或状态。
+          description_en: Initialize default values or states of the control elements.
+      auto-input_pressed:
+        schema:
+          description: 处理按键或输入部件被按下。
+          description_en: Handle a button or input element being pressed.
+      auto-input_released:
+        schema:
+          description: 处理按键或输入部件被释放。
+          description_en: Handle a button or input element being released.
+      auto-input_slide_up:
+        schema:
+          description: 处理滑条向上滑动输入。
+          description_en: Handle an upward slider movement input.
+      auto-input_slide_down:
+        schema:
+          description: 处理滑条向下滑动输入。
+          description_en: Handle a downward slider movement input.
+      auto-input_rotation_left:
+        schema:
+          description: 处理旋钮向左旋转输入。
+          description_en: Handle a leftward rotary input.
+      auto-input_rotation_right:
+        schema:
+          description: 处理旋钮向右旋转输入。
+          description_en: Handle a rightward rotary input.
+auto_annotation_metadata:
+  registry_key: handle
+  annotation_workflow_version: v4
+  tag_hints:
+  - modular control surface
+  - USB HID/USB device
+  - buttons sliders knobs
+  - manual instrument control
+  - human-machine interface
+  - experimental user input
+  existing_tags:
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 该设备是实验流程中的实体交互外围硬件，更接近支持性机械/控制周边。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 其用途是为实验设备提供人工输入与控制交互，属于自动化集成外围。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 该控制面板通过USB与系统联机，用于实验过程中的实时控制与输入。
+  - id: P-0005
+    name: USB仪器通信接口
+    name_en: USB Instrument Communication Interface
+    type: device_template_tag
+    rationale: 设备通过USB控制消息、批量读写和接口释放等方式通信，具备明显USB仪器接口特征。
+  proposed_new_tags:
+  - id: P-40007
+    name: 人工输入与实验交互控制
+    name_en: Manual Input & Experimental Interaction Control
+    type: experimental_scene
+    rationale: 设备由按键、滑条和旋钮组成，直接面向实验人工交互与流程控制。
+  - id: P-40008
+    name: 模块化实验控制面板
+    name_en: Modular Experimental Control Console
+    type: device_template_tag
+    rationale: 该设备本质是可模块化扩展的实体实验控制面板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

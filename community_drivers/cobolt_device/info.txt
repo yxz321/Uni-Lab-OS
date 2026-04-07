@@ -1,171 +1,127 @@
-device: cobolt_device
-registry_key: cobolt_device
-device_identity:
-  manufacturer: Cobolt AB (HÜBNER Photonics)
-  model:
-    name: Cobolt laser source device controller
-    type: device
-  module_path: unilabos.devices.lasers.cobolt_device:CoboltDevice
-description:
-  text_en: Cobolt laser source controller over serial communication, including initialization,
-    autostart/interlock checks, on-off control, serial number query, and closed-loop
-    power set/read operations.
-  method: web+local
-description_evidence:
-  web:
-  - https://hubner-photonics.com/wp-content/uploads/2014/11/D0951-B-Manual-Cobolt-06-01-Series-12-V.pdf
-    (Cobolt 06-01 series owner manual)
-  local:
-  - driver commands include ilk?, sn?, l1/l0, @cobas, p, pa?
-  - 'registry module: unilabos.devices.lasers.cobolt_device:CoboltDevice'
-related_tags:
-- id: '4316'
-  name: 表征设备
-  name_en: Characterization Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: '4316'
-  rationale: Matched from registry metadata and action/description semantics.
-  signals:
-  - registry.tags
-  - registry.category
-  - name
-  - model
-  - manufacturer
-  - module_path
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-autostartIsOn
-  title: autostartIsOn
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read cached autostart state after querying device.
-  evidence_source: code
-- name: auto-doGetAutostart
-  title: doGetAutostart
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Query autostart mode from controller (@cobas?).
-  evidence_source: code
-- name: auto-doGetInterlockState
-  title: doGetInterlockState
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Query interlock state from laser controller (ilk?).
-  evidence_source: code
-- name: auto-doGetLaserSerialNumber
-  title: doGetLaserSerialNumber
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read laser serial number from controller (sn?).
-  evidence_source: code
-- name: auto-doGetOnOffState
-  title: doGetOnOffState
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Query emission on/off state (l?).
-  evidence_source: code
-- name: auto-doGetPower
-  title: doGetPower
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read output power value (pa?).
-  evidence_source: code
-- name: auto-doInitializeDevice
-  title: doInitializeDevice
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Open port and initialize serial/autostart/interlock/power state.
-  evidence_source: code
-- name: auto-doSetPower
-  title: doSetPower
-  parameters:
-  - powerInWatts
-  command_type: UniLabJsonCommand
-  description_en: Set output power and poll until near requested power.
-  evidence_source: code
-- name: auto-doShutdownDevice
-  title: doShutdownDevice
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Close and release serial port resources.
-  evidence_source: code
-- name: auto-doTurnAutostartOff
-  title: doTurnAutostartOff
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Disable autostart mode on controller.
-  evidence_source: code
-- name: auto-doTurnAutostartOn
-  title: doTurnAutostartOn
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Enable autostart mode on controller.
-  evidence_source: code
-- name: auto-doTurnOff
-  title: doTurnOff
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Send laser-off command to controller.
-  evidence_source: code
-- name: auto-doTurnOn
-  title: doTurnOn
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Send laser-on command when autostart is not enabled.
-  evidence_source: code
-- name: auto-turnAutostartOff
-  title: turnAutostartOff
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Wrapper to disable autostart mode.
-  evidence_source: code
-- name: auto-turnAutostartOn
-  title: turnAutostartOn
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Wrapper to enable autostart mode.
-  evidence_source: code
-driver_functions:
-  compact_signatures:
-  - CoboltDevice.__init__(self, bsdPath, portPath, serialNumber, idProduct, idVendor)
-    (line 82)
-  - CoboltDevice.__del__(self) (line 103)
-  - CoboltDevice.autostartIsOn(self) (line 110)
-  - CoboltDevice.turnAutostartOn(self) (line 115)
-  - CoboltDevice.turnAutostartOff(self) (line 119)
-  - CoboltDevice.doInitializeDevice(self) (line 123)
-  - CoboltDevice.doShutdownDevice(self) (line 149)
-  - CoboltDevice.doGetInterlockState(self) (line 155)
-  - CoboltDevice.doGetLaserSerialNumber(self) (line 161)
-  - CoboltDevice.doGetOnOffState(self) (line 165)
-  - CoboltDevice.doTurnOn(self) (line 171)
-  - CoboltDevice.doTurnOff(self) (line 178)
-  - CoboltDevice.doGetAutostart(self) (line 182)
-  - CoboltDevice.doTurnAutostartOn(self) (line 188)
-  - CoboltDevice.doTurnAutostartOff(self) (line 193)
-  - CoboltDevice.doSetPower(self, powerInWatts) (line 198)
-  - CoboltDevice.doGetPower(self) (line 212)
-  - CoboltDebugSerial.__init__(self) (line 218)
-  - CoboltDebugSerial.is_open(self) (line 228)
-  - CoboltDebugSerial.open(self) (line 231)
-  - CoboltDebugSerial.close(self) (line 240)
-  - CoboltDebugSerial.flush(self) (line 246)
-  - CoboltDebugSerial.read(self, length) (line 249)
-  - CoboltDebugSerial.write(self, data) (line 262)
-  - increasePowerSlowlyInBackground(port, endPower, duration) (line 360)
-  note: Compact list retained by design; action semantics are documented in atom_actions.
-schema_version: v2
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 15
-  driver_function_count: 25
-  related_tag_count: 1
+cobolt_device:
+  name: Cobolt实验室激光器
+  name_en: Cobolt laboratory laser
+  manufacturer: Cobolt
+  category:
+  - 实验室激光光源
+  tags:
+  - 实验执行&合成设备
+  - 表征设备
+  - 光学与光谱实验
+  - 激光激发与光谱测量
+  - 实验室激光光源
+  description: 一款用于实验室光学实验的激光光源，可控制激光开关与输出功率，并提供互锁、自启动和设备状态信息，适用于激发、照明、光路对准和一般光学测量。
+  description_en: A laboratory laser source for optical experiments. It supports laser
+    on/off control, output power adjustment, and reporting of interlock, autostart,
+    and device status, making it suitable for excitation, illumination, beam alignment,
+    and general optical measurements.
+  class:
+    action_value_mappings:
+      auto-autostartIsOn:
+        schema:
+          description: 获取是否启用自启动
+          description_en: Get whether autostart is enabled
+      auto-turnAutostartOn:
+        schema:
+          description: 启用自启动
+          description_en: Enable autostart
+      auto-turnAutostartOff:
+        schema:
+          description: 关闭自启动
+          description_en: Disable autostart
+      auto-doInitializeDevice:
+        schema:
+          description: 初始化激光器
+          description_en: Initialize the laser
+      auto-doShutdownDevice:
+        schema:
+          description: 关闭设备
+          description_en: Shut down the device
+      auto-doGetInterlockState:
+        schema:
+          description: 获取互锁状态
+          description_en: Get the interlock state
+      auto-doGetLaserSerialNumber:
+        schema:
+          description: 获取激光器序列号
+          description_en: Get the laser serial number
+      auto-doGetOnOffState:
+        schema:
+          description: 获取激光开关状态
+          description_en: Get the laser on/off state
+      auto-doTurnOn:
+        schema:
+          description: 打开激光输出
+          description_en: Turn on laser output
+      auto-doTurnOff:
+        schema:
+          description: 关闭激光输出
+          description_en: Turn off laser output
+      auto-doGetAutostart:
+        schema:
+          description: 获取自启动状态
+          description_en: Get the autostart state
+      auto-doTurnAutostartOn:
+        schema:
+          description: 启用自启动
+          description_en: Enable autostart
+      auto-doTurnAutostartOff:
+        schema:
+          description: 关闭自启动
+          description_en: Disable autostart
+      auto-doSetPower:
+        schema:
+          description: 设置激光输出功率
+          description_en: Set the laser output power
+      auto-doGetPower:
+        schema:
+          description: 获取激光输出功率
+          description_en: Get the laser output power
+auto_annotation_metadata:
+  registry_key: cobolt_device
+  annotation_workflow_version: v4
+  tag_hints:
+  - laser source
+  - optical experiments
+  - power control
+  - interlock safety
+  - autostart
+  - beam alignment
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该激光器通过开关和功率调节参与实验中的光激发与照明。
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 其适用于一般光学测量，常作为表征实验配套光源。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: 设备服务于实验室光学实验与测量。
+  - id: P-3004
+    name: 激光激发与光谱测量
+    name_en: Laser Excitation & Spectroscopic Measurement
+    type: experimental_scene
+    rationale: 激光开关、功率调节和互锁状态都围绕激光激发使用场景。
+  - id: P-3005
+    name: 实验室激光光源
+    name_en: Laboratory Laser Source
+    type: device_template_tag
+    rationale: 该设备就是实验室用 Cobolt 激光光源。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

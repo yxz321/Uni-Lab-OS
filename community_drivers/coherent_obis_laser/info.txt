@@ -1,116 +1,101 @@
-device: coherent_obis_laser
-registry_key: coherent_obis_laser
-device_identity:
-  manufacturer: Coherent Corp.
-  model:
-    name: OBIS laser
-    type: device
-  name: Coherent OBIS Laser
-  module_path: unilabos.devices.lasers.coherent_obis.coherent_obis_laser:CoherentOBISLaser
-description:
-  text_en: Coherent OBIS is a compact OEM continuous-wave laser module used in fluorescence and bioimaging
-    instruments, with serial commands for emission on/off control and milliwatt-level power setpoints.
-  method: web+local
-description_evidence:
-  web:
-  - https://www.coherent.com/content/dam/coherent/site/en/resources/datasheet/lasers/obis-core-ds.pdf
-  local:
-  - Driver sends OBIS SCPI-like commands for emission enable and power level (SOUR:AM:STAT, SOUR:POW:LEV:IMM:AMPL).
-  - Initialization reads low/high power limits from instrument replies.
-related_tags:
-- id: 4313
-  name: 实验执行&合成设备
-  name_en: Experiment Execution & Synthesis Equipment
-  type: experimental_step
-- id: 4316
-  name: 表征设备
-  name_en: Characterization Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: 4313
-  rationale: Emission switching and power setpoint control are direct experiment-execution operations.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-- tag_id: 4316
-  rationale: OBIS modules are widely integrated into optical detection/imaging platforms.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-query
-  title: query
-  parameters:
-  - command
-  - lines_expected
-  command_type: UniLabJsonCommand
-  description_en: Send serial command and return requested reply lines.
-  evidence_source: docstring
-- name: auto-IsOn
-  title: IsOn
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return cached laser emission state flag.
-  evidence_source: code_comments
-- name: auto-TurnOn
-  title: TurnOn
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Enable laser emission output.
-  evidence_source: name_params
-- name: auto-TurnOff
-  title: TurnOff
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Disable laser emission output.
-  evidence_source: name_params
-- name: auto-SetPower
-  title: SetPower
-  parameters:
-  - power
-  command_type: UniLabJsonCommand
-  description_en: Set optical output power in mW via laser command interface.
-  evidence_source: docstring
-- name: auto-GetPower
-  title: GetPower
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return cached optical power setpoint value.
-  evidence_source: name_params
-- name: auto-Close
-  title: Close
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Turn laser output off and perform shutdown delay.
-  evidence_source: code_comments
-driver_functions:
-  compact_signatures:
-  - CoherentOBISLaser.__init__(self, serial_port, turn_on, name, init_power, reply_ok, **kwargs) (line
-    106)
-  - CoherentOBISLaser.query(self, command, lines_expected) (line 146)
-  - CoherentOBISLaser.IsOn(self) (line 180)
-  - CoherentOBISLaser.TurnOn(self) (line 185)
-  - CoherentOBISLaser.TurnOff(self) (line 190)
-  - CoherentOBISLaser.SetPower(self, power) (line 196)
-  - CoherentOBISLaser.GetPower(self) (line 212)
-  - CoherentOBISLaser.Close(self) (line 216)
-  - CoherentOBISLaser.__del__(self) (line 222)
-  note: Compact signatures retained; action semantics are documented in atom_actions.
-schema_version: v2
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 7
-  driver_function_count: 9
-  related_tag_count: 2
+coherent_obis_laser:
+  name: Coherent OBIS激光器
+  name_en: Coherent OBIS Laser
+  manufacturer: Coherent
+  category:
+  - 实验室激光光源
+  tags:
+  - 表征设备
+  - 智慧表征与检测中心
+  - 光学与光谱实验
+  - 显微成像与光学显微实验
+  - 激光激发与光谱测量
+  - 实验室激光光源
+  description: Coherent OBIS 是一类紧凑型实验室激光光源，可提供稳定的激光输出并支持功率调节与开关控制。此类激光器常用于显微成像、荧光激发、光路搭建与其他需要稳定连续光源的实验场景。
+  description_en: The Coherent OBIS is a compact laboratory laser source that provides
+    stable laser output with controllable power and on/off operation. It is commonly
+    used for microscopy, fluorescence excitation, optical alignment, and other experiments
+    requiring a stable continuous light source.
+  class:
+    action_value_mappings:
+      auto-query:
+        schema:
+          description: 发送串口命令并读取设备返回内容。
+          description_en: Send a serial command and read the device response.
+      auto-IsOn:
+        schema:
+          description: 查询激光输出是否开启。
+          description_en: Check whether the laser output is on.
+      auto-TurnOn:
+        schema:
+          description: 开启激光输出。
+          description_en: Turn on the laser output.
+      auto-TurnOff:
+        schema:
+          description: 关闭激光输出。
+          description_en: Turn off the laser output.
+      auto-SetPower:
+        schema:
+          description: 设置激光输出功率。
+          description_en: Set the laser output power.
+      auto-GetPower:
+        schema:
+          description: 读取激光输出功率设定值。
+          description_en: Get the laser output power setting.
+      auto-Close:
+        schema:
+          description: 关闭与激光器的连接。
+          description_en: Close the connection to the laser.
+auto_annotation_metadata:
+  registry_key: coherent_obis_laser
+  annotation_workflow_version: v4
+  tag_hints:
+  - laser excitation
+  - fluorescence microscopy
+  - output power control
+  - continuous-wave laser
+  - optical alignment
+  - serial-controlled laser
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该设备主要作为显微成像和荧光激发中的稳定光源，服务于表征与成像实验。
+  - id: '4325'
+    name: 智慧表征与检测中心
+    name_en: Intelligent Characterization & Testing Center
+    type: experimental_domain
+    rationale: 描述明确指向显微成像、荧光激发和光路搭建，属于典型表征检测相关实验域。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: OBIS 是连续稳定实验室激光光源，直接用于光学激发与相关光谱/成像实验。
+  - id: P-0006
+    name: 显微成像与光学显微实验
+    name_en: Microscopy Imaging & Optical Microscopy Experiments
+    type: experimental_scene
+    rationale: 设备说明明确提到常用于显微成像与荧光激发场景。
+  - id: P-3004
+    name: 激光激发与光谱测量
+    name_en: Laser Excitation & Spectroscopic Measurement
+    type: experimental_scene
+    rationale: 支持功率调节与开关控制，符合激光激发类实验场景。
+  - id: P-3005
+    name: 实验室激光光源
+    name_en: Laboratory Laser Source
+    type: device_template_tag
+    rationale: 该设备本质上是一类可控连续输出的实验室激光光源。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

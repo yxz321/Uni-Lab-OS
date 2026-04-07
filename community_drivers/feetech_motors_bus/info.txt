@@ -1,61 +1,143 @@
-Device: feetech_motors_bus
-Registry Key: feetech_motors_bus
-Short Description: Feetech Motors BUS是由Feetech RC Model生产的机械臂，主要功能包括写入数据、参数配置、复位、捕获、日志记录、设备连接。
-
-Categories:
-- 机械臂
-
-Related Tags (from tag 标签列表.csv):
-- [4402] 机械臂 / Robotic Arm (device_template_tag)
-
-Atom Actions (16):
-- auto-apply_calibration -> apply_calibration [UniLabJsonCommand] goal_params: motor_names, values
-- auto-apply_calibration_autocorrect -> apply_calibration_autocorrect [UniLabJsonCommand] goal_params: motor_names, values
-- auto-are_motors_configured -> are_motors_configured [UniLabJsonCommand] goal_params: none
-- auto-autocorrect_calibration -> autocorrect_calibration [UniLabJsonCommand] goal_params: motor_names, values
-- auto-avoid_rotation_reset -> avoid_rotation_reset [UniLabJsonCommand] goal_params: data_name, motor_names, values
-- auto-connect -> connect [UniLabJsonCommand] goal_params: none
-- auto-disconnect -> disconnect [UniLabJsonCommand] goal_params: none
-- auto-find_motor_indices -> find_motor_indices [UniLabJsonCommand] goal_params: num_retry, possible_ids
-- auto-read -> read [UniLabJsonCommand] goal_params: data_name, motor_names
-- auto-read_with_motor_ids -> read_with_motor_ids [UniLabJsonCommand] goal_params: data_name, motor_ids, motor_models, num_retry
-- auto-reconnect -> reconnect [UniLabJsonCommand] goal_params: none
-- auto-revert_calibration -> revert_calibration [UniLabJsonCommand] goal_params: motor_names, values
-- auto-set_bus_baudrate -> set_bus_baudrate [UniLabJsonCommand] goal_params: baudrate
-- auto-set_calibration -> set_calibration [UniLabJsonCommand] goal_params: calibration
-- auto-write -> write [UniLabJsonCommand] goal_params: data_name, motor_names, values
-- auto-write_with_motor_ids -> write_with_motor_ids [UniLabJsonCommand] goal_params: data_name, motor_ids, motor_models, num_retry, values
-
-Driver Functions (32):
-- RobotDeviceAlreadyConnectedError.__init__(self, message) (line 83)
-- RobotDeviceNotConnectedError.__init__(self, message) (line 91)
-- capture_timestamp_utc() (line 96)
-- convert_degrees_to_steps(degrees, models) (line 212)
-- convert_to_bytes(value, bytes, mock) (line 223)
-- get_group_sync_key(data_name, motor_names) (line 255)
-- get_result_name(fn_name, data_name, motor_names) (line 260)
-- get_queue_name(fn_name, data_name, motor_names) (line 266)
-- get_log_name(var_name, fn_name, data_name, motor_names) (line 272)
-- assert_same_address(model_ctrl_table, motor_models, data_name) (line 278)
-- JointOutOfRangeError.__init__(self, message) (line 315)
-- FeetechMotorsBus.__init__(self, port, motors, extra_model_control_table, extra_model_resolution, mock) (line 359)
-- FeetechMotorsBus.connect(self) (line 390)
-- FeetechMotorsBus.reconnect(self) (line 420)
-- FeetechMotorsBus.are_motors_configured(self) (line 435)
-- FeetechMotorsBus.find_motor_indices(self, possible_ids, num_retry) (line 445)
-- FeetechMotorsBus.set_bus_baudrate(self, baudrate) (line 466)
-- FeetechMotorsBus.motor_names(self) (line 477)
-- FeetechMotorsBus.motor_models(self) (line 482)
-- FeetechMotorsBus.motor_indices(self) (line 487)
-- FeetechMotorsBus.set_calibration(self, calibration) (line 491)
-- FeetechMotorsBus.apply_calibration_autocorrect(self, values, motor_names) (line 495)
-- FeetechMotorsBus.apply_calibration(self, values, motor_names) (line 509)
-- FeetechMotorsBus.autocorrect_calibration(self, values, motor_names) (line 584)
-- FeetechMotorsBus.revert_calibration(self, values, motor_names) (line 682)
-- FeetechMotorsBus.avoid_rotation_reset(self, values, motor_names, data_name) (line 722)
-- FeetechMotorsBus.read_with_motor_ids(self, motor_models, motor_ids, data_name, num_retry) (line 760)
-- FeetechMotorsBus.read(self, data_name, motor_names) (line 799)
-- FeetechMotorsBus.write_with_motor_ids(self, motor_models, motor_ids, data_name, values, num_retry) (line 876)
-- FeetechMotorsBus.write(self, data_name, values, motor_names) (line 906)
-- FeetechMotorsBus.disconnect(self) (line 976)
-- FeetechMotorsBus.__del__(self) (line 992)
+feetech_motors_bus:
+  name: Feetech 智能舵机总线
+  name_en: Feetech Smart Servo Bus
+  manufacturer: Feetech
+  category:
+  - 智能舵机总线
+  tags:
+  - 物流/机械
+  - 机器人与移动平台
+  - 精密定位与运动控制
+  - 实验室机械臂自动化与样品搬运
+  - 样品/探针定位与运动控制
+  - 智能舵机总线
+  description: 由 Feetech 总线型智能舵机及其串行通信链路组成的多电机控制系统，可连接多个机器人关节或夹爪执行器。它常用于机械臂、夹爪等实验室机器人平台，以读取位置等状态并下发目标位置等控制命令。
+  description_en: A multi-actuator control system built around Feetech bus-connected
+    smart servos and their serial communication bus. It is commonly used in laboratory
+    robotic platforms such as robot arms and grippers to read status such as position
+    and send control commands such as target position.
+  class:
+    action_value_mappings:
+      auto-connect:
+        schema:
+          description: 连接到 Feetech 智能舵机总线以开始通信。
+          description_en: Connect to the Feetech smart servo bus to begin communication.
+      auto-reconnect:
+        schema:
+          description: 重新连接到 Feetech 智能舵机总线。
+          description_en: Reconnect to the Feetech smart servo bus.
+      auto-are_motors_configured:
+        schema:
+          description: 检查总线上的舵机是否已按预期的电机 ID 配置。
+          description_en: Check whether the servos on the bus are configured with
+            the expected motor IDs.
+      auto-find_motor_indices:
+        schema:
+          description: 扫描总线并查找已连接舵机的电机 ID。
+          description_en: Scan the bus and find the motor IDs of connected servos.
+      auto-set_bus_baudrate:
+        schema:
+          description: 设置舵机总线的通信波特率。
+          description_en: Set the communication baud rate of the servo bus.
+      auto-set_calibration:
+        schema:
+          description: 定义舵机位置与运动方向的校准参数。
+          description_en: Define calibration parameters for servo position and direction
+            of motion.
+      auto-apply_calibration_autocorrect:
+        schema:
+          description: 对舵机读数应用校准，并自动纠正超范围或整圈偏移问题。
+          description_en: Apply calibration to servo readings and automatically correct
+            out-of-range or full-turn offset errors.
+      auto-apply_calibration:
+        schema:
+          description: 对舵机位置读数应用校准转换。
+          description_en: Apply calibration conversion to servo position readings.
+      auto-autocorrect_calibration:
+        schema:
+          description: 自动修正校准后出现的位置偏移或圈数错位问题。
+          description_en: Automatically correct position offsets or turn-count misalignment
+            after calibration.
+      auto-revert_calibration:
+        schema:
+          description: 将校准后的舵机位置值还原为原始电机单位。
+          description_en: Convert calibrated servo position values back to raw motor
+            units.
+      auto-avoid_rotation_reset:
+        schema:
+          description: 在舵机位置跨越编码器回绕点时补偿读数突变。
+          description_en: Compensate for position reading jumps when servo position
+            crosses the encoder wrap point.
+      auto-read_with_motor_ids:
+        schema:
+          description: 按指定电机 ID 从舵机读取指定寄存器数据。
+          description_en: Read a specified data register from servos by motor ID.
+      auto-read:
+        schema:
+          description: 从一个或多个舵机读取指定数据项。
+          description_en: Read a specified data item from one or more servos.
+      auto-write_with_motor_ids:
+        schema:
+          description: 按指定电机 ID 向舵机写入指定寄存器数据。
+          description_en: Write a specified data register to servos by motor ID.
+      auto-write:
+        schema:
+          description: 向一个或多个舵机写入指定数据项。
+          description_en: Write a specified data item to one or more servos.
+      auto-disconnect:
+        schema:
+          description: 断开与 Feetech 智能舵机总线的连接。
+          description_en: Disconnect from the Feetech smart servo bus.
+auto_annotation_metadata:
+  registry_key: feetech_motors_bus
+  annotation_workflow_version: v4
+  tag_hints:
+  - smart servo motors
+  - serial actuator bus
+  - robot joint control
+  - position feedback
+  - gripper actuation
+  - Feetech servos
+  existing_tags:
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 该系统用于驱动机器人关节和夹爪执行器，属于实验室机械执行链路。
+  - id: P-0020
+    name: 机器人与移动平台
+    name_en: Robotics & Mobile Platforms
+    type: experimental_domain
+    rationale: Feetech总线舵机系统主要服务于机械臂、夹爪等机器人平台。
+  - id: P-1009
+    name: 精密定位与运动控制
+    name_en: Precision Positioning & Motion Control
+    type: experimental_domain
+    rationale: 系统支持读取位置反馈并下发目标位置控制，属于运动控制领域。
+  - id: P-5007
+    name: 实验室机械臂自动化与样品搬运
+    name_en: Laboratory Robotic Arm Automation & Sample Handling
+    type: experimental_scene
+    rationale: 描述明确其常用于机械臂和夹爪等实验室机器人平台。
+  - id: P-0038
+    name: 样品/探针定位与运动控制
+    name_en: Sample / Probe Positioning & Motion Control
+    type: experimental_scene
+    rationale: 舵机总线承担多关节位置读取与目标位置控制，符合定位与运动控制场景。
+  proposed_new_tags:
+  - id: P-9803
+    name: 智能舵机总线
+    name_en: Smart Servo Bus
+    type: device_template_tag
+    rationale: 该设备是由总线型智能舵机及串行总线构成的多执行器控制系统，适合作为独立模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

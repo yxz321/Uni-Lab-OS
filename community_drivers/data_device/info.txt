@@ -1,122 +1,130 @@
-device: data_device
-registry_key: data_device
-device_identity:
-  manufacturer: Open Source (Python-Microscope)
-  model:
-    name: Microscope DataDevice Base Class
-    type: device
-  name: Python-Microscope Data Device
-  module_path: unilabos.devices.generic.data_device:DataDevice
-description:
-  text_en: Abstract data-capture device interface for microscope-class hardware (for example cameras and triggered sources), handling enable/disable, client streaming, and buffered acquisition dispatch.
-  method: web+local
-description_evidence:
-  web:
-  - https://python-microscope.org/doc/architecture/abc
-  - https://python-microscope.org/doc/
-  local:
-  - driver header origin points to microscope/abc.py
-  - module docstring states abstract base classes for different device types
-  - DataDevice implements acquisition loops, grab_next_data, receiveData, and client dispatch
-related_tags:
-- id: '4316'
-  name: 表征设备
-  name_en: Characterization Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: '4316'
-  rationale: Data capture and asynchronous measurement data delivery are characterization-side capabilities.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-abort
-  title: abort
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Execute abort.
-  evidence_source: action_name_params
-- name: auto-enable
-  title: enable
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Enable the device.
-  evidence_source: docstring
-- name: auto-disable
-  title: disable
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Disable the device for a short period for inactivity.
-  evidence_source: docstring
-- name: auto-set_client
-  title: set_client
-  parameters:
-  - new_client
-  command_type: UniLabJsonCommand
-  description_en: Set client using new_client.
-  evidence_source: action_name_params
-- name: auto-update_settings
-  title: update_settings
-  parameters:
-  - settings
-  - init
-  command_type: UniLabJsonCommand
-  description_en: Update settings based on dict of settings and values.
-  evidence_source: docstring
-- name: auto-receiveClient
-  title: receiveClient
-  parameters:
-  - client_uri
-  command_type: UniLabJsonCommand
-  description_en: Execute receiveClient using client_uri.
-  evidence_source: action_name_params
-- name: auto-grab_next_data
-  title: grab_next_data
-  parameters:
-  - soft_trigger
-  command_type: UniLabJsonCommand
-  description_en: Execute grab next data using soft_trigger.
-  evidence_source: action_name_params
-- name: auto-receiveData
-  title: receiveData
-  parameters:
-  - data
-  - timestamp
-  command_type: UniLabJsonCommand
-  description_en: Execute receiveData using data, timestamp.
-  evidence_source: action_name_params
-driver_functions:
-  compact_signatures:
-  - Device.__init__(self) (line 353)
-  - Device.disable(self) (line 372)
-  - Device.enable(self) (line 386)
-  - Device.update_settings(self, incoming, init) (line 550)
-  - DataDevice.__init__(self, buffer_length) (line 624)
-  - DataDevice.abort(self) (line 656)
-  - DataDevice.enable(self) (line 661)
-  - DataDevice.disable(self) (line 703)
-  - DataDevice.set_client(self, new_client) (line 840)
-  - DataDevice.update_settings(self, settings, init) (line 872)
-  - DataDevice.receiveClient(self, client_uri) (line 878)
-  - DataDevice.grab_next_data(self, soft_trigger) (line 883)
-  - DataDevice.receiveData(self, data, timestamp) (line 907)
-  - Camera.__init__(self) (line 923)
-  - DeformableMirror.__init__(self) (line 1169)
-  - LightSource.__init__(self) (line 1294)
-  - FilterWheel.__init__(self, positions) (line 1357)
-  note: Compact list retained by design; action semantics are documented in atom_actions.
-schema_version: v3
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 8
-  driver_function_count: 17
-  related_tag_count: 1
+data_device:
+  name: 数据采集设备
+  name_en: Data Acquisition Device
+  manufacturer: ''
+  category:
+  - 高速数据采集系统
+  - 模拟输入数据采集模块
+  - 数据采集与控制接口
+  tags:
+  - 表征设备
+  - 实验室自动化与仪器集成
+  - 智慧表征与检测中心
+  - 实验仪器数据采集与联机控制
+  - 瞬态信号采集与同步触发测量
+  - 显微成像与光学显微实验
+  - 电压监测与传感器信号采集
+  - 高速数据采集系统
+  - 模拟输入数据采集模块
+  - 数据采集与控制接口
+  description: 通用实验数据采集设备，用于从实验硬件获取测量数据，并在显微镜成像、数字信号采集或传感器记录等场景中按触发或连续方式输出数据。
+  description_en: A generic laboratory data acquisition device used to collect measurement
+    data from experimental hardware and output it in triggered or continuous operation,
+    such as in microscopy imaging, digital signal capture, or sensor logging.
+  class:
+    action_value_mappings:
+      auto-abort:
+        schema:
+          description: 尽快停止当前数据采集。
+          description_en: Stop the current data acquisition as quickly as possible.
+      auto-enable:
+        schema:
+          description: 启用数据采集。
+          description_en: Enable data acquisition.
+      auto-disable:
+        schema:
+          description: 禁用数据采集。
+          description_en: Disable data acquisition.
+      auto-set_client:
+        schema:
+          description: 设置数据接收端。
+          description_en: Set the data receiving client.
+      auto-update_settings:
+        schema:
+          description: 更新采集设置。
+          description_en: Update acquisition settings.
+      auto-receiveClient:
+        schema:
+          description: 设置数据接收端（兼容接口）。
+          description_en: Set the data receiving client (compatibility interface).
+      auto-grab_next_data:
+        schema:
+          description: 获取下一次触发产生的数据。
+          description_en: Get the data produced by the next trigger.
+      auto-receiveData:
+        schema:
+          description: 接收采集到的数据及时间戳。
+          description_en: Receive acquired data and its timestamp.
+auto_annotation_metadata:
+  registry_key: data_device
+  annotation_workflow_version: v4
+  tag_hints:
+  - data acquisition
+  - triggered measurement
+  - microscopy
+  - sensor logging
+  - digital I/O
+  - experimental automation
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该设备直接从实验硬件采集测量数据，核心用途是实验表征与检测读出。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 设备支持启停、设置更新和客户端接收，明显处于实验自动化采集链路中。
+  - id: '4325'
+    name: 智慧表征与检测中心
+    name_en: Intelligent Characterization & Testing Center
+    type: experimental_domain
+    rationale: 其通用测量采集能力适合智慧化表征与检测平台中的多仪器数据接入。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 描述和接口均围绕在线接收、触发采集、设置更新与数据输出展开。
+  - id: P-0024
+    name: 瞬态信号采集与同步触发测量
+    name_en: Transient Signal Acquisition & Synchronized Triggered Measurement
+    type: experimental_scene
+    rationale: 支持按触发获取下一帧数据，符合同步触发测量场景。
+  - id: P-0006
+    name: 显微成像与光学显微实验
+    name_en: Microscopy Imaging & Optical Microscopy Experiments
+    type: experimental_scene
+    rationale: 描述明确提到可用于显微镜成像场景的数据获取。
+  - id: P-0014
+    name: 电压监测与传感器信号采集
+    name_en: Voltage Monitoring & Sensor Signal Acquisition
+    type: experimental_scene
+    rationale: 设备也用于传感器记录，适合信号采集与监测场景。
+  - id: P-0025
+    name: 高速数据采集系统
+    name_en: High-Speed Data Acquisition System
+    type: device_template_tag
+    rationale: 这是一个通用实验采集设备，支持连续或触发方式输出，和数据采集系统模板高度一致。
+  - id: P-2001
+    name: 模拟输入数据采集模块
+    name_en: Analog Input Data Acquisition Module
+    type: device_template_tag
+    rationale: 设备用于从实验硬件读取测量量，和通用DAQ输入模块能力相符。
+  - id: P-0004
+    name: 数据采集与控制接口
+    name_en: Data Acquisition and Control Interface
+    type: device_template_tag
+    rationale: 其动作集中在启停、设置、接收与抓取数据，也符合采控接口类模板。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

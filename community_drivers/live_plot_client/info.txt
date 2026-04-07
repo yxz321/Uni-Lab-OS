@@ -1,40 +1,125 @@
-Device: live_plot_client
-Registry Key: live_plot_client
-Short Description: Live Plot Client是一款后处理设备，主要功能包括关闭、绘图、设备连接、运动控制。
-
-Categories:
-- 后处理设备
-
-Related Tags (from tag 标签列表.csv):
-- [4314] 后处理设备 / Post-processing Equipment (experimental_step)
-
-Atom Actions (13):
-- auto-append_xy -> append_xy [UniLabJsonCommand] goal_params: label, name, x, y
-- auto-append_y -> append_y [UniLabJsonCommand] goal_params: label, name, point, scatter, start_step, timeaxis, vline, xname, xscale, yname, yscale
-- auto-append_z -> append_z [UniLabJsonCommand] goal_params: arr, name, start_step, xname, xscale, yname, yscale, zname, zscale
-- auto-clear -> clear [UniLabJsonCommand] goal_params: name
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-disconnect_received -> disconnect_received [UniLabJsonCommand] goal_params: none
-- auto-hide -> hide [UniLabJsonCommand] goal_params: name
-- auto-label -> label [UniLabJsonCommand] goal_params: name, text
-- auto-plot_xy -> plot_xy [UniLabJsonCommand] goal_params: label, name, scatter, text, timeaxis, vline, xname, xs, xscale, yname, ys, yscale
-- auto-plot_y -> plot_y [UniLabJsonCommand] goal_params: arr, extent, label, name, start_step
-- auto-plot_z -> plot_z [UniLabJsonCommand] goal_params: arr, extent, name, start_step, text, xname, xscale, yname, yscale, zname, zscale
-- auto-remove -> remove [UniLabJsonCommand] goal_params: name
-- auto-send_to_plotter -> send_to_plotter [UniLabJsonCommand] goal_params: arr, meta
-
-Driver Functions (14):
-- LivePlotClient.__init__(self, timeout, size) (line 82)
-- LivePlotClient.close(self) (line 112)
-- LivePlotClient.send_to_plotter(self, meta, arr) (line 116)
-- LivePlotClient.plot_y(self, name, arr, extent, start_step, label) (line 160)
-- LivePlotClient.plot_z(self, name, arr, extent, start_step, xname, xscale, yname, yscale, zname, zscale, text) (line 179)
-- LivePlotClient.plot_xy(self, name, xs, ys, label, xname, xscale, yname, yscale, scatter, timeaxis, vline, text) (line 208)
-- LivePlotClient.append_y(self, name, point, start_step, label, xname, xscale, yname, yscale, scatter, timeaxis, vline) (line 235)
-- LivePlotClient.append_xy(self, name, x, y, label) (line 254)
-- LivePlotClient.append_z(self, name, arr, start_step, xname, xscale, yname, yscale, zname, zscale) (line 265)
-- LivePlotClient.label(self, name, text) (line 283)
-- LivePlotClient.clear(self, name) (line 292)
-- LivePlotClient.hide(self, name) (line 299)
-- LivePlotClient.remove(self, name) (line 306)
-- LivePlotClient.disconnect_received(self) (line 315)
+live_plot_client:
+  name: 实时绘图客户端
+  name_en: Live Plot Client
+  manufacturer: ''
+  category:
+  - 实验控制仪表板
+  tags:
+  - 表征设备
+  - 后处理设备
+  - 实验数据可视化与分析
+  - 多维实验数据可视化
+  - 实验仪器数据采集与联机控制
+  - 实验控制仪表板
+  description: 用于实验室测量过程中的实时数据可视化客户端，可显示一维曲线、XY 曲线和二维伪彩图/热图，并支持追加数据、清空、隐藏、移除和文本标注等操作，便于在线监测实验信号与扫描结果。
+  description_en: A real-time data visualization client for laboratory measurements.
+    It displays 1D traces, XY curves, and 2D pseudocolor/heatmap data, and supports
+    appending data, clearing, hiding, removing, and adding text labels for live monitoring
+    of signals and scan results.
+  class:
+    action_value_mappings:
+      auto-close:
+        schema:
+          description: 关闭实时绘图客户端。
+          description_en: Close the live plotting client.
+      auto-send_to_plotter:
+        schema:
+          description: 向绘图器发送数据和元数据。
+          description_en: Send data and metadata to the plotter.
+      auto-plot_y:
+        schema:
+          description: 绘制或更新一维 Y 数据曲线。
+          description_en: Plot or update a 1D Y-data trace.
+      auto-plot_z:
+        schema:
+          description: 绘制或更新二维 Z 数据图像/热图。
+          description_en: Plot or update a 2D Z-data image/heatmap.
+      auto-plot_xy:
+        schema:
+          description: 绘制或更新 XY 数据曲线。
+          description_en: Plot or update XY data curves.
+      auto-append_y:
+        schema:
+          description: 向一维 Y 曲线追加一个数据点。
+          description_en: Append one data point to a 1D Y trace.
+      auto-append_xy:
+        schema:
+          description: 向 XY 曲线追加一个坐标点。
+          description_en: Append one coordinate point to an XY trace.
+      auto-append_z:
+        schema:
+          description: 向二维 Z 数据图追加一行或一块数据。
+          description_en: Append a row or block of data to a 2D Z-data plot.
+      auto-label:
+        schema:
+          description: 为指定图形设置文本标签或注释。
+          description_en: Set a text label or annotation for a specified plot.
+      auto-clear:
+        schema:
+          description: 清空指定图形或全部图形的数据。
+          description_en: Clear the data of a specified plot or all plots.
+      auto-hide:
+        schema:
+          description: 隐藏指定图形或全部图形。
+          description_en: Hide a specified plot or all plots.
+      auto-remove:
+        schema:
+          description: 移除指定图形或全部图形。
+          description_en: Remove a specified plot or all plots.
+      auto-disconnect_received:
+        schema:
+          description: 处理绘图器断开连接事件。
+          description_en: Handle a plotter disconnection event.
+auto_annotation_metadata:
+  registry_key: live_plot_client
+  annotation_workflow_version: v4
+  tag_hints:
+  - live plotting
+  - laboratory data visualization
+  - real-time monitoring
+  - 1D curve plotting
+  - XY plotting
+  - 2D heatmap visualization
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 用于在线观察实验信号和扫描结果，是测量表征过程中的实时可视化前端。
+  - id: '4314'
+    name: 后处理设备
+    name_en: Post-processing Equipment
+    type: experimental_step
+    rationale: 支持清理、隐藏、移除和标注图形，也常用于实验结果的快速检查与整理。
+  - id: P-1101
+    name: 实验数据可视化与分析
+    name_en: Experimental Data Visualization & Analysis
+    type: experimental_domain
+    rationale: 设备功能核心是实验数据的实时可视化与分析展示。
+  - id: P-1102
+    name: 多维实验数据可视化
+    name_en: Multidimensional Experimental Data Visualization
+    type: experimental_scene
+    rationale: 支持1D曲线、XY曲线和2D热图，明显对应多维实验数据展示。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 支持数据追加与在线监测，适合采集中同步显示的联机控制场景。
+  - id: P-9907
+    name: 实验控制仪表板
+    name_en: Experiment Control Dashboard
+    type: device_template_tag
+    rationale: 作为实时绘图客户端，它承担实验过程中信号和扫描结果的前端监视面板角色。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

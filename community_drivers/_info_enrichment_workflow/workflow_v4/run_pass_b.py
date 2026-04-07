@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -58,6 +59,11 @@ Rules:
 - Use only the evidence provided in the device summaries. Do not assume hidden registry priors.
 - Output JSON only.
 """
+
+
+def log_progress(stage: str, message: str) -> None:
+    timestamp = time.strftime('%H:%M:%S')
+    print(f'[{timestamp}] [{stage}] {message}', flush=True)
 
 
 def load_env_file(path: Path) -> None:
@@ -208,11 +214,16 @@ def main() -> None:
 
     devices_data: list[dict[str, Any]] = []
     device_dirs = list_batch_device_dirs(args.signals_dir)
+    total = len(device_dirs)
+    failures = 0
 
-    for device_dir in device_dirs:
+    for index, device_dir in enumerate(device_dirs, start=1):
+        log_progress('Pass B', f'准备设备 {index}/{total}: {device_dir.name}')
         profile_path = device_dir / '02_device_profile_api.json'
         if not profile_path.exists():
             print(f'skip {device_dir.name}: missing 02')
+            failures += 1
+            log_progress('Pass B', f'跳过设备 {index}/{total}: {device_dir.name}，累计失败 {failures}')
             continue
 
         profile = json.loads(profile_path.read_text(encoding='utf-8'))
@@ -227,6 +238,7 @@ def main() -> None:
             'tag_hints': parsed.get('tag_hints', []),
             'actions': parsed.get('actions', []),
         })
+        log_progress('Pass B', f'已收集设备 {index}/{total}: {device_dir.name}，累计失败 {failures}')
 
     if not devices_data:
         raise SystemExit('No devices with both 01 and 02 artifacts')
@@ -256,6 +268,7 @@ def main() -> None:
         print(f'dry-run: wrote request to {trace_root}')
         return
 
+    log_progress('Pass B', f'开始批量标签请求，设备数 {len(devices_data)}')
     req = urllib.request.Request(
         f'{base_url}/responses',
         data=json.dumps(payload).encode('utf-8'),
@@ -280,9 +293,11 @@ def main() -> None:
     device_results = validate_parsed_response(parsed)
     results_by_device = {d['device']: d for d in device_results}
 
-    for device_dir in device_dirs:
+    for index, device_dir in enumerate(device_dirs, start=1):
         device_name = device_dir.name
         if device_name not in results_by_device:
+            failures += 1
+            log_progress('Pass B', f'缺少结果 {index}/{total}: {device_name}，累计失败 {failures}')
             continue
         result = results_by_device[device_name]
         (device_dir / '_batch_tag_api.json').write_text(
@@ -294,6 +309,10 @@ def main() -> None:
             encoding='utf-8',
         )
         print(f'wrote tag results for {device_name}')
+        log_progress('Pass B', f'完成设备 {index}/{total}: {device_name}，累计失败 {failures}')
+
+    if failures:
+        raise SystemExit(f'Pass B failed for {failures} device(s)')
 
 
 if __name__ == '__main__':

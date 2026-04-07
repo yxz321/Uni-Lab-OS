@@ -1,111 +1,74 @@
-device: catalog
-registry_key: catalog
-device_identity:
-  manufacturer: Open Source
-  model:
-    name: Catalog
-    type: device
-  module_path: unilabos.devices.generic.catalog:Catalog
-description:
-  text_en: File-backed catalog datastore for experiment records, providing append/read/update/delete-restore operations over newline-delimited JSON manifests.
-  method: local
-description_evidence:
-  web: []
-  local:
-  - 'registry.name: Catalog'
-  - 'registry.description: Catalog是一款实验执行&合成设备，主要功能包括关闭、写入数据、启动、记录、读取数据、运行。支持Signal, Slot, add deleted indexes等操作。'
-  - 'driver.class_doc: A new line delimited file that has records delimited by newlines. '
-  - 'actions include: write_record, close'
-related_tags:
-- id: '4313'
-  name: 实验执行&合成设备
-  name_en: Experiment Execution & Synthesis Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: '4313'
-  rationale: Matched from registry metadata and action/description semantics.
-  signals:
-  - registry.tags
-  - registry.category
-  - name
-  - model
-  - manufacturer
-  - module_path
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-write_record
-  title: write_record
-  parameters:
-  - record
-  command_type: UniLabJsonCommand
-  description_en: Write record.
-  evidence_source: name_params
-- name: auto-close
-  title: close
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Close connection or stream.
-  evidence_source: name_params
-driver_functions:
-  compact_signatures:
-  - Seekable.__init__(self, file, read_only, line_lengths) (line 91)
-  - Seekable._read_contents(self) (line 109)
-  - Seekable.__enter__(self) (line 123)
-  - Seekable.writeline(self, contents) (line 126)
-  - Seekable._line_start_offset(self, line_number) (line 143)
-  - Seekable._line_end_offset(self, line_number) (line 146)
-  - Seekable._offset_until(self, line_index) (line 149)
-  - Seekable.readline(self) (line 154)
-  - Seekable.seek_line_start(self, line_number) (line 161)
-  - Seekable.seek_end_of_file(self) (line 164)
-  - Seekable.truncate_until_end(self, line_number) (line 167)
-  - Seekable.read_from(self, line_number) (line 175)
-  - Seekable.update_line(self, line_number, contents) (line 187)
-  - Seekable.lines(self) (line 196)
-  - Seekable.has_content(self) (line 199)
-  - Seekable.close(self) (line 202)
-  - Seekable.__exit__(self, type, value, traceback) (line 205)
-  - Catalog.__init__(self, path, read_only, start_index) (line 217)
-  - Catalog._exit_handler(self) (line 227)
-  - Catalog.write_record(self, record) (line 231)
-  - Catalog.close(self) (line 239)
-  - CatalogMetadata.__init__(self, catalog_path, read_only, start_index) (line 249)
-  - CatalogMetadata.update_line_lengths(self, new_lengths) (line 274)
-  - CatalogMetadata.line_lengths(self) (line 279)
-  - CatalogMetadata.start_index(self) (line 283)
-  - CatalogMetadata._update(self) (line 287)
-  - CatalogMetadata.close(self) (line 293)
-  - Manifest.__init__(self, base_path, inputs, types, metadata, max_len, read_only) (line 309)
-  - Manifest.write_record(self, record) (line 368)
-  - Manifest.delete_records(self, record_indexes) (line 384)
-  - Manifest.restore_records(self, record_indexes) (line 394)
-  - Manifest._add_catalog(self) (line 404)
-  - Manifest._read_metadata(self, metadata) (line 418)
-  - Manifest._read_contents(self) (line 428)
-  - Manifest._write_contents(self) (line 452)
-  - Manifest._update_catalog_metadata(self, update) (line 460)
-  - Manifest._update_session_info(self) (line 472)
-  - Manifest.create_new_session_id(self) (line 483)
-  - Manifest.add_deleted_indexes(self, indexes) (line 490)
-  - Manifest.close(self) (line 496)
-  - Manifest.write_metadata(self) (line 510)
-  - Manifest.__iter__(self) (line 514)
-  - Manifest.__len__(self) (line 517)
-  - ManifestIterator.__init__(self, manifest) (line 528)
-  - ManifestIterator.__next__(self) (line 535)
-  - ManifestIterator.__len__(self) (line 573)
-  note: Compact list retained by design; action semantics are documented in atom_actions.
-schema_version: v2
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 2
-  driver_function_count: 46
-  related_tag_count: 1
+catalog:
+  name: 换行分隔 JSON 数据目录
+  name_en: Newline-Delimited JSON Catalog
+  manufacturer: ''
+  category:
+  - 换行分隔JSON数据目录
+  tags:
+  - 物流/机械
+  - 实验室自动化与仪器集成
+  - 实验数据管理与记录
+  - 追加式实验记录与索引访问
+  - 换行分隔JSON数据目录
+  description: 一种用于保存实验或机器人采集数据的记录型数据文件组件。它以每行一条 JSON 记录的形式存储数据，并配合清单元数据管理，适合顺序追加、日志化保存以及按索引定位读取记录。
+  description_en: A record-oriented data file component for storing experimental or
+    robotics data. It stores one JSON object per line and works with manifest metadata,
+    making it suitable for append-only logging and indexed access to stored records.
+  class:
+    action_value_mappings:
+      auto-write_record:
+        schema:
+          description: 写入一条记录并更新清单。
+          description_en: Write a record and update the manifest.
+      auto-close:
+        schema:
+          description: 关闭数据目录文件。
+          description_en: Close the catalog file.
+auto_annotation_metadata:
+  registry_key: catalog
+  annotation_workflow_version: v4
+  tag_hints:
+  - newline-delimited JSON
+  - data logging
+  - manifest metadata
+  - indexed record access
+  - experiment data storage
+  - robotics data collection
+  existing_tags:
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 该组件不直接做反应或测量，更像实验数据流转、记录与管理的支撑环节。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 目录组件用于实验或机器人采集数据的统一记录，服务于自动化系统集成。
+  proposed_new_tags:
+  - id: P-9103
+    name: 实验数据管理与记录
+    name_en: Experimental Data Management & Logging
+    type: experimental_domain
+    rationale: 该组件核心功能是实验/机器人数据的顺序记录、保存与管理。
+  - id: P-9104
+    name: 追加式实验记录与索引访问
+    name_en: Append-Only Experimental Logging & Indexed Access
+    type: experimental_scene
+    rationale: 描述强调按行追加、日志化保存和按索引定位读取，适合这一数据记录场景。
+  - id: P-9105
+    name: 换行分隔JSON数据目录
+    name_en: Newline-Delimited JSON Data Catalog
+    type: device_template_tag
+    rationale: 设备本身就是一种NDJSON记录目录组件，并带有manifest元数据管理。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

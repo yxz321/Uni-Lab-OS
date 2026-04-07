@@ -1,52 +1,99 @@
-Device: integer_id_rule
-Registry Key: integer_id_rule
-Short Description: A rule which generates tasks based on a template
-
-Categories:
-- generic
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (7):
-- auto-bid -> bid [UniLabJsonCommand] goal_params: bid
-- auto-inactivate -> inactivate [UniLabJsonCommand] goal_params: none
-- auto-info -> info [UniLabJsonCommand] goal_params: none
-- auto-make_range_available -> make_range_available [UniLabJsonCommand] goal_params: end, start
-- auto-mark_complete -> mark_complete [UniLabJsonCommand] goal_params: info
-- auto-mark_release_complete -> mark_release_complete [UniLabJsonCommand] goal_params: n_tasks
-- auto-poll_timeouts -> poll_timeouts [UniLabJsonCommand] goal_params: none
-
-Driver Functions (32):
-- IntegerIDRule.__init__(self, ruleID, task_template, inputs_by_task, max_task_ID, task_timeout, rule_timeout, on_completion) (line 237)
-- IntegerIDRule.mark_release_complete(self, n_tasks) (line 294)
-- IntegerIDRule._update_nums(self) (line 331)
-- IntegerIDRule._update_cost(self) (line 336)
-- IntegerIDRule.make_range_available(self, start, end) (line 346)
-- IntegerIDRule.bid(self, bid) (line 381)
-- IntegerIDRule.mark_complete(self, info) (line 461)
-- IntegerIDRule.advert(self) (line 506)
-- IntegerIDRule.expired(self) (line 554)
-- IntegerIDRule.finished(self) (line 560)
-- IntegerIDRule.inactivate(self) (line 574)
-- IntegerIDRule.info(self) (line 581)
-- IntegerIDRule.poll_timeouts(self) (line 606)
-- RuleServer.__init__(self) (line 641)
-- RuleServer._poll(self) (line 678)
-- RuleServer._poll_rules(self) (line 682)
-- RuleServer.stop(self) (line 732)
-- RuleServer.task_advertisements(self) (line 739)
-- RuleServer.bid_on_tasks(self, body) (line 777)
-- RuleServer.add_integer_id_rule(self, max_tasks, release_start, release_end, ruleID, timeout, body) (line 813)
-- RuleServer.release_rule_tasks(self, ruleID, release_start, release_end, body) (line 872)
-- RuleServer.inactivate_rule(self, ruleID) (line 909)
-- RuleServer.handin(self, body) (line 918)
-- RuleServer.mark_release_complete(self, ruleID, n_tasks) (line 955)
-- RuleServer.get_queues(self) (line 992)
-- RuleServer.get_queue_info(self) (line 1013)
-- RuleServer.status(self) (line 1025)
-- WFRuleServer.__init__(self, port, bind_addr) (line 1070)
-- ServerThread.__init__(self, port, bind_addr, profile) (line 1108)
-- ServerThread.run(self) (line 1114)
-- ServerThread.shutdown(self) (line 1145)
-- on_SIGHUP(signum, frame) (line 1153)
+integer_id_rule:
+  name: 整数编号任务规则
+  name_en: Integer ID Rule
+  manufacturer: ''
+  category:
+  - 分布式实验任务提交器
+  tags:
+  - 表征设备
+  - 实验室自动化与仪器集成
+  - 分布式实验数据处理
+  - 显微成像与光学显微实验
+  - 分布式实验任务提交器
+  description: 这是一个用于集群计算工作流的规则对象，而非物理实验设备。它按整数任务编号生成、发布和跟踪任务，常用于显微成像数据分析或配方型数据处理流程中的任务调度、完成状态管理与超时重试控制。
+  description_en: This is a software workflow rule object rather than a physical laboratory
+    device. It generates, releases, and tracks tasks indexed by integer IDs, and is
+    used in cluster-based microscopy data analysis or recipe-style processing workflows
+    for task scheduling, completion tracking, and timeout/retry handling.
+  class:
+    action_value_mappings:
+      auto-mark_release_complete:
+        schema:
+          description: 标记该规则的任务释放已完成，并可定义最终任务数量。
+          description_en: Mark task release for this rule as complete, and optionally
+            define the final number of tasks.
+      auto-make_range_available:
+        schema:
+          description: 将指定编号范围内的任务设为可用。
+          description_en: Make a specified range of task IDs available.
+      auto-bid:
+        schema:
+          description: 对可分配任务发起竞标并返回匹配的任务。
+          description_en: Submit a bid for available tasks and return any matched
+            tasks.
+      auto-mark_complete:
+        schema:
+          description: 标记一组任务为已完成或失败。
+          description_en: Mark a set of tasks as completed or failed.
+      auto-inactivate:
+        schema:
+          description: 将该规则设为非活动状态，使其不再发布任务广告。
+          description_en: Set the rule inactive so it no longer advertises tasks.
+      auto-info:
+        schema:
+          description: 获取该规则的任务数量与运行状态信息。
+          description_en: Get task counts and runtime status information for this
+            rule.
+      auto-poll_timeouts:
+        schema:
+          description: 轮询任务超时状态并更新相关记录。
+          description_en: Poll for task timeouts and update related status records.
+auto_annotation_metadata:
+  registry_key: integer_id_rule
+  annotation_workflow_version: v4
+  tag_hints:
+  - task scheduling
+  - workflow orchestration
+  - cluster computing
+  - microscopy data analysis
+  - distributed processing
+  - timeout and retry management
+  - rule-based task generation
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该对象主要用于显微成像数据分析等表征数据处理流程中的任务调度与状态跟踪。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 其核心功能是规则化发布、领取、完成与超时重试，属于实验自动化工作流编排。
+  - id: P-60008
+    name: 分布式实验数据处理
+    name_en: Distributed Experimental Data Processing
+    type: experimental_scene
+    rationale: 描述中明确提到集群计算工作流和分布式任务调度，直接对应分布式实验数据处理场景。
+  - id: P-0006
+    name: 显微成像与光学显微实验
+    name_en: Microscopy Imaging & Optical Microscopy Experiments
+    type: experimental_scene
+    rationale: 该规则对象常用于显微成像数据分析任务的调度与完成状态管理。
+  - id: P-60009
+    name: 分布式实验任务提交器
+    name_en: Distributed Experimental Task Submitter
+    type: device_template_tag
+    rationale: 它按整数任务编号生成、发布并分配任务给工作节点，和分布式任务提交/派发器高度相符。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

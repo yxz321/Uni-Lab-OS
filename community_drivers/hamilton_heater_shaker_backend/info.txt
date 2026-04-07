@@ -1,55 +1,120 @@
-Device: hamilton_heater_shaker_backend
-Registry Key: hamilton_heater_shaker_backend
-Short Description: Hamilton Heater Shaker Backend 后端模块 恒温摇床 后端控制器是由Hamilton Company生产的专业实验设备。
-
-Categories:
-- 恒温摇床
-
-Related Tags (from tag 标签列表.csv):
-- [4389] 恒温摇床 / Constant Temperature Shaker (device_template_tag)
-
-Atom Actions (13):
-- auto-deactivate -> deactivate [UniLabJsonCommand] goal_params: none
-- auto-get_current_temperature -> get_current_temperature [UniLabJsonCommand] goal_params: none
-- auto-get_edge_temperature -> get_edge_temperature [UniLabJsonCommand] goal_params: none
-- auto-get_is_shaking -> get_is_shaking [UniLabJsonCommand] goal_params: none
-- auto-lock_plate -> lock_plate [UniLabJsonCommand] goal_params: none
-- auto-send_hhs_command -> send_hhs_command [UniLabJsonCommand] goal_params: command, index
-- auto-serialize -> serialize [UniLabJsonCommand] goal_params: none
-- auto-set_temperature -> set_temperature [UniLabJsonCommand] goal_params: temperature
-- auto-shake -> shake [UniLabJsonCommand] goal_params: acceleration, direction, speed, timeout
-- auto-stop_shaking -> stop_shaking [UniLabJsonCommand] goal_params: none
-- auto-supports_active_cooling -> supports_active_cooling [UniLabJsonCommand] goal_params: none
-- auto-supports_locking -> supports_locking [UniLabJsonCommand] goal_params: none
-- auto-unlock_plate -> unlock_plate [UniLabJsonCommand] goal_params: none
-
-Driver Functions (29):
-- HamiltonHeaterShakerInterface.send_hhs_command(self, index, command, **kwargs) [async] (line 88)
-- HamiltonHeaterShakerBox.__init__(self, id_vendor, id_product, device_address, serial_number) (line 93)
-- HamiltonHeaterShakerBox._generate_id(self) (line 108)
-- HamiltonHeaterShakerBox.setup(self) [async] (line 113)
-- HamiltonHeaterShakerBox.stop(self) [async] (line 119)
-- HamiltonHeaterShakerBox.send_hhs_command(self, index, command, **kwargs) [async] (line 122)
-- HamiltonHeaterShakerBackend.__init__(self, *args, **kwargs) (line 132)
-- HamiltonHeaterShakerBackend.supports_active_cooling(self) (line 136)
-- HamiltonHeaterShakerBackend.__init__(self, index, interface) (line 140)
-- HamiltonHeaterShakerBackend.setup(self) [async] (line 152)
-- HamiltonHeaterShakerBackend.stop(self) [async] (line 160)
-- HamiltonHeaterShakerBackend.serialize(self) (line 164)
-- HamiltonHeaterShakerBackend.shake(self, speed, direction, acceleration, timeout) [async] (line 175)
-- HamiltonHeaterShakerBackend.stop_shaking(self) [async] (line 206)
-- HamiltonHeaterShakerBackend.get_is_shaking(self) [async] (line 211)
-- HamiltonHeaterShakerBackend._move_plate_lock(self, position) [async] (line 216)
-- HamiltonHeaterShakerBackend.supports_locking(self) (line 221)
-- HamiltonHeaterShakerBackend.lock_plate(self) [async] (line 225)
-- HamiltonHeaterShakerBackend.unlock_plate(self) [async] (line 229)
-- HamiltonHeaterShakerBackend._initialize_lock(self) [async] (line 233)
-- HamiltonHeaterShakerBackend._initialize_shaker_drive(self) [async] (line 238)
-- HamiltonHeaterShakerBackend._start_shaking(self, direction, speed, acceleration) [async] (line 243)
-- HamiltonHeaterShakerBackend._stop_shaking(self) [async] (line 252)
-- HamiltonHeaterShakerBackend._wait_for_stop(self) [async] (line 257)
-- HamiltonHeaterShakerBackend.set_temperature(self, temperature) [async] (line 262)
-- HamiltonHeaterShakerBackend._get_current_temperature(self) [async] (line 269)
-- HamiltonHeaterShakerBackend.get_current_temperature(self) [async] (line 278)
-- HamiltonHeaterShakerBackend.get_edge_temperature(self) [async] (line 284)
-- HamiltonHeaterShakerBackend.deactivate(self) [async] (line 290)
+hamilton_heater_shaker_backend:
+  name: Hamilton微孔板加热振荡器
+  name_en: Hamilton Microplate Heater Shaker
+  manufacturer: Hamilton
+  category:
+  - 热混匀仪
+  tags:
+  - 备料&前处理设备
+  - 实验室自动化与仪器集成
+  - 移液站产品
+  - 热混匀仪
+  - 微孔板样品孵育与混匀
+  description: 用于微孔板样品加热与振荡混匀的实验室设备，可设定温度、启动或停止振荡，并可锁定板位以提高运行稳定性。常用于样品孵育、反应混合及自动化液体处理流程中的板上处理。
+  description_en: A laboratory device for heating and shaking microplates, with controllable
+    temperature, start/stop shaking, and plate locking for stable operation. It is
+    commonly used for sample incubation, reaction mixing, and on-deck plate processing
+    in automated liquid handling workflows.
+  class:
+    action_value_mappings:
+      auto-send_hhs_command:
+        schema:
+          description: 向加热振荡器发送底层控制指令。
+          description_en: Send a low-level control command to the heater shaker.
+      auto-supports_active_cooling:
+        schema:
+          description: 获取设备是否支持主动冷却。
+          description_en: Get whether the device supports active cooling.
+      auto-serialize:
+        schema:
+          description: 导出设备配置或状态信息。
+          description_en: Export the device configuration or state information.
+      auto-shake:
+        schema:
+          description: 以设定速度、方向和加速度振荡微孔板；必要时会先锁定板位。
+          description_en: Shake the microplate at the specified speed, direction,
+            and acceleration; the plate may be locked first if needed.
+      auto-stop_shaking:
+        schema:
+          description: 停止振荡。
+          description_en: Stop shaking.
+      auto-get_is_shaking:
+        schema:
+          description: 获取设备是否正在振荡。
+          description_en: Get whether the device is currently shaking.
+      auto-supports_locking:
+        schema:
+          description: 获取设备是否支持板位锁定。
+          description_en: Get whether the device supports plate locking.
+      auto-lock_plate:
+        schema:
+          description: 锁定微孔板位置。
+          description_en: Lock the microplate in place.
+      auto-unlock_plate:
+        schema:
+          description: 解锁微孔板位置。
+          description_en: Unlock the microplate.
+      auto-set_temperature:
+        schema:
+          description: 设置加热温度。
+          description_en: Set the heating temperature.
+      auto-get_current_temperature:
+        schema:
+          description: 获取当前温度。
+          description_en: Get the current temperature.
+      auto-get_edge_temperature:
+        schema:
+          description: 获取边缘区域温度。
+          description_en: Get the edge temperature.
+      auto-deactivate:
+        schema:
+          description: 关闭加热。
+          description_en: Turn off heating.
+auto_annotation_metadata:
+  registry_key: hamilton_heater_shaker_backend
+  annotation_workflow_version: v4
+  tag_hints:
+  - microplate heating
+  - microplate shaking
+  - sample incubation
+  - plate locking
+  - temperature control
+  - lab automation
+  existing_tags:
+  - id: '4312'
+    name: 备料&前处理设备
+    name_en: Material Preparation & Pre-processing Equipment
+    type: experimental_step
+    rationale: 该设备主要用于微孔板样品的加热、孵育和混匀，属于前处理设备。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 描述强调其在自动化液体处理流程中的板上处理角色。
+  - id: '4334'
+    name: 移液站产品
+    name_en: Liquid Handling Station Products
+    type: experimental_scene
+    rationale: 该加热振荡器常作为自动化移液平台上的板处理模块使用。
+  - id: '4421'
+    name: 热混匀仪
+    name_en: Thermomixer
+    type: device_template_tag
+    rationale: 设备具备控温和振荡混匀能力，与热混匀仪类别高度接近。
+  proposed_new_tags:
+  - id: P-40003
+    name: 微孔板样品孵育与混匀
+    name_en: Microplate Sample Incubation & Mixing
+    type: experimental_scene
+    rationale: 该设备专门面向微孔板加热孵育、振荡混匀和板上反应处理。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

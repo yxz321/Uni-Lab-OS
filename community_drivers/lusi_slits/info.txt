@@ -1,71 +1,134 @@
-Device: lusi_slits
-Registry Key: lusi_slits
-Short Description: LUSI Beamline Slits是由SLAC National Accelerator Lab生产的表征设备，主要功能包括关闭、打开、状态查询、运动控制。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (17):
-- auto-block -> block [UniLabJsonCommand] goal_params: none
-- auto-calc_lightpath_state -> calc_lightpath_state [UniLabJsonCommand] goal_params: xwidth_readback, ywidth_readback
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-current_aperture -> current_aperture [UniLabJsonCommand] goal_params: none
-- auto-egu -> egu [UniLabJsonCommand] goal_params: none
-- auto-format_status_info -> format_status_info [UniLabJsonCommand] goal_params: status_info
-- auto-inserted -> inserted [UniLabJsonCommand] goal_params: none
-- auto-move -> move [UniLabJsonCommand] goal_params: height, moved_cb, timeout, wait, width
-- auto-open -> open [UniLabJsonCommand] goal_params: none
-- auto-position -> position [UniLabJsonCommand] goal_params: none
-- auto-remove -> remove [UniLabJsonCommand] goal_params: size, timeout, wait
-- auto-removed -> removed [UniLabJsonCommand] goal_params: none
-- auto-set -> set [UniLabJsonCommand] goal_params: size
-- auto-stage -> stage [UniLabJsonCommand] goal_params: none
-- auto-subscribe -> subscribe [UniLabJsonCommand] goal_params: cb, event_type, run
-- auto-unstage -> unstage [UniLabJsonCommand] goal_params: none
-- auto-y_states -> y_states [UniLabJsonCommand] goal_params: none
-
-Driver Functions (41):
-- SlitsBase.__init__(self, *args, nominal_aperture, **kwargs) (line 143)
-- SlitsBase.format_status_info(self, status_info) (line 156)
-- SlitsBase.move(self, width, height, *, wait, moved_cb, timeout) (line 204)
-- SlitsBase.__call__(self, width, height) (line 263)
-- SlitsBase.current_aperture(self) (line 273)
-- SlitsBase.position(self) (line 281)
-- SlitsBase.remove(self, size, wait, timeout, **kwargs) (line 284)
-- SlitsBase.set(self, size) (line 319)
-- SlitsBase.stage(self) (line 323)
-- SlitsBase.unstage(self) (line 330)
-- SlitsBase.subscribe(self, cb, event_type, run) (line 343)
-- SlitsBase._aperture_changed(self, *args, **kwargs) (line 366)
-- SlitsBase.calc_lightpath_state(self, xwidth, ywidth) (line 374)
-- SlitsBase.inserted(self) (line 391)
-- SlitsBase.removed(self) (line 395)
-- BadSlitPositionerBase.__init__(self, prefix, *, slit_type, limits, **kwargs) (line 407)
-- LusiSlitPositioner.egu(self) (line 449)
-- LusiSlitPositioner._setup_move(self, position) (line 453)
-- LusiSlits.__init__(self, *args, **kwargs) (line 493)
-- LusiSlits.open(self) (line 516)
-- LusiSlits.close(self) (line 521)
-- LusiSlits.block(self) (line 526)
-- LusiSlits.calc_lightpath_state(self, xwidth_readback, ywidth_readback) (line 531)
-- BeckhoffSlitPositioner._execute_move(self, *args, value, **kwargs) (line 562)
-- BeckhoffSlitPositioner._reset_actuate(self, *args, value, old_value, **kwargs) (line 567)
-- BeckhoffSlits.__init__(self, prefix, *, name, **kwargs) (line 600)
-- BeckhoffSlits._exec_handler(self, *args, value, old_value, **kwargs) (line 609)
-- BeckhoffSlits._reset_exec_move(self, *args, value, old_value, **kwargs) (line 616)
-- BeckhoffSlits._dmov_fanout(self, *args, value, **kwargs) (line 624)
-- BeckhoffSlits._update_top_done(self, value, *args, **kwargs) (line 632)
-- BeckhoffSlits._update_bottom_done(self, value, *args, **kwargs) (line 638)
-- BeckhoffSlits._update_north_done(self, value, *args, **kwargs) (line 644)
-- BeckhoffSlits._update_south_done(self, value, *args, **kwargs) (line 650)
-- BeckhoffSlits._update_dmov(self, *args, **kwargs) (line 655)
-- BeckhoffSlits.calc_lightpath_state(self, xwidth_readback, ywidth_readback) (line 670)
-- MetaDataDict.__getattr__(self, item) (line 703)
-- MetaDataDict.__setattr__(self, key, value) (line 727)
-- MetaDataDict.__delattr__(self, key) (line 740)
-- SL2K4Slits.__init__(self, prefix, cam, data_source, *, name, **kwargs) (line 783)
-- _rtd_fields(cls, attr_base, range_, **kwargs) (line 793)
-- ExitSlits.y_states(self) (line 886)
+lusi_slits:
+  name: 束线狭缝
+  name_en: Beamline Slits
+  manufacturer: ''
+  category:
+  - X射线束线狭缝
+  tags:
+  - 表征设备
+  - 智慧表征与检测中心
+  - X射线束线光路与衰减控制
+  - X射线束线狭缝
+  description: 用于X射线束线中的机械狭缝装置，通过调节水平和垂直方向的开口宽度与中心位置来限定束斑尺寸、调整束流通过区域，并可在需要时关闭或完全阻挡光束。该类设备常用于束流整形、对准、光路管理和实验站前的束流控制。
+  description_en: A mechanical slit device used on X-ray beamlines to define the beam
+    aperture by adjusting the horizontal and vertical opening widths and center positions.
+    It is used to shape the beam, control the transmitted region, align the beam path,
+    and close or fully block the beam when needed for lightpath control and experiment
+    setup.
+  class:
+    action_value_mappings:
+      auto-block:
+        schema:
+          description: 使狭缝叶片重叠以完全阻挡光束。
+          description_en: Overlap the slit blades to fully block the beam.
+      auto-calc_lightpath_state:
+        schema:
+          description: 根据当前狭缝开口计算光路是通过还是被阻挡。
+          description_en: Calculate whether the current slit aperture allows beam
+            transmission or blocks the lightpath.
+      auto-close:
+        schema:
+          description: 关闭狭缝，使开口收至接近零。
+          description_en: Close the slits so the aperture is reduced to nearly zero.
+      auto-open:
+        schema:
+          description: 打开狭缝至预设开口，使光束通过。
+          description_en: Open the slits to a predefined aperture to allow beam transmission.
+      auto-format_status_info:
+        schema:
+          description: 整理并输出当前狭缝状态信息。
+          description_en: Format and report the current slit status information.
+      auto-move:
+        schema:
+          description: 移动狭缝的中心位置或开口尺寸到目标值。
+          description_en: Move the slit center position or aperture size to a target
+            value.
+      auto-current_aperture:
+        schema:
+          description: 获取当前狭缝开口尺寸。
+          description_en: Get the current slit aperture size.
+      auto-position:
+        schema:
+          description: 获取当前狭缝位置。
+          description_en: Get the current slit position.
+      auto-remove:
+        schema:
+          description: 将狭缝打开到不遮挡光束的状态。
+          description_en: Open or retract the slits to a state that does not obstruct
+            the beam.
+      auto-set:
+        schema:
+          description: 设定狭缝的目标位置或目标开口。
+          description_en: Set the target slit position or target aperture.
+      auto-stage:
+        schema:
+          description: 使狭缝进入准备运行状态。
+          description_en: Prepare the slit system for operation.
+      auto-unstage:
+        schema:
+          description: 使狭缝退出准备运行状态。
+          description_en: Return the slit system from its prepared operating state.
+      auto-subscribe:
+        schema:
+          description: 订阅狭缝状态或读数更新。
+          description_en: Subscribe to slit state or readback updates.
+      auto-inserted:
+        schema:
+          description: 获取狭缝是否处于插入光路状态。
+          description_en: Get whether the slits are inserted into the beam path.
+      auto-removed:
+        schema:
+          description: 获取狭缝是否处于移出光路或充分打开状态。
+          description_en: Get whether the slits are removed from the beam path or
+            sufficiently open.
+      auto-egu:
+        schema:
+          description: 获取狭缝运动量的工程单位。
+          description_en: Get the engineering units used for slit motion.
+      auto-y_states:
+        schema:
+          description: 获取狭缝Y方向的可用状态。
+          description_en: Get the available Y-axis slit states.
+auto_annotation_metadata:
+  registry_key: lusi_slits
+  annotation_workflow_version: v4
+  tag_hints:
+  - x-ray beam shaping
+  - beam aperture control
+  - slit width and center adjustment
+  - beam blocking
+  - lightpath control
+  - beamline alignment
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该设备用于X射线束线实验站前的束流整形与光路控制，属于表征实验配套设备。
+  - id: '4325'
+    name: 智慧表征与检测中心
+    name_en: Intelligent Characterization & Testing Center
+    type: experimental_domain
+    rationale: 描述明确指向X射线束线与实验站光路管理，适合归入大型表征检测域。
+  - id: P-5010
+    name: X射线束线光路与衰减控制
+    name_en: X-Ray Beamline Optics & Attenuation Control
+    type: experimental_scene
+    rationale: 束线狭缝直接用于束斑限定、光路管理和挡光，和束线光学控制场景高度一致。
+  - id: P-300001
+    name: X射线束线狭缝
+    name_en: X-Ray Beamline Slits
+    type: device_template_tag
+    rationale: 设备名称和功能均与束线狭缝模板完全匹配。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,75 +1,193 @@
-Device: gass
-Registry Key: gass
-Short Description: GASS Gas Analysis System (EPICS) 透射电镜是由Generic (EPICS)生产的透射电子显微镜，主要功能包括关闭、压力设置、启动、打开。
-
-Categories:
-- 透射电子显微镜
-
-Related Tags (from tag 标签列表.csv):
-- [4456] 透射电子显微镜 / Transmission Electron Microscope (device_template_tag)
-
-Atom Actions (26):
-- auto-close_all_chambers -> close_all_chambers [UniLabJsonCommand] goal_params: none
-- auto-close_all_valves -> close_all_valves [UniLabJsonCommand] goal_params: none
-- auto-close_valve -> close_valve [UniLabJsonCommand] goal_params: io_port
-- auto-do_vacuum_all_chambers -> do_vacuum_all_chambers [UniLabJsonCommand] goal_params: none
-- auto-do_vacuum_manifold -> do_vacuum_manifold [UniLabJsonCommand] goal_params: none
-- auto-fill_all_chambers -> fill_all_chambers [UniLabJsonCommand] goal_params: purge
-- auto-fill_all_chambers_with_a_gas -> fill_all_chambers_with_a_gas [UniLabJsonCommand] goal_params: deltaPressures, enumGas
-- auto-get_edge -> get_edge [UniLabJsonCommand] goal_params: none
-- auto-get_element -> get_element [UniLabJsonCommand] goal_params: none
-- auto-get_extratime_manifold -> get_extratime_manifold [UniLabJsonCommand] goal_params: none
-- auto-get_extratime_manifold_vacuum -> get_extratime_manifold_vacuum [UniLabJsonCommand] goal_params: none
-- auto-get_gas_proportions -> get_gas_proportions [UniLabJsonCommand] goal_params: none
-- auto-get_pressure_vacuum -> get_pressure_vacuum [UniLabJsonCommand] goal_params: none
-- auto-get_pressure_work -> get_pressure_work [UniLabJsonCommand] goal_params: none
-- auto-open_all_chambers -> open_all_chambers [UniLabJsonCommand] goal_params: none
-- auto-open_all_valves -> open_all_valves [UniLabJsonCommand] goal_params: none
-- auto-open_valve -> open_valve [UniLabJsonCommand] goal_params: io_port
-- auto-purge_all_chambers -> purge_all_chambers [UniLabJsonCommand] goal_params: none
-- auto-set_edge -> set_edge [UniLabJsonCommand] goal_params: edge
-- auto-set_element -> set_element [UniLabJsonCommand] goal_params: element
-- auto-set_extratime_manifold -> set_extratime_manifold [UniLabJsonCommand] goal_params: extraTime
-- auto-set_extratime_manifold_vacuum -> set_extratime_manifold_vacuum [UniLabJsonCommand] goal_params: extraTime
-- auto-set_gas_proportions -> set_gas_proportions [UniLabJsonCommand] goal_params: gas_proportions
-- auto-set_pressure_vacuum -> set_pressure_vacuum [UniLabJsonCommand] goal_params: pressVacuum
-- auto-set_pressure_work -> set_pressure_work [UniLabJsonCommand] goal_params: pressWork
-- auto-start -> start [UniLabJsonCommand] goal_params: none
-
-Driver Functions (36):
-- GASS.__init__(self, element, edge, pvValvesDigitalPrefix, pvValvesDigitalPorts, pvPressureI0Prefix, pvPressureI0Mnemonic, pvPressureI1_I2Prefix, pvPressureI1_I2Mnemonic, pressureVacuum, pressureWork, extraTimeManifold, extraTimeManifoldVacuum, argonOrder, heliumOrder, nitrogenOrder) (line 270)
-- GASS.set_element(self, element) (line 355)
-- GASS.get_element(self) (line 359)
-- GASS.set_edge(self, edge) (line 363)
-- GASS.get_edge(self) (line 367)
-- GASS.set_pressure_vacuum(self, pressVacuum) (line 371)
-- GASS.get_pressure_vacuum(self) (line 375)
-- GASS.set_pressure_work(self, pressWork) (line 379)
-- GASS.get_pressure_work(self) (line 383)
-- GASS.set_extratime_manifold(self, extraTime) (line 387)
-- GASS.get_extratime_manifold(self) (line 391)
-- GASS.set_extratime_manifold_vacuum(self, extraTime) (line 395)
-- GASS.get_extratime_manifold_vacuum(self) (line 399)
-- GASS.set_gas_proportions(self, gas_proportions) (line 403)
-- GASS.get_gas_proportions(self) (line 407)
-- GASS.open_valve(self, io_port) (line 414)
-- GASS.open_all_valves(self) (line 422)
-- GASS.open_all_chambers(self) (line 435)
-- GASS.close_valve(self, io_port) (line 448)
-- GASS.close_all_valves(self) (line 456)
-- GASS.close_all_chambers(self) (line 469)
-- GASS.do_vacuum_all_chambers(self) (line 485)
-- GASS.do_vacuum_manifold(self) (line 513)
-- GASS.fill_all_chambers(self, purge) (line 539)
-- GASS.fill_all_chambers_with_a_gas(self, enumGas, deltaPressures) (line 595)
-- GASS.purge_all_chambers(self) (line 643)
-- GASS.start(self) (line 665)
-- GASS.__getChambersPressures(self) (line 686)
-- GASS.__getChamberPressure(self, chamberNumber) (line 707)
-- GASS.__getTargetPressures(self, deltaPressures, indexGas) (line 726)
-- GASS.__waitAllChambersReachPressure(self, targetPressure, greaterThan) (line 748)
-- GASS.__waitEachChamberReachPressure(self, targetPressures, greaterThan) (line 756)
-- GASS.__waitChamberReachPressure(self, chamberNumber, targetPressure, greaterThan) (line 788)
-- GASS.__toggleValve(self, valve, waitTime) (line 857)
-- GASS.__getPortNumbers(self, port_sequences) (line 864)
-- chamberPressTask.__init__(self, number) (line 906)
+gass:
+  name: 气体选择系统
+  name_en: Gas Selection System
+  manufacturer: ''
+  category:
+  - 气体歧管与配气系统
+  tags:
+  - 备料&前处理设备
+  - 实验执行&合成设备
+  - 气体输送与过程控制
+  - 真空系统与高真空实验
+  - 气体供给与混气控制
+  - 高真空/超高真空腔体与仪器配套
+  - X射线成像与束线探测
+  - 气体歧管与配气系统
+  description: 一种用于管理多路气体、真空歧管和多个腔室阀门的气体处理装置。它可对腔室和歧管执行抽真空、氮气吹扫，并按设定压力与比例充入 Ar、He、N2
+    等气体，常用于同步辐射束线中气体电离室或类似检测腔体的准备与运行。
+  description_en: A gas handling and selection device with multiple gas lines, a vacuum
+    manifold, and chamber valves. It can evacuate chambers and the manifold, purge
+    with nitrogen, and fill chambers with gases such as Ar, He, and N2 at defined
+    pressures and proportions. It is commonly used to prepare gas-filled ionization
+    chambers or similar detector chambers on synchrotron beamlines.
+  class:
+    action_value_mappings:
+      auto-close_all_chambers:
+        schema:
+          description: 关闭所有腔室阀门。
+          description_en: Close all chamber valves.
+      auto-close_all_valves:
+        schema:
+          description: 关闭所有阀门。
+          description_en: Close all valves.
+      auto-close_valve:
+        schema:
+          description: 关闭指定阀门。
+          description_en: Close a specified valve.
+      auto-do_vacuum_all_chambers:
+        schema:
+          description: 对所有腔室执行抽真空流程。
+          description_en: Run the vacuum procedure for all chambers.
+      auto-do_vacuum_manifold:
+        schema:
+          description: 对气体歧管执行抽真空流程。
+          description_en: Run the vacuum procedure for the gas manifold.
+      auto-fill_all_chambers:
+        schema:
+          description: 按配置的气体方案为所有腔室充气。
+          description_en: Fill all chambers using the configured gas scheme.
+      auto-fill_all_chambers_with_a_gas:
+        schema:
+          description: 用指定气体为所有腔室充气。
+          description_en: Fill all chambers with a specified gas.
+      auto-open_all_chambers:
+        schema:
+          description: 打开所有腔室阀门。
+          description_en: Open all chamber valves.
+      auto-open_all_valves:
+        schema:
+          description: 打开所有阀门。
+          description_en: Open all valves.
+      auto-open_valve:
+        schema:
+          description: 打开指定阀门。
+          description_en: Open a specified valve.
+      auto-purge_all_chambers:
+        schema:
+          description: 对所有腔室执行吹扫流程。
+          description_en: Run the purge procedure for all chambers.
+      auto-set_edge:
+        schema:
+          description: 设置吸收边。
+          description_en: Set the absorption edge.
+      auto-set_element:
+        schema:
+          description: 设置目标元素。
+          description_en: Set the target element.
+      auto-set_extratime_manifold:
+        schema:
+          description: 设置歧管充气额外等待时间。
+          description_en: Set the extra wait time for manifold filling.
+      auto-set_extratime_manifold_vacuum:
+        schema:
+          description: 设置歧管抽真空额外等待时间。
+          description_en: Set the extra wait time for manifold vacuum.
+      auto-set_gas_proportions:
+        schema:
+          description: 设置气体比例。
+          description_en: Set the gas proportions.
+      auto-set_pressure_vacuum:
+        schema:
+          description: 设置目标真空压力。
+          description_en: Set the target vacuum pressure.
+      auto-set_pressure_work:
+        schema:
+          description: 设置目标工作压力。
+          description_en: Set the target working pressure.
+      auto-start:
+        schema:
+          description: 启动完整的吹扫和充气流程。
+          description_en: Start the full purge-and-fill procedure.
+      auto-get_element:
+        schema:
+          description: 获取目标元素。
+          description_en: Get the target element.
+      auto-get_edge:
+        schema:
+          description: 获取吸收边。
+          description_en: Get the absorption edge.
+      auto-get_pressure_vacuum:
+        schema:
+          description: 获取目标真空压力。
+          description_en: Get the target vacuum pressure.
+      auto-get_pressure_work:
+        schema:
+          description: 获取目标工作压力。
+          description_en: Get the target working pressure.
+      auto-get_extratime_manifold:
+        schema:
+          description: 获取歧管充气额外等待时间。
+          description_en: Get the extra wait time for manifold filling.
+      auto-get_extratime_manifold_vacuum:
+        schema:
+          description: 获取歧管抽真空额外等待时间。
+          description_en: Get the extra wait time for manifold vacuum.
+      auto-get_gas_proportions:
+        schema:
+          description: 获取气体比例。
+          description_en: Get the gas proportions.
+auto_annotation_metadata:
+  registry_key: gass
+  annotation_workflow_version: v4
+  tag_hints:
+  - gas selection system
+  - gas manifold
+  - vacuum and purge
+  - valve control
+  - chamber filling
+  - gas mixing
+  - ionization chambers
+  - synchrotron beamline instrumentation
+  existing_tags:
+  - id: '4312'
+    name: 备料&前处理设备
+    name_en: Material Preparation & Pre-processing Equipment
+    type: experimental_step
+    rationale: 该系统用于腔室和歧管抽真空、吹扫与充气，直接承担实验前的气体环境准备。
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 设备也用于实验运行阶段维持离子室等腔体的工作气氛与压力条件。
+  - id: P-8103
+    name: 气体输送与过程控制
+    name_en: Gas Delivery & Process Control
+    type: experimental_domain
+    rationale: 核心功能是多路气体选择、配比、充入和阀控，属于典型气体输送与过程控制。
+  - id: P-1006
+    name: 真空系统与高真空实验
+    name_en: Vacuum Systems & High-Vacuum Experiments
+    type: experimental_domain
+    rationale: 设备包含真空歧管与抽空流程，明显服务于真空相关实验装置。
+  - id: P-8104
+    name: 气体供给与混气控制
+    name_en: Gas Supply & Gas Mixing Control
+    type: experimental_scene
+    rationale: 可按设定比例充入Ar、He、N2等气体，直接对应供气与混气控制场景。
+  - id: P-1007
+    name: 高真空/超高真空腔体与仪器配套
+    name_en: High/Ultra-High Vacuum Chamber & Instrument Support
+    type: experimental_scene
+    rationale: 该系统为多个腔室提供抽空、吹扫和充气支持，符合真空腔体配套场景。
+  - id: P-0029
+    name: X射线成像与束线探测
+    name_en: X-Ray Imaging & Beamline Detection
+    type: experimental_scene
+    rationale: 描述中明确提到常用于同步辐射束线中的气体电离室等探测腔体。
+  proposed_new_tags:
+  - id: P-13002
+    name: 气体歧管与配气系统
+    name_en: Gas Manifold & Gas Mixing System
+    type: device_template_tag
+    rationale: 该设备本质上是集成多路气体、真空歧管、阀门与配比充气功能的配气系统。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

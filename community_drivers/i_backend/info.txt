@@ -1,65 +1,170 @@
-Device: i_backend
-Registry Key: i_backend
-Short Description: I Backend是一款实验执行&合成设备，主要功能包括传输、关闭、写入数据、复位、打开、读取数据。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (25):
-- auto-attach_kernel_driver -> attach_kernel_driver [UniLabJsonCommand] goal_params: dev_handle, intf
-- auto-bulk_read -> bulk_read [UniLabJsonCommand] goal_params: buff, dev_handle, ep, intf, timeout
-- auto-bulk_write -> bulk_write [UniLabJsonCommand] goal_params: data, dev_handle, ep, intf, timeout
-- auto-claim_interface -> claim_interface [UniLabJsonCommand] goal_params: dev_handle, intf
-- auto-clear_halt -> clear_halt [UniLabJsonCommand] goal_params: dev_handle, ep
-- auto-close_device -> close_device [UniLabJsonCommand] goal_params: dev_handle
-- auto-ctrl_transfer -> ctrl_transfer [UniLabJsonCommand] goal_params: bRequest, bmRequestType, data, dev_handle, timeout, wIndex, wValue
-- auto-detach_kernel_driver -> detach_kernel_driver [UniLabJsonCommand] goal_params: dev_handle, intf
-- auto-enumerate_devices -> enumerate_devices [UniLabJsonCommand] goal_params: none
-- auto-get_configuration -> get_configuration [UniLabJsonCommand] goal_params: dev_handle
-- auto-get_configuration_descriptor -> get_configuration_descriptor [UniLabJsonCommand] goal_params: config, dev
-- auto-get_device_descriptor -> get_device_descriptor [UniLabJsonCommand] goal_params: dev
-- auto-get_endpoint_descriptor -> get_endpoint_descriptor [UniLabJsonCommand] goal_params: alt, config, dev, ep, intf
-- auto-get_interface_descriptor -> get_interface_descriptor [UniLabJsonCommand] goal_params: alt, config, dev, intf
-- auto-get_parent -> get_parent [UniLabJsonCommand] goal_params: dev
-- auto-intr_read -> intr_read [UniLabJsonCommand] goal_params: dev_handle, ep, intf, size, timeout
-- auto-intr_write -> intr_write [UniLabJsonCommand] goal_params: data, dev_handle, ep, intf, timeout
-- auto-is_kernel_driver_active -> is_kernel_driver_active [UniLabJsonCommand] goal_params: dev_handle, intf
-- auto-iso_read -> iso_read [UniLabJsonCommand] goal_params: dev_handle, ep, intf, size, timeout
-- auto-iso_write -> iso_write [UniLabJsonCommand] goal_params: data, dev_handle, ep, intf, timeout
-- auto-open_device -> open_device [UniLabJsonCommand] goal_params: dev
-- auto-release_interface -> release_interface [UniLabJsonCommand] goal_params: dev_handle, intf
-- auto-reset_device -> reset_device [UniLabJsonCommand] goal_params: dev_handle
-- auto-set_configuration -> set_configuration [UniLabJsonCommand] goal_params: config_value, dev_handle
-- auto-set_interface_altsetting -> set_interface_altsetting [UniLabJsonCommand] goal_params: altsetting, dev_handle, intf
-
-Driver Functions (27):
-- _not_implemented(func) (line 143)
-- IBackend.__init__(self, *args, **kwargs) (line 147)
-- IBackend.enumerate_devices(self) (line 163)
-- IBackend.get_parent(self, dev) (line 174)
-- IBackend.get_device_descriptor(self, dev) (line 179)
-- IBackend.get_configuration_descriptor(self, dev, config) (line 192)
-- IBackend.get_interface_descriptor(self, dev, intf, alt, config) (line 207)
-- IBackend.get_endpoint_descriptor(self, dev, ep, intf, alt, config) (line 224)
-- IBackend.open_device(self, dev) (line 238)
-- IBackend.close_device(self, dev_handle) (line 251)
-- IBackend.set_configuration(self, dev_handle, config_value) (line 260)
-- IBackend.get_configuration(self, dev_handle) (line 271)
-- IBackend.set_interface_altsetting(self, dev_handle, intf, altsetting) (line 283)
-- IBackend.claim_interface(self, dev_handle, intf) (line 294)
-- IBackend.release_interface(self, dev_handle, intf) (line 308)
-- IBackend.bulk_write(self, dev_handle, ep, intf, data, timeout) (line 317)
-- IBackend.bulk_read(self, dev_handle, ep, intf, buff, timeout) (line 333)
-- IBackend.intr_write(self, dev_handle, ep, intf, data, timeout) (line 349)
-- IBackend.intr_read(self, dev_handle, ep, intf, size, timeout) (line 365)
-- IBackend.iso_write(self, dev_handle, ep, intf, data, timeout) (line 381)
-- IBackend.iso_read(self, dev_handle, ep, intf, size, timeout) (line 397)
-- IBackend.ctrl_transfer(self, dev_handle, bmRequestType, bRequest, wValue, wIndex, data, timeout) (line 413)
-- IBackend.clear_halt(self, dev_handle, ep) (line 440)
-- IBackend.reset_device(self, dev_handle) (line 445)
-- IBackend.is_kernel_driver_active(self, dev_handle, intf) (line 450)
-- IBackend.detach_kernel_driver(self, dev_handle, intf) (line 459)
-- IBackend.attach_kernel_driver(self, dev_handle, intf) (line 468)
+i_backend:
+  name: 通用USB设备通信后端接口
+  name_en: Generic USB Device Communication Backend Interface
+  manufacturer: ''
+  category:
+  - USB仪器通信接口
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验仪器通信与驱动集成
+  - 仪器发现与驱动匹配
+  - USB仪器通信接口
+  description: 这是一个面向通用USB设备的通信后端接口，用于在系统中枚举USB设备、读取各类USB描述符、打开与关闭设备连接，并执行控制传输、批量传输、中断传输和等时传输。它常用于实验室软件与各种通过USB连接的仪器、控制器或数据采集设备之间建立底层通信。
+  description_en: This is a generic communication backend interface for USB devices.
+    It is used to enumerate USB devices on a system, read USB descriptors, open and
+    close device connections, and perform control, bulk, interrupt, and isochronous
+    transfers. It is commonly used as a low-level communication layer between laboratory
+    software and USB-connected instruments, controllers, or data acquisition devices.
+  class:
+    action_value_mappings:
+      auto-enumerate_devices:
+        schema:
+          description: 枚举系统中的USB设备。
+          description_en: Enumerate USB devices present in the system.
+      auto-get_parent:
+        schema:
+          description: 获取指定USB设备的父设备。
+          description_en: Get the parent device of a specified USB device.
+      auto-get_device_descriptor:
+        schema:
+          description: 获取设备描述符。
+          description_en: Get the device descriptor.
+      auto-get_configuration_descriptor:
+        schema:
+          description: 获取配置描述符。
+          description_en: Get a configuration descriptor.
+      auto-get_interface_descriptor:
+        schema:
+          description: 获取接口描述符。
+          description_en: Get an interface descriptor.
+      auto-get_endpoint_descriptor:
+        schema:
+          description: 获取端点描述符。
+          description_en: Get an endpoint descriptor.
+      auto-open_device:
+        schema:
+          description: 打开USB设备以进行数据通信。
+          description_en: Open a USB device for data communication.
+      auto-close_device:
+        schema:
+          description: 关闭USB设备连接。
+          description_en: Close the USB device connection.
+      auto-set_configuration:
+        schema:
+          description: 设置设备的活动USB配置。
+          description_en: Set the active USB configuration of the device.
+      auto-get_configuration:
+        schema:
+          description: 获取设备当前的活动USB配置。
+          description_en: Get the device's current active USB configuration.
+      auto-set_interface_altsetting:
+        schema:
+          description: 设置接口的备用设置。
+          description_en: Set the alternate setting of an interface.
+      auto-claim_interface:
+        schema:
+          description: 声明并独占访问指定接口。
+          description_en: Claim exclusive access to a specified interface.
+      auto-release_interface:
+        schema:
+          description: 释放已声明的接口。
+          description_en: Release a previously claimed interface.
+      auto-bulk_write:
+        schema:
+          description: 通过批量端点写入数据。
+          description_en: Write data through a bulk endpoint.
+      auto-bulk_read:
+        schema:
+          description: 通过批量端点读取数据。
+          description_en: Read data through a bulk endpoint.
+      auto-intr_write:
+        schema:
+          description: 通过中断端点写入数据。
+          description_en: Write data through an interrupt endpoint.
+      auto-intr_read:
+        schema:
+          description: 通过中断端点读取数据。
+          description_en: Read data through an interrupt endpoint.
+      auto-iso_write:
+        schema:
+          description: 通过等时端点写入数据。
+          description_en: Write data through an isochronous endpoint.
+      auto-iso_read:
+        schema:
+          description: 通过等时端点读取数据。
+          description_en: Read data through an isochronous endpoint.
+      auto-ctrl_transfer:
+        schema:
+          description: 在端点0上执行USB控制传输。
+          description_en: Perform a USB control transfer on endpoint 0.
+      auto-clear_halt:
+        schema:
+          description: 清除端点的暂停或STALL状态。
+          description_en: Clear the halt or stall condition on an endpoint.
+      auto-reset_device:
+        schema:
+          description: 复位USB设备。
+          description_en: Reset the USB device.
+      auto-is_kernel_driver_active:
+        schema:
+          description: 检查接口上是否有内核驱动处于活动状态。
+          description_en: Check whether a kernel driver is active on an interface.
+      auto-detach_kernel_driver:
+        schema:
+          description: 从接口分离内核驱动。
+          description_en: Detach the kernel driver from an interface.
+      auto-attach_kernel_driver:
+        schema:
+          description: 将内核驱动重新附加到接口。
+          description_en: Re-attach the kernel driver to an interface.
+auto_annotation_metadata:
+  registry_key: i_backend
+  annotation_workflow_version: v4
+  tag_hints:
+  - USB communication
+  - device enumeration
+  - USB descriptors
+  - control transfer
+  - bulk transfer
+  - interrupt transfer
+  - isochronous transfer
+  - interface claiming
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该USB后端负责实验软件与USB仪器之间的底层联机通信，是实验执行控制链路的一部分。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 其作用是把各类USB仪器、控制器和采集设备接入实验软件系统，属于自动化集成领域。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 设备提供USB描述符读取、接口声明和多种传输方式，典型用于驱动与通信集成。
+  - id: P-10017
+    name: 仪器发现与驱动匹配
+    name_en: Instrument Discovery & Driver Matching
+    type: experimental_scene
+    rationale: 该后端支持枚举USB设备和读取描述符，直接服务于仪器发现与匹配。
+  - id: P-0005
+    name: USB仪器通信接口
+    name_en: USB Instrument Communication Interface
+    type: device_template_tag
+    rationale: 其本质是通用USB仪器通信接口，支持控制、批量、中断和等时传输。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

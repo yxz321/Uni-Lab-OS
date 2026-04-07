@@ -1,62 +1,163 @@
-Device: mercury_stepper
-Registry Key: mercury_stepper
-Short Description: mercuryStepper
-
-Categories:
-- generic
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (20):
-- auto-Cleanup -> Cleanup [UniLabJsonCommand] goal_params: none
-- auto-GetChannelObject -> GetChannelObject [UniLabJsonCommand] goal_params: none
-- auto-GetChannelPhase -> GetChannelPhase [UniLabJsonCommand] goal_params: none
-- auto-GetControlReady -> GetControlReady [UniLabJsonCommand] goal_params: none
-- auto-GetLastPos -> GetLastPos [UniLabJsonCommand] goal_params: iChan
-- auto-GetMax -> GetMax [UniLabJsonCommand] goal_params: iChan
-- auto-GetMin -> GetMin [UniLabJsonCommand] goal_params: iChan
-- auto-GetPos -> GetPos [UniLabJsonCommand] goal_params: iChan
-- auto-GetVelocity -> GetVelocity [UniLabJsonCommand] goal_params: iChan
-- auto-IsMoving -> IsMoving [UniLabJsonCommand] goal_params: iChan
-- auto-IsOnTarget -> IsOnTarget [UniLabJsonCommand] goal_params: none
-- auto-MoveTo -> MoveTo [UniLabJsonCommand] goal_params: fPos, iChan, timeout
-- auto-ReInit -> ReInit [UniLabJsonCommand] goal_params: none
-- auto-RefreshPos -> RefreshPos [UniLabJsonCommand] goal_params: none
-- auto-SetJoystick -> SetJoystick [UniLabJsonCommand] goal_params: chans, on
-- auto-SetSoftLimits -> SetSoftLimits [UniLabJsonCommand] goal_params: axis, lims
-- auto-SetVelocity -> SetVelocity [UniLabJsonCommand] goal_params: iChan, velocity
-- auto-query -> query [UniLabJsonCommand] goal_params: axis, command, extra_params
-- auto-run_cmd -> run_cmd [UniLabJsonCommand] goal_params: command, controllerID, query
-- auto-set -> set [UniLabJsonCommand] goal_params: axis, command, extra_params, omit_axis, value
-
-Driver Functions (29):
-- tPoll.__init__(self, stepper) (line 103)
-- tPoll.run(self) (line 108)
-- mercuryJoystick.__init__(self, stepper) (line 119)
-- mercuryJoystick.Enable(self, enabled) (line 122)
-- mercuryJoystick.IsEnabled(self) (line 126)
-- mercuryStepper.__init__(self, comPort, baud, axes, steppers) (line 132)
-- mercuryStepper._get_status(self) (line 184)
-- mercuryStepper._strip_response_address(self, resp) (line 201)
-- mercuryStepper.run_cmd(self, command, controllerID, query) (line 217)
-- mercuryStepper.query(self, command, axis, extra_params) (line 240)
-- mercuryStepper.set(self, command, axis, value, extra_params, omit_axis) (line 248)
-- mercuryStepper.SetSoftLimits(self, axis, lims) (line 259)
-- mercuryStepper.ReInit(self) (line 265)
-- mercuryStepper.MoveTo(self, iChan, fPos, timeout) (line 269)
-- mercuryStepper.GetPos(self, iChan) (line 289)
-- mercuryStepper.IsMoving(self, iChan) (line 297)
-- mercuryStepper.IsOnTarget(self) (line 301)
-- mercuryStepper.RefreshPos(self) (line 305)
-- mercuryStepper.GetLastPos(self, iChan) (line 311)
-- mercuryStepper._pause_joystick(self, on, chans) (line 315)
-- mercuryStepper.SetJoystick(self, on, chans) (line 327)
-- mercuryStepper.GetVelocity(self, iChan) (line 337)
-- mercuryStepper.SetVelocity(self, iChan, velocity) (line 344)
-- mercuryStepper.GetControlReady(self) (line 350)
-- mercuryStepper.GetChannelObject(self) (line 353)
-- mercuryStepper.GetChannelPhase(self) (line 356)
-- mercuryStepper.GetMin(self, iChan) (line 359)
-- mercuryStepper.GetMax(self, iChan) (line 362)
-- mercuryStepper.Cleanup(self) (line 366)
+mercury_stepper:
+  name: Mercury步进电机多轴运动控制器
+  name_en: Mercury Stepper Motor Multi-Axis Motion Controller
+  manufacturer: Physik Instrumente (PI)
+  category:
+  - 步进电机控制器
+  - 电动位移台控制器
+  tags:
+  - 实验执行&合成设备
+  - 表征设备
+  - 精密定位与运动控制
+  - 显微成像与光学显微实验
+  - 样品/探针定位与运动控制
+  - 步进电机控制器
+  - 电动位移台控制器
+  description: 这是一种用于驱动和控制多轴步进电机定位平台的精密运动控制器，常与电动样品台、显微镜位移台或其他线性/旋转轴配合使用。它支持位置移动、位置与运动状态读取、速度设置、软件限位以及摇杆手动控制，常用于显微成像、精密定位和自动化实验平台。
+  description_en: This is a precision multi-axis motion controller for driving and
+    controlling stepper-motor positioning stages. It is commonly used with motorized
+    sample stages, microscope translation stages, or other linear/rotary axes. It
+    supports position moves, position and motion-status readback, velocity setting,
+    software travel limits, and joystick manual control, making it useful in microscopy,
+    precision positioning, and laboratory automation setups.
+  class:
+    action_value_mappings:
+      auto-run_cmd:
+        schema:
+          description: 向运动控制器发送原始命令。
+          description_en: Send a raw command to the motion controller.
+      auto-query:
+        schema:
+          description: 查询指定轴的参数或状态。
+          description_en: Query a parameter or status for the specified axis.
+      auto-set:
+        schema:
+          description: 设置指定轴的参数。
+          description_en: Set a parameter for the specified axis.
+      auto-SetSoftLimits:
+        schema:
+          description: 定义指定轴的软件行程限位。
+          description_en: Define software travel limits for the specified axis.
+      auto-ReInit:
+        schema:
+          description: 重新初始化运动控制器。
+          description_en: Reinitialize the motion controller.
+      auto-MoveTo:
+        schema:
+          description: 将指定通道移动到目标位置。
+          description_en: Move the specified channel to a target position.
+      auto-GetPos:
+        schema:
+          description: 获取指定通道的当前位置。
+          description_en: Get the current position of the specified channel.
+      auto-IsMoving:
+        schema:
+          description: 获取指定通道是否正在运动。
+          description_en: Get whether the specified channel is moving.
+      auto-IsOnTarget:
+        schema:
+          description: 获取各轴是否到达目标位置。
+          description_en: Get whether the axes are on target.
+      auto-RefreshPos:
+        schema:
+          description: 刷新各通道的位置读数。
+          description_en: Refresh position readings for the channels.
+      auto-GetLastPos:
+        schema:
+          description: 获取指定通道最近一次记录的位置。
+          description_en: Get the last recorded position of the specified channel.
+      auto-SetJoystick:
+        schema:
+          description: 设置摇杆手动控制的开关及作用通道。
+          description_en: Set the joystick manual-control state and active channels.
+      auto-GetVelocity:
+        schema:
+          description: 获取指定通道的运动速度设定。
+          description_en: Get the motion velocity setting of the specified channel.
+      auto-SetVelocity:
+        schema:
+          description: 设置指定通道的运动速度。
+          description_en: Set the motion velocity of the specified channel.
+      auto-GetControlReady:
+        schema:
+          description: 获取控制器是否就绪。
+          description_en: Get whether the controller is ready.
+      auto-GetChannelObject:
+        schema:
+          description: 获取通道对应的控制对象。
+          description_en: Get the control object associated with the channel.
+      auto-GetChannelPhase:
+        schema:
+          description: 获取通道的相位或阶段状态。
+          description_en: Get the phase or stage status of the channel.
+      auto-GetMin:
+        schema:
+          description: 获取指定通道的最小位置限值。
+          description_en: Get the minimum position limit of the specified channel.
+      auto-GetMax:
+        schema:
+          description: 获取指定通道的最大位置限值。
+          description_en: Get the maximum position limit of the specified channel.
+      auto-Cleanup:
+        schema:
+          description: 执行设备连接清理与关闭。
+          description_en: Clean up and close the device connection.
+auto_annotation_metadata:
+  registry_key: mercury_stepper
+  annotation_workflow_version: v4
+  tag_hints:
+  - stepper motor positioning
+  - multi-axis motion control
+  - motorized stage
+  - microscope stage positioning
+  - joystick control
+  - soft limits
+  - PI GCS
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该控制器直接驱动多轴步进平台执行移动、限位和速度控制。
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 其常用于显微成像与样品台定位，服务于成像表征流程。
+  - id: P-1009
+    name: 精密定位与运动控制
+    name_en: Precision Positioning & Motion Control
+    type: experimental_domain
+    rationale: 设备用于多轴步进电机平台的精密位置与运动状态控制。
+  - id: P-0006
+    name: 显微成像与光学显微实验
+    name_en: Microscopy Imaging & Optical Microscopy Experiments
+    type: experimental_scene
+    rationale: 描述明确提到可用于显微镜位移台和显微成像。
+  - id: P-0038
+    name: 样品/探针定位与运动控制
+    name_en: Sample / Probe Positioning & Motion Control
+    type: experimental_scene
+    rationale: 支持多轴目标位置移动、位置刷新、软限位和摇杆控制。
+  - id: P-2011
+    name: 步进电机控制器
+    name_en: Stepper Motor Controller
+    type: device_template_tag
+    rationale: 该设备明确是多轴步进电机运动控制器。
+  - id: P-3008
+    name: 电动位移台控制器
+    name_en: Motorized Stage Controller
+    type: device_template_tag
+    rationale: 它常与电动样品台和显微镜位移台配合使用，符合位移台控制器模板。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

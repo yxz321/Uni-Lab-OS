@@ -1,436 +1,266 @@
-device: cytomat_backend
-registry_key: cytomat_backend
-device_identity:
-  manufacturer: Thermo Fisher Scientific
-  model:
-    name: Thermo Scientific Cytomat Automated Incubator
-    type: device
-  name: Thermo Cytomat
-  module_path: unilabos.devices.storage.cytomat_backend:CytomatBackend
-description:
-  text_en: Automated microplate incubator and storage system with robotic door/shuttle handling, used
-    to incubate and transfer plates between storage, wait, transfer, and exposed positions.
-  method: web+local
-description_evidence:
-  web:
-  - https://www.thermofisher.com/us/en/home/life-science/lab-equipment/lab-automation/lab-automation-incubators/wide-temperature-range-incubation-storage.html/1000
-  - https://tools.thermofisher.com/content/sfs/brochures/Cytomat_10_Brochure_EN.pdf
-  local:
-  - 'driver header origin: pylabrobot/storage/cytomat/cytomat.py'
-  - action_* methods orchestrate storage/transfer/exposed/wait plate movement with door and shovel operations
-  - sensor and gas register methods include temperature/humidity/CO2/O2 status queries
-related_tags:
-- id: '4387'
-  name: 微生物培养箱
-  name_en: Microbial Incubator
-  type: device_template_tag
-- id: '4446'
-  name: 自动化耗材堆栈
-  name_en: Automated Consumable Stack
-  type: device_template_tag
-- id: '4315'
-  name: 器件/细胞设备
-  name_en: Device / Cell Equipment
-  type: experimental_step
-- id: '4318'
-  name: 生命体系
-  name_en: Life Sciences
-  type: experimental_domain
-- id: '4330'
-  name: 细胞生物学研究
-  name_en: Cell Biology Research
-  type: experimental_scene
-tag_evidence:
-- tag_id: '4387'
-  rationale: Cytomat identity and incubation/storage operations match microbial incubator template.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-- tag_id: '4446'
-  rationale: Robotic plate transport and stacked storage behavior align with automated consumable stack
-    workflows.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-- tag_id: '4315'
-  rationale: Plate incubation/handling is common in cell and biological device workflows.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-- tag_id: '4318'
-  rationale: Incubation with CO2/O2/humidity control is life-science lab equipment behavior.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-- tag_id: '4330'
-  rationale: Plate incubation and handling pipelines are used in cell biology experiments.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-action_exposed_to_storage
-  title: action_exposed_to_storage
-  parameters:
-  - site
-  command_type: UniLabJsonCommandAsync
-  description_en: Return plate from exposed to storage via wait path and close door.
-  evidence_source: docstring
-- name: auto-action_exposed_to_wait
-  title: action_exposed_to_wait
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Return plate from exposed position to wait and close door.
-  evidence_source: docstring
-- name: auto-action_read_barcode
-  title: action_read_barcode
-  parameters:
-  - site_number_a
-  - site_number_b
-  command_type: UniLabJsonCommandAsync
-  description_en: Action read barcode.
-  evidence_source: action_name_params
-- name: auto-action_storage_to_exposed
-  title: action_storage_to_exposed
-  parameters:
-  - site
-  command_type: UniLabJsonCommandAsync
-  description_en: Action storage to exposed.
-  evidence_source: action_name_params
-- name: auto-action_storage_to_transfer
-  title: action_storage_to_transfer
-  parameters:
-  - site
-  command_type: UniLabJsonCommandAsync
-  description_en: Retrieve plate from storage, open door, move to transfer station, then close door.
-  evidence_source: docstring
-- name: auto-action_storage_to_wait
-  title: action_storage_to_wait
-  parameters:
-  - site
-  command_type: UniLabJsonCommandAsync
-  description_en: Retrieve plate from storage and move it to wait position.
-  evidence_source: docstring
-- name: auto-action_transfer_to_storage
-  title: action_transfer_to_storage
-  parameters:
-  - site
-  command_type: UniLabJsonCommandAsync
-  description_en: Open lift door, retrieve from transfer, close door, and place plate at storage site.
-  evidence_source: docstring
-- name: auto-action_transfer_to_wait
-  title: action_transfer_to_wait
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Action transfer to wait.
-  evidence_source: action_name_params
-- name: auto-action_wait_to_exposed
-  title: action_wait_to_exposed
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Move plate from wait position to exposed handoff position.
-  evidence_source: docstring
-- name: auto-action_wait_to_storage
-  title: action_wait_to_storage
-  parameters:
-  - site
-  command_type: UniLabJsonCommandAsync
-  description_en: Move plate from wait to storage site and return to wait.
-  evidence_source: docstring
-- name: auto-action_wait_to_transfer
-  title: action_wait_to_transfer
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Open door, place plate on transfer station, then return to wait.
-  evidence_source: docstring
-- name: auto-close_door
-  title: close_door
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute close door.
-  evidence_source: action_name_params
-- name: auto-fetch_plate_to_loading_tray
-  title: fetch_plate_to_loading_tray
-  parameters:
-  - plate
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute fetch plate to loading tray with plate.
-  evidence_source: action_name_params
-- name: auto-get_action_register
-  title: get_action_register
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Get action register.
-  evidence_source: action_name_params
-- name: auto-get_co2
-  title: get_co2
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Get co2.
-  evidence_source: action_name_params
-- name: auto-get_error_register
-  title: get_error_register
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Get error register.
-  evidence_source: action_name_params
-- name: auto-get_humidity
-  title: get_humidity
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Get humidity.
-  evidence_source: action_name_params
-- name: auto-get_incubation_query
-  title: get_incubation_query
-  parameters:
-  - query
-  command_type: UniLabJsonCommand
-  description_en: Get incubation query.
-  evidence_source: action_name_params
-- name: auto-get_o2
-  title: get_o2
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Get o2.
-  evidence_source: action_name_params
-- name: auto-get_overview_register
-  title: get_overview_register
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Get overview register.
-  evidence_source: action_name_params
-- name: auto-get_sensor_register
-  title: get_sensor_register
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Get sensor register.
-  evidence_source: action_name_params
-- name: auto-get_swap_register
-  title: get_swap_register
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Get swap register.
-  evidence_source: action_name_params
-- name: auto-get_temperature
-  title: get_temperature
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Get temperature.
-  evidence_source: action_name_params
-- name: auto-get_warning_register
-  title: get_warning_register
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Get warning register.
-  evidence_source: action_name_params
-- name: auto-init_shakers
-  title: init_shakers
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute init shakers.
-  evidence_source: action_name_params
-- name: auto-initialize
-  title: initialize
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute initialize.
-  evidence_source: action_name_params
-- name: auto-open_door
-  title: open_door
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute open door.
-  evidence_source: action_name_params
-- name: auto-reset_error_register
-  title: reset_error_register
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute reset error register.
-  evidence_source: action_name_params
-- name: auto-send_action
-  title: send_action
-  parameters:
-  - command
-  - command_type
-  - params
-  - timeout
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute send action with command, command_type, params, timeout.
-  evidence_source: action_name_params
-- name: auto-send_command
-  title: send_command
-  parameters:
-  - command
-  - command_type
-  - params
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute send command with command, command_type, params.
-  evidence_source: action_name_params
-- name: auto-serialize
-  title: serialize
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Execute serialize.
-  evidence_source: action_name_params
-- name: auto-set_racks
-  title: set_racks
-  parameters:
-  - racks
-  command_type: UniLabJsonCommandAsync
-  description_en: Set racks using racks.
-  evidence_source: action_name_params
-- name: auto-set_shaking_frequency
-  title: set_shaking_frequency
-  parameters:
-  - frequency
-  - shakers
-  command_type: UniLabJsonCommandAsync
-  description_en: Set shaking frequency using frequency, shakers.
-  evidence_source: action_name_params
-- name: auto-set_temperature
-  title: set_temperature
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Set temperature.
-  evidence_source: action_name_params
-- name: auto-setup
-  title: setup
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute setup.
-  evidence_source: action_name_params
-- name: auto-shovel_in
-  title: shovel_in
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute shovel in.
-  evidence_source: action_name_params
-- name: auto-shovel_out
-  title: shovel_out
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute shovel out.
-  evidence_source: action_name_params
-- name: auto-start_shaking
-  title: start_shaking
-  parameters:
-  - frequency
-  - shakers
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute start shaking with frequency, shakers.
-  evidence_source: action_name_params
-- name: auto-stop
-  title: stop
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute stop.
-  evidence_source: action_name_params
-- name: auto-stop_shaking
-  title: stop_shaking
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute stop shaking.
-  evidence_source: action_name_params
-- name: auto-take_in_plate
-  title: take_in_plate
-  parameters:
-  - plate
-  - site
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute take in plate with plate, site.
-  evidence_source: action_name_params
-- name: auto-wait_for_task_completion
-  title: wait_for_task_completion
-  parameters:
-  - timeout
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute wait for task completion with timeout.
-  evidence_source: action_name_params
-- name: auto-wait_for_transfer_station
-  title: wait_for_transfer_station
-  parameters:
-  - occupied
-  command_type: UniLabJsonCommandAsync
-  description_en: Execute wait for transfer station with occupied.
-  evidence_source: action_name_params
-driver_functions:
-  compact_signatures:
-  - CytomatBackend.__init__(self, *args, **kwargs) (line 116)
-  - CytomatBackend.__init__(self, model, port) (line 122)
-  - CytomatBackend.setup(self) [async] (line 155)
-  - CytomatBackend.set_racks(self, racks) [async] (line 161)
-  - CytomatBackend.stop(self) [async] (line 166)
-  - CytomatBackend._assemble_command(self, command_type, command, params) (line 170)
-  - CytomatBackend.send_command(self, command_type, command, params) [async] (line 176)
-  - CytomatBackend.send_action(self, command_type, command, params, timeout) [async] (line 224)
-  - CytomatBackend._site_to_firmware_string(self, site) (line 238)
-  - CytomatBackend.get_overview_register(self) [async] (line 263)
-  - CytomatBackend.get_warning_register(self) [async] (line 279)
-  - CytomatBackend.get_error_register(self) [async] (line 289)
-  - CytomatBackend.reset_error_register(self) [async] (line 299)
-  - CytomatBackend.initialize(self) [async] (line 303)
-  - CytomatBackend.open_door(self) [async] (line 307)
-  - CytomatBackend.close_door(self) [async] (line 311)
-  - CytomatBackend.shovel_in(self) [async] (line 315)
-  - CytomatBackend.shovel_out(self) [async] (line 319)
-  - CytomatBackend.get_action_register(self) [async] (line 323)
-  - CytomatBackend.get_swap_register(self) [async] (line 345)
-  - CytomatBackend.get_sensor_register(self) [async] (line 354)
-  - CytomatBackend.action_transfer_to_storage(self, site) [async] (line 362)
-  - CytomatBackend.action_storage_to_transfer(self, site) [async] (line 369)
-  - CytomatBackend.action_storage_to_wait(self, site) [async] (line 376)
-  - CytomatBackend.action_wait_to_storage(self, site) [async] (line 381)
-  - CytomatBackend.action_wait_to_transfer(self) [async] (line 386)
-  - CytomatBackend.action_transfer_to_wait(self) [async] (line 391)
-  - CytomatBackend.action_wait_to_exposed(self) [async] (line 396)
-  - CytomatBackend.action_exposed_to_wait(self) [async] (line 401)
-  - CytomatBackend.action_exposed_to_storage(self, site) [async] (line 406)
-  - CytomatBackend.action_storage_to_exposed(self, site) [async] (line 411)
-  - CytomatBackend.action_read_barcode(self, site_number_a, site_number_b) [async] (line 416)
-  - CytomatBackend.wait_for_transfer_station(self, occupied) [async] (line 428)
-  - CytomatBackend.wait_for_task_completion(self, timeout) [async] (line 434)
-  - CytomatBackend.init_shakers(self) [async] (line 457)
-  - CytomatBackend.start_shaking(self, frequency, shakers) [async] (line 461)
-  - CytomatBackend.stop_shaking(self) [async] (line 468)
-  - CytomatBackend.set_shaking_frequency(self, frequency, shakers) [async] (line 474)
-  - CytomatBackend.get_incubation_query(self, query) [async] (line 482)
-  - CytomatBackend.get_co2(self) [async] (line 492)
-  - CytomatBackend.get_humidity(self) [async] (line 496)
-  - CytomatBackend.get_o2(self) [async] (line 500)
-  - CytomatBackend.get_temperature(self) [async] (line 504)
-  - CytomatBackend.fetch_plate_to_loading_tray(self, plate) [async] (line 508)
-  - CytomatBackend.take_in_plate(self, plate, site) [async] (line 514)
-  - CytomatBackend.set_temperature(self, *args, **kwargs) [async] (line 518)
-  - CytomatBackend.serialize(self) (line 522)
-  - CytomatChatterbox.setup(self) [async] (line 532)
-  - CytomatChatterbox.stop(self) [async] (line 535)
-  - CytomatChatterbox.send_command(self, command_type, command, params) [async] (line 538)
-  - CytomatChatterbox.wait_for_transfer_station(self, occupied) [async] (line 546)
-  - Cytomat.__init__(self, *args, **kwargs) (line 556)
-  note: Compact list retained by design; action semantics are documented in atom_actions.
-schema_version: v3
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 43
-  driver_function_count: 52
-  related_tag_count: 5
+cytomat_backend:
+  name: Cytomat微孔板自动培养存储系统
+  name_en: Cytomat Automated Microplate Incubator Storage System
+  manufacturer: ''
+  category:
+  - 组织培养试验箱
+  - 微孔板自动培养存储系统
+  tags:
+  - 器件/细胞设备
+  - 物流/机械
+  - 生命体系
+  - 细胞生物学研究
+  - 微孔板样品孵育与混匀
+  - 微孔板检测与高通量筛选
+  - 组织培养试验箱
+  - 微孔板自动培养存储系统
+  description: 这是一种用于微孔板自动存取、培养和转运的实验室培养存储设备，带有内部存储位、传送位和外部暴露位，可控制温度、CO2、湿度和O2，并支持振荡和条码读取。常用于细胞培养、高通量筛选和自动化工作站中的板管理。
+  description_en: This is an automated laboratory incubator and storage system for
+    microplates, with internal storage positions, a transfer station, and an external
+    exposed position. It can control temperature, CO2, humidity, and O2, and supports
+    shaking and barcode reading. It is commonly used for cell culture, high-throughput
+    screening, and automated plate management workflows.
+  class:
+    action_value_mappings:
+      auto-action_exposed_to_storage:
+        schema:
+          description: 将微孔板从外部暴露位送回存储位。
+          description_en: Move a microplate from the exposed external position back
+            to storage.
+      auto-action_exposed_to_wait:
+        schema:
+          description: 将微孔板从外部暴露位送回等待位。
+          description_en: Move a microplate from the exposed external position back
+            to the wait position.
+      auto-action_read_barcode:
+        schema:
+          description: 读取指定存储位的条码。
+          description_en: Read the barcode at specified storage locations.
+      auto-action_storage_to_exposed:
+        schema:
+          description: 将微孔板从存储位送到外部暴露位。
+          description_en: Move a microplate from storage to the exposed external position.
+      auto-action_storage_to_transfer:
+        schema:
+          description: 将微孔板从存储位送到传送位。
+          description_en: Move a microplate from storage to the transfer station.
+      auto-action_storage_to_wait:
+        schema:
+          description: 将微孔板从存储位送到等待位。
+          description_en: Move a microplate from storage to the wait position.
+      auto-action_transfer_to_storage:
+        schema:
+          description: 将微孔板从传送位移入存储位。
+          description_en: Move a microplate from the transfer station into storage.
+      auto-action_transfer_to_wait:
+        schema:
+          description: 将微孔板从传送位移到等待位。
+          description_en: Move a microplate from the transfer station to the wait
+            position.
+      auto-action_wait_to_exposed:
+        schema:
+          description: 将微孔板从等待位送到外部暴露位。
+          description_en: Move a microplate from the wait position to the exposed
+            external position.
+      auto-action_wait_to_storage:
+        schema:
+          description: 将微孔板从等待位送回存储位。
+          description_en: Move a microplate from the wait position back to storage.
+      auto-action_wait_to_transfer:
+        schema:
+          description: 将微孔板从等待位送到传送位。
+          description_en: Move a microplate from the wait position to the transfer
+            station.
+      auto-close_door:
+        schema:
+          description: 关闭设备门。
+          description_en: Close the device door.
+      auto-fetch_plate_to_loading_tray:
+        schema:
+          description: 将指定微孔板取到上样托盘。
+          description_en: Fetch a specified microplate to the loading tray.
+      auto-init_shakers:
+        schema:
+          description: 初始化内部振荡模块。
+          description_en: Initialize the internal shakers.
+      auto-initialize:
+        schema:
+          description: 初始化设备。
+          description_en: Initialize the device.
+      auto-open_door:
+        schema:
+          description: 打开设备门。
+          description_en: Open the device door.
+      auto-reset_error_register:
+        schema:
+          description: 复位错误寄存器。
+          description_en: Reset the error register.
+      auto-send_action:
+        schema:
+          description: 向设备发送动作命令并等待完成。
+          description_en: Send an action command to the device and wait for completion.
+      auto-send_command:
+        schema:
+          description: 向设备发送底层命令。
+          description_en: Send a low-level command to the device.
+      auto-serialize:
+        schema:
+          description: 导出设备配置或状态信息。
+          description_en: Export device configuration or state information.
+      auto-set_racks:
+        schema:
+          description: 设置设备中的板架布局。
+          description_en: Set the rack layout installed in the device.
+      auto-set_shaking_frequency:
+        schema:
+          description: 设置振荡频率。
+          description_en: Set shaking frequency.
+      auto-set_temperature:
+        schema:
+          description: 设置温度。
+          description_en: Set temperature.
+      auto-setup:
+        schema:
+          description: 准备设备以供运行。
+          description_en: Prepare the device for operation.
+      auto-shovel_in:
+        schema:
+          description: 收回传送铲。
+          description_en: Retract the transfer shovel.
+      auto-shovel_out:
+        schema:
+          description: 伸出传送铲。
+          description_en: Extend the transfer shovel.
+      auto-start_shaking:
+        schema:
+          description: 按设定频率开始振荡。
+          description_en: Start shaking at the specified frequency.
+      auto-stop:
+        schema:
+          description: 停止设备运行。
+          description_en: Stop device operation.
+      auto-stop_shaking:
+        schema:
+          description: 停止振荡。
+          description_en: Stop shaking.
+      auto-take_in_plate:
+        schema:
+          description: 将微孔板收入指定存储位。
+          description_en: Take a microplate into a specified storage position.
+      auto-wait_for_task_completion:
+        schema:
+          description: 等待当前任务完成。
+          description_en: Wait for the current task to complete.
+      auto-wait_for_transfer_station:
+        schema:
+          description: 等待传送位变为占用或空闲状态。
+          description_en: Wait for the transfer station to become occupied or empty.
+      auto-get_overview_register:
+        schema:
+          description: 获取总览寄存器状态。
+          description_en: Get overview register state.
+      auto-get_warning_register:
+        schema:
+          description: 获取警告寄存器状态。
+          description_en: Get warning register state.
+      auto-get_error_register:
+        schema:
+          description: 获取错误寄存器状态。
+          description_en: Get error register state.
+      auto-get_action_register:
+        schema:
+          description: 获取动作寄存器状态。
+          description_en: Get action register state.
+      auto-get_swap_register:
+        schema:
+          description: 获取交换寄存器状态。
+          description_en: Get swap register state.
+      auto-get_sensor_register:
+        schema:
+          description: 获取传感器寄存器状态。
+          description_en: Get sensor register state.
+      auto-get_incubation_query:
+        schema:
+          description: 获取指定培养查询值。
+          description_en: Get the specified incubation query value.
+      auto-get_co2:
+        schema:
+          description: 获取CO2浓度。
+          description_en: Get CO2 concentration.
+      auto-get_humidity:
+        schema:
+          description: 获取湿度。
+          description_en: Get humidity.
+      auto-get_o2:
+        schema:
+          description: 获取O2浓度。
+          description_en: Get O2 concentration.
+      auto-get_temperature:
+        schema:
+          description: 获取温度。
+          description_en: Get temperature.
+auto_annotation_metadata:
+  registry_key: cytomat_backend
+  annotation_workflow_version: v4
+  tag_hints:
+  - automated incubator
+  - microplate storage
+  - plate handling
+  - CO2 incubation
+  - humidity control
+  - O2 control
+  - barcode reading
+  - plate shaking
+  existing_tags:
+  - id: '4315'
+    name: 器件/细胞设备
+    name_en: Device / Cell Equipment
+    type: experimental_step
+    rationale: 该设备用于微孔板培养与存储，直接服务细胞/板式培养流程。
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 设备具备微孔板自动存取、转运和传送位管理，具有明显物流机械属性。
+  - id: '4318'
+    name: 生命体系
+    name_en: Life Sciences
+    type: experimental_domain
+    rationale: 温度、CO2、湿度和O2控制指向细胞培养等生命科学应用。
+  - id: '4330'
+    name: 细胞生物学研究
+    name_en: Cell Biology Research
+    type: experimental_scene
+    rationale: 设备常用于细胞培养板管理和培养，符合细胞生物学研究场景。
+  - id: P-5001
+    name: 微孔板样品孵育与混匀
+    name_en: Microplate Sample Incubation & Mixing
+    type: experimental_scene
+    rationale: 设备支持微孔板培养、振荡和环境控制，直接对应微孔板孵育与混匀。
+  - id: P-5003
+    name: 微孔板检测与高通量筛选
+    name_en: Microplate Detection & High-Throughput Screening
+    type: experimental_scene
+    rationale: 描述中明确提到高通量筛选和自动化板管理工作流。
+  - id: '4442'
+    name: 组织培养试验箱
+    name_en: Tissue Culture Chamber
+    type: device_template_tag
+    rationale: 设备具备温度与气体环境控制能力，与组织/细胞培养箱类设备相关。
+  proposed_new_tags:
+  - id: P-9902
+    name: 微孔板自动培养存储系统
+    name_en: Automated Microplate Incubator Storage System
+    type: device_template_tag
+    rationale: 该设备兼具微孔板培养、自动存储和转运功能，现有模板无法完整表达其自动化培养存储特征。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

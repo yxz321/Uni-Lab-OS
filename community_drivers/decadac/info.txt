@@ -1,55 +1,111 @@
-Device: decadac
-Registry Key: decadac
-Short Description: DecaDAC 16-bit DAC Module是由Harvard/Delft生产的专业实验设备。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (10):
-- auto-ask -> ask [UniLabJsonCommand] goal_params: cmd
-- auto-connect_message -> connect_message [UniLabJsonCommand] goal_params: begin_time, idn_param
-- auto-end_script -> end_script [UniLabJsonCommand] goal_params: none
-- auto-get_idn -> get_idn [UniLabJsonCommand] goal_params: none
-- auto-ramp_all -> ramp_all [UniLabJsonCommand] goal_params: ramp_rate, volt
-- auto-run_script -> run_script [UniLabJsonCommand] goal_params: none
-- auto-set_all -> set_all [UniLabJsonCommand] goal_params: volt
-- auto-start_script -> start_script [UniLabJsonCommand] goal_params: none
-- auto-trigger -> trigger [UniLabJsonCommand] goal_params: trigger_setting
-- auto-write -> write [UniLabJsonCommand] goal_params: cmd
-
-Driver Functions (32):
-- DacReader._dac_parse(resp) (line 105)
-- DacReader._dac_v_to_code(self, volt) (line 115)
-- DacReader._dac_code_to_v(self, code) (line 137)
-- DacReader._set_slot(self) (line 146)
-- DacReader._script_set_slot(self) (line 154)
-- DacReader._set_channel(self) (line 160)
-- DacReader._script_set_channel(self) (line 170)
-- DacReader._query_address(self, addr, count, versa_eeprom) (line 177)
-- DacReader._write_address(self, addr, val, versa_eeprom) (line 221)
-- DacChannel.__init__(self, parent, name, channel, min_val, max_val) (line 272)
-- DacChannel._ramp(self, val, rate, block) (line 385)
-- DacChannel._script_ramp(self, start, end, duration, trigger) (line 426)
-- DacChannel._set_dac(self, code) (line 487)
-- DacChannel._script_set_dac(self, code) (line 502)
-- DacChannel.write(self, cmd) (line 514)
-- DacChannel.ask(self, cmd) (line 523)
-- DacSlot.__init__(self, parent, name, slot, min_val, max_val) (line 539)
-- DacSlot.write(self, cmd) (line 577)
-- DacSlot.ask(self, cmd) (line 586)
-- Decadac.__init__(self, *args, **kwargs) (line 612)
-- Decadac.__init__(self, name, address, min_val, max_val, **kwargs) (line 618)
-- Decadac.start_script(self) (line 658)
-- Decadac.end_script(self) (line 662)
-- Decadac.run_script(self) (line 666)
-- Decadac.trigger(self, trigger_setting) (line 672)
-- Decadac.set_all(self, volt) (line 696)
-- Decadac.ramp_all(self, volt, ramp_rate) (line 708)
-- Decadac.get_idn(self) (line 731)
-- Decadac.connect_message(self, idn_param, begin_time) (line 744)
-- Decadac.__repr__(self) (line 761)
-- Decadac._feature_detect(self) (line 766)
-- Decadac.write(self, cmd) (line 814)
+decadac:
+  name: DecaDAC多通道数模转换电压源
+  name_en: DecaDAC Multi-Channel DAC Voltage Source
+  manufacturer: Harvard
+  category:
+  - 可编程直流电源
+  tags:
+  - 实验执行&合成设备
+  - 电子与电气测试
+  - 电源与电池测试
+  - 电子器件供电与台架测试
+  - 可编程直流电源
+  description: DecaDAC是一种多通道数模转换电压源，可输出可编程直流电压，并支持通道统一设定、斜坡扫描、触发和脚本序列控制。它常用于实验室中为器件提供偏置电压、进行参数扫描，以及执行需要多路稳定电压输出的自动化测量。
+  description_en: The DecaDAC is a multi-channel digital-to-analog voltage source
+    that provides programmable DC outputs and supports global channel setting, voltage
+    ramping, triggering, and scripted sequences. It is commonly used in laboratories
+    to bias devices, perform parameter sweeps, and automate measurements requiring
+    multiple stable voltage outputs.
+  class:
+    action_value_mappings:
+      auto-start_script:
+        schema:
+          description: 开始设备脚本编辑或录制流程。
+          description_en: Start the device script editing or recording sequence.
+      auto-end_script:
+        schema:
+          description: 结束设备脚本编辑或录制流程。
+          description_en: End the device script editing or recording sequence.
+      auto-run_script:
+        schema:
+          description: 运行设备中已定义的脚本序列。
+          description_en: Run a previously defined script sequence on the device.
+      auto-trigger:
+        schema:
+          description: 向设备施加触发设置以启动触发相关操作。
+          description_en: Apply a trigger setting to initiate trigger-related device
+            behavior.
+      auto-set_all:
+        schema:
+          description: 将所有DAC通道设为同一目标电压。
+          description_en: Set all DAC channels to the same target voltage.
+      auto-ramp_all:
+        schema:
+          description: 以指定斜坡速率将所有DAC通道同时扫向目标电压。
+          description_en: Ramp all DAC channels toward a target voltage at the specified
+            ramp rate.
+      auto-connect_message:
+        schema:
+          description: 显示设备连接与识别信息摘要。
+          description_en: Display a summary of device connection and identification
+            information.
+      auto-write:
+        schema:
+          description: 向设备发送原始控制命令。
+          description_en: Send a raw control command to the device.
+      auto-ask:
+        schema:
+          description: 向设备发送原始查询并读取返回结果。
+          description_en: Send a raw query to the device and read back the response.
+      auto-get_idn:
+        schema:
+          description: 获取设备识别信息。
+          description_en: Get device identification information.
+auto_annotation_metadata:
+  registry_key: decadac
+  annotation_workflow_version: v4
+  tag_hints:
+  - multi-channel DAC
+  - programmable voltage source
+  - DC biasing
+  - voltage ramping
+  - triggered sequences
+  - automated measurements
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该设备用于实验过程中提供可编程偏置电压并执行扫描与触发序列，属于实验执行环节设备。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: DecaDAC用于器件偏置、参数扫描和自动化测量，典型属于电子电气测试领域。
+  - id: P-0016
+    name: 电源与电池测试
+    name_en: Power Supply & Battery Testing
+    type: experimental_scene
+    rationale: 其可编程直流输出和多通道统一设定能力适合电源类供电与相关测试场景。
+  - id: P-5011
+    name: 电子器件供电与台架测试
+    name_en: Electronic Device Powering & Bench Testing
+    type: experimental_scene
+    rationale: 该设备常用于为实验器件提供稳定偏置并完成台架参数扫描，和描述高度一致。
+  - id: P-2012
+    name: 可编程直流电源
+    name_en: Programmable DC Power Supply
+    type: device_template_tag
+    rationale: 虽然是多通道DAC电压源，但核心能力是提供可编程直流电压输出，与该模板高度接近。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

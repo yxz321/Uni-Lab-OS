@@ -1,27 +1,69 @@
-Device: gauge_serial
-Registry Key: gauge_serial
-Short Description: Serial Vacuum Gauge驱动，支持pressure/egu。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (2):
-- auto-egu -> egu [UniLabJsonCommand] goal_params: none
-- auto-pressure -> pressure [UniLabJsonCommand] goal_params: none
-
-Driver Functions (12):
-- GaugeSetBase.__init__(self, prefix, *, name, index, **kwargs) (line 171)
-- GaugeSetBase.pressure(self) (line 178)
-- GaugeSetBase.egu(self) (line 184)
-- GaugeSetMks.__init__(self, prefix, *, name, index, prefix_controller, **kwargs) (line 201)
-- GaugeSetMks.egu(self) (line 205)
-- GaugeSetPirani.pressure(self) (line 218)
-- GaugeSetPiraniMks.__init__(self, prefix, *, name, index, prefix_controller, **kwargs) (line 238)
-- GaugeSetPiraniMks.egu(self) (line 242)
-- GaugeSerial.__init__(self, *args, **kwargs) (line 355)
-- GaugeSerialGPI.__init__(self, *args, **kwargs) (line 397)
-- GaugeSerialGCC.__init__(self, *args, **kwargs) (line 409)
-- GaugeSet(prefix, *, name, index, **kwargs) (line 444)
+gauge_serial:
+  name: 串口真空规
+  name_en: Serial Vacuum Gauge
+  manufacturer: ''
+  category:
+  - 真空规
+  tags:
+  - 表征设备
+  - 真空系统与高真空实验
+  - 高真空/超高真空腔体与仪器配套
+  - 真空规
+  description: 用于真空系统压力测量的真空规，可通过串行接口接入控制系统。根据配置可对应皮拉尼规或冷阴极规等规管，常用于实验腔体、真空管线和抽气系统的压力监测。
+  description_en: A vacuum gauge used to measure pressure in vacuum systems and connected
+    through a serial interface. Depending on the configuration, it may correspond
+    to a Pirani gauge or a cold cathode gauge, and is commonly used for pressure monitoring
+    in experimental chambers, vacuum lines, and pumping systems.
+  class:
+    action_value_mappings:
+      auto-pressure:
+        schema:
+          description: 获取压力读数
+          description_en: get pressure reading
+      auto-egu:
+        schema:
+          description: 获取压力单位
+          description_en: get pressure units
+auto_annotation_metadata:
+  registry_key: gauge_serial
+  annotation_workflow_version: v4
+  tag_hints:
+  - vacuum measurement
+  - pressure monitoring
+  - serial communication
+  - Pirani gauge
+  - cold cathode gauge
+  - vacuum chamber
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该设备用于读取真空压力，是实验装置状态监测与表征的一部分。
+  - id: P-1006
+    name: 真空系统与高真空实验
+    name_en: Vacuum Systems & High-Vacuum Experiments
+    type: experimental_domain
+    rationale: 设备明确用于真空系统压力测量，直接属于真空实验领域。
+  - id: P-1007
+    name: 高真空/超高真空腔体与仪器配套
+    name_en: High/Ultra-High Vacuum Chamber & Instrument Support
+    type: experimental_scene
+    rationale: 常用于实验腔体、真空管线和抽气系统的压力监测，符合真空腔体配套场景。
+  proposed_new_tags:
+  - id: P-13006
+    name: 真空规
+    name_en: Vacuum Gauge
+    type: device_template_tag
+    rationale: 该设备是通过串口接入的真空压力测量仪，可覆盖皮拉尼规、冷阴极规等真空规类型。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

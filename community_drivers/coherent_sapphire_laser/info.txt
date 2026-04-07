@@ -1,143 +1,117 @@
-device: coherent_sapphire_laser
-registry_key: coherent_sapphire_laser
-device_identity:
-  manufacturer: Coherent Corp.
-  model:
-    name: Sapphire CW laser
-    type: device
-  name: Coherent Sapphire Laser
-  module_path: unilabos.devices.laser.coherent_sapphire_laser:CoherentSapphireLaser
-description:
-  text_en: Coherent Sapphire is a visible continuous-wave OPS laser platform used for precision optical
-    excitation, with serial control for output enable, power setpoint, and min/max power queries.
-  method: web+local
-description_evidence:
-  web:
-  - https://www.coherent.com/lasers/cw-solid-state/sapphire
-  - https://www.coherent.com/news/press-releases/sapphire-xt-coherent-new-compact-1w-visible-laser-platform
-  local:
-  - Driver issues Sapphire serial commands for laser on/off and power control (L=1/L=0, P=...).
-  - Methods expose setpoint/output checks and device-reported MIN/MAX power bounds.
-related_tags:
-- id: 4313
-  name: 实验执行&合成设备
-  name_en: Experiment Execution & Synthesis Equipment
-  type: experimental_step
-- id: 4316
-  name: 表征设备
-  name_en: Characterization Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: 4313
-  rationale: The actions directly control laser state and output setpoints in automated runs.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-- tag_id: 4316
-  rationale: Sapphire CW lasers are commonly deployed in optical measurement and imaging systems.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-query
-  title: query
-  parameters:
-  - command
-  command_type: UniLabJsonCommand
-  description_en: Send serial command and return parsed reply lines.
-  evidence_source: docstring
-- name: auto-IsOn
-  title: IsOn
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return cached laser-on state flag.
-  evidence_source: code_comments
-- name: auto-TurnOn
-  title: TurnOn
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Enable laser emission output.
-  evidence_source: name_params
-- name: auto-TurnOff
-  title: TurnOff
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Disable laser emission output.
-  evidence_source: name_params
-- name: auto-check_set_power
-  title: check_set_power
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read currently configured power setpoint from device.
-  evidence_source: name_params
-- name: auto-check_power_output
-  title: check_power_output
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read measured output power value from device.
-  evidence_source: name_params
-- name: auto-SetPower
-  title: SetPower
-  parameters:
-  - power
-  command_type: UniLabJsonCommand
-  description_en: Write power command and store confirmed setpoint.
-  evidence_source: code_comments
-- name: auto-GetMAX
-  title: GetMAX
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read maximum supported power limit from device.
-  evidence_source: name_params
-- name: auto-GetMIN
-  title: GetMIN
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read minimum supported power limit from device.
-  evidence_source: name_params
-- name: auto-GetPower
-  title: GetPower
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return cached power value.
-  evidence_source: name_params
-- name: auto-Close
-  title: Close
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Turn off laser output during shutdown.
-  evidence_source: code_comments
-driver_functions:
-  compact_signatures:
-  - CoherentSapphireLaser.__init__(self, serial_port, turn_on, name, init_power, **kwargs) (line 112)
-  - CoherentSapphireLaser.query(self, command) (line 156)
-  - CoherentSapphireLaser.IsOn(self) (line 188)
-  - CoherentSapphireLaser.TurnOn(self) (line 193)
-  - CoherentSapphireLaser.TurnOff(self) (line 198)
-  - CoherentSapphireLaser.check_set_power(self) (line 204)
-  - CoherentSapphireLaser.check_power_output(self) (line 209)
-  - CoherentSapphireLaser.SetPower(self, power) (line 214)
-  - CoherentSapphireLaser.GetMAX(self) (line 221)
-  - CoherentSapphireLaser.GetMIN(self) (line 226)
-  - CoherentSapphireLaser.GetPower(self) (line 231)
-  - CoherentSapphireLaser.Close(self) (line 235)
-  - CoherentSapphireLaser.__del__(self) (line 241)
-  note: Compact signatures retained; action semantics are documented in atom_actions.
-schema_version: v2
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 11
-  driver_function_count: 13
-  related_tag_count: 2
+coherent_sapphire_laser:
+  name: Coherent Sapphire 激光器
+  name_en: Coherent Sapphire Laser
+  manufacturer: Coherent
+  category:
+  - 实验室激光光源
+  tags:
+  - 表征设备
+  - 智慧表征与检测中心
+  - 光学与光谱实验
+  - 显微成像与光学显微实验
+  - 激光激发与光谱测量
+  - 实验室激光光源
+  description: 这是一台 Coherent Sapphire 系列激光器，用于提供稳定的连续激光输出。此类激光器常用于显微成像、荧光激发、光路校准和其他需要稳定光源的实验场景，并支持功率开关与输出功率调节。
+  description_en: This is a Coherent Sapphire series laser that provides stable continuous
+    laser output. Such lasers are commonly used for microscopy, fluorescence excitation,
+    optical alignment, and other laboratory applications requiring a stable light
+    source, with support for laser on/off control and power adjustment.
+  class:
+    action_value_mappings:
+      auto-query:
+        schema:
+          description: 发送设备命令并读取激光器返回信息。
+          description_en: Send a device command and read the laser's reply.
+      auto-IsOn:
+        schema:
+          description: 获取激光器的开关状态。
+          description_en: Get the laser on/off state.
+      auto-TurnOn:
+        schema:
+          description: 开启激光输出。
+          description_en: Turn on the laser output.
+      auto-TurnOff:
+        schema:
+          description: 关闭激光输出。
+          description_en: Turn off the laser output.
+      auto-check_set_power:
+        schema:
+          description: 读取当前设定的激光功率值。
+          description_en: Read the current configured laser power setting.
+      auto-check_power_output:
+        schema:
+          description: 读取当前激光输出功率。
+          description_en: Read the current laser output power.
+      auto-SetPower:
+        schema:
+          description: 设置激光功率。
+          description_en: Set the laser power.
+      auto-GetMAX:
+        schema:
+          description: 获取可设置的最大激光功率。
+          description_en: Get the maximum configurable laser power.
+      auto-GetMIN:
+        schema:
+          description: 获取可设置的最小激光功率。
+          description_en: Get the minimum configurable laser power.
+      auto-GetPower:
+        schema:
+          description: 获取当前激光功率设定值。
+          description_en: Get the current laser power setpoint.
+      auto-Close:
+        schema:
+          description: 关闭与激光器的通信连接。
+          description_en: Close the communication connection to the laser.
+auto_annotation_metadata:
+  registry_key: coherent_sapphire_laser
+  annotation_workflow_version: v4
+  tag_hints:
+  - continuous-wave laser
+  - solid-state laser
+  - laser power control
+  - fluorescence excitation
+  - microscopy illumination
+  - optical alignment
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该激光器主要用于显微成像、荧光激发和光路校准，属于表征成像链路中的关键设备。
+  - id: '4325'
+    name: 智慧表征与检测中心
+    name_en: Intelligent Characterization & Testing Center
+    type: experimental_domain
+    rationale: 其应用集中在显微、荧光和光学校准，符合表征检测相关实验域。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: Sapphire 激光器提供稳定连续激光输出，适用于光学与光谱实验体系。
+  - id: P-0006
+    name: 显微成像与光学显微实验
+    name_en: Microscopy Imaging & Optical Microscopy Experiments
+    type: experimental_scene
+    rationale: 描述明确写到显微成像和荧光激发，是直接匹配的实验场景。
+  - id: P-3004
+    name: 激光激发与光谱测量
+    name_en: Laser Excitation & Spectroscopic Measurement
+    type: experimental_scene
+    rationale: 设备支持激光开关和功率调节，适合激光激发与测量类实验。
+  - id: P-3005
+    name: 实验室激光光源
+    name_en: Laboratory Laser Source
+    type: device_template_tag
+    rationale: 该设备属于稳定连续输出、可调功率的实验室激光光源。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

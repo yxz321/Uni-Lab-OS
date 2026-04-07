@@ -1,156 +1,111 @@
-device: client
-registry_key: client
-device_identity:
-  manufacturer: Open Source
-  model:
-    name: Client
-    type: device
-  module_path: unilabos.devices.generic.client:Client
-description:
-  text_en: TCP/TLS lab automation server client for login, command exchange, firmware
-    build requests, and artifact retrieval in experiment-control workflows.
-  method: local
-description_evidence:
-  web: []
-  local:
-  - 'registry.name: Client'
-  - 'registry.device_params.功能: 通用设备客户端通信模块'
-  - 'driver code: LOGIN/BUILD/GET_VARIANTS/GET_JSON command flow and websocket+TLS
-    setup'
-related_tags:
-- id: '4313'
-  name: 实验执行&合成设备
-  name_en: Experiment Execution & Synthesis Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: '4313'
-  rationale: Matched from registry metadata and action/description semantics.
-  signals:
-  - registry.tags
-  - registry.category
-  - name
-  - model
-  - manufacturer
-  - module_path
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-init_websocket
-  title: init_websocket
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Initialize HTTP websocket upgrade handshake before TLS switch.
-  evidence_source: code
-- name: auto-close
-  title: close
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Close the current client connection cleanly.
-  evidence_source: code
-- name: auto-send_command
-  title: send_command
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Send a plain-text command line to the server.
-  evidence_source: code
-- name: auto-read_line
-  title: read_line
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read one ASCII line from server stream.
-  evidence_source: code
-- name: auto-read_reply
-  title: read_reply
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read and split one whitespace-delimited reply.
-  evidence_source: code
-- name: auto-read_json
-  title: read_json
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read one line and decode JSON payload.
-  evidence_source: code
-- name: auto-login
-  title: login
-  parameters:
-  - username
-  - password
-  command_type: UniLabJsonCommand
-  description_en: Authenticate with LOGIN username and password.
-  evidence_source: code
-- name: auto-build
-  title: build
-  parameters:
-  - major_ver
-  - rev
-  - variant
-  - log
-  - experimental_features
-  command_type: UniLabJsonCommand
-  description_en: Trigger BUILD for a variant and download product bytes on success.
-  evidence_source: code
-- name: auto-passwd
-  title: passwd
-  parameters:
-  - password
-  command_type: UniLabJsonCommand
-  description_en: Send PASSWD request to update user password.
-  evidence_source: code
-- name: auto-get_variants
-  title: get_variants
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Request available firmware variants from server.
-  evidence_source: code
-- name: auto-get_single_variant
-  title: get_single_variant
-  parameters:
-  - error_msg
-  command_type: UniLabJsonCommand
-  description_en: Ensure exactly one variant is available or abort with message.
-  evidence_source: code
-- name: auto-get_json
-  title: get_json
-  parameters:
-  - variant
-  command_type: UniLabJsonCommand
-  description_en: Request and read JSON description for one variant.
-  evidence_source: code
-driver_functions:
-  compact_signatures:
-  - get_artiq_rev() (line 85)
-  - get_artiq_major_version() (line 96)
-  - zip_unarchive(data, directory) (line 105)
-  - Client.__init__(self, server, port, cafile) (line 112)
-  - Client.connect(self) [async] (line 120)
-  - Client.init_websocket(self) [async] (line 130)
-  - Client.close(self) [async] (line 144)
-  - Client.send_command(self, *command) [async] (line 150)
-  - Client.read_line(self) [async] (line 154)
-  - Client.read_reply(self) [async] (line 161)
-  - Client.read_json(self) [async] (line 165)
-  - Client.login(self, username, password) [async] (line 169)
-  - Client.build(self, major_ver, rev, variant, log, experimental_features) [async]
-    (line 174)
-  - Client.passwd(self, password) [async] (line 219)
-  - Client.get_variants(self) [async] (line 224)
-  - Client.get_single_variant(self, error_msg) [async] (line 232)
-  - Client.get_json(self, variant) [async] (line 245)
-  - get_argparser() (line 258)
-  - main_async() [async] (line 282)
-  - main() (line 374)
-  note: Compact list retained by design; action semantics are documented in atom_actions.
-schema_version: v2
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 12
-  driver_function_count: 20
-  related_tag_count: 1
+client:
+  name: ARTIQ 固件构建服务客户端
+  name_en: ARTIQ Firmware Build Service Client
+  manufacturer: M-Labs
+  category:
+  - 固件构建服务客户端
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验控制固件构建与部署
+  - 固件构建服务客户端
+  description: 用于连接 ARTIQ 固件构建服务的网络客户端，可通过 WebSocket 登录、提交指定版本和变体的构建请求，并读取文本或 JSON
+    格式的返回结果。该服务常用于为实验室中的 ARTIQ 控制硬件准备固件或相关构建产物。
+  description_en: A network client for the ARTIQ firmware build service. It connects
+    over WebSocket, logs in, submits build requests for specified versions and variants,
+    and reads text or JSON replies. The service is typically used to prepare firmware
+    or related build artifacts for ARTIQ laboratory control hardware.
+  class:
+    action_value_mappings:
+      auto-init_websocket:
+        schema:
+          description: 初始化到构建服务的 WebSocket 连接。
+          description_en: Initialize the WebSocket connection to the build service.
+      auto-close:
+        schema:
+          description: 关闭与构建服务的连接。
+          description_en: Close the connection to the build service.
+      auto-send_command:
+        schema:
+          description: 向构建服务发送命令。
+          description_en: Send a command to the build service.
+      auto-read_line:
+        schema:
+          description: 读取一行文本返回。
+          description_en: Read a single line of text response.
+      auto-read_reply:
+        schema:
+          description: 读取一条服务返回消息。
+          description_en: Read a reply message from the service.
+      auto-read_json:
+        schema:
+          description: 读取 JSON 格式的返回数据。
+          description_en: Read a JSON-formatted response.
+      auto-login:
+        schema:
+          description: 使用用户名和密码登录构建服务。
+          description_en: Log in to the build service with a username and password.
+      auto-build:
+        schema:
+          description: 提交指定版本、修订和变体的构建请求，并可附带日志或实验性功能选项。
+          description_en: Submit a build request for a specified version, revision,
+            and variant, with optional logging or experimental feature settings.
+      auto-passwd:
+        schema:
+          description: 设置或更新服务账户密码。
+          description_en: Set or update the service account password.
+      auto-get_variants:
+        schema:
+          description: 获取可用的构建变体列表。
+          description_en: Get the list of available build variants.
+      auto-get_single_variant:
+        schema:
+          description: 获取单个可用的构建变体。
+          description_en: Get a single available build variant.
+      auto-get_json:
+        schema:
+          description: 获取指定变体的 JSON 数据。
+          description_en: Get JSON data for the specified variant.
+auto_annotation_metadata:
+  registry_key: client
+  annotation_workflow_version: v4
+  tag_hints:
+  - ARTIQ
+  - firmware build service
+  - WebSocket communication
+  - hardware variants
+  - lab control system
+  - JSON command interface
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该客户端服务于ARTIQ实验控制硬件的固件准备，属于实验执行基础设施的一部分。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: ARTIQ是实验室控制系统生态的一部分，该客户端用于自动化控制硬件的构建准备。
+  proposed_new_tags:
+  - id: P-8003
+    name: 实验控制固件构建与部署
+    name_en: Experiment Control Firmware Build & Deployment
+    type: experimental_scene
+    rationale: 该客户端通过WebSocket提交版本/变体构建请求并获取结果，属于实验控制固件构建与部署场景。
+  - id: P-8004
+    name: 固件构建服务客户端
+    name_en: Firmware Build Service Client
+    type: device_template_tag
+    rationale: 本设备并非物理仪器，而是面向实验控制硬件构建服务的专用客户端模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

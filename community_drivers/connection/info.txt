@@ -1,123 +1,86 @@
-device: connection
-registry_key: connection
-device_identity:
-  manufacturer: Open Standard
-  model:
-    name: EtherNet/IP connection handler
-    type: device_interface
-  name: Instrument Ethernet/IP Connection Handler
-  module_path: unilabos.devices.universal.connection:Connection
-description:
-  text_en: EtherNet/IP connection handler for PLC-style laboratory controllers, managing CIP session connect/send/listen
-    cycles, packet receive, and network device discovery.
-  method: local
-description_evidence:
-  web: []
-  local:
-  - Original source is pylogix connection layer for Ethernet/IP and CIP messaging.
-  - Method docstrings describe PLC connect/send behavior and list-identity discovery broadcasts.
-related_tags:
-- id: 4313
-  name: 实验执行&合成设备
-  name_en: Experiment Execution & Synthesis Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: 4313
-  rationale: Connection/session and CIP messaging operations are used directly to execute control commands
-    on networked instruments.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-connect
-  title: connect
-  parameters:
-  - connected
-  command_type: UniLabJsonCommand
-  description_en: Open connection to PLC/instrument endpoint.
-  evidence_source: docstring
-- name: auto-send
-  title: send
-  parameters:
-  - request
-  - connected
-  - slot
-  command_type: UniLabJsonCommand
-  description_en: Send CIP request and return status/data response.
-  evidence_source: docstring
-- name: auto-listen
-  title: listen
-  parameters:
-  - ip_address
-  - callback
-  - port
-  command_type: UniLabJsonCommand
-  description_en: Listen for incoming CIP data-table-write messages.
-  evidence_source: docstring
-- name: auto-close
-  title: close
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Close active network connection/session.
-  evidence_source: docstring
-- name: auto-receive_data
-  title: receive_data
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Receive complete socket payload using advertised length.
-  evidence_source: docstring
-- name: auto-discover
-  title: discover
-  parameters:
-  - parse_procedural_parameter
-  command_type: UniLabJsonCommand
-  description_en: Broadcast list-identity request to discover devices.
-  evidence_source: docstring
-driver_functions:
-  compact_signatures:
-  - Connection.__init__(self, parent) (line 98)
-  - Connection.connect(self, connected) (line 123)
-  - Connection.send(self, request, connected, slot) (line 130)
-  - Connection.listen(self, ip_address, callback, port) (line 151)
-  - Connection.close(self) (line 165)
-  - Connection._connect(self, connected) (line 172)
-  - Connection._close_connection(self) (line 244)
-  - Connection._get_bytes(self, data, connected) (line 265)
-  - Connection.receive_data(self) (line 290)
-  - Connection._wait_for_connection(self) (line 313)
-  - Connection._wait_for_message(self) (line 333)
-  - Connection._extract_packet(self, eip_command, packet) (line 409)
-  - Connection._build_register_session(self) (line 426)
-  - Connection._register_session_reply(self) (line 451)
-  - Connection._build_unregister_session(self) (line 477)
-  - Connection._forward_open(self) (line 497)
-  - Connection._forward_open_reply(self) (line 523)
-  - Connection._build_forward_open_packet(self) (line 546)
-  - Connection._build_cip_forward_open(self) (line 555)
-  - Connection._build_forward_close_packet(self) (line 625)
-  - Connection._build_forward_close(self) (line 634)
-  - Connection._build_forward_close_reply(self) (line 671)
-  - Connection._build_rr_data_header(self, frame_len) (line 687)
-  - Connection._build_unconnected_send(self, service_size) (line 722)
-  - Connection._build_eip_header(self, ioi) (line 750)
-  - Connection._send_unit_data_reply(self, payload) (line 801)
-  - Connection._connected_path(self) (line 849)
-  - Connection._unconnected_path(self, slot) (line 888)
-  - Connection.discover(self, parse_procedural_parameter) (line 922)
-  - Connection._build_list_identity(self) (line 984)
-  note: Compact signatures retained; action semantics are documented in atom_actions.
-schema_version: v2
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 6
-  driver_function_count: 30
-  related_tag_count: 1
+connection:
+  name: Logix 可编程逻辑控制器（PLC）
+  name_en: Logix Programmable Logic Controller (PLC)
+  manufacturer: Rockwell Automation
+  category:
+  - PLC控制器
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - PLC控制与设备联锁
+  - PLC控制器
+  description: 一种支持 EtherNet/IP 与 CIP 通信的工业可编程逻辑控制器，用于实验装置、自动化测试台或工艺系统中的顺序控制、联锁控制以及
+    I/O 数据交换。
+  description_en: An industrial programmable logic controller that supports EtherNet/IP
+    and CIP communication, used in laboratory rigs, automation test stands, and process
+    systems for sequence control, interlocks, and I/O data exchange.
+  class:
+    action_value_mappings:
+      auto-connect:
+        schema:
+          description: 连接到 PLC。
+          description_en: Connect to the PLC.
+      auto-send:
+        schema:
+          description: 向 PLC 发送通信请求并获取返回的数据与状态。
+          description_en: Send a communication request to the PLC and obtain the returned
+            data and status.
+      auto-listen:
+        schema:
+          description: 监听来自 PLC 的 CIP 数据表写入消息。
+          description_en: Listen for CIP data table write messages from the PLC.
+      auto-close:
+        schema:
+          description: 关闭与 PLC 的连接。
+          description_en: Close the connection to the PLC.
+      auto-receive_data:
+        schema:
+          description: 接收来自 PLC 的网络数据。
+          description_en: Receive network data from the PLC.
+      auto-discover:
+        schema:
+          description: 在网络上发现可用的 PLC 设备。
+          description_en: Discover available PLC devices on the network.
+auto_annotation_metadata:
+  registry_key: connection
+  annotation_workflow_version: v4
+  tag_hints:
+  - PLC control
+  - EtherNet/IP
+  - CIP protocol
+  - Allen-Bradley Logix
+  - industrial automation
+  - network device discovery
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: PLC 在实验装置和测试台运行中承担顺序控制、联锁和 I/O 交换。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: Logix PLC 是实验自动化系统中的核心控制节点，直接对应自动化与仪器集成域。
+  - id: P-0035
+    name: PLC控制与设备联锁
+    name_en: PLC Control & Equipment Interlock
+    type: experimental_scene
+    rationale: 描述明确提到顺序控制和联锁控制，是该场景的直接匹配。
+  - id: P-0036
+    name: PLC控制器
+    name_en: PLC Controller
+    type: device_template_tag
+    rationale: 该设备就是支持 EtherNet/IP 与 CIP 的可编程逻辑控制器。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

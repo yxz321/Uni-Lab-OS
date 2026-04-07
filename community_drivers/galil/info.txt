@@ -1,51 +1,158 @@
-Device: galil
-Registry Key: galil
-Short Description: Galil 运动控制器 自动化设备 Galil是由Galil Motion Control生产的专业实验设备。
-
-Categories:
-- 物流/机械
-
-Related Tags (from tag 标签列表.csv):
-- [4317] 物流/机械 / Logistics / Machinery (experimental_step)
-
-Atom Actions (18):
-- auto-break_infinite_digital_cycles -> break_infinite_digital_cycles [UniLabJsonCommand] goal_params: init_time, off_time, on_time, port
-- auto-digital_out_off -> digital_out_off [UniLabJsonCommand] goal_params: port
-- auto-digital_out_on -> digital_out_on [UniLabJsonCommand] goal_params: port
-- auto-infinite_digital_cycles -> infinite_digital_cycles [UniLabJsonCommand] goal_params: init_time, off_time, on_time, port
-- auto-motor_disconnect -> motor_disconnect [UniLabJsonCommand] goal_params: none
-- auto-motor_move -> motor_move [UniLabJsonCommand] goal_params: axis, mode, speed, stopping, x_mm
-- auto-motor_move_live -> motor_move_live [UniLabJsonCommand] goal_params: axis, mode, speed, x_mm
-- auto-motor_off -> motor_off [UniLabJsonCommand] goal_params: axis
-- auto-motor_on -> motor_on [UniLabJsonCommand] goal_params: axis
-- auto-motor_stop -> motor_stop [UniLabJsonCommand] goal_params: none
-- auto-query_all_axis_positions -> query_all_axis_positions [UniLabJsonCommand] goal_params: none
-- auto-query_axis -> query_axis [UniLabJsonCommand] goal_params: axis
-- auto-query_moving -> query_moving [UniLabJsonCommand] goal_params: none
-- auto-read_analog_in -> read_analog_in [UniLabJsonCommand] goal_params: port
-- auto-read_digital_in -> read_digital_in [UniLabJsonCommand] goal_params: port
-- auto-read_digital_out -> read_digital_out [UniLabJsonCommand] goal_params: port
-- auto-set_analog_out -> set_analog_out [UniLabJsonCommand] goal_params: bitnum, handle, module, value
-- auto-shutdown_event -> shutdown_event [UniLabJsonCommand] goal_params: none
-
-Driver Functions (20):
-- cmd_exception.__init__(self, arg) (line 84)
-- galil.__init__(self, config_dict) (line 89)
-- galil.motor_move(self, x_mm, axis, speed, mode, stopping) (line 119)
-- galil.motor_move_live(self, x_mm, axis, speed, mode) (line 261)
-- galil.motor_disconnect(self) (line 409)
-- galil.query_all_axis_positions(self) (line 417)
-- galil.query_axis(self, axis) (line 442)
-- galil.query_moving(self) (line 453)
-- galil.motor_off(self, axis) (line 472)
-- galil.motor_on(self, axis) (line 496)
-- galil.motor_stop(self) (line 517)
-- galil.read_analog_in(self, port) (line 539)
-- galil.read_digital_in(self, port) (line 547)
-- galil.read_digital_out(self, port) (line 554)
-- galil.set_analog_out(self, handle, module, bitnum, value) (line 563)
-- galil.digital_out_on(self, port) (line 576)
-- galil.digital_out_off(self, port) (line 586)
-- galil.infinite_digital_cycles(self, on_time, off_time, port, init_time) (line 596)
-- galil.break_infinite_digital_cycles(self, on_time, off_time, port, init_time) (line 611)
-- galil.shutdown_event(self) (line 617)
+galil:
+  name: Galil多轴运动控制器
+  name_en: Galil Multi-Axis Motion Controller
+  manufacturer: Galil
+  category:
+  - 电动位移台控制器
+  tags:
+  - 实验执行&合成设备
+  - 物流/机械
+  - 精密定位与运动控制
+  - 实验室自动化与仪器集成
+  - 样品/探针定位与运动控制
+  - 实验仪器数据采集与联机控制
+  - 电动位移台控制器
+  description: 这是一类用于控制多轴电机运动的运动控制器，可驱动实验中的线性平台、位移轴或机械机构，并提供数字/模拟I/O接口用于联锁、触发和信号读取。它常用于精密定位、自动扫描、样品移动和实验装置集成控制。
+  description_en: This is a multi-axis motion controller used to drive motorized stages,
+    translation axes, or other laboratory mechanisms, while also providing digital
+    and analog I/O for interlocks, triggering, and signal readback. It is commonly
+    used for precise positioning, automated scanning, sample movement, and integrated
+    instrument control.
+  class:
+    action_value_mappings:
+      auto-motor_move:
+        schema:
+          description: 按指定轴、距离/位置、速度和模式移动电机。
+          description_en: Move a motor axis with the specified axis, distance/position,
+            speed, and motion mode.
+      auto-motor_move_live:
+        schema:
+          description: 以实时运动序列按指定轴、距离/位置、速度和模式移动电机。
+          description_en: Move a motor axis using a live motion sequence with the
+            specified axis, distance/position, speed, and mode.
+      auto-motor_disconnect:
+        schema:
+          description: 断开与运动控制器的连接。
+          description_en: Disconnect from the motion controller.
+      auto-query_all_axis_positions:
+        schema:
+          description: 查询所有轴的当前位置。
+          description_en: Query the current positions of all axes.
+      auto-query_axis:
+        schema:
+          description: 查询指定轴的当前位置。
+          description_en: Query the current position of a specified axis.
+      auto-query_moving:
+        schema:
+          description: 查询控制器是否有任意轴正在运动。
+          description_en: Query whether any axis is currently moving.
+      auto-motor_off:
+        schema:
+          description: 关闭指定轴的电机使能/驱动。
+          description_en: Disable the motor drive for the specified axis.
+      auto-motor_on:
+        schema:
+          description: 开启指定轴的电机使能/驱动。
+          description_en: Enable the motor drive for the specified axis.
+      auto-motor_stop:
+        schema:
+          description: 立即停止所有轴的运动。
+          description_en: Immediately stop motion on all axes.
+      auto-read_analog_in:
+        schema:
+          description: 读取指定模拟输入端口的数值。
+          description_en: Read the value of a specified analog input port.
+      auto-read_digital_in:
+        schema:
+          description: 读取指定数字输入端口的状态。
+          description_en: Read the state of a specified digital input port.
+      auto-read_digital_out:
+        schema:
+          description: 读取指定数字输出端口的当前输出状态。
+          description_en: Read the current output state of a specified digital output
+            port.
+      auto-set_analog_out:
+        schema:
+          description: 设置受支持模块上的模拟输出值。
+          description_en: Set the analog output value on a supported module.
+      auto-digital_out_on:
+        schema:
+          description: 将指定数字输出端口置为开启。
+          description_en: Turn a specified digital output port on.
+      auto-digital_out_off:
+        schema:
+          description: 将指定数字输出端口置为关闭。
+          description_en: Turn a specified digital output port off.
+      auto-infinite_digital_cycles:
+        schema:
+          description: 让指定数字输出端口持续进行开关循环。
+          description_en: Continuously cycle a specified digital output port on and
+            off.
+      auto-break_infinite_digital_cycles:
+        schema:
+          description: 停止指定数字输出端口的持续开关循环。
+          description_en: Stop the continuous on/off cycling of a specified digital
+            output port.
+      auto-shutdown_event:
+        schema:
+          description: 在关闭时安全断开运动控制器连接。
+          description_en: Safely disconnect the motion controller during shutdown.
+auto_annotation_metadata:
+  registry_key: galil
+  annotation_workflow_version: v4
+  tag_hints:
+  - multi-axis motion control
+  - motorized stage control
+  - precision positioning
+  - digital I/O
+  - analog input
+  - automated scanning
+  - Galil controller
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该控制器直接参与自动扫描、样品移动和实验装置控制等实验执行过程。
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 设备用于多轴电机与机械机构控制，具有明显机械运动控制属性。
+  - id: P-1009
+    name: 精密定位与运动控制
+    name_en: Precision Positioning & Motion Control
+    type: experimental_domain
+    rationale: Galil 控制器核心功能是多轴电机驱动与精密定位。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 其数字/模拟 I/O、联锁与触发能力适合实验装置集成控制。
+  - id: P-0038
+    name: 样品/探针定位与运动控制
+    name_en: Sample / Probe Positioning & Motion Control
+    type: experimental_scene
+    rationale: 描述中明确涉及精密定位、自动扫描和样品移动等场景。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 该设备除运动控制外还提供模拟/数字 I/O 用于在线触发、联锁和信号读取。
+  - id: P-3008
+    name: 电动位移台控制器
+    name_en: Motorized Stage Controller
+    type: device_template_tag
+    rationale: 其主要作用是驱动实验中的线性平台、位移轴及相关定位机构。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -307,8 +307,12 @@ Web search is not triggered by script heuristics. Follow this sequence:
    - `manufacturer`
    - `description`
    - `description_en`
-   in `02_device_profile_api.json`.
-6. If manufacturer remains uncertain after web search, leave it empty.
+   in `02_device_profile_api.json.parsed`.
+6. Write those conflict-resolution edits only into
+   `02_device_profile_api.json.parsed.{name,name_en,manufacturer,description,description_en}`.
+   Do not rely on top-level duplicate fields in `02_device_profile_api.json`; Pass B
+   and rendering consume the `parsed` values.
+7. If manufacturer remains uncertain after web search, leave it empty.
 
 Interpretation rule:
 - do not web search just because weak registry metadata disagrees with a
@@ -517,7 +521,8 @@ Important rule:
   `02_profile_registry_compare.json`
 - the subagent compares Pass A against extracted registry values by reading
   only `02_profile_registry_compare.json`, then optionally uses web evidence
-- the subagent edits only the five identity/description fields in `02`
+- the subagent edits only
+  `02_device_profile_api.json.parsed.{name,name_en,manufacturer,description,description_en}`
 - Pass B uses only the conflict-resolved `02_device_profile_api.json`
 - rendering combines tags and derives `category` from template tags
 - validation checks structure and combined-tag coverage only

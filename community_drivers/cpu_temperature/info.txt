@@ -1,188 +1,112 @@
-device: cpu_temperature
-registry_key: cpu_temperature
-device_identity:
-  manufacturer: Open Source
-  model:
-    name: Host CPU Temperature Sensor Driver
-    type: device
-  name: CPU Temperature Sensor
-  module_path: unilabos.devices.thermal.cpu_temperature:CPUTemperature
-description:
-  text_en: Host-system thermal sensor interface that reads CPU temperature and related
-    internal health signals (load average, disk usage, time windows) for hardware
-    protection and monitoring workflows.
-  method: local
-description_evidence:
-  web: []
-  local:
-  - 'registry.description: Cpu Temperature驱动，支持temperature/value/is active/closed/event
-    delay等13个操作。'
-  - 'registry.name: Cpu Temperature'
-  - 'registry.manufacturer: TEMPer (PCsensor)'
-  - 'registry.class.module: unilabos.devices.thermal.cpu_temperature:CPUTemperature'
-  - 'actions include: temperature, value, is_active, closed, event_delay, wait_for_active,
-    wait_for_inactive, host'
-  - 'module_path: unilabos.devices.thermal.cpu_temperature:CPUTemperature'
-registry_identity_conflict:
-  registry_manufacturer: TEMPer (PCsensor)
-  registry_model_name: Generic Cpu Temperature 透射电子显微镜
-  chosen_manufacturer: Open Source
-  chosen_model_name: Host CPU Temperature Sensor Driver
-  rationale: Driver source is gpiozero-style CPU/internal sensor monitoring, not a
-    TEM microscope or external PCsensor instrument.
-related_tags:
-- id: '4313'
-  name: 实验执行&合成设备
-  name_en: Experiment Execution & Synthesis Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: '4313'
-  rationale: Matched from registry signals and action/description semantics.
-  signals:
-  - registry.category
-  - registry.tags
-  - name
-  - model
-  - manufacturer
-  - module_path
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-temperature
-  title: temperature
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read CPU temperature from configured sensor file.
-  evidence_source: driver_docstring
-- name: auto-value
-  title: value
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return normalized sensor value for event logic.
-  evidence_source: driver_docstring
-- name: auto-is_active
-  title: is_active
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Report whether current value is above configured threshold.
-  evidence_source: driver_docstring
-- name: auto-closed
-  title: closed
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Execute closed.
-  evidence_source: action_name_params
-- name: auto-event_delay
-  title: event_delay
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Execute event delay.
-  evidence_source: action_name_params
-- name: auto-wait_for_active
-  title: wait_for_active
-  parameters:
-  - timeout
-  command_type: UniLabJsonCommand
-  description_en: Block until sensor state becomes active or timeout.
-  evidence_source: driver_docstring
-- name: auto-wait_for_inactive
-  title: wait_for_inactive
-  parameters:
-  - timeout
-  command_type: UniLabJsonCommand
-  description_en: Block until sensor state becomes inactive or timeout.
-  evidence_source: driver_docstring
-- name: auto-host
-  title: host
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Execute host.
-  evidence_source: action_name_params
-- name: auto-load_average
-  title: load_average
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Execute load average.
-  evidence_source: action_name_params
-- name: auto-start_time
-  title: start_time
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Start time.
-  evidence_source: action_name_params
-- name: auto-end_time
-  title: end_time
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Execute end time.
-  evidence_source: action_name_params
-- name: auto-utc
-  title: utc
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Execute utc.
-  evidence_source: action_name_params
-- name: auto-usage
-  title: usage
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Execute usage.
-  evidence_source: action_name_params
-driver_functions:
-  compact_signatures:
-  - InternalDevice.__init__(self, *, pin_factory) (line 99)
-  - InternalDevice.close(self) (line 103)
-  - InternalDevice.closed(self) (line 108)
-  - InternalDevice.__repr__(self) (line 111)
-  - PolledInternalDevice.__init__(self, *, event_delay, pin_factory) (line 125)
-  - PolledInternalDevice.close(self) (line 130)
-  - PolledInternalDevice.event_delay(self) (line 138)
-  - PolledInternalDevice.event_delay(self, value) (line 153)
-  - PolledInternalDevice.wait_for_active(self, timeout) (line 156)
-  - PolledInternalDevice.wait_for_inactive(self, timeout) (line 164)
-  - PolledInternalDevice._watch_value(self) (line 172)
-  - PolledInternalDevice._start_stop_events(self, enabled) (line 176)
-  - PingServer.__init__(self, host, *, event_delay, pin_factory) (line 215)
-  - PingServer.__repr__(self) (line 220)
-  - PingServer.host(self) (line 228)
-  - PingServer.value(self) (line 235)
-  - CPUTemperature.__init__(self, sensor_file, *, min_temp, max_temp, threshold, event_delay,
-    pin_factory) (line 331)
-  - CPUTemperature.__repr__(self) (line 350)
-  - CPUTemperature.temperature(self) (line 361)
-  - CPUTemperature.value(self) (line 370)
-  - CPUTemperature.is_active(self) (line 382)
-  - LoadAverage.__init__(self, load_average_file, *, min_load_average, max_load_average,
-    threshold, minutes, event_delay, pin_factory) (line 468)
-  - LoadAverage.__repr__(self) (line 492)
-  - LoadAverage.load_average(self) (line 502)
-  - LoadAverage.value(self) (line 511)
-  - LoadAverage.is_active(self) (line 521)
-  - TimeOfDay.__init__(self, start_time, end_time, *, utc, event_delay, pin_factory)
-    (line 601)
-  - TimeOfDay.__repr__(self) (line 618)
-  - TimeOfDay._validate_time(self, value) (line 628)
-  - TimeOfDay.start_time(self) (line 637)
-  - TimeOfDay.end_time(self) (line 644)
-  - TimeOfDay.utc(self) (line 651)
-  - TimeOfDay.value(self) (line 659)
-  - DiskUsage.__init__(self, filesystem, *, threshold, event_delay, pin_factory) (line
-    738)
-  - DiskUsage.__repr__(self) (line 750)
-  - DiskUsage.usage(self) (line 760)
-  - DiskUsage.value(self) (line 767)
-  - DiskUsage.is_active(self) (line 783)
-  note: Compact list retained by design; action semantics are documented in atom_actions.
-schema_version: v3
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 13
-  driver_function_count: 38
-  related_tag_count: 1
+cpu_temperature:
+  name: CPU片上温度传感器
+  name_en: CPU On-Die Temperature Sensor
+  manufacturer: ''
+  category:
+  - 温度传感器
+  tags:
+  - 表征设备
+  - 环境控制与稳定性测试
+  - 热管理与温升监测
+  - 温度传感器
+  description: 集成在处理器芯片内部的温度传感器，用于读取CPU热区温度。在实验室和计算平台中可用于热管理、过温告警、散热评估，以及负载测试过程中的温升监测。
+  description_en: An integrated temperature sensor inside the processor used to read
+    the CPU thermal-zone temperature. In laboratory and computing setups, it is used
+    for thermal management, over-temperature alarms, cooling evaluation, and temperature-rise
+    monitoring during load testing.
+  class:
+    action_value_mappings:
+      auto-temperature:
+        schema:
+          description: 获取CPU当前温度
+          description_en: Get the current CPU temperature
+      auto-value:
+        schema:
+          description: 获取归一化温度值
+          description_en: Get the normalized temperature value
+      auto-is_active:
+        schema:
+          description: 获取温度是否超过阈值
+          description_en: Get whether the temperature is above the threshold
+      auto-closed:
+        schema:
+          description: 获取设备是否已关闭
+          description_en: Get whether the device is closed
+      auto-event_delay:
+        schema:
+          description: 获取轮询间隔
+          description_en: Get the polling interval
+      auto-wait_for_active:
+        schema:
+          description: 等待温度状态变为活动
+          description_en: Wait until the temperature state becomes active
+      auto-wait_for_inactive:
+        schema:
+          description: 等待温度状态变为非活动
+          description_en: Wait until the temperature state becomes inactive
+      auto-host:
+        schema:
+          description: 获取已配置的主机地址（如适用）
+          description_en: Get the configured host address, if applicable
+      auto-load_average:
+        schema:
+          description: 获取CPU负载平均值（如适用）
+          description_en: Get the CPU load average, if applicable
+      auto-start_time:
+        schema:
+          description: 获取开始时间设置（如适用）
+          description_en: Get the start time setting, if applicable
+      auto-end_time:
+        schema:
+          description: 获取结束时间设置（如适用）
+          description_en: Get the end time setting, if applicable
+      auto-utc:
+        schema:
+          description: 获取是否使用UTC时间（如适用）
+          description_en: Get whether UTC time is used, if applicable
+      auto-usage:
+        schema:
+          description: 获取磁盘使用率（如适用）
+          description_en: Get the disk usage, if applicable
+auto_annotation_metadata:
+  registry_key: cpu_temperature
+  annotation_workflow_version: v4
+  tag_hints:
+  - CPU temperature monitoring
+  - on-die thermal sensor
+  - overheat detection
+  - thermal management
+  - system health monitoring
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该传感器用于读取与监测温度，是对计算平台热状态的检测与表征。
+  - id: P-9004
+    name: 环境控制与稳定性测试
+    name_en: Environmental Control & Stability Testing
+    type: experimental_domain
+    rationale: 设备用于热管理、过温告警和温升监测，符合稳定性与环境状态监控范畴。
+  proposed_new_tags:
+  - id: P-0202
+    name: 热管理与温升监测
+    name_en: Thermal Management & Temperature Rise Monitoring
+    type: experimental_scene
+    rationale: 描述中直接提到热管理、过温告警、散热评估和负载测试温升监测。
+  - id: P-0203
+    name: 温度传感器
+    name_en: Temperature Sensor
+    type: device_template_tag
+    rationale: 该设备本质上是用于读取热区温度的片上温度传感器。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

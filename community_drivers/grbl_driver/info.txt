@@ -1,70 +1,168 @@
-Device: grbl_driver
-Registry Key: grbl_driver
-Short Description: GRBL Motor Driver 自动化设备是由Open Source (GRBL)生产的专业实验设备。
-
-Categories:
-- 物流/机械
-
-Related Tags (from tag 标签列表.csv):
-- [4317] 物流/机械 / Logistics / Machinery (experimental_step)
-
-Atom Actions (25):
-- auto-alarm_reset -> alarm_reset [UniLabJsonCommand] goal_params: none
-- auto-check_alarm -> check_alarm [UniLabJsonCommand] goal_params: bufferoutput
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-controlled_stop -> controlled_stop [UniLabJsonCommand] goal_params: pingwait
-- auto-current_position -> current_position [UniLabJsonCommand] goal_params: none
-- auto-get_positions -> get_positions [UniLabJsonCommand] goal_params: none
-- auto-get_status_report -> get_status_report [UniLabJsonCommand] goal_params: none
-- auto-home -> home [UniLabJsonCommand] goal_params: blocking, offset, pingwait, zhome
-- auto-move_abs -> move_abs [UniLabJsonCommand] goal_params: blocking, pingwait, position_rel
-- auto-move_rel -> move_rel [UniLabJsonCommand] goal_params: blocking, pingwait, position_rel
-- auto-move_xyz -> move_xyz [UniLabJsonCommand] goal_params: blocking, config, pingwait, position
-- auto-reset_stage -> reset_stage [UniLabJsonCommand] goal_params: none
-- auto-set_laser_intensity -> set_laser_intensity [UniLabJsonCommand] goal_params: intensity
-- auto-set_led -> set_led [UniLabJsonCommand] goal_params: state
-- auto-shake_plate -> shake_plate [UniLabJsonCommand] goal_params: d_shift, time_shake
-- auto-soft_reset -> soft_reset [UniLabJsonCommand] goal_params: none
-- auto-stop -> stop [UniLabJsonCommand] goal_params: none
-- auto-verify_settings -> verify_settings [UniLabJsonCommand] goal_params: none
-- auto-write_all_settings -> write_all_settings [UniLabJsonCommand] goal_params: none
-- auto-write_global_config -> write_global_config [UniLabJsonCommand] goal_params: wait
-- auto-xmove -> xmove [UniLabJsonCommand] goal_params: blocking, steps
-- auto-ymove -> ymove [UniLabJsonCommand] goal_params: blocking, steps
-- auto-zero_position -> zero_position [UniLabJsonCommand] goal_params: none
-- auto-zhome -> zhome [UniLabJsonCommand] goal_params: steps
-- auto-zmove -> zmove [UniLabJsonCommand] goal_params: blocking, steps
-
-Driver Functions (32):
-- GrblDriver.__init__(self, address) (line 124)
-- GrblDriver._update_writesettings(self) (line 204)
-- GrblDriver.write_global_config(self, wait) (line 222)
-- GrblDriver._write_settings(self, settings, settingsmap, wait) (line 235)
-- GrblDriver.write_all_settings(self) (line 249)
-- GrblDriver.verify_settings(self) (line 258)
-- GrblDriver._write(self, command, flush) (line 304)
-- GrblDriver._read_buffer(self, maxreads) (line 313)
-- GrblDriver._move(self, axis, steps, config, blocking, pingwait) (line 333)
-- GrblDriver.shake_plate(self, d_shift, time_shake) (line 351)
-- GrblDriver.move_rel(self, position_rel, blocking, pingwait) (line 369)
-- GrblDriver.move_abs(self, position_rel, blocking, pingwait) (line 375)
-- GrblDriver.move_xyz(self, position, blocking, pingwait, config) (line 381)
-- GrblDriver.xmove(self, steps, blocking) (line 411)
-- GrblDriver.ymove(self, steps, blocking) (line 416)
-- GrblDriver.zmove(self, steps, blocking) (line 421)
-- GrblDriver.home(self, offset, blocking, pingwait, zhome) (line 426)
-- GrblDriver.zhome(self, steps) (line 448)
-- GrblDriver.get_status_report(self) (line 455)
-- GrblDriver.check_alarm(self, bufferoutput) (line 478)
-- GrblDriver.reset_stage(self) (line 487)
-- GrblDriver.current_position(self) (line 495)
-- GrblDriver.get_positions(self) (line 500)
-- GrblDriver.zero_position(self) (line 523)
-- GrblDriver._human_readable_settings(self) (line 530)
-- GrblDriver.set_laser_intensity(self, intensity) (line 561)
-- GrblDriver.set_led(self, state) (line 572)
-- GrblDriver.soft_reset(self) (line 584)
-- GrblDriver.controlled_stop(self, pingwait) (line 591)
-- GrblDriver.stop(self) (line 604)
-- GrblDriver.alarm_reset(self) (line 609)
-- GrblDriver.close(self) (line 614)
+grbl_driver:
+  name: GRBL三轴运动平台
+  name_en: GRBL 3-Axis Motion Stage
+  manufacturer: ''
+  category:
+  - 电动定位台
+  tags:
+  - 物流/机械
+  - 精密定位与运动控制
+  - 样品/探针定位与运动控制
+  - 电动定位台
+  description: 这是一种基于 GRBL 控制器的三轴电动运动平台，通常由 Arduino Uno 与 CNC Shield 驱动 X、Y、Z 轴步进电机。设备支持回零、限位开关、相对/绝对定位，以及简单的激光强度和
+    LED 控制，可用于实验室中的样品托盘、载台或小型自动化机构的移动、定位与振动操作。
+  description_en: This is a GRBL-based 3-axis motorized motion stage, typically driven
+    by an Arduino Uno and CNC shield to control X, Y, and Z stepper motors. It supports
+    homing, limit switches, relative and absolute positioning, and simple laser intensity
+    and LED control, making it useful for moving, positioning, and shaking sample
+    plates, stages, or small laboratory automation mechanisms.
+  class:
+    action_value_mappings:
+      auto-write_global_config:
+        schema:
+          description: 写入运动控制器的全局配置，如回零速度和限位开关参数。
+          description_en: Write the global motion-controller configuration, such as
+            homing speed and limit-switch parameters.
+      auto-write_all_settings:
+        schema:
+          description: 写入该运动平台的全部轴参数和控制设置。
+          description_en: Write all axis parameters and controller settings for the
+            motion stage.
+      auto-verify_settings:
+        schema:
+          description: 核对当前 GRBL 设置是否与目标运动平台配置一致。
+          description_en: Verify that the current GRBL settings match the intended
+            motion-stage configuration.
+      auto-shake_plate:
+        schema:
+          description: 让载板或样品板执行摇动运动。
+          description_en: Shake the plate or sample holder with a programmed motion.
+      auto-move_rel:
+        schema:
+          description: 按相对位移移动 XYZ 轴。
+          description_en: Move the XYZ axes by a relative displacement.
+      auto-move_abs:
+        schema:
+          description: 移动到指定的绝对 XYZ 位置。
+          description_en: Move to a specified absolute XYZ position.
+      auto-move_xyz:
+        schema:
+          description: 控制运动平台在 XYZ 坐标中移动。
+          description_en: Move the motion stage in XYZ coordinates.
+      auto-xmove:
+        schema:
+          description: 移动 X 轴。
+          description_en: Move the X axis.
+      auto-ymove:
+        schema:
+          description: 移动 Y 轴。
+          description_en: Move the Y axis.
+      auto-zmove:
+        schema:
+          description: 移动 Z 轴。
+          description_en: Move the Z axis.
+      auto-home:
+        schema:
+          description: 执行各轴回零。
+          description_en: Home the axes.
+      auto-zhome:
+        schema:
+          description: 执行 Z 轴回零。
+          description_en: Home the Z axis.
+      auto-check_alarm:
+        schema:
+          description: 检查运动控制器的报警状态。
+          description_en: Check the alarm state of the motion controller.
+      auto-reset_stage:
+        schema:
+          description: 复位运动平台控制器。
+          description_en: Reset the motion-stage controller.
+      auto-current_position:
+        schema:
+          description: 读取当前位置信息。
+          description_en: Read the current position.
+      auto-zero_position:
+        schema:
+          description: 将当前位置定义为零点。
+          description_en: Define the current position as the zero origin.
+      auto-set_laser_intensity:
+        schema:
+          description: 设置激光输出强度。
+          description_en: Set the laser output intensity.
+      auto-set_led:
+        schema:
+          description: 设置 LED 开关状态。
+          description_en: Set the LED on/off state.
+      auto-soft_reset:
+        schema:
+          description: 执行软复位并尽量保持当前位置记录。
+          description_en: Perform a soft reset while preserving the current position
+            record as much as possible.
+      auto-controlled_stop:
+        schema:
+          description: 以受控减速方式停止运动。
+          description_en: Stop motion with controlled deceleration.
+      auto-stop:
+        schema:
+          description: 紧急停止所有运动。
+          description_en: Emergency-stop all motion.
+      auto-alarm_reset:
+        schema:
+          description: 复位并清除报警状态。
+          description_en: Reset and clear the alarm state.
+      auto-close:
+        schema:
+          description: 关闭与运动控制器的通信。
+          description_en: Close communication with the motion controller.
+      auto-get_positions:
+        schema:
+          description: 获取当前位置。
+          description_en: Get the current position.
+      auto-get_status_report:
+        schema:
+          description: 获取状态报告。
+          description_en: Get the status report.
+auto_annotation_metadata:
+  registry_key: grbl_driver
+  annotation_workflow_version: v4
+  tag_hints:
+  - GRBL motion control
+  - XYZ stage
+  - stepper motor positioning
+  - homing and limit switches
+  - Arduino Uno CNC shield
+  - sample plate motion
+  - laser intensity control
+  existing_tags:
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 该设备是带XYZ步进轴的实验运动平台，主要承担机械移动与定位。
+  - id: P-1009
+    name: 精密定位与运动控制
+    name_en: Precision Positioning & Motion Control
+    type: experimental_domain
+    rationale: 支持限位、回零、绝对/相对定位和受控停止，属于典型精密运动控制系统。
+  - id: P-0038
+    name: 样品/探针定位与运动控制
+    name_en: Sample / Probe Positioning & Motion Control
+    type: experimental_scene
+    rationale: 其用途包括样品托盘、载台和小型机构的移动、定位与扫描式运动。
+  - id: P-5003
+    name: 电动定位台
+    name_en: Motorized Positioning Stage
+    type: device_template_tag
+    rationale: 该设备本质是GRBL控制的三轴运动平台，可归入电动定位台模板。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

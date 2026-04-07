@@ -1,103 +1,93 @@
-device: crsf_joy_bridge
-registry_key: crsf_joy_bridge
-device_identity:
-  manufacturer: Open Source
-  model:
-    name: CRSF to ROS2 Joy Bridge
-    type: device
-  name: CRSF Joy Bridge
-  module_path: unilabos.devices.generic.crsf_joy_bridge:CrsfJoyBridge
-description:
-  text_en: ROS2 bridge node that reads CRSF radio-control frames from serial input
-    and publishes normalized joystick axes/buttons as `sensor_msgs/Joy` for robot
-    teleoperation.
-  method: local+web
-description_evidence:
-  web:
-  - https://github.com/iOperator/CRSF-HLA
-  local:
-  - 'registry.description: Crsf JOY Bridge是一款实验执行&合成设备，主要功能包括启动、读取数据。支持Signal, Slot,
-    crc8 data等操作。'
-  - 'registry.name: Enumeration of CRSF packet types'
-  - 'registry.manufacturer: Open Source'
-  - 'registry.class.module: unilabos.devices.generic.crsf_joy_bridge:CrsfJoyBridge'
-  - 'actions include: start_serial, serial_reader, handle_crsf_packet, publish_joy,
-    destroy_node'
-  - 'driver header: Original: unitree/go2_sdk/go2_sdk/crsf_controller.py'
-related_tags:
-- id: '4317'
-  name: 物流/机械
-  name_en: Logistics / Machinery
-  type: experimental_step
-tag_evidence:
-- tag_id: '4317'
-  rationale: Matched from registry signals and action/description semantics.
-  signals:
-  - registry.category
-  - registry.tags
-  - name
-  - model
-  - manufacturer
-  - module_path
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-start_serial
-  title: start_serial
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Start serial receiver thread for CRSF frame ingestion.
-  evidence_source: docstring
-- name: auto-serial_reader
-  title: serial_reader
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read serial bytes, validate CRSF frames, and dispatch packet handling.
-  evidence_source: docstring
-- name: auto-handle_crsf_packet
-  title: handle_crsf_packet
-  parameters:
-  - ptype
-  - data
-  command_type: UniLabJsonCommand
-  description_en: Decode CRSF packet payload into joystick axes/buttons state.
-  evidence_source: docstring
-- name: auto-publish_joy
-  title: publish_joy
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Publish latest normalized joystick state to ROS2 Joy topic.
-  evidence_source: docstring
-- name: auto-destroy_node
-  title: destroy_node
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Stop serial loop and cleanly destroy ROS2 node resources.
-  evidence_source: docstring
-driver_functions:
-  compact_signatures:
-  - crc8_dvb_s2(crc, a) (line 87)
-  - crc8_data(data) (line 112)
-  - crsf_validate_frame(frame) (line 132)
-  - n(val) (line 149)
-  - CrsfJoyBridge.__init__(self) (line 177)
-  - CrsfJoyBridge.start_serial(self) (line 209)
-  - CrsfJoyBridge.serial_reader(self) (line 224)
-  - CrsfJoyBridge.handle_crsf_packet(self, ptype, data) (line 254)
-  - CrsfJoyBridge.publish_joy(self) (line 302)
-  - CrsfJoyBridge.destroy_node(self) (line 310)
-  - main(args) (line 323)
-  note: Compact list retained by design; action semantics are documented in atom_actions.
-schema_version: v3
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 5
-  driver_function_count: 11
-  related_tag_count: 1
+crsf_joy_bridge:
+  name: CRSF遥控器桥接接口
+  name_en: CRSF Remote Controller Bridge
+  manufacturer: Unitree
+  category:
+  - 遥控接收桥接接口
+  tags:
+  - 实验执行&合成设备
+  - 机器人与移动平台
+  - 移动机器人与自动驾驶实验
+  - 足式机器人控制与感知实验
+  - 遥控接收桥接接口
+  description: 这是一类基于 CRSF 控制链路的手持遥控器/接收接口，用于把摇杆与开关输入传给机器人系统。在实验室中，它常用于对移动机器人或四足机器人进行人工遥操作、模式切换和基础运动控制。
+  description_en: This is a CRSF-based handheld remote controller and receiver interface
+    used to pass stick and switch inputs into a robotic system. In laboratory use,
+    it is commonly used for manual teleoperation, mode switching, and basic motion
+    control of mobile robots or quadrupeds.
+  class:
+    action_value_mappings:
+      auto-start_serial:
+        schema:
+          description: 启动与 CRSF 遥控接收链路的串口通信。
+          description_en: Start serial communication with the CRSF remote control
+            link.
+      auto-serial_reader:
+        schema:
+          description: 读取来自 CRSF 遥控器的串口控制数据包。
+          description_en: Read serial control packets coming from the CRSF remote
+            controller.
+      auto-handle_crsf_packet:
+        schema:
+          description: 解析 CRSF 控制数据包并转换为摇杆与按键状态。
+          description_en: Decode a CRSF control packet and convert it into joystick
+            axes and button states.
+      auto-publish_joy:
+        schema:
+          description: 输出当前遥控器的摇杆与开关状态。
+          description_en: Publish the current stick and switch state of the remote
+            controller.
+      auto-destroy_node:
+        schema:
+          description: 关闭遥控器通信并清理连接资源。
+          description_en: Shut down the controller communication and clean up connection
+            resources.
+auto_annotation_metadata:
+  registry_key: crsf_joy_bridge
+  annotation_workflow_version: v4
+  tag_hints:
+  - CRSF radio control
+  - robot teleoperation
+  - joystick input
+  - remote controller
+  - quadruped robot control
+  - serial communication
+  - ROS Joy mapping
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该接口用于机器人系统的实时人工控制，属于实验执行过程中的控制设备。
+  - id: P-0020
+    name: 机器人与移动平台
+    name_en: Robotics & Mobile Platforms
+    type: experimental_domain
+    rationale: 设备服务对象是移动机器人与四足机器人。
+  - id: P-0021
+    name: 移动机器人与自动驾驶实验
+    name_en: Mobile Robotics & Autonomous Vehicle Experiments
+    type: experimental_scene
+    rationale: 其用途包含对移动机器人进行人工遥操作和基础运动控制。
+  - id: P-6003
+    name: 足式机器人控制与感知实验
+    name_en: Legged Robot Control & Perception Experiments
+    type: experimental_scene
+    rationale: 描述中明确提到可用于四足机器人控制。
+  proposed_new_tags:
+  - id: P-0205
+    name: 遥控接收桥接接口
+    name_en: Remote Control Receiver Bridge Interface
+    type: device_template_tag
+    rationale: 该设备负责把遥控器的摇杆与开关输入桥接到机器人系统。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

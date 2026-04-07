@@ -1,42 +1,125 @@
-Device: message_based_driver
-Registry Key: message_based_driver
-Short Description: Message Based Driver驱动，支持finalize/initialize/parse query/query/read等12个操作。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (12):
-- auto-finalize -> finalize [UniLabJsonCommand] goal_params: none
-- auto-initialize -> initialize [UniLabJsonCommand] goal_params: none
-- auto-parse_query -> parse_query [UniLabJsonCommand] goal_params: command, format, recv_args, send_args
-- auto-query -> query [UniLabJsonCommand] goal_params: command, recv_args, send_args
-- auto-read -> read [UniLabJsonCommand] goal_params: encoding, termination
-- auto-via_gpib -> via_gpib [UniLabJsonCommand] goal_params: address, name
-- auto-via_serial -> via_serial [UniLabJsonCommand] goal_params: name, port
-- auto-via_tcpip -> via_tcpip [UniLabJsonCommand] goal_params: hostname, name, port
-- auto-via_tcpip_socket -> via_tcpip_socket [UniLabJsonCommand] goal_params: hostname, name, port
-- auto-via_usb -> via_usb [UniLabJsonCommand] goal_params: board, manufacturer_id, model_code, name, serial_number
-- auto-via_usb_raw -> via_usb_raw [UniLabJsonCommand] goal_params: board, manufacturer_id, model_code, name, serial_number
-- auto-write -> write [UniLabJsonCommand] goal_params: command, encoding, termination
-
-Driver Functions (17):
-- get_resource_manager() (line 100)
-- MessageBasedDriver.__init__(self, *args, **kwargs) (line 133)
-- MessageBasedDriver._get_defaults_kwargs(cls, instrument_type, resource_type, **user_kwargs) (line 152)
-- MessageBasedDriver._via_usb(cls, resource_type, serial_number, manufacturer_id, model_code, name, board, **kwargs) (line 190)
-- MessageBasedDriver.via_usb(cls, serial_number, manufacturer_id, model_code, name, board, **kwargs) (line 253)
-- MessageBasedDriver.via_usb_raw(cls, serial_number, manufacturer_id, model_code, name, board, **kwargs) (line 284)
-- MessageBasedDriver.via_serial(cls, port, name, **kwargs) (line 302)
-- MessageBasedDriver.via_tcpip(cls, hostname, port, name, **kwargs) (line 317)
-- MessageBasedDriver.via_tcpip_socket(cls, hostname, port, name, **kwargs) (line 334)
-- MessageBasedDriver.via_gpib(cls, address, name, **kwargs) (line 350)
-- MessageBasedDriver.__init__(self, resource_name, name, **kwargs) (line 364)
-- MessageBasedDriver.initialize(self) (line 401)
-- MessageBasedDriver.finalize(self) (line 408)
-- MessageBasedDriver.query(self, command, *, send_args, recv_args) (line 414)
-- MessageBasedDriver.parse_query(self, command, *, send_args, recv_args, format) (line 428)
-- MessageBasedDriver.write(self, command, termination, encoding) (line 442)
-- MessageBasedDriver.read(self, termination, encoding) (line 460)
+message_based_driver:
+  name: VISA消息式实验仪器
+  name_en: VISA Message-Based Laboratory Instrument
+  manufacturer: ''
+  category:
+  - SCPI台式电子仪器
+  tags:
+  - 实验执行&合成设备
+  - 表征设备
+  - 实验室自动化与仪器集成
+  - 实验仪器数据采集与联机控制
+  - 实验仪器通信与驱动集成
+  - SCPI台式电子仪器
+  description: 可通过USB、USB RAW、串口、TCP/IP或GPIB进行文本命令通信的通用实验室仪器，如电子测量仪表、源表、电源或分析仪。此类设备通常在实验室中用于远程控制、参数配置、状态读取和测量数据采集。
+  description_en: A generic laboratory instrument that communicates through text-based
+    commands over USB, USB RAW, serial, TCP/IP, or GPIB, such as electronic test instruments,
+    source meters, power supplies, or analyzers. These devices are commonly used in
+    laboratories for remote control, parameter configuration, status readback, and
+    measurement data acquisition.
+  class:
+    action_value_mappings:
+      auto-finalize:
+        schema:
+          description: 关闭与仪器的通信会话。
+          description_en: Close the communication session with the instrument.
+      auto-initialize:
+        schema:
+          description: 初始化与仪器的通信会话。
+          description_en: Initialize the communication session with the instrument.
+      auto-parse_query:
+        schema:
+          description: 向仪器发送查询命令并按指定格式解析返回结果。
+          description_en: Send a query command to the instrument and parse the returned
+            result using a specified format.
+      auto-query:
+        schema:
+          description: 向仪器发送查询命令并读取返回结果。
+          description_en: Send a query command to the instrument and read back the
+            response.
+      auto-read:
+        schema:
+          description: 从仪器读取返回的文本数据。
+          description_en: Read returned text data from the instrument.
+      auto-write:
+        schema:
+          description: 向仪器发送文本命令。
+          description_en: Send a text command to the instrument.
+      auto-via_usb:
+        schema:
+          description: 通过USB仪器接口连接设备。
+          description_en: Connect to the device through a USB instrument interface.
+      auto-via_usb_raw:
+        schema:
+          description: 通过USB RAW接口连接设备。
+          description_en: Connect to the device through a USB RAW interface.
+      auto-via_serial:
+        schema:
+          description: 通过串口连接设备。
+          description_en: Connect to the device through a serial port.
+      auto-via_tcpip:
+        schema:
+          description: 通过TCP/IP仪器接口连接设备。
+          description_en: Connect to the device through a TCP/IP instrument interface.
+      auto-via_tcpip_socket:
+        schema:
+          description: 通过TCP/IP套接字接口连接设备。
+          description_en: Connect to the device through a TCP/IP socket interface.
+      auto-via_gpib:
+        schema:
+          description: 通过GPIB接口连接设备。
+          description_en: Connect to the device through a GPIB interface.
+auto_annotation_metadata:
+  registry_key: message_based_driver
+  annotation_workflow_version: v4
+  tag_hints:
+  - VISA communication
+  - message-based instrument
+  - SCPI control
+  - GPIB
+  - USBTMC
+  - serial instrument control
+  - TCP/IP instrument
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 此类仪器常用于远程参数配置与输出控制，如电源或源表类设备。
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 描述中也包含分析仪和电子测量仪表，常用于读回状态与测量数据采集。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 该设备类的核心特征是通过VISA在多种总线上进行实验仪器集成与远程控制。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 支持查询、写入、状态读取和测量数据采集，符合联机控制场景。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 支持USB、串口、TCP/IP、GPIB等多种消息式通信方式，典型属于驱动集成场景。
+  - id: P-7012
+    name: SCPI台式电子仪器
+    name_en: SCPI Benchtop Electronic Instrument
+    type: device_template_tag
+    rationale: 该类设备与可通过文本命令远程控制的通用台式电子仪器高度相符。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

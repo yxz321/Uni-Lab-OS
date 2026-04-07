@@ -6,6 +6,7 @@ import argparse
 import concurrent.futures
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -86,6 +87,11 @@ RESPONSE_SCHEMA: dict[str, Any] = {
     },
     'strict': True,
 }
+
+
+def log_progress(stage: str, message: str) -> None:
+    timestamp = time.strftime('%H:%M:%S')
+    print(f'[{timestamp}] [{stage}] {message}', flush=True)
 
 
 def load_env_file(path: Path) -> None:
@@ -255,11 +261,15 @@ def main() -> None:
     if args.limit is not None:
         device_dirs = device_dirs[:args.limit]
 
+    total = len(device_dirs)
     max_workers = max(1, min(args.max_concurrency, len(device_dirs) or 1))
     failures = 0
+    completed = 0
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [
-            executor.submit(
+        futures: dict[concurrent.futures.Future[bool], Path] = {}
+        for index, device_dir in enumerate(device_dirs, start=1):
+            log_progress('Pass A', f'开始设备 {index}/{total}: {device_dir.name}')
+            future = executor.submit(
                 process_device,
                 device_dir,
                 model=args.model,
@@ -268,11 +278,23 @@ def main() -> None:
                 api_key=api_key,
                 dry_run=args.dry_run,
             )
-            for device_dir in device_dirs
-        ]
+            futures[future] = device_dir
         for future in concurrent.futures.as_completed(futures):
-            if future.result():
+            device_dir = futures[future]
+            try:
+                failed = future.result()
+            except Exception as exc:
                 failures += 1
+                completed += 1
+                log_progress('Pass A', f'异常失败 {completed}/{total}: {device_dir.name} ({exc})，累计失败 {failures}')
+                continue
+            if failed:
+                failures += 1
+                completed += 1
+                log_progress('Pass A', f'失败 {completed}/{total}: {device_dir.name}，累计失败 {failures}')
+            else:
+                completed += 1
+                log_progress('Pass A', f'完成 {completed}/{total}: {device_dir.name}，累计失败 {failures}')
 
     if failures:
         raise SystemExit(f'Pass A failed for {failures} device(s)')

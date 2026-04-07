@@ -1,38 +1,99 @@
-Device: lakeshore350
-Registry Key: lakeshore350
-Short Description: Lake Shore Model 350低温温度控制器驱动，用于实验温度闭环控制与温度日志采集。
-
-Categories:
-- 冷热水机
-
-Related Tags (from tag 标签列表.csv):
-- [4369] 冷热水机 / Chiller / Heater Unit (device_template_tag)
-
-Atom Actions (8):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-get_heater_output -> get_heater_output [UniLabJsonCommand] goal_params: output
-- auto-get_temperature -> get_temperature [UniLabJsonCommand] goal_params: sensor
-- auto-reset_and_clear -> reset_and_clear [UniLabJsonCommand] goal_params: none
-- auto-set_heater_range -> set_heater_range [UniLabJsonCommand] goal_params: heater_range, output
-- auto-set_setpoint -> set_setpoint [UniLabJsonCommand] goal_params: output, temperature_k
-- auto-setup_heater -> setup_heater [UniLabJsonCommand] goal_params: max_current_code, output, resistance_code
-- auto-setup_ramp -> setup_ramp [UniLabJsonCommand] goal_params: output, ramp_on, rate_k_per_min
-
-Driver Functions (17):
-- Lakeshore350.__init__(self, visa_address) (line 97)
-- Lakeshore350.reset_and_clear(self) (line 119)
-- Lakeshore350.setup_heater(self, output, resistance_code, max_current_code) (line 128)
-- Lakeshore350.setup_ramp(self, output, rate_k_per_min, ramp_on) (line 145)
-- Lakeshore350.set_setpoint(self, output, temperature_k) (line 161)
-- Lakeshore350.set_heater_range(self, output, heater_range) (line 174)
-- Lakeshore350.get_temperature(self, sensor) (line 193)
-- Lakeshore350.get_heater_output(self, output) (line 212)
-- Lakeshore350.close(self) (line 231)
-- get_user_parameters() (line 248)
-- _get_filename_from_user() (line 270)
-- _initialize_instrument_and_plot(start_temp) (line 284)
-- _stabilize_temperature(controller, start_temp) (line 301)
-- _start_ramp_and_log_header(controller, end_temp, rate, filename) (line 315)
-- _run_experiment_loop(controller, start_time, filename, safety_cutoff, end_temp, fig, ax, line, time_data, temp_data, last_temp, last_time) (line 331)
-- _safe_shutdown(controller) (line 379)
-- main() (line 387)
+lakeshore350:
+  name: 350型多通道温度控制器
+  name_en: Lake Shore Model 350 Temperature Controller
+  manufacturer: Lake Shore Cryotronics
+  category:
+  - 温度控制器
+  tags:
+  - 实验执行&合成设备
+  - 表征设备
+  - 环境控制与稳定性测试
+  - 外接设备恒温控制
+  - 温度控制器
+  description: 一款多通道温度控制器，可读取多个温度传感器输入并驱动加热器输出，用于温度设定值保持、按斜坡升降温以及加热功率调节，常用于实验中的样品温度监测与稳定控制。
+  description_en: A multi-channel temperature controller that reads multiple temperature
+    sensor inputs and drives heater outputs for setpoint regulation, ramped temperature
+    changes, and heater power control. It is commonly used for sample temperature
+    monitoring and stabilization in laboratory experiments.
+  class:
+    action_value_mappings:
+      auto-close:
+        schema:
+          description: 安全关闭加热器并关闭设备连接
+          description_en: Safely shut down the heater and close the device connection.
+      auto-reset_and_clear:
+        schema:
+          description: 复位设备并清除状态寄存器
+          description_en: Reset the instrument and clear the status registers.
+      auto-set_heater_range:
+        schema:
+          description: 设置加热器输出量程
+          description_en: Set the heater output range.
+      auto-set_setpoint:
+        schema:
+          description: 设置温度设定值
+          description_en: Set the temperature setpoint.
+      auto-setup_heater:
+        schema:
+          description: 配置加热器参数
+          description_en: Configure the heater parameters.
+      auto-setup_ramp:
+        schema:
+          description: 配置设定值斜坡速率
+          description_en: Configure the setpoint ramp rate.
+      auto-get_heater_output:
+        schema:
+          description: 获取加热器输出百分比
+          description_en: Get the heater output percentage.
+      auto-get_temperature:
+        schema:
+          description: 获取传感器温度
+          description_en: Get the sensor temperature.
+auto_annotation_metadata:
+  registry_key: lakeshore350
+  annotation_workflow_version: v4
+  tag_hints:
+  - temperature control
+  - multi-sensor readout
+  - heater output control
+  - setpoint ramping
+  - sample temperature stabilization
+  - laboratory instrumentation
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该设备可驱动加热器并执行设定值保持与斜坡升降温控制。
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 设备可读取多个温度传感器输入，用于样品温度监测。
+  - id: P-9004
+    name: 环境控制与稳定性测试
+    name_en: Environmental Control & Stability Testing
+    type: experimental_domain
+    rationale: 该控制器用于样品温度稳定保持和受控升降温，符合稳定性控制域。
+  - id: P-6002
+    name: 外接设备恒温控制
+    name_en: External Equipment Thermostating
+    type: experimental_scene
+    rationale: 它通过传感器读出和加热器输出实现实验装置的恒温控制。
+  proposed_new_tags:
+  - id: P-90001
+    name: 温度控制器
+    name_en: Temperature Controller
+    type: device_template_tag
+    rationale: Lake Shore 350是多通道读温并驱动加热器的通用温度控制器。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,36 +1,109 @@
-Device: grbl_com_serial
-Registry Key: grbl_com_serial
-Short Description: Grbl COM Serial是由GRBL (Open Source)生产的实验执行&合成设备，主要功能包括中止、停止、启动、复位、运行。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (9):
-- auto-abort -> abort [UniLabJsonCommand] goal_params: none
-- auto-clearCom -> clearCom [UniLabJsonCommand] goal_params: none
-- auto-gcodeInsert -> gcodeInsert [UniLabJsonCommand] goal_params: buff, flag
-- auto-gcodePush -> gcodePush [UniLabJsonCommand] goal_params: buff, flag
-- auto-realTimePush -> realTimePush [UniLabJsonCommand] goal_params: buff, flag
-- auto-resetSerial -> resetSerial [UniLabJsonCommand] goal_params: none
-- auto-run -> run [UniLabJsonCommand] goal_params: none
-- auto-startPooling -> startPooling [UniLabJsonCommand] goal_params: none
-- auto-stopPooling -> stopPooling [UniLabJsonCommand] goal_params: none
-
-Driver Functions (14):
-- grblComSerial.__init__(self, decodeur, comPort, baudRate, pooling) (line 123)
-- grblComSerial.startPooling(self) (line 154)
-- grblComSerial.stopPooling(self) (line 160)
-- grblComSerial.abort(self) (line 166)
-- grblComSerial.clearCom(self) (line 174)
-- grblComSerial.realTimePush(self, buff, flag) (line 183)
-- grblComSerial.gcodePush(self, buff, flag) (line 191)
-- grblComSerial.resetSerial(self) (line 198)
-- grblComSerial.gcodeInsert(self, buff, flag) (line 210)
-- grblComSerial.__sendData(self, buff) (line 216)
-- grblComSerial.__traileLaLigne(self, l, flag) (line 259)
-- grblComSerial.__openComPort(self) (line 299)
-- grblComSerial.__mainLoop(self) (line 413)
-- grblComSerial.run(self) (line 501)
+grbl_com_serial:
+  name: GRBL数控运动控制设备
+  name_en: GRBL-based CNC motion control device
+  manufacturer: ''
+  category:
+  - 串行仪器通信接口
+  - 数控固件运动控制器
+  tags:
+  - 物流/机械
+  - 精密定位与运动控制
+  - 样品/探针定位与运动控制
+  - 串行仪器通信接口
+  - 数控固件运动控制器
+  description: 基于 GRBL 固件的数控运动控制设备，通过串口接收 G-code 指令来驱动多轴运动。常见于小型 CNC 雕刻机、运动平台或激光加工设备，在实验室中可用于样品定位、自动扫描、轨迹运动和简单加工控制。
+  description_en: A CNC motion control device running GRBL firmware, receiving G-code
+    commands over a serial connection to drive multi-axis motion. It is commonly used
+    in small CNC engravers, positioning stages, or laser processing systems, and in
+    laboratories for sample positioning, automated scanning, trajectory motion, and
+    simple machining control.
+  class:
+    action_value_mappings:
+      auto-startPooling:
+        schema:
+          description: 启动与设备的串口轮询通信。
+          description_en: Start serial polling communication with the device.
+      auto-stopPooling:
+        schema:
+          description: 停止与设备的串口轮询通信。
+          description_en: Stop serial polling communication with the device.
+      auto-abort:
+        schema:
+          description: 中止当前通信过程。
+          description_en: Abort the current communication process.
+      auto-clearCom:
+        schema:
+          description: 清空待发送和待处理的通信队列。
+          description_en: Clear the pending communication queues.
+      auto-realTimePush:
+        schema:
+          description: 以实时方式将一条 G-code 指令加入发送队列。
+          description_en: Push a G-code command to the transmission queue in real-time
+            mode.
+      auto-gcodePush:
+        schema:
+          description: 按先进先出顺序将 G-code 指令加入常规执行队列。
+          description_en: Push a G-code command into the normal execution queue in
+            FIFO order.
+      auto-resetSerial:
+        schema:
+          description: 重置与设备的串口连接。
+          description_en: Reset the serial connection to the device.
+      auto-gcodeInsert:
+        schema:
+          description: 将一条 G-code 指令以前插方式加入队列，使其优先执行。
+          description_en: Insert a G-code command at the front of the queue for priority
+            execution.
+      auto-run:
+        schema:
+          description: 启动设备串口通信处理循环。
+          description_en: Start the device serial communication processing loop.
+auto_annotation_metadata:
+  registry_key: grbl_com_serial
+  annotation_workflow_version: v4
+  tag_hints:
+  - GRBL
+  - G-code control
+  - CNC motion control
+  - multi-axis positioning
+  - serial communication
+  - motorized stage
+  - laser engraver
+  existing_tags:
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 该设备通过G-code驱动多轴运动，典型服务于机械运动与平台控制。
+  - id: P-1009
+    name: 精密定位与运动控制
+    name_en: Precision Positioning & Motion Control
+    type: experimental_domain
+    rationale: 用途包括样品定位、自动扫描和轨迹运动，明显属于运动控制领域。
+  - id: P-0038
+    name: 样品/探针定位与运动控制
+    name_en: Sample / Probe Positioning & Motion Control
+    type: experimental_scene
+    rationale: 描述中明确包含样品定位和自动扫描等典型定位控制任务。
+  - id: P-2013
+    name: 串行仪器通信接口
+    name_en: Serial Instrument Communication Interface
+    type: device_template_tag
+    rationale: 该设备通过串口收发G-code并管理通信队列，具备明显串行仪器通信接口特征。
+  proposed_new_tags:
+  - id: P-13013
+    name: 数控固件运动控制器
+    name_en: GRBL Motion Controller
+    type: device_template_tag
+    rationale: 该设备运行GRBL类固件并直接解释G-code控制多轴运动，适合作为此类运动控制器模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

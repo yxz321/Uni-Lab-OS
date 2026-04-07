@@ -1,23 +1,80 @@
-Device: epics_scaler
-Registry Key: epics_scaler
-Short Description: EPICS 计数器/定标器是由EPICS (Argonne National Lab)生产的电子天平。
-
-Categories:
-- 电子天平
-
-Related Tags (from tag 标签列表.csv):
-- [4426] 电子天平 / Electronic Balance (device_template_tag)
-
-Atom Actions (3):
-- auto-match_name -> match_name [UniLabJsonCommand] goal_params: none
-- auto-match_names -> match_names [UniLabJsonCommand] goal_params: none
-- auto-select_channels -> select_channels [UniLabJsonCommand] goal_params: chan_names
-
-Driver Functions (7):
-- _scaler_fields(cls, attr_base, field_base, range_, **kwargs) (line 75)
-- EpicsScaler.__init__(self, *args, **kwargs) (line 122)
-- ScalerChannel.__init__(self, prefix, ch_num, **kwargs) (line 145)
-- ScalerChannel.match_name(self) (line 151)
-- _sc_chans(attr_fix, id_range) (line 155)
-- ScalerCH.match_names(self) (line 190)
-- ScalerCH.select_channels(self, chan_names) (line 194)
+epics_scaler:
+  name: 多通道标量计数器
+  name_en: Multichannel Scaler Counter
+  manufacturer: ''
+  category:
+  - 标量计数器
+  tags:
+  - 表征设备
+  - 智慧表征与检测中心
+  - X射线成像与束线探测
+  - 标量计数器
+  - 同步计数与探测器通道监测
+  description: 一种实验室计数仪器，用于在设定时间窗口内同时累计多路脉冲信号的计数值。常用于束线和通用实验系统中读取电离室、光子计数器等探测器输出，并进行同步计数与通道监测。
+  description_en: A laboratory counting instrument that accumulates pulse counts from
+    multiple input channels within a defined counting interval. It is commonly used
+    in beamlines and general lab setups to read outputs from ion chambers, photon
+    counters, and similar detectors for synchronized counting and channel monitoring.
+  class:
+    action_value_mappings:
+      auto-match_name:
+        schema:
+          description: 按名称匹配单个计数通道。
+          description_en: Match a single counting channel by name.
+      auto-match_names:
+        schema:
+          description: 按名称批量匹配多个计数通道。
+          description_en: Match multiple counting channels by name.
+      auto-select_channels:
+        schema:
+          description: 选择要启用或读取的计数通道。
+          description_en: Select the counting channels to enable or read.
+auto_annotation_metadata:
+  registry_key: epics_scaler
+  annotation_workflow_version: v4
+  tag_hints:
+  - scaler
+  - pulse counting
+  - multichannel counter
+  - detector readout
+  - ion chamber
+  - photon counting
+  - beamline instrumentation
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该计数器用于读取探测器脉冲计数值并进行通道监测，属于检测表征设备。
+  - id: '4325'
+    name: 智慧表征与检测中心
+    name_en: Intelligent Characterization & Testing Center
+    type: experimental_domain
+    rationale: 设备用于束线和通用实验系统中的探测器计数读出，属于检测与表征相关领域。
+  - id: P-0029
+    name: X射线成像与束线探测
+    name_en: X-Ray Imaging & Beamline Detection
+    type: experimental_scene
+    rationale: 描述强调束线中读取电离室、光子计数器等探测器输出，适合束线探测场景。
+  proposed_new_tags:
+  - id: P-12005
+    name: 标量计数器
+    name_en: Scaler Counter
+    type: device_template_tag
+    rationale: 该设备本质上是多通道脉冲累计计数仪，现有模板中缺少对应的标量计数器类别。
+  - id: P-12006
+    name: 同步计数与探测器通道监测
+    name_en: Synchronized Counting & Detector Channel Monitoring
+    type: experimental_scene
+    rationale: 其核心任务是在设定时间窗内同步累计多路脉冲并监测各通道状态，适合独立成场景标签。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

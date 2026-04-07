@@ -33,7 +33,7 @@ Important boundary:
 4. Run the comparison script to produce `02_profile_registry_compare.json` per device.
 5. Read `02_profile_registry_compare.json` and compare the Pass A profile with the extracted registry values side by side.
 6. Trigger web search only if there is significant unresolved identity conflict or important fields are still empty after a coherent Pass A read.
-7. If web search is used, save compact `websearch_evidence.json` files and manually update only the five identity/description fields in `02_device_profile_api.json`.
+7. If web search is used, save compact `websearch_evidence.json` files and manually update only `02_device_profile_api.json.parsed.{name,name_en,manufacturer,description,description_en}`.
 8. Run Pass B with the same API model and reasoning effort `medium`.
 9. Render `03_enriched_payload.json` and final `info.txt` into the device folders.
 10. Validate all rendered `info.txt` files.
@@ -77,8 +77,9 @@ Web search is not triggered by script heuristics. Follow this logic strictly:
    - `manufacturer`
    - `description`
    - `description_en`
-   in `02_device_profile_api.json`.
-6. If manufacturer remains uncertain after web search, leave it empty.
+   in `02_device_profile_api.json.parsed`.
+6. Do not rely on top-level duplicate fields in `02_device_profile_api.json`; Pass B and rendering consume the `parsed` values.
+7. If manufacturer remains uncertain after web search, leave it empty.
 
 Use this stricter interpretation of the trigger:
 - Do not web search just because registry values differ from Pass A on weak registry fields.

@@ -1,25 +1,93 @@
-Device: iv__combined__backend
-Registry Key: iv__combined__backend
-Short Description: I-V Combined Measurement Backend是一款表征设备，主要功能包括参数配置、扫频、测量、设备连接。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (5):
-- auto-configure_source -> configure_source [UniLabJsonCommand] goal_params: compliance_voltage, current_range
-- auto-connect_instruments -> connect_instruments [UniLabJsonCommand] goal_params: k2182_addr, k2400_addr
-- auto-measure_point -> measure_point [UniLabJsonCommand] goal_params: current_val, interval, num_readings
-- auto-run_sweep -> run_sweep [UniLabJsonCommand] goal_params: filename, start_i, step_i, stop_i
-- auto-shutdown -> shutdown [UniLabJsonCommand] goal_params: none
-
-Driver Functions (7):
-- IV_Combined_Backend.__init__(self) (line 97)
-- IV_Combined_Backend.connect_instruments(self, k2400_addr, k2182_addr) (line 104)
-- IV_Combined_Backend.configure_source(self, compliance_voltage, current_range) (line 122)
-- IV_Combined_Backend.measure_point(self, current_val, num_readings, interval) (line 136)
-- IV_Combined_Backend.run_sweep(self, start_i, stop_i, step_i, filename) (line 176)
-- IV_Combined_Backend.shutdown(self) (line 195)
-- main() (line 212)
+iv__combined__backend:
+  name: Keithley 2400/2182 I-V测量系统
+  name_en: Keithley 2400/2182 I-V Measurement System
+  manufacturer: Keithley
+  category:
+  - 源测单元模块
+  - 纳伏表
+  tags:
+  - 表征设备
+  - 电子与电气测试
+  - 源测单元模块
+  - I-V扫描与电输运测量
+  - 纳伏表
+  description: 由Keithley 2400源表与2182纳伏表组成的精密电学测量系统，用于向样品施加电流并测量微弱电压信号，常用于I-V扫描、电阻表征和低噪声电输运实验。
+  description_en: A precision electrical measurement system combining a Keithley 2400
+    SourceMeter and a 2182 nanovoltmeter. It is used to source current into a sample
+    and measure very small voltage signals for I-V sweeps, resistance characterization,
+    and low-noise transport experiments.
+  class:
+    action_value_mappings:
+      auto-configure_source:
+        schema:
+          description: 配置2400源表的电流输出量程和电压保护限值。
+          description_en: Configure the 2400 SourceMeter current output range and
+            voltage compliance limit.
+      auto-connect_instruments:
+        schema:
+          description: 连接Keithley 2400源表和2182纳伏表。
+          description_en: Connect to the Keithley 2400 SourceMeter and 2182 nanovoltmeter.
+      auto-measure_point:
+        schema:
+          description: 在指定电流下进行单点测量，并对电压读数取平均。
+          description_en: Perform a single measurement point at the specified current
+            and average the voltage readings.
+      auto-run_sweep:
+        schema:
+          description: 执行电流扫描并记录I-V测量数据。
+          description_en: Run a current sweep and record the I-V measurement data.
+      auto-shutdown:
+        schema:
+          description: 安全关闭源输出并停止测量仪器。
+          description_en: Safely turn off the source output and stop the measurement
+            instruments.
+auto_annotation_metadata:
+  registry_key: iv__combined__backend
+  annotation_workflow_version: v4
+  tag_hints:
+  - I-V sweeps
+  - current sourcing
+  - nanovoltmeter
+  - SourceMeter
+  - low-noise electrical measurement
+  - resistance characterization
+  - Keithley 2400
+  - Keithley 2182
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该系统用于精密I-V扫描、电阻表征和低噪声电学测量。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: 系统以电流源和微弱电压测量为核心，属于精密电学测试。
+  - id: P-0019
+    name: 源测单元模块
+    name_en: Source-Measure Unit Module
+    type: device_template_tag
+    rationale: Keithley 2400是系统中的核心源表部件，用于施加电流并设置电压保护。
+  proposed_new_tags:
+  - id: P-21003
+    name: I-V扫描与电输运测量
+    name_en: I-V Sweeps & Electrical Transport Measurement
+    type: experimental_scene
+    rationale: 设备说明直接包含I-V扫描、电阻表征和低噪声电输运实验。
+  - id: P-21004
+    name: 纳伏表
+    name_en: Nanovoltmeter
+    type: device_template_tag
+    rationale: 系统中的Keithley 2182属于测量微弱电压信号的纳伏表。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,71 +1,121 @@
-Device: folder_capture
-Registry Key: folder_capture
-Short Description: Folder Capture是一款后处理设备，主要功能包括使能、停止、启动、增益设置、状态查询、电流设置。
-
-Categories:
-- 后处理设备
-
-Related Tags (from tag 标签列表.csv):
-- [4314] 后处理设备 / Post-processing Equipment (experimental_step)
-
-Atom Actions (14):
-- auto-connect -> connect [UniLabJsonCommand] goal_params: none
-- auto-disconnect -> disconnect [UniLabJsonCommand] goal_params: none
-- auto-enable_auto_exposure -> enable_auto_exposure [UniLabJsonCommand] goal_params: enable
-- auto-enable_folder_watching -> enable_folder_watching [UniLabJsonCommand] goal_params: enable
-- auto-force_refresh -> force_refresh [UniLabJsonCommand] goal_params: none
-- auto-is_folder_watching_enabled -> is_folder_watching_enabled [UniLabJsonCommand] goal_params: none
-- auto-set_current_index -> set_current_index [UniLabJsonCommand] goal_params: index
-- auto-set_exposure -> set_exposure [UniLabJsonCommand] goal_params: value
-- auto-set_fps -> set_fps [UniLabJsonCommand] goal_params: fps
-- auto-set_frame_size -> set_frame_size [UniLabJsonCommand] goal_params: height, width
-- auto-set_gain -> set_gain [UniLabJsonCommand] goal_params: value
-- auto-start_async -> start_async [UniLabJsonCommand] goal_params: none
-- auto-stop -> stop [UniLabJsonCommand] goal_params: none
-- auto-validate_file_list -> validate_file_list [UniLabJsonCommand] goal_params: none
-
-Driver Functions (44):
-- FolderWatcherHandler.__init__(self, folder_capture_instance) (line 103)
-- FolderWatcherHandler.on_created(self, event) (line 107)
-- FolderWatcherHandler.on_deleted(self, event) (line 113)
-- FolderWatcherHandler.on_moved(self, event) (line 119)
-- FolderWatcherHandler._is_image_file(self, file_path) (line 138)
-- FolderWatcherHandler._add_file(self, file_path) (line 142)
-- FolderWatcherHandler._remove_file(self, file_path) (line 155)
-- FolderWatcherHandler._rename_file(self, old_path, new_path) (line 184)
-- FolderCapture.__init__(self, source, sort_by, width, height, fps, real_time, loop, watch_folder, **kwargs) (line 207)
-- FolderCapture._start_folder_watching(self) (line 234)
-- FolderCapture._stop_folder_watching(self) (line 278)
-- FolderCapture._refresh_file_list_async(self) (line 292)
-- FolderCapture.start_async(self) (line 301)
-- FolderCapture.stop(self) (line 324)
-- FolderCapture._read_frame_for_thread(self) (line 336)
-- FolderCapture.get_latest_frame(self) (line 343)
-- FolderCapture.connect(self) (line 352)
-- FolderCapture.disconnect(self) (line 379)
-- FolderCapture._refresh_file_list(self) (line 390)
-- FolderCapture._read_implementation(self) (line 443)
-- FolderCapture._read_direct(self) (line 451)
-- FolderCapture.set_exposure(self, value) (line 491)
-- FolderCapture.get_exposure(self) (line 496)
-- FolderCapture.set_gain(self, value) (line 501)
-- FolderCapture.get_gain(self) (line 506)
-- FolderCapture.enable_auto_exposure(self, enable) (line 511)
-- FolderCapture.get_frame_size(self) (line 516)
-- FolderCapture.set_frame_size(self, width, height) (line 546)
-- FolderCapture.get_fps(self) (line 552)
-- FolderCapture.set_fps(self, fps) (line 556)
-- FolderCapture.get_current_file_path(self) (line 561)
-- FolderCapture.get_current_file_info(self) (line 599)
-- FolderCapture.get_file_list(self) (line 626)
-- FolderCapture.get_current_index(self) (line 636)
-- FolderCapture.set_current_index(self, index) (line 646)
-- FolderCapture.validate_file_list(self) (line 679)
-- FolderCapture.get_missing_files(self) (line 713)
-- FolderCapture.enable_folder_watching(self, enable) (line 723)
-- FolderCapture.is_folder_watching_enabled(self) (line 750)
-- FolderCapture.get_folder_watching_status(self) (line 760)
-- FolderCapture.force_refresh(self) (line 777)
-- FolderCapture.discover(cls) (line 789)
-- FolderCapture.get_config_schema(cls) (line 803)
-- _test_folder_capture() (line 892)
+folder_capture:
+  name: 文件夹图像采集源
+  name_en: Folder Image Capture Source
+  manufacturer: ''
+  category:
+  - 文件夹图像采集源
+  tags:
+  - 表征设备
+  - 实验数据可视化与分析
+  - 离线图像回放与虚拟相机输入
+  - 文件夹图像采集源
+  description: 一种基于文件夹的图像输入源，可将磁盘中的图像文件按名称或创建时间顺序作为连续视频流读取，并可监视文件夹中的新增或删除图像。适用于实验室中回放已采集的显微图像或相机图像、测试图像处理流程，以及在无实体相机时模拟视频输入。
+  description_en: A folder-based image input source that reads image files from disk
+    as a continuous video stream, ordered by filename or creation time, and can monitor
+    the folder for added or removed images. It is useful in laboratories for replaying
+    previously acquired microscope or camera images, testing image-processing workflows,
+    and simulating a video input when no physical camera is connected.
+  class:
+    action_value_mappings:
+      auto-start_async:
+        schema:
+          description: 启动后台图像采集线程，持续更新最新帧。
+          description_en: Start the background image capture thread and continuously
+            update the latest frame.
+      auto-stop:
+        schema:
+          description: 停止后台图像采集线程。
+          description_en: Stop the background image capture thread.
+      auto-connect:
+        schema:
+          description: 连接到文件夹图像源并加载图像文件列表。
+          description_en: Connect to the folder image source and load the image file
+            list.
+      auto-disconnect:
+        schema:
+          description: 断开文件夹图像源连接并停止文件夹监视。
+          description_en: Disconnect from the folder image source and stop folder
+            watching.
+      auto-set_exposure:
+        schema:
+          description: 设置曝光参数。
+          description_en: Set the exposure setting.
+      auto-set_gain:
+        schema:
+          description: 设置增益参数。
+          description_en: Set the gain setting.
+      auto-enable_auto_exposure:
+        schema:
+          description: 启用或禁用自动曝光。
+          description_en: Enable or disable auto exposure.
+      auto-set_frame_size:
+        schema:
+          description: 设置帧尺寸。
+          description_en: Set the frame size.
+      auto-set_fps:
+        schema:
+          description: 设置帧率。
+          description_en: Set the frame rate.
+      auto-set_current_index:
+        schema:
+          description: 设置当前图像文件索引。
+          description_en: Set the current image file index.
+      auto-validate_file_list:
+        schema:
+          description: 校验图像文件列表并移除缺失文件。
+          description_en: Validate the image file list and remove missing files.
+      auto-enable_folder_watching:
+        schema:
+          description: 启用或禁用文件夹监视。
+          description_en: Enable or disable folder watching.
+      auto-is_folder_watching_enabled:
+        schema:
+          description: 检查文件夹监视是否已启用。
+          description_en: Check whether folder watching is enabled.
+      auto-force_refresh:
+        schema:
+          description: 手动刷新图像文件列表。
+          description_en: Manually refresh the image file list.
+auto_annotation_metadata:
+  registry_key: folder_capture
+  annotation_workflow_version: v4
+  tag_hints:
+  - file-based video source
+  - image sequence playback
+  - folder monitoring
+  - virtual camera input
+  - offline image replay
+  - image processing testing
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该图像源用于回放显微图像或相机图像，直接服务于成像表征流程的测试与复现。
+  - id: P-1101
+    name: 实验数据可视化与分析
+    name_en: Experimental Data Visualization & Analysis
+    type: experimental_domain
+    rationale: 设备以磁盘图像文件作为输入，常用于图像处理流程测试和实验数据回放分析。
+  - id: P-12008
+    name: 离线图像回放与虚拟相机输入
+    name_en: Offline Image Replay & Virtual Camera Input
+    type: experimental_scene
+    rationale: 描述中明确说明其用于离线回放已采集图像和在无实体相机时模拟视频输入。
+  - id: P-12009
+    name: 文件夹图像采集源
+    name_en: Folder Image Capture Source
+    type: device_template_tag
+    rationale: 设备名称与行为完全对应文件夹图像采集源模板，可按顺序输出图像流并监视文件夹变化。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

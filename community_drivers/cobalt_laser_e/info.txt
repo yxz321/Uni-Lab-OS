@@ -1,72 +1,74 @@
-device: cobalt_laser_e
-registry_key: cobalt_laser_e
-device_identity:
-  manufacturer: Cobolt / HÜBNER Photonics
-  model:
-    name: Cobolt laser E-variant (serial controlled)
-    type: device
-  module_path: unilabos.devices.generic.cobalt_laser_e:CobaltLaserE
-description:
-  text_en: Cobolt laser variant with startup sequence that clears faults and handles
-    interlock-sensitive restart before applying power setpoint.
-  method: web+local
-description_evidence:
-  web:
-  - https://hubner-photonics.com/wp-content/uploads/2014/11/D0951-B-Manual-Cobolt-06-01-Series-12-V.pdf
-    (Cobolt 06-01 series owner manual)
-  local:
-  - 'driver comments: Cobolt 405 nm restart workaround in TurnOn'
-  - registry action mapping exposes TurnOn entry
-related_tags:
-- id: '4316'
-  name: 表征设备
-  name_en: Characterization Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: '4316'
-  rationale: Matched from registry metadata and action/description semantics.
-  signals:
-  - registry.tags
-  - registry.category
-  - name
-  - model
-  - manufacturer
-  - module_path
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-TurnOn
-  title: TurnOn
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Send Cobolt startup sequence (@cobas 0, cf, l1, p ...) and enable
-    emission.
-  evidence_source: code
-driver_functions:
-  compact_signatures:
-  - CobaltLaser.__init__(self, name, turnOn, portname, maxpower, **kwargs) (line 98)
-  - CobaltLaser.IsOn(self) (line 110)
-  - CobaltLaser._TurnOn(self) (line 113)
-  - CobaltLaser.TurnOn(self) (line 120)
-  - CobaltLaser.TurnOff(self) (line 126)
-  - CobaltLaser.SetPower(self, power) (line 133)
-  - CobaltLaser._getOutputPower(self) (line 141)
-  - CobaltLaser.GetPower(self) (line 150)
-  - CobaltLaser.checkfault(self) (line 153)
-  - CobaltLaserE.__init__(self, name, turnOn, portname, minpower, maxpower, **kwargs)
-    (line 162)
-  - CobaltLaserE.TurnOn(self) (line 169)
-  note: Compact list retained by design; action semantics are documented in atom_actions.
-schema_version: v2
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 1
-  driver_function_count: 11
-  related_tag_count: 1
+cobalt_laser_e:
+  name: Cobalt E 系列激光器
+  name_en: Cobalt E Series Laser
+  manufacturer: ''
+  category:
+  - 实验室激光光源
+  tags:
+  - 实验执行&合成设备
+  - 表征设备
+  - 光学与光谱实验
+  - 激光激发与光谱测量
+  - 显微成像与光学显微实验
+  - 实验室激光光源
+  description: 一种实验室激光光源，用于显微成像、荧光激发及其他光学实验中的照明与光激发。
+  description_en: A laboratory laser light source used for illumination and optical
+    excitation in microscopy, fluorescence excitation, and other optical experiments.
+  class:
+    action_value_mappings:
+      auto-TurnOn:
+        schema:
+          description: 打开激光器输出
+          description_en: Turn on the laser output.
+auto_annotation_metadata:
+  registry_key: cobalt_laser_e
+  annotation_workflow_version: v4
+  tag_hints:
+  - laser source
+  - optical excitation
+  - fluorescence excitation
+  - microscopy illumination
+  - optical experiments
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该激光器在实验中提供照明和光激发，直接参与实验运行。
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 其应用包含显微成像和荧光激发，常作为表征实验光源。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: 设备用于各类光学实验中的照明与激发。
+  - id: P-3004
+    name: 激光激发与光谱测量
+    name_en: Laser Excitation & Spectroscopic Measurement
+    type: experimental_scene
+    rationale: 该系列设备承担光激发功能，符合激光激发场景。
+  - id: P-0006
+    name: 显微成像与光学显微实验
+    name_en: Microscopy Imaging & Optical Microscopy Experiments
+    type: experimental_scene
+    rationale: 描述明确覆盖显微成像与荧光激发。
+  - id: P-3005
+    name: 实验室激光光源
+    name_en: Laboratory Laser Source
+    type: device_template_tag
+    rationale: 这是一种实验室激光光源设备。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,55 +1,151 @@
-Device: driver_socket
-Registry Key: driver_socket
-Short Description: Metrohm Autolab Driver Socket 电化学工作站是由Metrohm Autolab生产的专业实验设备。
-
-Categories:
-- 电化学工作站
-
-Related Tags (from tag 标签列表.csv):
-- [4425] 电化学工作站 / Electrochemical Workstation (device_template_tag)
-
-Atom Actions (14):
-- auto-clean_client_threads -> clean_client_threads [UniLabJsonCommand] goal_params: none
-- auto-close_client_threads -> close_client_threads [UniLabJsonCommand] goal_params: none
-- auto-get_device -> get_device [UniLabJsonCommand] goal_params: dev_name
-- auto-get_device_structure -> get_device_structure [UniLabJsonCommand] goal_params: none
-- auto-get_devices_status -> get_devices_status [UniLabJsonCommand] goal_params: none
-- auto-get_driver_model -> get_driver_model [UniLabJsonCommand] goal_params: none
-- auto-handshake -> handshake [UniLabJsonCommand] goal_params: none
-- auto-interact -> interact [UniLabJsonCommand] goal_params: address
-- auto-listen -> listen [UniLabJsonCommand] goal_params: none
-- auto-log -> log [UniLabJsonCommand] goal_params: log
-- auto-process_command -> process_command [UniLabJsonCommand] goal_params: command
-- auto-read -> read [UniLabJsonCommand] goal_params: length
-- auto-request_close -> request_close [UniLabJsonCommand] goal_params: none
-- auto-write -> write [UniLabJsonCommand] goal_params: object
-
-Driver Functions (28):
-- Driver_SOCKET.__init__(self, *args, **kwargs) (line 83)
-- Driver_SOCKET.read(self, length) (line 89)
-- Driver_SOCKET.write(self, object) (line 107)
-- ClientThread.__init__(self, client_socket, server) (line 116)
-- ClientThread.run(self) (line 123)
-- ClientThread.handshake(self) (line 133)
-- ClientThread.listen(self) (line 173)
-- ClientThread.process_command(self, command) (line 182)
-- ClientThread.close(self) (line 201)
-- ClientThread.request_close(self) (line 211)
-- Server.__init__(self, port) (line 220)
-- Server.start(self) (line 239)
-- Server.listen(self) (line 248)
-- Server.clean_client_threads(self) (line 264)
-- Server.close_client_threads(self) (line 268)
-- Server.log(self, log) (line 278)
-- Server.close(self) (line 284)
-- Driver_REMOTE.__init__(self, address, port) (line 293)
-- Driver_REMOTE.connect(self) (line 310)
-- Driver_REMOTE.handshake(self) (line 318)
-- Driver_REMOTE.disconnect(self) (line 327)
-- Driver_REMOTE.get_devices_status(self) (line 333)
-- Driver_REMOTE.get_driver_model(self) (line 337)
-- Driver_REMOTE.get_device(self, dev_name) (line 346)
-- Driver_REMOTE.get_device_structure(self) (line 349)
-- FakeDriver.__init__(self, driver_remote, name, status) (line 358)
-- FakeDriver.get_driver_model(self) (line 364)
-- FakeDriver.interact(interaction_type, address) (line 383)
+driver_socket:
+  name: Metrohm Autolab 套接字通信接口
+  name_en: Metrohm Autolab Socket Communication Interface
+  manufacturer: Metrohm
+  category:
+  - 数据采集与控制接口
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 电化学测试与分析
+  - 实验仪器数据采集与联机控制
+  - 实验仪器通信与驱动集成
+  - 数据采集与控制接口
+  description: 用于与 Metrohm Autolab 电化学仪器进行网络套接字通信的驱动接口，负责远程命令收发、状态查询和对象序列化传输，支持上位机集成控制场景。
+  description_en: A network socket communication interface for Metrohm Autolab electrochemical
+    instruments, handling remote command exchange, status queries, and serialized
+    object transfer for host-side integrated control.
+  class:
+    action_value_mappings:
+      auto-read:
+        schema:
+          description: 读取来自主控端或远程连接的序列化消息。
+          description_en: Read a serialized message from the master controller or
+            remote connection.
+      auto-write:
+        schema:
+          description: 向主控端或远程连接发送序列化对象。
+          description_en: Send a serialized object to the master controller or remote
+            connection.
+      auto-handshake:
+        schema:
+          description: 建立通信握手并确认连接可用。
+          description_en: Perform a communication handshake and confirm that the connection
+            is ready.
+      auto-listen:
+        schema:
+          description: 监听传入的网络连接或命令请求。
+          description_en: Listen for incoming network connections or command requests.
+      auto-process_command:
+        schema:
+          description: 处理接收到的远程命令并分发执行。
+          description_en: Process a received remote command and dispatch it for execution.
+      auto-request_close:
+        schema:
+          description: 请求关闭当前连接或通信会话。
+          description_en: Request closure of the current connection or communication
+            session.
+      auto-clean_client_threads:
+        schema:
+          description: 清理已结束或无效的客户端线程。
+          description_en: Clean up finished or inactive client threads.
+      auto-close_client_threads:
+        schema:
+          description: 关闭所有客户端通信线程。
+          description_en: Close all client communication threads.
+      auto-log:
+        schema:
+          description: 记录通信或运行日志信息。
+          description_en: Record communication or runtime log information.
+      auto-get_devices_status:
+        schema:
+          description: 获取受管实验设备的状态信息。
+          description_en: Get status information for managed laboratory devices.
+      auto-get_driver_model:
+        schema:
+          description: 获取通信组件或驱动模型信息。
+          description_en: Get communication component or driver model information.
+      auto-get_device:
+        schema:
+          description: 获取指定设备对象或设备信息。
+          description_en: Get a specified device object or device information.
+      auto-get_device_structure:
+        schema:
+          description: 获取设备层级或系统结构信息。
+          description_en: Get device hierarchy or system structure information.
+      auto-interact:
+        schema:
+          description: 执行交互式远程通信或命令交换。
+          description_en: Perform interactive remote communication or command exchange.
+auto_annotation_metadata:
+  registry_key: driver_socket
+  annotation_workflow_version: v4
+  tag_hints:
+  - socket communication
+  - remote instrument control
+  - lab automation server
+  - client-server messaging
+  - serialized object transfer
+  - network device management
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该接口用于远程命令收发和上位机集成控制，直接服务于实验设备运行与控制。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 设备本质上是用于仪器远程控制和系统集成的通信接口，符合实验室自动化域。
+  - id: P-7001
+    name: 电化学测试与分析
+    name_en: Electrochemical Testing & Analysis
+    type: experimental_domain
+    rationale: 接口明确面向 Metrohm Autolab 电化学仪器，因此也落在电化学测试分析相关领域。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 其职责包括状态查询、命令下发与远程联机控制，符合仪器联机控制场景。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 设备就是用于仪器通信、驱动封装和主控集成的套接字接口。
+  - id: P-0004
+    name: 数据采集与控制接口
+    name_en: Data Acquisition and Control Interface
+    type: device_template_tag
+    rationale: 该对象承担实验仪器的网络通信、状态读取和控制命令转发，符合数据采集与控制接口模板。
+  proposed_new_tags: []
+  websearch_evidence:
+    query_scope: Resolve identity conflict between generic socket interface vs Metrohm
+      Autolab-specific socket endpoint
+    resolved_at: '2026-04-07'
+    sources:
+    - url: https://www.metrohm.com/pt_br/servicos/suporte-software/autolab-sdk.html
+      title: Autolab SDK | Metrohm
+      evidence: Autolab SDK is designed to control Autolab instruments from external
+        applications.
+    - url: https://www.metrohm.com/en/service/software-center/nova.html
+      title: NOVA | Metrohm
+      evidence: NOVA is Metrohm Autolab control software for Autolab instruments with
+        USB interface.
+    field_updates:
+      name: Metrohm Autolab 套接字通信接口
+      name_en: Metrohm Autolab Socket Communication Interface
+      manufacturer: Metrohm
+      description: 用于与 Metrohm Autolab 电化学仪器进行网络套接字通信的驱动接口，负责远程命令收发、状态查询和对象序列化传输，支持上位机集成控制场景。
+      description_en: A network socket communication interface for Metrohm Autolab
+        electrochemical instruments, handling remote command exchange, status queries,
+        and serialized object transfer for host-side integrated control.
+    confidence: medium
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

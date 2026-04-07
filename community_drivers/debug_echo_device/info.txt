@@ -1,66 +1,70 @@
-device: debug_echo_device
-registry_key: debug_echo_device
-device_identity:
-  manufacturer: Open Source
-  model:
-    name: Debug Echo Device
-    type: device
-  name: Debug Echo Device
-  module_path: unilabos.devices.generic.debug_echo_device:DebugEchoDevice
-description:
-  text_en: Minimal debug communication device that opens a serial/debug port and echoes predefined command traffic for hardware-interface smoke testing.
-  method: local
-description_evidence:
-  web: []
-  local:
-  - driver header origin points to hardwarelibrary/echodevice.py
-  - EchoDevice and DebugEchoDevice expose doInitializeDevice and doShutdownDevice only
-  - commands map defines static echo test commands (ECHO1/ECHO2/ECHO3)
-related_tags:
-- id: '4313'
-  name: 实验执行&合成设备
-  name_en: Experiment Execution & Synthesis Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: '4313'
-  rationale: Used to initialize/shutdown and validate communication paths during execution-stage integration tests.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-doInitializeDevice
-  title: doInitializeDevice
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Execute doInitializeDevice.
-  evidence_source: action_name_params
-- name: auto-doShutdownDevice
-  title: doShutdownDevice
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Execute doShutdownDevice.
-  evidence_source: action_name_params
-driver_functions:
-  compact_signatures:
-  - EchoDevice.__init__(self, serialNumber, idProduct, idVendor) (line 89)
-  - EchoDevice.doInitializeDevice(self) (line 92)
-  - EchoDevice.doShutdownDevice(self) (line 96)
-  - DebugEchoDevice.__init__(self, serialNumber, idProduct, idVendor) (line 103)
-  - DebugEchoDevice.doInitializeDevice(self) (line 107)
-  - DebugEchoDevice.doShutdownDevice(self) (line 112)
-  note: Compact list retained by design; action semantics are documented in atom_actions.
-schema_version: v3
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 2
-  driver_function_count: 6
-  related_tag_count: 1
+debug_echo_device:
+  name: 调试回显测试设备
+  name_en: Debug Echo Test Device
+  manufacturer: ''
+  category:
+  - 调试回显设备
+  tags:
+  - 物流/机械
+  - 实验室自动化与仪器集成
+  - 实验仪器通信与驱动集成
+  - 调试回显设备
+  description: 一种通用的调试/占位测试设备，用于实验室自动化系统中的通信联调、流程验证和日志检查。它不对应明确的专用实验仪器功能，更适合在设备接入前或开发阶段验证初始化、关闭和控制链路是否正常。
+  description_en: A generic debug and placeholder test device used in laboratory automation
+    for communication checks, workflow validation, and logging verification. It does
+    not clearly correspond to a specific lab instrument function, and is mainly suited
+    for validating initialization, shutdown, and control pathways during development
+    or system integration.
+  class:
+    action_value_mappings:
+      auto-doInitializeDevice:
+        schema:
+          description: 初始化设备。
+          description_en: Initialize the device.
+      auto-doShutdownDevice:
+        schema:
+          description: 关闭设备。
+          description_en: Shut down the device.
+auto_annotation_metadata:
+  registry_key: debug_echo_device
+  annotation_workflow_version: v4
+  tag_hints:
+  - debugging
+  - echo device
+  - integration testing
+  - communication testing
+  - lab automation
+  - placeholder device
+  existing_tags:
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 该设备不承担具体实验测量，主要作为自动化系统接入与流程联调的支撑类对象。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 其用途是验证设备初始化、关闭和控制链路，属于实验室自动化集成范畴。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 它专门用于通信联调和流程验证，最符合驱动集成测试场景。
+  proposed_new_tags:
+  - id: P-10007
+    name: 调试回显设备
+    name_en: Debug Echo Device
+    type: device_template_tag
+    rationale: 该对象是用于回显、初始化和关机联调的通用测试设备模板，不对应特定分析仪器。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

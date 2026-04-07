@@ -1,36 +1,78 @@
-Device: local_client
-Registry Key: local_client
-Short Description: Local Client是一款实验执行&合成设备，主要功能包括加载、运行。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (4):
-- auto-download -> download [UniLabJsonCommand] goal_params: none
-- auto-prepare_download -> prepare_download [UniLabJsonCommand] goal_params: filename
-- auto-run_command -> run_command [UniLabJsonCommand] goal_params: cmd
-- auto-upload -> upload [UniLabJsonCommand] goal_params: filename, rewriter
-
-Driver Functions (19):
-- Client.upload(self, filename, rewriter) (line 86)
-- Client.prepare_download(self, filename) (line 89)
-- Client.download(self) (line 92)
-- Client.run_command(self, cmd, **kws) (line 95)
-- LocalClient.__init__(self) (line 100)
-- LocalClient.upload(self, filename, rewriter) (line 104)
-- LocalClient.prepare_download(self, filename) (line 118)
-- LocalClient.download(self) (line 123)
-- LocalClient.run_command(self, cmd, **kws) (line 127)
-- SSHClient.__init__(self, host, jump_host) (line 134)
-- SSHClient.get_ssh(self) (line 148)
-- SSHClient.get_transport(self) (line 168)
-- SSHClient.get_sftp(self) (line 171)
-- SSHClient.upload(self, filename, rewriter) (line 180)
-- SSHClient.prepare_download(self, filename) (line 204)
-- SSHClient.download(self) (line 215)
-- SSHClient.spawn_command(self, cmd, get_pty, **kws) (line 222)
-- SSHClient.drain(self, chan) (line 237)
-- SSHClient.run_command(self, cmd, **kws) (line 244)
+local_client:
+  name: 本地/远程文件与命令客户端
+  name_en: Local/Remote File and Command Client
+  manufacturer: ''
+  category:
+  - 文件与命令远程客户端
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验主机远程访问与文件传输
+  - 文件与命令远程客户端
+  description: 这不是特定的物理仪器，而是实验室自动化中用于访问本地或远程控制计算机的软件客户端，可进行文件上传、下载准备、文件下载以及命令执行，常用于部署实验脚本、传输数据和触发控制任务。
+  description_en: This is not a specific physical instrument but a software client
+    used in laboratory automation to access a local or remote control computer. It
+    supports file upload, download preparation, file retrieval, and command execution,
+    and is commonly used to deploy experiment scripts, transfer data, and trigger
+    control tasks.
+  class:
+    action_value_mappings:
+      auto-upload:
+        schema:
+          description: 上传文件到本地或远程控制端。
+          description_en: Upload a file to the local or remote control host.
+      auto-prepare_download:
+        schema:
+          description: 准备从本地或远程控制端下载指定文件。
+          description_en: Prepare a specified file for download from the local or
+            remote control host.
+      auto-download:
+        schema:
+          description: 下载已准备好的文件。
+          description_en: Download the file that was previously prepared.
+      auto-run_command:
+        schema:
+          description: 在本地或远程控制端执行命令。
+          description_en: Execute a command on the local or remote control host.
+auto_annotation_metadata:
+  registry_key: local_client
+  annotation_workflow_version: v4
+  tag_hints:
+  - file transfer
+  - command execution
+  - lab control computer
+  - automation scripting
+  - remote host access
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该客户端可触发控制命令并部署实验脚本，直接参与实验执行链路。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 设备用于实验自动化中的脚本部署、文件传输和控制任务触发。
+  proposed_new_tags:
+  - id: P-92002
+    name: 实验主机远程访问与文件传输
+    name_en: Experiment Host Remote Access & File Transfer
+    type: experimental_scene
+    rationale: 该客户端面向本地或远程控制主机进行上传、下载和任务触发，现有场景中缺少更贴切分类。
+  - id: P-92003
+    name: 文件与命令远程客户端
+    name_en: Remote File & Command Client
+    type: device_template_tag
+    rationale: 它并非具体仪器，而是用于远程文件操作和命令执行的软件客户端模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

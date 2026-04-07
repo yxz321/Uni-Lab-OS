@@ -1,0 +1,265 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "batch_tag_results",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "devices": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "device": {
+                    "type": "string"
+                  },
+                  "existing_tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "name_en": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "rationale": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "name_en",
+                        "type",
+                        "rationale"
+                      ]
+                    }
+                  },
+                  "proposed_new_tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "name_en": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "rationale": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "name_en",
+                        "type",
+                        "rationale"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "device",
+                  "existing_tags",
+                  "proposed_new_tags"
+                ]
+              }
+            }
+          },
+          "required": [
+            "devices"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are assigning tags to lab devices using extracted evidence and a provided full tag list.\n\nRules:\n- The response MUST follow the requested JSON schema exactly.\n- The top-level object must be: {\"devices\": [ ... ]}.\n- Each device result object must contain exactly these keys:\n  `device`, `existing_tags`, `proposed_new_tags`.\n- Every tag object in both `existing_tags` and `proposed_new_tags` must contain exactly:\n  `id`, `name`, `name_en`, `type`, `rationale`.\n- The `type` field is mandatory on every tag object and must be one of:\n  `experimental_step`, `experimental_domain`, `experimental_scene`, `device_template_tag`.\n- The combined set of `existing_tags` and `proposed_new_tags` must contain at least one tag of each required type.\n- Prefer existing tags when reasonably relevant.\n- Include all relevant tags, not exactly one per type.\n- A practical default is roughly 1-4 relevant tags per type when supported.\n- For `experimental_step`: choose only from existing tags. Do not propose new ones.\n- For `experimental_domain`, `experimental_scene`, and `device_template_tag`:\n  choose from existing tags first, but you may propose multiple new tags if the existing list is insufficient.\n- Proposed new tags are allowed only for:\n  `experimental_domain`, `experimental_scene`, `device_template_tag`.\n- A proposed tag must be broad enough that:\n  - multiple real-world devices would fall under `device_template_tag`\n  - multiple device templates would fall under `experimental_scene`\n  - multiple scenes would fall under `experimental_domain`\n- Every tag object's `id` must be a string.\n- For existing tags, copy the provided tag id as a string.\n- For proposed new tags, create a string id like `P-0001`, `P-0002`, etc.\n- `name` should be Chinese-preferred and `name_en` should be English.\n- Every selected or proposed tag must include a short, device-specific rationale.\n- Do not output IDs only. Return full tag objects.\n- Do not use bilingual mixed strings inside `name`.\n- Prefer recall over precision, but do not select obviously unrelated tags.\n- Use only the evidence provided in the device summaries. Do not assume hidden registry priors.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Available tags:\n  [4312] 备料&前处理设备 / Material Preparation & Pre-processing Equipment (experimental_step)\n  [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)\n  [4314] 后处理设备 / Post-processing Equipment (experimental_step)\n  [4315] 器件/细胞设备 / Device / Cell Equipment (experimental_step)\n  [4316] 表征设备 / Characterization Equipment (experimental_step)\n  [4317] 物流/机械 / Logistics / Machinery (experimental_step)\n  [4318] 生命体系 / Life Sciences (experimental_domain)\n  [4319] 溶液配制与反应 / Solution Preparation & Reaction (experimental_domain)\n  [4320] 溶液→固体反应 / Solution-to-Solid Reaction (experimental_domain)\n  [4321] 熔体/高粘体系 / Melt / High-Viscosity System (experimental_domain)\n  [4322] 表面/薄膜体系 / Surface / Thin Film System (experimental_domain)\n  [4323] 粉体&固相反应 / Powder & Solid-Phase Reaction (experimental_domain)\n  [4324] 金属熔炼/增材制造 / Metal Smelting / Additive Manufacturing (experimental_domain)\n  [4325] 智慧表征与检测中心 / Intelligent Characterization & Testing Center (experimental_domain)\n  [4326] 化工放大与连续工艺优化 / Chemical Scale-up & Continuous Process Optimization (experimental_domain)\n  [4327] 基因编辑、分子生物学与育种 / Gene Editing, Molecular Biology & Breeding (experimental_scene)\n  [4328] DNA文库构建测序与蛋白设计 / DNA Library Construction, Sequencing & Protein Design (experimental_scene)\n  [4329] 代谢组学研究 / Metabolomics Research (experimental_scene)\n  [4330] 细胞生物学研究 / Cell Biology Research (experimental_scene)\n  [4331] 动物实验 / Animal Experiments (experimental_scene)\n  [4332] 广州 π-hub / Guangzhou π-hub (experimental_scene)\n  [4333] 深研院 AI4LifeScience / SIAIS AI4LifeScience (experimental_scene)\n  [4334] 移液站产品 / Liquid Handling Station Products (experimental_scene)\n  [4335] ADC药物 / ADC Drugs (experimental_scene)\n  [4336] 多肽药物 / Peptide Drugs (experimental_scene)\n  [4337] 电解液配方与工艺 / Electrolyte Formulation & Process (experimental_scene)\n  [4338] 有机 SuperChemputer / Organic SuperChemputer (experimental_scene)\n  [4339] 流动化学 / Flow Chemistry (experimental_scene)\n  [4340] 小分子药物和PROTAC药物 / Small Molecule & PROTAC Drugs (experimental_scene)\n  [4341] 溶液反应教学 / Solution Reaction Teaching (experimental_scene)\n  [4342] 智能香氛仪 / Intelligent Fragrance Diffuser (experimental_scene)\n  [4343] 水热无机合成-纳米粒子MOF/COF / Hydrothermal Inorganic Synthesis - Nanoparticle MOF/COF (experimental_scene)\n  [4344] 涂层材料 / Coating Materials (experimental_scene)\n  [4345] 高分子/树脂粉末 / Polymer / Resin Powder (experimental_scene)\n  [4346] 水热无机合成-多孔催化剂 / Hydrothermal Inorganic Synthesis - Porous Catalyst (experimental_scene)\n  [4347] 钙钛矿薄膜电池 / Perovskite Thin Film Battery (experimental_scene)\n  [4348] 有机光伏材料（OPV和OLED） / Organic Photovoltaic Materials (OPV & OLED) (experimental_scene)\n  [4349] 二维材料 / 2D Materials (experimental_scene)\n  [4350] 稀土永磁与超导材料 / Rare Earth Permanent Magnet & Superconducting Materials (experimental_scene)\n  [4351] 固态电解质大装置 / Solid-State Electrolyte Large-Scale Facility (experimental_scene)\n  [4352] 硅酸盐与陶瓷材料 / Silicate & Ceramic Materials (experimental_scene)\n  [4353] 热处理工艺研发 / Heat Treatment Process R&D (experimental_scene)\n  [4354] 金属检测中心 / Metal Testing Center (experimental_scene)\n  [4355] 钢铁材料 / Steel Materials (experimental_scene)\n  [4356] 合金研发 / Alloy R&D (experimental_scene)\n  [4357] 物化表征测试中心 / Physicochemical Characterization & Testing Center (experimental_scene)\n  [4358] Hyper-FIB / Hyper-FIB (experimental_scene)\n  [4359] 纤维纺丝 / Fiber Spinning (experimental_scene)\n  [4360] AGV / AGV (device_template_tag)\n  [4361] DNA测序仪 / DNA Sequencer (device_template_tag)\n  [4362] X射线衍射仪 / X-Ray Diffractometer (device_template_tag)\n  [4363] 一体化配粉配液站 / Integrated Powder & Liquid Dispensing Station (device_template_tag)\n  [4426] 电子天平 / Electronic Balance (device_template_tag)\n  [4364] 万能试验机标准机 / Universal Testing Machine (device_template_tag)\n  [4365] 介电常数测定仪 / Dielectric Constant Meter (device_template_tag)\n  [4366] 低温/冷冻离心机 / Refrigerated Centrifuge (device_template_tag)\n  [4367] 低温冰箱 / Low-Temperature Freezer (device_template_tag)\n  [4368] 光化学反应器 / Photochemical Reactor (device_template_tag)\n  [4369] 冷热水机 / Chiller / Heater Unit (device_template_tag)\n  [4370] 凝胶渗透色谱仪 / Gel Permeation Chromatograph (device_template_tag)\n  [4371] 制备色谱仪 / Preparative Chromatograph (device_template_tag)\n  [4372] 匀胶机 / Spin Coater (device_template_tag)\n  [4373] 化学气相沉积设备 / Chemical Vapor Deposition System (device_template_tag)\n  [4374] 压片机 / Tablet Press (device_template_tag)\n  [4375] 反应釜 / Reactor Vessel (device_template_tag)\n  [4376] 合成反应仪 / Synthesis Reactor (device_template_tag)\n  [4377] 喷雾沉淀装置 / Spray Precipitation System (device_template_tag)\n  [4378] 固体称量工作站 / Solid Weighing Workstation (device_template_tag)\n  [4379] 固相萃取设备 / Solid Phase Extraction System (device_template_tag)\n  [4380] 基质辅助激光解吸电离飞行时间质谱仪 / MALDI-TOF Mass Spectrometer (device_template_tag)\n  [4381] 多肽合成仪 / Peptide Synthesizer (device_template_tag)\n  [4382] 多通阀 / Multi-Port Valve (device_template_tag)\n  [4383] 实时定量PCR仪 / Real-Time Quantitative PCR (device_template_tag)\n  [4384] 封膜仪 / Plate Sealer (device_template_tag)\n  [4385] 并行反应仪 / Parallel Reactor (device_template_tag)\n  [4386] 开关盖加液模块 / Cap/Decap Liquid Dispensing Module (device_template_tag)\n  [4387] 微生物培养箱 / Microbial Incubator (device_template_tag)\n  [4388] 微通道反应器 / Microreactor (device_template_tag)\n  [4389] 恒温摇床 / Constant Temperature Shaker (device_template_tag)\n  [4390] 扫描电子显微镜 / Scanning Electron Microscope (device_template_tag)\n  [4391] 抽提萃取设备 / Extraction Equipment (device_template_tag)\n  [4392] 拉曼光谱仪 / Raman Spectrometer (device_template_tag)\n  [4393] 振荡器（非恒温） / Oscillator (Non-Thermostatic) (device_template_tag)\n  [4394] 接种仪 / Inoculator (device_template_tag)\n  [4395] 控温磁力搅拌器 / Temperature-Controlled Magnetic Stirrer (device_template_tag)\n  [4396] 撕膜仪 / Plate Desealer (device_template_tag)\n  [4397] 旋转蒸发器 / Rotary Evaporator (device_template_tag)\n  [4398] 旋转黏度计 / Rotational Viscometer (device_template_tag)\n  [4399] 普通PCR仪 / Thermal Cycler (device_template_tag)\n  [4400] 普通光学显微镜 / Optical Microscope (device_template_tag)\n  [4401] 机械搅拌反应釜 / Mechanical Stirring Reactor (device_template_tag)\n  [4402] 机械臂 / Robotic Arm (device_template_tag)\n  [4403] 柱塞泵 / Plunger Pump (device_template_tag)\n  [4404] 核磁共振波谱仪 / NMR Spectrometer (device_template_tag)\n  [4405] 核酸合成仪 / Nucleic Acid Synthesizer (device_template_tag)\n  [4406] 核酸纯化仪 / Nucleic Acid Purification System (device_template_tag)\n  [4407] 模具电池组装工站 / Mold Cell Assembly Workstation (device_template_tag)\n  [4408] 毛细管电泳仪 / Capillary Electrophoresis System (device_template_tag)\n  [4409] 毛细管黏度计 / Capillary Viscometer (device_template_tag)\n  [4410] 气体保护干燥箱 / Gas-Protected Drying Oven (device_template_tag)\n  [4411] 气相色谱质谱联用仪 / GC-MS (device_template_tag)\n  [4412] 氮吹仪 / Nitrogen Evaporator (device_template_tag)\n  [4413] 注射泵 / Syringe Pump (device_template_tag)\n  [4414] 洗板机 / Microplate Washer (device_template_tag)\n  [4415] 流化床反应器 / Fluidized Bed Reactor (device_template_tag)\n  [4416] 流式细胞仪 / Flow Cytometer (device_template_tag)\n  [4417] 液体密度计 / Liquid Density Meter (device_template_tag)\n  [4418] 液相色谱质谱联用仪 / LC-MS (device_template_tag)\n  [4419] 深低温冰箱 / Ultra-Low Temperature Freezer (device_template_tag)\n  [4420] 热分析联用仪 / Thermal Analysis System (device_template_tag)\n  [4421] 热混匀仪 / Thermomixer (device_template_tag)\n  [4422] 球磨机 / Ball Mill (device_template_tag)\n  [4423] 生物分子相互作用分析仪 / Biomolecular Interaction Analyzer (device_template_tag)\n  [4424] 电化学反应器 / Electrochemical Reactor (device_template_tag)\n  [4425] 电化学工作站 / Electrochemical Workstation (device_template_tag)\n  [4427] 电池测试柜 / Battery Test Cabinet (device_template_tag)\n  [4428] 电热板 / Hot Plate (device_template_tag)\n  [4429] 电穿孔仪（电转化仪） / Electroporator (device_template_tag)\n  [4430] 真空干燥箱 / Vacuum Drying Oven (device_template_tag)\n  [4431] 真空离心浓缩仪 / Vacuum Centrifugal Concentrator (device_template_tag)\n  [4432] 磁珠纯化模块 / Magnetic Bead Purification Module (device_template_tag)\n  [4433] 示差扫描量热仪 / Differential Scanning Calorimeter (device_template_tag)\n  [4434] 离心机 / Centrifuge (device_template_tag)\n  [4435] 移液器 / Pipette (device_template_tag)\n  [4436] 移液工作站 / Liquid Handling Workstation (device_template_tag)\n  [4437] 移液管 / Pipette Tube (device_template_tag)\n  [4438] 箱式电阻炉 / Box Resistance Furnace (device_template_tag)\n  [4439] 紫外-可见分光光谱仪 / UV-Vis Spectrophotometer (device_template_tag)\n  [4440] 红外光谱仪 / Infrared Spectrometer (device_template_tag)\n  [4441] 纽扣电池组装工站 / Coin Cell Assembly Workstation (device_template_tag)\n  [4442] 组织培养试验箱 / Tissue Culture Chamber (device_template_tag)\n  [4443] 组织破碎机 / Tissue Homogenizer (device_template_tag)\n  [4444] 细胞分析仪 / Cell Analyzer (device_template_tag)\n  [4445] 细胞融合仪 / Cell Fusion System (device_template_tag)\n  [4446] 自动化耗材堆栈 / Automated Consumable Stack (device_template_tag)\n  [4447] 荧光显微镜 / Fluorescence Microscope (device_template_tag)\n  [4448] 落球黏度计 / Falling Ball Viscometer (device_template_tag)\n  [4449] 蒸镀仪 / Evaporation Coater (device_template_tag)\n  [4450] 薄层色谱仪 / Thin Layer Chromatograph (device_template_tag)\n  [4451] 蠕动泵 / Peristaltic Pump (device_template_tag)\n  [4452] 表面等离子体谐振分析仪 / Surface Plasmon Resonance Analyzer (device_template_tag)\n  [4453] 超声破碎仪 / Ultrasonic Homogenizer (device_template_tag)\n  [4454] 软包电池组装工站 / Pouch Cell Assembly Workstation (device_template_tag)\n  [4455] 过滤器 / Filter (device_template_tag)\n  [4456] 透射电子显微镜 / Transmission Electron Microscope (device_template_tag)\n  [4457] 酶标仪 / Microplate Reader (device_template_tag)\n  [4458] 顶置失重固体投料模块 / Overhead Loss-in-Weight Solid Feeder (device_template_tag)\n  [4459] 高低温金属浴 / High/Low Temperature Metal Bath (device_template_tag)\n  [4460] 高内涵细胞成像分析系统 / High Content Cell Imaging Analysis System (device_template_tag)\n  [4461] 高压反应器 / High Pressure Reactor (device_template_tag)\n  [4462] 蛋白质组学研究 / Proteomics Research (experimental_scene)\n  [4463] 高粘度高分子树脂/薄膜 / High-Viscosity Polymer Resin / Film (experimental_scene)\n  [4464] 粘接剂 / Adhesive (experimental_scene)\n  [P-0001] 实验室自动化与仪器集成 / Laboratory Automation & Instrument Integration (experimental_domain)\n  [P-0002] 实验仪器数据采集与联机控制 / Instrument Data Acquisition & Online Control (experimental_scene)\n  [P-0004] 数据采集与控制接口 / Data Acquisition and Control Interface (device_template_tag)\n  [P-0001] 实验室自动化与仪器集成 / Laboratory Automation & Instrument Integration (experimental_domain)\n  [P-0003] 实验仪器通信与驱动集成 / Instrument Communication & Driver Integration (experimental_scene)\n  [P-0005] USB仪器通信接口 / USB Instrument Communication Interface (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0007] 显微镜自动化控制器 / Microscope Automation Controller (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0007] 显微镜自动化控制器 / Microscope Automation Controller (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0009] LED光源控制器 / LED Light Controller (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0007] 显微镜自动化控制器 / Microscope Automation Controller (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0010] 二极管激光器 / Diode Laser (device_template_tag)\n  [P-0011] 电子与电气测试 / Electronics & Electrical Testing (experimental_domain)\n  [P-0012] 射频与电子电路测试 / RF & Electronic Circuit Testing (experimental_scene)\n  [P-0013] 射频信号发生器 / RF Signal Generator (device_template_tag)\n  [P-0014] 电压监测与传感器信号采集 / Voltage Monitoring & Sensor Signal Acquisition (experimental_scene)\n  [P-0015] 电压采集模块 / Voltage Acquisition Module (device_template_tag)\n  [P-0011] 电子与电气测试 / Electronics & Electrical Testing (experimental_domain)\n  [P-0016] 电源与电池测试 / Power Supply & Battery Testing (experimental_scene)\n  [P-0017] 电子负载 / Electronic Load (device_template_tag)\n  [P-0016] 电源与电池测试 / Power Supply & Battery Testing (experimental_scene)\n  [P-0018] 继电器切换板 / Relay Switching Board (device_template_tag)\n  [P-0019] 源测单元模块 / Source-Measure Unit Module (device_template_tag)\n  [P-0020] 机器人与移动平台 / Robotics & Mobile Platforms (experimental_domain)\n  [P-0021] 移动机器人与自动驾驶实验 / Mobile Robotics & Autonomous Vehicle Experiments (experimental_scene)\n  [P-0022] 轮速编码器 / Wheel Speed Encoder (device_template_tag)\n  [P-0023] 声光可调滤波器 / Acousto-Optic Tunable Filter (device_template_tag)\n  [P-0024] 瞬态信号采集与同步触发测量 / Transient Signal Acquisition & Synchronized Triggered Measurement (experimental_scene)\n  [P-0025] 高速数据采集系统 / High-Speed Data Acquisition System (device_template_tag)\n  [P-0024] 瞬态信号采集与同步触发测量 / Transient Signal Acquisition & Synchronized Triggered Measurement (experimental_scene)\n  [P-0026] 模块化高速数据采集机箱 / Modular High-Speed Data Acquisition Chassis (device_template_tag)\n  [P-0028] 数据采集流水线处理节点 / Data Acquisition Pipeline Processing Node (device_template_tag)\n  [P-0029] X射线成像与束线探测 / X-Ray Imaging & Beamline Detection (experimental_scene)\n  [P-0030] 面阵探测器 / Area Detector (device_template_tag)\n  [P-0031] OPC-UA服务器建模与地址空间管理 / OPC-UA Server Modeling & Address Space Management (experimental_scene)\n  [P-0032] OPC-UA地址空间构建器 / OPC-UA Address Space Builder (device_template_tag)\n  [P-0033] 高速数字链路路由与调试 / High-Speed Digital Link Routing & Debugging (experimental_scene)\n  [P-0034] 数字交叉点开关 / Digital Crosspoint Switch (device_template_tag)\n  [P-0035] PLC控制与设备联锁 / PLC Control & Equipment Interlock (experimental_scene)\n  [P-0036] PLC控制器 / PLC Controller (device_template_tag)\n  [P-0037] 任意函数发生器 / Arbitrary Function Generator (device_template_tag)\n  [P-0038] 样品/探针定位与运动控制 / Sample / Probe Positioning & Motion Control (experimental_scene)\n  [P-0039] 电动直线位移台 / Motorized Linear Translation Stage (device_template_tag)\n  [P-1001] 数字万用表 / Digital Multimeter (device_template_tag)\n  [P-1002] 数字存储示波器 / Digital Storage Oscilloscope (device_template_tag)\n  [P-1003] 矢量信号分析仪 / Vector Signal Analyzer (device_template_tag)\n  [P-1004] 频谱分析仪 / Spectrum Analyzer (device_template_tag)\n  [P-1005] 矢量网络分析仪 / Vector Network Analyzer (device_template_tag)\n  [P-1004] 频谱分析仪 / Spectrum Analyzer (device_template_tag)\n  [P-1006] 真空系统与高真空实验 / Vacuum Systems & High-Vacuum Experiments (experimental_domain)\n  [P-1007] 高真空/超高真空腔体与仪器配套 / High/Ultra-High Vacuum Chamber & Instrument Support (experimental_scene)\n  [P-1008] 涡轮分子真空泵 / Turbomolecular Vacuum Pump (device_template_tag)\n  [P-1009] 精密定位与运动控制 / Precision Positioning & Motion Control (experimental_domain)\n  [P-1011] 压电步进位移台控制器 / Piezo Stepper Stage Controller (device_template_tag)\n  [P-2001] 模拟输入数据采集模块 / Analog Input Data Acquisition Module (device_template_tag)\n  [P-2012] 可编程直流电源 / Programmable DC Power Supply (device_template_tag)\n  [P-2013] 串行仪器通信接口 / Serial Instrument Communication Interface (device_template_tag)\n  [P-2014] 高光谱成像与反射/辐射表征 / Hyperspectral Imaging & Reflectance/Radiance Characterization (experimental_scene)\n  [P-2002] 高光谱相机 / Hyperspectral Camera (device_template_tag)\n  [P-2003] 低温与量子测量 / Cryogenic & Quantum Measurements (experimental_domain)\n  [P-2004] 超导磁体与低温磁场控制 / Superconducting Magnet & Cryogenic Magnetic Field Control (experimental_scene)\n  [P-2005] 磁体电源程序控制器 / Magnet Power Supply Programmer (device_template_tag)\n  [P-2003] 低温与量子测量 / Cryogenic & Quantum Measurements (experimental_domain)\n  [P-2004] 超导磁体与低温磁场控制 / Superconducting Magnet & Cryogenic Magnetic Field Control (experimental_scene)\n  [P-2006] 超导磁体系统 / Superconducting Magnet System (device_template_tag)\n  [P-2003] 低温与量子测量 / Cryogenic & Quantum Measurements (experimental_domain)\n  [P-2004] 超导磁体与低温磁场控制 / Superconducting Magnet & Cryogenic Magnetic Field Control (experimental_scene)\n  [P-2006] 超导磁体系统 / Superconducting Magnet System (device_template_tag)\n  [P-2003] 低温与量子测量 / Cryogenic & Quantum Measurements (experimental_domain)\n  [P-2004] 超导磁体与低温磁场控制 / Superconducting Magnet & Cryogenic Magnetic Field Control (experimental_scene)\n  [P-2007] 矢量磁场与角分辨测量 / Vector Magnetic Field & Angular-Resolved Measurement (experimental_scene)\n  [P-2006] 超导磁体系统 / Superconducting Magnet System (device_template_tag)\n  [P-2008] 矢量超导磁体系统 / Vector Superconducting Magnet System (device_template_tag)\n  [P-2009] X射线与辐射能谱测量 / X-Ray & Radiation Spectroscopy (experimental_scene)\n  [P-2010] 多道分析器 / Multi-Channel Analyzer (device_template_tag)\n  [P-2011] 步进电机控制器 / Stepper Motor Controller (device_template_tag)\n  [P-3001] 科学相机 / Scientific Camera (device_template_tag)\n  [P-3002] 光谱采集与检测 / Spectral Acquisition & Detection (experimental_scene)\n  [P-3001] 科学相机 / Scientific Camera (device_template_tag)\n  [P-3002] 光谱采集与检测 / Spectral Acquisition & Detection (experimental_scene)\n  [P-3008] 电动位移台控制器 / Motorized Stage Controller (device_template_tag)\n  [P-3006] 量子比特脉冲控制与读出 / Qubit Pulse Control & Readout (experimental_scene)\n  [P-3007] 量子实验控制器 / Quantum Experiment Controller (device_template_tag)\n  [P-3003] 光学与光谱实验 / Optical & Spectroscopy Experiments (experimental_domain)\n  [P-3004] 激光激发与光谱测量 / Laser Excitation & Spectroscopic Measurement (experimental_scene)\n  [P-3005] 实验室激光光源 / Laboratory Laser Source (device_template_tag)\n  [P-5001] 实验室机器人操作与样品转运 / Laboratory Robotic Manipulation & Sample Transfer (experimental_scene)\n  [P-5002] 光谱传感器 / Spectral Sensor (device_template_tag)\n  [P-5003] 电动定位台 / Motorized Positioning Stage (device_template_tag)\n  [P-5004] 实验扫描数据文件 / Experimental Scan Data File (device_template_tag)\n  [P-5003] 电动定位台 / Motorized Positioning Stage (device_template_tag)\n  [P-5006] 实验装置数字化设计与制造数据 / Digital Design & Manufacturing Data for Experimental Apparatus (experimental_domain)\n  [P-5007] 三维几何建模与STL导出 / 3D Geometry Modeling & STL Export (experimental_scene)\n  [P-5008] STL网格文件写出器 / STL Mesh File Exporter (device_template_tag)\n  [P-5009] Modbus TCP现场设备 / Modbus TCP Field Device (device_template_tag)\n  [P-5010] X射线束线光路与衰减控制 / X-Ray Beamline Optics & Attenuation Control (experimental_scene)\n  [P-5011] 电动固体衰减器 / Motorized Solid Attenuator (device_template_tag)\n  [P-5001] 微孔板样品孵育与混匀 / Microplate Sample Incubation & Mixing (experimental_scene)\n  [P-5002] 微孔板恒温振荡器 / Microplate Thermoshaker (device_template_tag)\n  [P-5003] 微孔板检测与高通量筛选 / Microplate Detection & High-Throughput Screening (experimental_scene)\n  [P-5001] 微孔板样品孵育与混匀 / Microplate Sample Incubation & Mixing (experimental_scene)\n  [P-5002] 微孔板恒温振荡器 / Microplate Thermoshaker (device_template_tag)\n  [P-5004] USB GPIO接口模块 / USB GPIO Interface Module (device_template_tag)\n  [P-5011] 电子器件供电与台架测试 / Electronic Device Powering & Bench Testing (experimental_scene)\n  [P-5005] CAN总线通信记录与离线分析 / CAN Bus Communication Logging & Offline Analysis (experimental_scene)\n  [P-5006] CAN总线日志记录器 / CAN Bus Logger (device_template_tag)\n  [P-5007] 实验室机械臂自动化与样品搬运 / Laboratory Robotic Arm Automation & Sample Handling (experimental_scene)\n  [P-5008] 激光功率/能量计 / Laser Power / Energy Meter (device_template_tag)\n  [P-5009] 激光功率监测与能量校准 / Laser Power Monitoring & Energy Calibration (experimental_scene)\n  [P-5010] 频率响应分析仪 / Frequency Response Analyzer (device_template_tag)\n  [P-6002] 外接设备恒温控制 / External Equipment Thermostating (experimental_scene)\n  [P-6001] 蓝牙流式采集设备 / Bluetooth Streaming Acquisition Device (device_template_tag)\n  [P-6003] 足式机器人控制与感知实验 / Legged Robot Control & Perception Experiments (experimental_scene)\n  [P-6004] 双足机器人套件 / Bipedal Robotics Kit (device_template_tag)\n  [P-9001] 三维感知与空间测绘 / 3D Perception & Spatial Mapping (experimental_domain)\n  [P-9002] 三维点云采集与重建 / 3D Point Cloud Acquisition & Reconstruction (experimental_scene)\n  [P-9003] 三维激光雷达 / 3D LiDAR (device_template_tag)\n  [P-9004] 环境控制与稳定性测试 / Environmental Control & Stability Testing (experimental_domain)\n  [P-9005] 气候箱培养与稳定性试验 / Climate Chamber Incubation & Stability Testing (experimental_scene)\n  [P-9006] 气候箱 / Climate Chamber (device_template_tag)\n  [P-9004] 环境控制与稳定性测试 / Environmental Control & Stability Testing (experimental_domain)\n  [P-9005] 气候箱培养与稳定性试验 / Climate Chamber Incubation & Stability Testing (experimental_scene)\n  [P-9006] 气候箱 / Climate Chamber (device_template_tag)\n  [P-7001] 电化学测试与分析 / Electrochemical Testing & Analysis (experimental_domain)\n  [P-7002] 电化学表征与阻抗谱测量 / Electrochemical Characterization & Impedance Spectroscopy (experimental_scene)\n  [P-7003] 任意波形发生器 / Arbitrary Waveform Generator (device_template_tag)\n  [P-7004] 楼宇环境监测与HVAC联动 / Building Environment Monitoring & HVAC Coordination (experimental_scene)\n  [P-7005] BACnet楼宇自动化控制器 / BACnet Building Automation Controller (device_template_tag)\n  [P-7006] 实验室快速原型与工装制造 / Laboratory Rapid Prototyping & Fixture Fabrication (experimental_scene)\n  [P-7007] 熔融沉积成型3D打印机 / FDM 3D Printer (device_template_tag)\n  [P-7008] 脉冲激励与时序控制 / Pulse Excitation & Timing Control (experimental_scene)\n  [P-7009] 任意波形发生器 / Arbitrary Waveform Generator (device_template_tag)\n  [P-7010] PC散热与灯效控制 / PC Cooling & Lighting Control (experimental_scene)\n  [P-7011] 风扇水泵与灯效控制器 / Fan, Pump & Lighting Controller (device_template_tag)\n  [P-7012] SCPI台式电子仪器 / SCPI Benchtop Electronic Instrument (device_template_tag)\n  [P-0101] 伪时钟时钟线 / Pseudoclock Clock Line (device_template_tag)\n  [P-0102] 数字命令序列控制器 / Digital Command Sequencer (device_template_tag)\n  [P-0103] 可调谐超快激光器 / Tunable Ultrafast Laser (device_template_tag)\n  [P-8101] 网络化仪器服务发现与端口映射 / Networked Instrument Service Discovery & Port Mapping (experimental_scene)\n  [P-8102] 仪器服务发现客户端 / Instrument Service Discovery Client (device_template_tag)\n  [P-8103] 气体输送与过程控制 / Gas Delivery & Process Control (experimental_domain)\n  [P-8104] 气体供给与混气控制 / Gas Supply & Gas Mixing Control (experimental_scene)\n  [P-8105] 气体质量流量控制器 / Gas Mass Flow Controller (device_template_tag)\n  [P-8106] 实验流程状态指示与告警 / Laboratory Workflow Status Indication & Alerting (experimental_scene)\n  [P-8107] 状态指示灯 / Status Indicator Light (device_template_tag)\n  [P-8108] 超导量子比特器件 / Superconducting Qubit Device (device_template_tag)\n  [P-8110] CAN总线分析仪 / CAN Bus Analyzer (device_template_tag)\n  [P-8111] 电压测量校准与核查 / Voltage Measurement Calibration & Verification (experimental_scene)\n  [P-8112] 电压表校准系统 / Voltage Meter Calibration System (device_template_tag)\n  [P-8113] 实验成像与机器视觉 / Laboratory Imaging & Machine Vision (experimental_scene)\n  [P-8114] 工业相机 / Industrial Camera (device_template_tag)\n  [P-8115] 实验成像与过程监测 / Laboratory Imaging & Process Monitoring (experimental_scene)\n  [P-8001] 液体样品离心分离与前处理 / Liquid Sample Centrifugal Separation & Pre-processing (experimental_scene)\n  [P-8002] CCD探测器 / CCD Detector (device_template_tag)\n  [P-8003] 实验控制固件构建与部署 / Experiment Control Firmware Build & Deployment (experimental_scene)\n  [P-8004] 固件构建服务客户端 / Firmware Build Service Client (device_template_tag)\n  [P-9101] 嵌入式相机模块 / Embedded Camera Module (device_template_tag)\n  [P-9102] 短波红外相机 / SWIR Camera (device_template_tag)\n  [P-9101] 嵌入式相机模块 / Embedded Camera Module (device_template_tag)\n  [P-9103] 实验数据管理与记录 / Experimental Data Management & Logging (experimental_domain)\n  [P-9104] 追加式实验记录与索引访问 / Append-Only Experimental Logging & Indexed Access (experimental_scene)\n  [P-9105] 换行分隔JSON数据目录 / Newline-Delimited JSON Data Catalog (device_template_tag)\n  [P-9106] 量子光学与光子测量 / Quantum Optics & Photon Measurements (experimental_domain)\n  [P-9107] 单光子探测与符合计数 / Single-Photon Detection & Coincidence Counting (experimental_scene)\n  [P-9108] 符合计数器 / Coincidence Counter (device_template_tag)\n\n---\nDevices to tag:\n\nDevice: ccd\n  name: Andor科研级制冷CCD相机\n  name_en: Andor Scientific Cooled CCD Camera\n  manufacturer: Andor Technology\n  description_zh: 用于实验室低光成像与光谱采集的科研级制冷CCD相机，可进行温度控制、快门与触发配置、读出与增益设置、像素合并及多种采集时序控制，并读取单帧或连续图像数据。\n  description_en: A scientific cooled CCD camera for low-light laboratory imaging and spectroscopy. It supports temperature control, shutter and trigger configuration, readout and gain settings, pixel binning, multiple acquisition timing modes, and retrieval of single-frame or continuous image data.\n  tag_hints: ['scientific CCD camera', 'low-light imaging', 'spectroscopy detection', 'thermoelectric cooling', 'triggered acquisition', 'ROI binning', 'kinetic acquisition', 'EM gain']\n  actions:\n    - auto-QE: Get the quantum efficiency at a specified wavelength.\n    - auto-abort_acquisition_async: Asynchronously abort the current acquisition.\n    - auto-acquired_data: Read the data from the last acquisition.\n    - auto-acquired_data16: Read the 16-bit data from the last acquisition.\n    - auto-amp_available: Check whether a specified output amplifier is available.\n    - auto-amp_descr: Get the description of a specified output amplifier.\n    - auto-amp_max_hspeed: Get the maximum horizontal shift speed for a specified amplifier.\n    - auto-bit_depth: Get the bit depth of a specified AD channel.\n    - auto-camera_handle: Get the handle for a specified camera.\n    - auto-cancel_wait_async: Asynchronously cancel a pending acquisition wait.\n    - auto-command: Execute a named device command.\n    - auto-count_convert_available: Check whether a specified Count Convert mode is available.\n    - auto-exposure_times: Define the exposure times sequence.\n    - auto-finalize: Shut down and finalize the camera system.\n    - auto-flush: Flush pending buffers or command queues.\n    - auto-free_int_mem_async: Asynchronously free internal image memory.\n    - auto-getbool: Read a boolean value by command name.\n    - auto-getenumerated: Read an enumerated value by command name.\n    - auto-getfloat: Read a floating-point value by command name.\n    - auto-getint: Read an integer value by command name.\n    - auto-images: Read a specified range of images from the circular buffer.\n    - auto-images16: Read a specified range of 16-bit images from the circular buffer.\n    - auto-initialize: Initialize the camera system.\n    - auto-is_implemented: Check whether a named command is implemented.\n    - auto-is_writable: Check whether a named command is writable.\n    - auto-most_recent_image: Read the most recently acquired image.\n    - auto-most_recent_image16: Read the most recently acquired 16-bit image.\n    - auto-n_horiz_shift_speeds: Get the number of available horizontal shift speeds.\n    - auto-oldest_image: Read and remove the oldest image from the circular buffer.\n    - auto-oldest_image16: Read and remove the oldest 16-bit image from the circular buffer.\n    - auto-preamp_available: Check whether a specified preamp gain setting is available.\n    - auto-preamp_descr: Get the description of a specified preamp gain.\n    - auto-prepare_acquisition_async: Asynchronously prepare memory and settings for acquisition.\n    - auto-queuebuffer: Queue a buffer for image transfer.\n    - auto-readout_flipped: Get whether readout is flipped for a specified amplifier.\n    - auto-save_raw_async: Asynchronously save the last acquisition as a raw file.\n    - auto-send_software_trigger_async: Asynchronously send a software trigger.\n    - auto-sensitivity: Get the sensitivity for a specified readout setting.\n    - auto-set_accum_time_async: Asynchronously set the accumulation cycle time.\n    - auto-set_dma_parameters: Set the DMA transfer parameters.\n    - auto-set_exposure_time_async: Asynchronously set the exposure time.\n    - auto-set_image_async: Asynchronously set the image area and binning.\n    - auto-set_kinetic_cycle_time_async: Asynchronously set the kinetic cycle time.\n    - auto-set_n_accum_async: Asynchronously set the number of accumulations.\n    - auto-set_n_kinetics_async: Asynchronously set the number of kinetic scans.\n    - auto-set_photon_counting_divs_async: Asynchronously define photon-counting thresholds for divisions.\n    - auto-set_photon_counting_thres_async: Asynchronously set the photon-counting threshold range.\n    - auto-set_vert_clock_async: Asynchronously set the vertical clock amplitude.\n    - auto-setbool: Set a boolean value by command name.\n    - auto-setenumerated: Set an enumerated value by command name.\n    - auto-setenumstring: Set an enumerated string value by command name.\n    - auto-setfloat: Set a floating-point value by command name.\n    - auto-setint: Set an integer value by command name.\n    - auto-shutter_async: Asynchronously configure shutter operation.\n    - auto-start_acquisition_async: Asynchronously start an acquisition.\n    - auto-trigger_level_async: Asynchronously set the trigger voltage level.\n    - auto-trigger_mode_available: Check whether a specified trigger mode is available.\n    - auto-true_exposure_times: Get the actual exposure times used.\n    - auto-true_horiz_shift_speed: Get the actual horizontal shift speed.\n    - auto-true_preamp: Get the actual preamp gain value.\n    - auto-true_vert_amp: Get the actual vertical clock amplitude value.\n    - auto-true_vert_shift_speed: Get the actual vertical shift speed.\n    - auto-vert_amp_index: Get the index for a vertical clock amplitude label.\n    - auto-vert_amp_string: Get the label for a vertical clock amplitude index.\n    - auto-wait_for_acquisition_async: Asynchronously wait for acquisition completion or an acquisition event.\n    - auto-waitbuffer: Wait for the next queued buffer to be filled.\n    - auto-ncameras: Get the number of installed cameras.\n    - auto-current_camera: Get/set the current active camera.\n    - auto-idn: Get the device identification.\n    - auto-hardware_version: Get the hardware version information.\n    - auto-software_version: Get the software version information.\n    - auto-capabilities: Get the camera capabilities.\n    - auto-controller_card: Get the controller card type.\n    - auto-count_convert_wavelength_range: Get the valid wavelength range for Count Convert mode.\n    - auto-detector_shape: Get the detector dimensions.\n    - auto-px_size: Get the pixel size.\n    - auto-shutter: Configure shutter operation.\n    - auto-shutter_min_times: Get the minimum shutter opening and closing times.\n    - auto-has_mechanical_shutter: Get whether the camera has a mechanical shutter.\n    - auto-min_temperature: Get the minimum settable detector temperature.\n    - auto-max_temperature: Get the maximum settable detector temperature.\n    - auto-temperature_status: Get the detector temperature and cooling status.\n    - auto-temperature: Get the detector temperature.\n    - auto-temperature_setpoint: Get/set the detector temperature setpoint.\n    - auto-cooler_on: Get/set whether the cooler is enabled.\n    - auto-cooled_on_shutdown: Get/set whether the cooler is turned off on shutdown.\n    - auto-fan_mode: Get/set the fan mode.\n    - auto-averaging_factor: Get/set the recursive averaging factor.\n    - auto-averaging_frame_count: Get/set the number of frames used for frame averaging.\n    - auto-averaging_mode: Get/set the averaging mode.\n    - auto-noise_filter_mode: Get/set the noise filter mode.\n    - auto-filter_threshold: Get/set the noise filter threshold.\n    - auto-cr_filter_enabled: Get/set the cosmic-ray filter state.\n    - auto-photon_counting_mode: Get/set the photon-counting mode.\n    - auto-n_photon_counting_div: Get the number of available photon-counting divisions.\n    - auto-set_photon_counting_divs: Define photon-counting thresholds for divisions.\n    - auto-set_photon_counting_thres: Set the photon-counting threshold range.\n    - auto-FK_exposure_time: Get the valid fast-kinetics exposure time.\n    - auto-acquisition_mode: Get/set the acquisition mode.\n    - auto-prepare_acquisition: Prepare memory and settings for acquisition.\n    - auto-start_acquisition: Start an acquisition.\n    - auto-abort_acquisition: Abort the current acquisition.\n    - auto-wait_for_acquisition: Wait for acquisition completion or an acquisition event.\n    - auto-cancel_wait: Cancel a pending acquisition wait.\n    - auto-acquisition_progress: Get the acquisition progress.\n    - auto-status: Get the camera status.\n    - auto-n_exposures_in_ring: Get the number of exposures currently in the ring buffer.\n    - auto-buffer_size: Get the image capacity of the circular buffer.\n    - auto-exposing: Get whether the camera is exposing.\n    - auto-n_images_acquired: Get the number of images acquired.\n    - auto-set_image: Set the image area and binning.\n    - auto-readout_mode: Get/set the readout mode.\n    - auto-readout_packing: Get/set the readout packing mode.\n    - auto-min_image_length: Get the minimum readable image length.\n    - auto-free_int_mem: Free internal image memory.\n    - auto-new_images_index: Get the index range of new images in the buffer.\n    - auto-available_images_index: Get the index range of available images in the buffer.\n    - auto-max_images_per_dma: Get the maximum number of images per DMA transfer.\n    - auto-save_raw: Save the last acquisition as a raw file.\n    - auto-acquisition_timings: Get the acquisition timing information.\n    - auto-set_exposure_time: Set the exposure time.\n    - auto-set_accum_time: Set the accumulation cycle time.\n    - auto-set_kinetic_cycle_time: Set the kinetic cycle time.\n    - auto-set_n_kinetics: Set the number of kinetic scans.\n    - auto-set_n_accum: Set the number of accumulations.\n    - auto-keep_clean_time: Get the keep-clean cycle time.\n    - auto-readout_time: Get the readout time.\n    - auto-max_exposure: Get the maximum settable exposure time.\n    - auto-n_max_nexposure: Get the maximum number of configurable ring exposures.\n    - auto-frame_transfer_mode: Get/set the frame-transfer mode.\n    - auto-n_preamps: Get the number of available preamp gains.\n    - auto-preamp: Get/set the preamp gain.\n    - auto-EM_advanced_enabled: Get/set access to advanced EM gain levels.\n    - auto-EM_gain_mode: Get/set the EM gain mode.\n    - auto-EM_gain: Get/set the EM gain value.\n    - auto-EM_gain_range: Get the EM gain range.\n    - auto-n_ad_channels: Get the number of AD channels.\n    - auto-n_amps: Get the number of output amplifiers.\n    - auto-horiz_shift_speed: Get/set the horizontal shift speed.\n    - auto-fastest_recommended_vsspeed: Get the fastest recommended vertical shift speed.\n    - auto-n_vert_clock_amps: Get the number of vertical clock amplitude levels.\n    - auto-set_vert_clock: Set the vertical clock amplitude.\n    - auto-n_vert_shift_speeds: Get the number of available vertical shift speeds.\n    - auto-vert_shift_speed: Get/set the vertical shift speed.\n    - auto-baseline_clamp: Get/set the baseline clamp.\n    - auto-baseline_offset: Get/set the baseline offset.\n    - auto-adv_trigger_mode: Get/set the advanced trigger mode.\n    - auto-trigger_mode: Get/set the trigger mode.\n    - auto-send_software_trigger: Send a software trigger.\n    - auto-trigger_level: Set the trigger voltage level.\n    - auto-in_aux_port: Get the state of an auxiliary TTL input port.\n    - auto-out_aux_port: Get/set the state of an auxiliary TTL output port.\n\nDevice: coherent\n  name: 可调谐飞秒激光器\n  name_en: Tunable femtosecond laser\n  manufacturer: Coherent\n  description_zh: 这是一类可调谐输出波长的超快飞秒激光器，通常带有快门、对准模式以及色散补偿相关设置（如 GDD）。它常用于双光子显微、非线性光学实验、超快光谱和需要可调近红外激发光源的科研场景。\n  description_en: This is a tunable ultrafast femtosecond laser with adjustable output wavelength, typically including a shutter, alignment mode, and dispersion-compensation controls such as GDD. It is commonly used in two-photon microscopy, nonlinear optics, ultrafast spectroscopy, and other research applications requiring a tunable near-infrared excitation source.\n  tag_hints: ['tunable femtosecond laser', 'ultrafast optics', 'two-photon microscopy', 'wavelength tuning', 'GDD compensation', 'laser shutter control', 'alignment mode']\n  actions:\n    - auto-getPower: Get the laser output power\n    - auto-getWavelength: Get the output wavelength\n    - auto-setWavelength: Set the output wavelength\n    - auto-getWavelengthRange: Get the tunable wavelength range\n    - auto-getGDDMinMax: Get the minimum and maximum GDD values at the current wavelength\n    - auto-getGDD: Get the current GDD setting\n    - auto-getComp: Get the dispersion compensation setting\n    - auto-setGDD: Set the GDD value\n    - auto-clearGDD: Clear the GDD compensation setting\n    - auto-isTuning: Get whether wavelength tuning is in progress\n    - auto-getShutter: Get the shutter state\n    - auto-setShutter: Set the shutter open/closed state\n    - auto-setAlignment: Set the alignment mode\n    - auto-getAlignment: Get the alignment mode state\n    - auto-clearBuffer: Clear the device communication buffer\n    - auto-read: Read data returned by the device\n    - auto-write: Write raw command data to the device\n    - auto-close: Close the communication connection to the device\n    - auto-readPacket: Read a packet returned by the device\n"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_07b5b45d8ac8715d0069d4db98063481969e50660c132aba28",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 37754,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 8276,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "low"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_07b5b45d8ac8715d0069d4db9a9198819695e3334279a36984",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_07b5b45d8ac8715d0069d4dbbc2334819690cb1ab7a284391e",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"devices\":[{\"device\":\"ccd\",\"existing_tags\":[{\"id\":\"4316\",\"name\":\"表征设备\",\"name_en\":\"Characterization Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备用于低光成像与光谱采集，核心作用是获取实验表征数据。\"},{\"id\":\"4325\",\"name\":\"智慧表征与检测中心\",\"name_en\":\"Intelligent Characterization & Testing Center\",\"type\":\"experimental_domain\",\"rationale\":\"科研级制冷CCD常作为表征检测平台中的通用探测器，适合归入表征检测相关实验域。\"},{\"id\":\"P-3003\",\"name\":\"光学与光谱实验\",\"name_en\":\"Optical & Spectroscopy Experiments\",\"type\":\"experimental_domain\",\"rationale\":\"设备明确支持低光成像和光谱采集，直接服务于光学与光谱实验。\"},{\"id\":\"P-3002\",\"name\":\"光谱采集与检测\",\"name_en\":\"Spectral Acquisition & Detection\",\"type\":\"experimental_scene\",\"rationale\":\"描述中明确包含光谱采集、触发采集和连续图像读出，符合光谱检测场景。\"},{\"id\":\"P-3001\",\"name\":\"科学相机\",\"name_en\":\"Scientific Camera\",\"type\":\"device_template_tag\",\"rationale\":\"该设备是科研级制冷相机，支持增益、快门、时序和连续采集等科学相机典型功能。\"},{\"id\":\"P-8002\",\"name\":\"CCD探测器\",\"name_en\":\"CCD Detector\",\"type\":\"device_template_tag\",\"rationale\":\"设备本体为CCD相机，具备像素合并、读出设置和图像数据获取等CCD探测器特征。\"}],\"proposed_new_tags\":[]},{\"device\":\"coherent\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备作为可调谐飞秒激发光源直接参与实验执行，用于提供超快激光照射。\"},{\"id\":\"P-3003\",\"name\":\"光学与光谱实验\",\"name_en\":\"Optical & Spectroscopy Experiments\",\"type\":\"experimental_domain\",\"rationale\":\"设备用于超快光谱、非线性光学和近红外激发，属于典型光学与光谱实验域。\"},{\"id\":\"P-3004\",\"name\":\"激光激发与光谱测量\",\"name_en\":\"Laser Excitation & Spectroscopic Measurement\",\"type\":\"experimental_scene\",\"rationale\":\"其核心能力是波长调谐、快门控制和色散补偿，直接服务激光激发与光谱测量。\"},{\"id\":\"P-0006\",\"name\":\"显微成像与光学显微实验\",\"name_en\":\"Microscopy Imaging & Optical Microscopy Experiments\",\"type\":\"experimental_scene\",\"rationale\":\"描述明确提到双光子显微，这是该类飞秒激光器的典型应用场景。\"},{\"id\":\"P-0103\",\"name\":\"可调谐超快激光器\",\"name_en\":\"Tunable Ultrafast Laser\",\"type\":\"device_template_tag\",\"rationale\":\"设备描述即为可调谐飞秒激光器，具备波长调谐和GDD补偿等超快激光器典型特征。\"},{\"id\":\"P-3005\",\"name\":\"实验室激光光源\",\"name_en\":\"Laboratory Laser Source\",\"type\":\"device_template_tag\",\"rationale\":\"该设备在实验中充当近红外可调谐激光光源，可作为多类光学实验的通用激发源。\"}],\"proposed_new_tags\":[]}]}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 11262,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2351,
+      "output_tokens_details": {
+        "reasoning_tokens": 1552
+      },
+      "total_tokens": 13613
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 11262,
+      "output_token_count": 2351,
+      "predict_time": 50.515747351
+    }
+  },
+  "output_text": "{\"devices\":[{\"device\":\"ccd\",\"existing_tags\":[{\"id\":\"4316\",\"name\":\"表征设备\",\"name_en\":\"Characterization Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备用于低光成像与光谱采集，核心作用是获取实验表征数据。\"},{\"id\":\"4325\",\"name\":\"智慧表征与检测中心\",\"name_en\":\"Intelligent Characterization & Testing Center\",\"type\":\"experimental_domain\",\"rationale\":\"科研级制冷CCD常作为表征检测平台中的通用探测器，适合归入表征检测相关实验域。\"},{\"id\":\"P-3003\",\"name\":\"光学与光谱实验\",\"name_en\":\"Optical & Spectroscopy Experiments\",\"type\":\"experimental_domain\",\"rationale\":\"设备明确支持低光成像和光谱采集，直接服务于光学与光谱实验。\"},{\"id\":\"P-3002\",\"name\":\"光谱采集与检测\",\"name_en\":\"Spectral Acquisition & Detection\",\"type\":\"experimental_scene\",\"rationale\":\"描述中明确包含光谱采集、触发采集和连续图像读出，符合光谱检测场景。\"},{\"id\":\"P-3001\",\"name\":\"科学相机\",\"name_en\":\"Scientific Camera\",\"type\":\"device_template_tag\",\"rationale\":\"该设备是科研级制冷相机，支持增益、快门、时序和连续采集等科学相机典型功能。\"},{\"id\":\"P-8002\",\"name\":\"CCD探测器\",\"name_en\":\"CCD Detector\",\"type\":\"device_template_tag\",\"rationale\":\"设备本体为CCD相机，具备像素合并、读出设置和图像数据获取等CCD探测器特征。\"}],\"proposed_new_tags\":[]},{\"device\":\"coherent\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备作为可调谐飞秒激发光源直接参与实验执行，用于提供超快激光照射。\"},{\"id\":\"P-3003\",\"name\":\"光学与光谱实验\",\"name_en\":\"Optical & Spectroscopy Experiments\",\"type\":\"experimental_domain\",\"rationale\":\"设备用于超快光谱、非线性光学和近红外激发，属于典型光学与光谱实验域。\"},{\"id\":\"P-3004\",\"name\":\"激光激发与光谱测量\",\"name_en\":\"Laser Excitation & Spectroscopic Measurement\",\"type\":\"experimental_scene\",\"rationale\":\"其核心能力是波长调谐、快门控制和色散补偿，直接服务激光激发与光谱测量。\"},{\"id\":\"P-0006\",\"name\":\"显微成像与光学显微实验\",\"name_en\":\"Microscopy Imaging & Optical Microscopy Experiments\",\"type\":\"experimental_scene\",\"rationale\":\"描述明确提到双光子显微，这是该类飞秒激光器的典型应用场景。\"},{\"id\":\"P-0103\",\"name\":\"可调谐超快激光器\",\"name_en\":\"Tunable Ultrafast Laser\",\"type\":\"device_template_tag\",\"rationale\":\"设备描述即为可调谐飞秒激光器，具备波长调谐和GDD补偿等超快激光器典型特征。\"},{\"id\":\"P-3005\",\"name\":\"实验室激光光源\",\"name_en\":\"Laboratory Laser Source\",\"type\":\"device_template_tag\",\"rationale\":\"该设备在实验中充当近红外可调谐激光光源，可作为多类光学实验的通用激发源。\"}],\"proposed_new_tags\":[]}]}"
+}

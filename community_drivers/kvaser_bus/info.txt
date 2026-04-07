@@ -1,38 +1,84 @@
-Device: kvaser_bus
-Registry Key: kvaser_bus
-Short Description: Kvaser BUS是由Kvaser生产的专业实验设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (4):
-- auto-flash -> flash [UniLabJsonCommand] goal_params: flash
-- auto-flush_tx_buffer -> flush_tx_buffer [UniLabJsonCommand] goal_params: none
-- auto-send -> send [UniLabJsonCommand] goal_params: msg, timeout
-- auto-shutdown -> shutdown [UniLabJsonCommand] goal_params: none
-
-Driver Functions (21):
-- _unimplemented_function(*args) (line 109)
-- __get_canlib_function(func_name, argtypes, restype, errcheck) (line 113)
-- CANLIBError.__init__(self, function, error_code, arguments) (line 138)
-- CANLIBError._get_error_message(error_code) (line 145)
-- __convert_can_status_to_int(result) (line 159)
-- __check_status_operation(result, function, arguments) (line 166)
-- __check_status_initialization(result, function, arguments) (line 173)
-- __check_status_read(result, function, arguments) (line 180)
-- __check_bus_handle_validity(handle, function, arguments) (line 194)
-- init_kvaser_library() (line 402)
-- KvaserBus.__init__(self, channel, can_filters, timing, **kwargs) (line 442)
-- KvaserBus._update_timestamp_offset(self) (line 673)
-- KvaserBus._apply_filters(self, filters) (line 692)
-- KvaserBus.flush_tx_buffer(self) (line 718)
-- KvaserBus._recv_internal(self, timeout) (line 723)
-- KvaserBus.send(self, msg, timeout) (line 783)
-- KvaserBus.flash(self, flash) (line 803)
-- KvaserBus.shutdown(self) (line 819)
-- KvaserBus.get_stats(self) (line 835)
-- KvaserBus._detect_available_configs() (line 864)
-- get_channel_info(channel) (line 881)
+kvaser_bus:
+  name: Kvaser CAN总线接口适配器
+  name_en: Kvaser CAN Bus Interface
+  manufacturer: Kvaser
+  category:
+  - USB-CAN总线适配器
+  tags:
+  - 实验执行&合成设备
+  - 电子与电气测试
+  - CAN总线设备调试与集成
+  - CAN总线通信记录与离线分析
+  - USB-CAN总线适配器
+  description: 这是一种用于将计算机连接到CAN总线网络的硬件接口设备，可用于发送和接收CAN报文、监测总线通信，以及在实验室中对基于CAN的控制器、仪器或嵌入式设备进行联调、测试与诊断。
+  description_en: This is a hardware interface device that connects a computer to
+    a CAN bus network. It is used to transmit and receive CAN messages, monitor bus
+    traffic, and support laboratory integration, testing, and diagnostics of CAN-based
+    controllers, instruments, and embedded systems.
+  class:
+    action_value_mappings:
+      auto-flush_tx_buffer:
+        schema:
+          description: 清空设备的发送缓冲区。
+          description_en: Clear the device transmit buffer.
+      auto-send:
+        schema:
+          description: 通过CAN总线发送一条报文。
+          description_en: Send a message on the CAN bus.
+      auto-flash:
+        schema:
+          description: 开启或关闭设备指示灯闪烁，用于物理定位设备。
+          description_en: Turn the device LED flashing on or off for physical identification.
+      auto-shutdown:
+        schema:
+          description: 安全关闭CAN接口，并等待排队发送的数据处理完成。
+          description_en: Safely shut down the CAN interface and wait for queued transmissions
+            to complete.
+auto_annotation_metadata:
+  registry_key: kvaser_bus
+  annotation_workflow_version: v4
+  tag_hints:
+  - CAN bus communication
+  - Kvaser interface
+  - vehicle network testing
+  - CAN message transmission
+  - bus monitoring
+  - ECU diagnostics
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该接口可主动发送和接收 CAN 报文，直接参与实验控制与联调。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: CAN 总线接口主要用于电子控制器和嵌入式设备的通信测试。
+  - id: P-20004
+    name: CAN总线设备调试与集成
+    name_en: CAN Device Debugging & Integration
+    type: experimental_scene
+    rationale: 描述中明确提到对基于 CAN 的控制器、仪器或嵌入式设备进行联调、测试与诊断。
+  - id: P-5005
+    name: CAN总线通信记录与离线分析
+    name_en: CAN Bus Communication Logging & Offline Analysis
+    type: experimental_scene
+    rationale: 该设备支持监测总线通信，适用于 CAN 报文记录与分析。
+  - id: P-20003
+    name: USB-CAN总线适配器
+    name_en: USB-to-CAN Bus Adapter
+    type: device_template_tag
+    rationale: Kvaser 这类设备本质上是将计算机连接到 CAN 网络的接口适配器。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,63 +1,124 @@
-Device: hal__shim_sq
-Registry Key: hal__shim_sq
-Short Description: HAL Shim SQ是由QuTech生产的实验执行&合成设备，主要功能包括读取数据。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (12):
-- auto-get_int_avg_det -> get_int_avg_det [UniLabJsonCommand] goal_params: none
-- auto-hal_acq_spec_mode_off -> hal_acq_spec_mode_off [UniLabJsonCommand] goal_params: none
-- auto-hal_acq_spec_mode_on -> hal_acq_spec_mode_on [UniLabJsonCommand] goal_params: none
-- auto-hal_flux_get_parameters -> hal_flux_get_parameters [UniLabJsonCommand] goal_params: flux_chan
-- auto-hal_spec_source_off -> hal_spec_source_off [UniLabJsonCommand] goal_params: none
-- auto-hal_spec_source_on -> hal_spec_source_on [UniLabJsonCommand] goal_params: power, pulsed
-- auto-prepare_PPC -> prepare_PPC [UniLabJsonCommand] goal_params: device_SHFPPC, paramp_channel
-- auto-prepare_characterizing -> prepare_characterizing [UniLabJsonCommand] goal_params: exceptions, verbose
-- auto-prepare_for_continuous_wave -> prepare_for_continuous_wave [UniLabJsonCommand] goal_params: none
-- auto-prepare_for_fluxing -> prepare_for_fluxing [UniLabJsonCommand] goal_params: reset
-- auto-prepare_for_timedomain -> prepare_for_timedomain [UniLabJsonCommand] goal_params: none
-- auto-prepare_readout -> prepare_readout [UniLabJsonCommand] goal_params: CW
-
-Driver Functions (38):
-- HAL_ShimSQ.__init__(self, name, **kw) (line 99)
-- HAL_ShimSQ.prepare_for_continuous_wave(self) (line 116)
-- HAL_ShimSQ.prepare_readout(self, CW) (line 141)
-- HAL_ShimSQ.prepare_for_timedomain(self) (line 161)
-- HAL_ShimSQ.prepare_for_fluxing(self, reset) (line 170)
-- HAL_ShimSQ.prepare_characterizing(self, exceptions, verbose) (line 174)
-- HAL_ShimSQ.hal_acq_spec_mode_on(self) (line 222)
-- HAL_ShimSQ.hal_acq_spec_mode_off(self) (line 232)
-- HAL_ShimSQ.hal_spec_source_on(self, power, pulsed) (line 240)
-- HAL_ShimSQ.hal_spec_source_off(self) (line 267)
-- HAL_ShimSQ.hal_flux_get_parameters(self, flux_chan) (line 272)
-- HAL_ShimSQ.get_int_avg_det(self, **kw) (line 297)
-- HAL_ShimSQ._add_instrument_ref_parameters(self) (line 334)
-- HAL_ShimSQ._add_config_parameters(self) (line 425)
-- HAL_ShimSQ._add_mw_parameters(self) (line 463)
-- HAL_ShimSQ._add_mw_vsm_parameters(self) (line 552)
-- HAL_ShimSQ._add_spec_parameters(self) (line 616)
-- HAL_ShimSQ._add_flux_parameters(self) (line 647)
-- HAL_ShimSQ._add_ro_parameters(self) (line 672)
-- HAL_ShimSQ._add_prep_parameters(self) (line 804)
-- HAL_ShimSQ._set_mw_vsm_delay(self, val) (line 996)
-- HAL_ShimSQ._get_mw_vsm_delay(self) (line 1002)
-- HAL_ShimSQ._set_mw_fine_delay(self, val) (line 1006)
-- HAL_ShimSQ._get_mw_fine_delay(self) (line 1020)
-- HAL_ShimSQ._set_flux_fine_delay(self, val) (line 1024)
-- HAL_ShimSQ._get_flux_fine_delay(self) (line 1038)
-- HAL_ShimSQ._using_QWG(self) (line 1046)
-- HAL_ShimSQ._prep_cw_spec(self) (line 1058)
-- HAL_ShimSQ._prep_cw_configure_VSM(self) (line 1063)
-- HAL_ShimSQ._prep_deskewing_matrix(self) (line 1078)
-- HAL_ShimSQ._prep_ro_instantiate_detectors(self) (line 1096)
-- HAL_ShimSQ._prep_ro_sources(self) (line 1170)
-- HAL_ShimSQ._prep_ro_pulse(self, upload, CW) (line 1190)
-- HAL_ShimSQ._prep_ro_integration_weights(self) (line 1282)
-- HAL_ShimSQ._prep_td_sources(self) (line 1351)
-- HAL_ShimSQ._prep_mw_pulses(self) (line 1379)
-- HAL_ShimSQ._prep_td_configure_VSM(self) (line 1462)
-- HAL_ShimSQ.prepare_PPC(self, device_SHFPPC, paramp_channel) (line 1487)
+hal__shim_sq:
+  name: 通量可调超导量子比特
+  name_en: Flux-tunable superconducting qubit
+  manufacturer: ''
+  category:
+  - 超导量子比特器件
+  tags:
+  - 器件/细胞设备
+  - 表征设备
+  - 低温与量子测量
+  - 量子比特脉冲控制与读出
+  - 超导量子比特器件
+  description: 一种工作于低温量子测量系统中的超导量子比特，可通过微波信号进行驱动与读出，并通过磁通偏置调谐到甜点或反甜点附近。该器件常用于连续波谱测、时域相干实验、磁通扫描、自动表征以及量子读出链优化。
+  description_en: A superconducting qubit used in low-temperature quantum measurement
+    systems. It is controlled and read out with microwave signals and can be tuned
+    with magnetic flux bias near sweet spots or anti-sweet spots. It is commonly used
+    for continuous-wave spectroscopy, time-domain coherence experiments, flux tuning,
+    automated characterization, and optimization of the qubit readout chain.
+  class:
+    action_value_mappings:
+      auto-prepare_for_continuous_wave:
+        schema:
+          description: 准备量子比特用于连续波谱测，并配置适合相位与角度检测的读出通道。
+          description_en: Prepare the qubit for continuous-wave spectroscopy and configure
+            the readout channels for phase and angle-based detection.
+      auto-prepare_readout:
+        schema:
+          description: 配置量子比特读出，设置读出频率与微波源，并生成读出脉冲。
+          description_en: Configure qubit readout by setting the readout frequencies
+            and microwave sources and generating the readout pulse.
+      auto-prepare_for_timedomain:
+        schema:
+          description: 准备量子比特用于时域实验。
+          description_en: Prepare the qubit for time-domain experiments.
+      auto-prepare_for_fluxing:
+        schema:
+          description: 准备量子比特进行磁通偏置或磁通脉冲实验。
+          description_en: Prepare the qubit for flux-bias tuning or flux-pulse experiments.
+      auto-prepare_characterizing:
+        schema:
+          description: 准备量子比特进行自动表征，并将相关其他量子比特停放到合适的偏置点。
+          description_en: Prepare the qubit for automated characterization and park
+            the other relevant qubits at suitable bias points.
+      auto-hal_acq_spec_mode_on:
+        schema:
+          description: 打开用于谱测的采集模式。
+          description_en: Enable the acquisition mode used for spectroscopy.
+      auto-hal_acq_spec_mode_off:
+        schema:
+          description: 关闭用于谱测的采集模式。
+          description_en: Disable the acquisition mode used for spectroscopy.
+      auto-hal_spec_source_on:
+        schema:
+          description: 以设定功率打开量子比特谱测微波源，可选择脉冲方式。
+          description_en: Turn on the spectroscopy microwave source for the qubit
+            at the specified power, optionally in pulsed mode.
+      auto-hal_spec_source_off:
+        schema:
+          description: 关闭量子比特谱测微波源。
+          description_en: Turn off the spectroscopy microwave source for the qubit.
+      auto-hal_flux_get_parameters:
+        schema:
+          description: 获取量子比特磁通控制通道的参数。
+          description_en: Get the parameters of the qubit flux-control channel.
+      auto-get_int_avg_det:
+        schema:
+          description: 配置积分平均读出检测，用于量子比特信号的积分与平均测量。
+          description_en: Configure integrated-averaging readout detection for integrating
+            and averaging the qubit measurement signal.
+      auto-prepare_PPC:
+        schema:
+          description: 初始化参数泵浦控制器，用于TWPA泵浦音调及其抵消音调的产生。
+          description_en: Initialize the parametric pump controller for generating
+            TWPA pump tones and their cancellation tones.
+auto_annotation_metadata:
+  registry_key: hal__shim_sq
+  annotation_workflow_version: v4
+  tag_hints:
+  - superconducting qubit
+  - flux-tunable transmon
+  - circuit QED readout
+  - microwave spectroscopy
+  - time-domain qubit control
+  - flux bias tuning
+  - sweet spot operation
+  - TWPA pump cancellation
+  existing_tags:
+  - id: '4315'
+    name: 器件/细胞设备
+    name_en: Device / Cell Equipment
+    type: experimental_step
+    rationale: 该对象本身是被驱动、调谐和读出的超导量子比特器件。
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 描述中包含连续波谱测、时域相干实验和自动表征，常作为被表征对象使用。
+  - id: P-2003
+    name: 低温与量子测量
+    name_en: Cryogenic & Quantum Measurements
+    type: experimental_domain
+    rationale: 器件工作于低温量子测量系统中，属于典型量子测量域。
+  - id: P-3006
+    name: 量子比特脉冲控制与读出
+    name_en: Qubit Pulse Control & Readout
+    type: experimental_scene
+    rationale: 该量子比特通过微波驱动与读出，并支持时域控制和读出链优化。
+  - id: P-8108
+    name: 超导量子比特器件
+    name_en: Superconducting Qubit Device
+    type: device_template_tag
+    rationale: 设备描述直接表明其为可磁通调谐的超导量子比特器件。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

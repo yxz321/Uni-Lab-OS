@@ -1,119 +1,102 @@
-device: com_port
-registry_key: com_port
-device_identity:
-  manufacturer: Open Standard
-  model:
-    name: USB virtual COM port interface
-    type: device_interface
-  name: USB CDC/FTDI COM Port Interface
-  module_path: unilabos.devices.generic.com_port:ComPort
-description:
-  text_en: USB virtual COM-port interface for lab instruments, providing low-level serial byte I/O plus
-    line-coding and RTS/DTR control for CDC and FTDI devices.
-  method: local
-description_evidence:
-  web: []
-  local:
-  - Module-level comments document CDC line coding and control-line state behavior.
-  - Driver implements USB endpoint read/write, line coding configuration, and FTDI-specific control transfers.
-related_tags:
-- id: 4313
-  name: 实验执行&合成设备
-  name_en: Experiment Execution & Synthesis Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: 4313
-  rationale: Serial transport and line-control operations are used to execute and coordinate instrument
-    actions.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-readBytes
-  title: readBytes
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read all currently buffered bytes from RX queue.
-  evidence_source: name_params
-- name: auto-readText
-  title: readText
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read buffered bytes and decode as text.
-  evidence_source: name_params
-- name: auto-write
-  title: write
-  parameters:
-  - data
-  command_type: UniLabJsonCommand
-  description_en: Write raw bytes to USB output endpoint.
-  evidence_source: name_params
-- name: auto-setControlLineState
-  title: setControlLineState
-  parameters:
-  - RTS
-  - DTR
-  command_type: UniLabJsonCommand
-  description_en: Set RTS/DTR control line state bits.
-  evidence_source: name_params
-- name: auto-setLineCoding
-  title: setLineCoding
-  parameters:
-  - baudrate
-  - parity
-  - databits
-  - stopbits
-  command_type: UniLabJsonCommand
-  description_en: Configure baud rate, parity, data bits, and stop bits.
-  evidence_source: code_comments
-- name: auto-getLineCoding
-  title: getLineCoding
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read and decode current serial line-coding parameters.
-  evidence_source: name_params
-driver_functions:
-  compact_signatures:
-  - _Getch.__init__(self) (line 140)
-  - _Getch.__call__(self) (line 146)
-  - _GetchUnix.__call__(self) (line 151)
-  - _GetchWindows.__init__(self) (line 166)
-  - _GetchWindows.__call__(self) (line 169)
-  - ComPort.__init__(self, usb_device, start) (line 176)
-  - ComPort._startRx(self) (line 242)
-  - ComPort._endRx(self) (line 252)
-  - ComPort._read(self) (line 256)
-  - ComPort._getRxLen(self) (line 278)
-  - ComPort.readBytes(self) (line 283)
-  - ComPort.readText(self) (line 290)
-  - ComPort.write(self, data) (line 294)
-  - ComPort.setControlLineState(self, RTS, DTR) (line 309)
-  - ComPort.setLineCoding(self, baudrate, parity, databits, stopbits) (line 330)
-  - ComPort._setBaudFTDI(self, baudrate) (line 392)
-  - ComPort._setLineCodeFTDI(self, bits, stopbits, parity, breaktype) (line 414)
-  - ComPort._resetFTDI(self) (line 436)
-  - ComPort._flushFTDI(self, rx, tx) (line 453)
-  - ComPort.getLineCoding(self) (line 479)
-  - ComPort.disconnect(self) (line 506)
-  - configLog() (line 531)
-  - selectDevice() (line 544)
-  - configInputQueue() (line 599)
-  - fmt_text(text) (line 621)
-  - runTerminal(d) (line 633)
-  - ftdi_to_clkbits(baudrate) (line 657)
-  note: Compact signatures retained; action semantics are documented in atom_actions.
-schema_version: v2
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 6
-  driver_function_count: 27
-  related_tag_count: 1
+com_port:
+  name: 串口通信设备
+  name_en: Serial Communication Device
+  manufacturer: ''
+  category:
+  - 串行仪器通信接口
+  - USB仪器通信接口
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验仪器数据采集与联机控制
+  - 实验仪器通信与驱动集成
+  - 串行仪器通信接口
+  - USB仪器通信接口
+  description: 一种通过串行端口进行数据收发的实验设备或仪器接口，常见于带 UART、RS-232 或 USB 虚拟串口的实验仪器。它可用于实验室中与上位机交换文本或原始字节数据，并配置波特率、校验位、数据位、停止位以及
+    RTS/DTR 等串口通信参数。
+  description_en: A laboratory device or instrument interface that communicates through
+    a serial port, commonly using UART, RS-232, or a USB virtual COM port. It is used
+    in labs to exchange text or raw byte data with a host computer and to configure
+    serial communication parameters such as baud rate, parity, data bits, stop bits,
+    and RTS/DTR control lines.
+  class:
+    action_value_mappings:
+      auto-readBytes:
+        schema:
+          description: 读取串口接收到的原始字节数据。
+          description_en: Read raw byte data received from the serial port.
+      auto-readText:
+        schema:
+          description: 读取串口接收到的文本数据。
+          description_en: Read text data received from the serial port.
+      auto-write:
+        schema:
+          description: 向串口写入数据。
+          description_en: Write data to the serial port.
+      auto-setControlLineState:
+        schema:
+          description: 设置串口 RTS 和 DTR 控制线状态。
+          description_en: Set the RTS and DTR control line states of the serial port.
+      auto-setLineCoding:
+        schema:
+          description: 设置串口线路编码参数，如波特率、校验位、数据位和停止位。
+          description_en: Set the serial line coding parameters such as baud rate,
+            parity, data bits, and stop bits.
+      auto-getLineCoding:
+        schema:
+          description: 获取串口线路编码参数。
+          description_en: Get the serial line coding parameters.
+auto_annotation_metadata:
+  registry_key: com_port
+  annotation_workflow_version: v4
+  tag_hints:
+  - serial communication
+  - UART
+  - RS-232
+  - USB virtual COM port
+  - instrument communication
+  - baud rate configuration
+  - RTS/DTR control
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该串口接口用于实验进行中的仪器命令交互与数据收发，属于执行阶段的通用控制通道。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 串口设备是实验室仪器接入上位机和自动化系统的通用集成接口。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 支持在线收发文本和原始字节数据，并配置串口参数，符合联机控制场景。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: UART、RS-232 和 USB 虚拟串口都是典型仪器通信与驱动适配场景。
+  - id: P-2013
+    name: 串行仪器通信接口
+    name_en: Serial Instrument Communication Interface
+    type: device_template_tag
+    rationale: 该设备本质就是面向实验仪器的串行通信接口。
+  - id: P-0005
+    name: USB仪器通信接口
+    name_en: USB Instrument Communication Interface
+    type: device_template_tag
+    rationale: 描述明确包含 USB 虚拟串口，因此也符合 USB 仪器通信接口范畴。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review
