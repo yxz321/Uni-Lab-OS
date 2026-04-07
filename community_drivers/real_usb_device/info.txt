@@ -1,38 +1,121 @@
-Device: real_usb_device
-Registry Key: real_usb_device
-Short Description: Wasatch Photonics USB光谱仪是由Wasatch Photonics生产的专业实验设备。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (9):
-- auto-claim_interface -> claim_interface [UniLabJsonCommand] goal_params: none
-- auto-ctrl_transfer -> ctrl_transfer [UniLabJsonCommand] goal_params: none
-- auto-find -> find [UniLabJsonCommand] goal_params: none
-- auto-read -> read [UniLabJsonCommand] goal_params: none
-- auto-release_interface -> release_interface [UniLabJsonCommand] goal_params: none
-- auto-reset -> reset [UniLabJsonCommand] goal_params: dev
-- auto-send_code -> send_code [UniLabJsonCommand] goal_params: none
-- auto-set_configuration -> set_configuration [UniLabJsonCommand] goal_params: device
-- auto-to_dict -> to_dict [UniLabJsonCommand] goal_params: none
-
-Driver Functions (16):
-- RealUSBDevice.__init__(self, device_id) (line 78)
-- RealUSBDevice.find(self, *args, **kwargs) (line 86)
-- RealUSBDevice.set_configuration(self, device) (line 90)
-- RealUSBDevice.reset(self, dev) (line 94)
-- RealUSBDevice.claim_interface(self, *args, **kwargs) (line 98)
-- RealUSBDevice.release_interface(self, *args, **kwargs) (line 102)
-- RealUSBDevice.ctrl_transfer(self, *args) (line 106)
-- RealUSBDevice.read(self, *args, **kwargs) (line 112)
-- RealUSBDevice.send_code(self) (line 118)
-- RealUSBDevice.to_dict(self) (line 122)
-- RealUSBDevice.__str__(self) (line 126)
-- RealUSBDevice.__hash__(self) (line 130)
-- RealUSBDevice.__repr__(self) (line 134)
-- RealUSBDevice.__eq__(self, other) (line 138)
-- RealUSBDevice.__ne__(self, other) (line 142)
-- RealUSBDevice.__lt__(self, other) (line 146)
+real_usb_device:
+  name: 真实USB设备通信组件
+  name_en: Real USB Device Communication Component
+  manufacturer: ''
+  category:
+  - USB仪器通信接口
+  - 通用字节流仪器通信接口
+  tags:
+  - 实验执行&合成设备
+  - 表征设备
+  - 实验室自动化与仪器集成
+  - 实验仪器通信与驱动集成
+  - 仪器发现与驱动匹配
+  - USB仪器通信接口
+  - 通用字节流仪器通信接口
+  description: 一个非物理的软件组件，用于在实验系统中直接访问通用USB设备。它提供设备查找、USB配置设置、设备复位、接口占用与释放、控制传输、原始数据读取等功能，适合与未专门建模的USB实验设备或自定义硬件进行底层通信。
+  description_en: A non-physical software component for direct access to generic USB
+    devices in laboratory systems. It provides device discovery, USB configuration,
+    device reset, interface claim/release, control transfers, and raw data reads,
+    making it suitable for low-level communication with custom hardware or USB-based
+    lab equipment that is not otherwise specifically modeled.
+  class:
+    action_value_mappings:
+      auto-find:
+        schema:
+          description: 查找并定位可用的USB设备，以便后续通信。
+          description_en: Find and locate an available USB device for subsequent communication.
+      auto-set_configuration:
+        schema:
+          description: 为目标USB设备设置活动配置。
+          description_en: Set the active configuration for the target USB device.
+      auto-reset:
+        schema:
+          description: 复位USB设备，重新初始化其连接或状态。
+          description_en: Reset the USB device to reinitialize its connection or state.
+      auto-claim_interface:
+        schema:
+          description: 占用指定USB接口，以获得独占通信访问。
+          description_en: Claim a specified USB interface to obtain exclusive communication
+            access.
+      auto-release_interface:
+        schema:
+          description: 释放先前占用的USB接口。
+          description_en: Release a previously claimed USB interface.
+      auto-ctrl_transfer:
+        schema:
+          description: 执行USB控制传输，用于发送底层控制请求或接收响应。
+          description_en: Perform a USB control transfer to send low-level control
+            requests or receive responses.
+      auto-read:
+        schema:
+          description: 从USB端点读取原始数据。
+          description_en: Read raw data from a USB endpoint.
+      auto-send_code:
+        schema:
+          description: 向USB设备发送代码、命令或预定义数据序列。
+          description_en: Send code, commands, or a predefined data sequence to the
+            USB device.
+      auto-to_dict:
+        schema:
+          description: 将当前设备信息导出为字典结构，便于记录或调试。
+          description_en: Export the current device information as a dictionary for
+            logging or debugging.
+auto_annotation_metadata:
+  registry_key: real_usb_device
+  annotation_workflow_version: v4
+  tag_hints:
+  - USB communication
+  - low-level device access
+  - control transfer
+  - raw USB readout
+  - interface claim/release
+  - custom hardware integration
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 支持配置、复位、接口占用和控制传输，可直接驱动实验设备动作。
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 也可从USB端点读取原始数据，用于实验设备数据获取。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 该组件用于把通用USB设备和自定义硬件接入实验系统。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 功能集中在查找设备、设置配置、收发底层控制请求和原始读写。
+  - id: P-10017
+    name: 仪器发现与驱动匹配
+    name_en: Instrument Discovery & Driver Matching
+    type: experimental_scene
+    rationale: 提供find等能力，适合未专门建模设备的发现和接入。
+  - id: P-0005
+    name: USB仪器通信接口
+    name_en: USB Instrument Communication Interface
+    type: device_template_tag
+    rationale: 组件核心就是与实验USB设备进行底层通信。
+  - id: P-21001
+    name: 通用字节流仪器通信接口
+    name_en: Generic Byte-Stream Instrument Communication Interface
+    type: device_template_tag
+    rationale: 支持控制传输与原始数据读取，符合通用底层字节流接口特征。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

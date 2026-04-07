@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: r_py_lidar\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: RPyLIDAR.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.lidar.rplidar:RPyLIDAR\n\nClass: RPyLIDAR (focal)\n  Bases: []\n\nFocal class methods:\n  [command] connect(self)\n    comment: command to establish a connection between the RPyLIDAR sensor and the computer\n    comment: connect to serial port\n    comment: setup default pygame environment\n    comment: os.environ[\"SDL_VIDEO_WINDOW_POS\"] = \"%d,%d\" % (20,20)\n    comment: self.myfont = pygame.font.Font('/usr/share/fonts/truetype/freefont/FreeSans.ttf', 14)  # LINUX\n    comment: self.myfont = pygame.font.Font('/System/Library/Fonts/LucidaGrande.ttc', 13)  # MAC\n  [command] disconnect(self)\n    comment: command to disconnect the RPyLIDAR sensor from the computer\n  [command] add_checksum(self, the_bytes)\n    comment: very ugly checksum generator for '\\x00\\x11\\x22... string format', adds the checksum byte to the end of the input string\n  [command] drawPoints(self)\n    comment: main pygame display/draw/update function\n    comment: found it more efficient to simply clear the entire display before redrawing features\n    comment: new_points list contains only the points collected from the most recent scan (i.e., single rotation of the sensor)\n    comment: if the user wants to add faint ray traces to the screen\n    comment: adds screen text objects to the upper right (dynamic scanning parameters) and lower right (instructions) corners of the screen\n    comment: draws the sensor object and coordinate system axes to the screen\n    comment: coordinate system axes that don't rotate with the self.aziCorr parameters\n    comment: line1 = pygame.draw.line(self.screen, self.csXColour, (self.centerX,self.centerY), (self.screenSize,self.centerY))\n    comment: line2 = pygame.draw.line(self.screen, self.csYColour, (self.centerX,self.centerY), (self.centerX,0))\n    comment: coordinate system axes that do rotate with the self.aziCorr parameters\n    comment: update the viewer and then reset the necessary parameters\n  [command] getControlInputs(self, stopper)\n  [status_getter] get_device_info(self)\n    comment: query command to get the device information parameters and display them to the terminal window\n    comment: self.COM.reset_input_buffer()\n  [status_getter] get_device_health(self)\n    comment: query command to get the device health parameters and display them to the terminal window\n    comment: self.COM.reset_input_buffer()\n    comment: inputDataAscii = binascii.hexlify(inputBuffer).decode('ascii')     #DEBUGGING PURPOSES\n  [status_getter] get_sample_rate(self)\n    comment: query command to get the device's default saaple rates and display them to the terminal window\n    comment: self.COM.reset_input_buffer()\n    comment: inputDataAscii = binascii.hexlify(inputBuffer).decode('ascii')     #DEBUGGING PURPOSES\n  [command] start_standard_scan(self)\n    comment: command to start a Standard Scan\n    comment: - an ASCII file named: \"points.csv\" will be created in the same location as this .py file and will contain ALL collected points\n    comment: - if debug Mode is True, a binary file named: \"data.bin\" will be created in the same location and will contain the standard/express scan observation data\n    comment: txtOutput = open(pwd + \"/points.csv\", 'w')     # LINUX or MAC\n    comment: dataOutput = open(pwd + \"/data.bin\" , 'bw')     # LINUX or MAC\n  [command] calcAndAddPoints(self, dist1, dist2, delta1, delta2, previousAngle, refAngle, txtOutput)\n  [command] readCabin1or3(self, data)\n  [command] readCabin2or4(self, data)\n  [command] readCabin5(self, data)\n  [command] calcDist(self, distP1, distP2)\n  [command] calcDelta(self, deltaP1, deltaP2, deltaSign)\n  [command] start_express_scan(self)\n    comment: txtOutput = open(pwd + \"/points.csv\", 'w')     # LINUX or MAC\n    comment: dataOutput = open(pwd + \"/data.bin\" , 'bw')    # LINUX or MAC\n    comment: inputDataAscii = binascii.hexlify(bufferDataChunk).decode('ascii')     #DEBUGGING PURPOSES\n    comment: txtOutput.write(str(hex(int(str(bufferData[byteCount])))) + \" \")     #DEBUGGING PURPOSES\n    comment: txtOutput.write(format(int(str(bufferData[byteCount])), '08b'))      #DEBUGGING PURPOSES\n    comment: cabin data\n  [command] start_motor_max(self)\n    comment: start motor to maximum rotation rate command (~20 Hz)\n    comment: commandBytes = '\\xA5\\xF0\\x02\\x02\\x00' #(super slow)\n  [command] start_motor_34(self)\n    comment: start motor to 75% rotation rate command (~15 Hz)\n  [command] start_motor_half(self)\n    comment: start motor to half rotation rate command (~10 Hz)\n  [command] start_motor_14(self)\n    comment: start motor to 25% rotation rate command (~5 Hz)\n  [command] start_motor_slow(self)\n    comment: start motor to minimum (useable) rotation rate command (~1.5 Hz)\n  [command] stop_motor(self)\n    comment: stop motor command (set to 0% rotation rate, 0 Hz)\n  [command] stop_scan(self)\n    comment: stop scan command, stops the transmission of data\n  [command] reset(self)\n    comment: reset command, should be used for proper communication/functionality checks, currently I'm not doing this\n\nRegistry actions:\n  auto-connect (from connect())\n  auto-disconnect (from disconnect())\n  auto-add_checksum (from add_checksum())\n  auto-drawPoints (from drawPoints())\n  auto-getControlInputs (from getControlInputs())\n  auto-start_standard_scan (from start_standard_scan())\n  auto-calcAndAddPoints (from calcAndAddPoints())\n  auto-readCabin1or3 (from readCabin1or3())\n  auto-readCabin2or4 (from readCabin2or4())\n  auto-readCabin5 (from readCabin5())\n  auto-calcDist (from calcDist())\n  auto-calcDelta (from calcDelta())\n  auto-start_express_scan (from start_express_scan())\n  auto-start_motor_max (from start_motor_max())\n  auto-start_motor_34 (from start_motor_34())\n  auto-start_motor_half (from start_motor_half())\n  auto-start_motor_14 (from start_motor_14())\n  auto-start_motor_slow (from start_motor_slow())\n  auto-stop_motor (from stop_motor())\n  auto-stop_scan (from stop_scan())\n  auto-reset (from reset())\n  auto-get_device_health (from get_device_health())\n  auto-get_device_info (from get_device_info())\n  auto-get_sample_rate (from get_sample_rate())\n\nRequired output action ids:\n  auto-connect\n  auto-disconnect\n  auto-add_checksum\n  auto-drawPoints\n  auto-getControlInputs\n  auto-start_standard_scan\n  auto-calcAndAddPoints\n  auto-readCabin1or3\n  auto-readCabin2or4\n  auto-readCabin5\n  auto-calcDist\n  auto-calcDelta\n  auto-start_express_scan\n  auto-start_motor_max\n  auto-start_motor_34\n  auto-start_motor_half\n  auto-start_motor_14\n  auto-start_motor_slow\n  auto-stop_motor\n  auto-stop_scan\n  auto-reset\n  auto-get_device_health\n  auto-get_device_info\n  auto-get_sample_rate"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0f5e97e69d0fcb9e0069d54e54899c8190836797d3eef33b6d",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7874,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 8780,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0f5e97e69d0fcb9e0069d54e582d5881908f578e5ec463a3f4",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0f5e97e69d0fcb9e0069d54e6dc1748190b1c01aa9e32a82ad",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"RPLIDAR激光雷达\",\n  \"name_en\": \"RPLIDAR LiDAR\",\n  \"manufacturer\": \"\",\n  \"description\": \"一款通过串口连接的二维旋转式激光雷达，可控制电机转速并启动标准扫描或快速扫描，采集距离点数据并进行实时可视化，适用于环境感知、定位建图和障碍检测等实验。\",\n  \"description_en\": \"A serial-connected 2D rotating LiDAR that can control motor speed and run standard or express scans to collect distance points with real-time visualization, suitable for experiments in environment sensing, localization and mapping, and obstacle detection.\",\n  \"tag_hints\": [\n    \"2D lidar\",\n    \"serial communication\",\n    \"rotating scan\",\n    \"distance point cloud\",\n    \"motor speed control\",\n    \"environment mapping\",\n    \"real-time scan visualization\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"连接激光雷达串口并初始化显示环境。\",\n      \"description_en\": \"Connect to the LiDAR serial port and initialize the display environment.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开激光雷达与计算机的连接。\",\n      \"description_en\": \"Disconnect the LiDAR from the computer.\"\n    },\n    {\n      \"action_name\": \"auto-add_checksum\",\n      \"description\": \"为发送给设备的命令字节串计算并附加校验和。\",\n      \"description_en\": \"Calculate and append a checksum to a command byte string sent to the device.\"\n    },\n    {\n      \"action_name\": \"auto-drawPoints\",\n      \"description\": \"在可视化窗口中绘制最新扫描点、坐标轴和状态信息。\",\n      \"description_en\": \"Draw the latest scan points, coordinate axes, and status information in the visualization window.\"\n    },\n    {\n      \"action_name\": \"auto-getControlInputs\",\n      \"description\": \"读取并处理扫描显示界面的用户控制输入。\",\n      \"description_en\": \"Read and process user control inputs for the scan display interface.\"\n    },\n    {\n      \"action_name\": \"auto-start_standard_scan\",\n      \"description\": \"启动标准扫描并记录采集到的点数据。\",\n      \"description_en\": \"Start a standard scan and record the collected point data.\"\n    },\n    {\n      \"action_name\": \"auto-calcAndAddPoints\",\n      \"description\": \"根据原始距离和角度增量计算点坐标并加入扫描结果。\",\n      \"description_en\": \"Calculate point coordinates from raw distances and angular increments and add them to the scan result.\"\n    },\n    {\n      \"action_name\": \"auto-readCabin1or3\",\n      \"description\": \"解析快速扫描数据中的cabin 1或3数据段。\",\n      \"description_en\": \"Parse cabin 1 or 3 data segments from express scan data.\"\n    },\n    {\n      \"action_name\": \"auto-readCabin2or4\",\n      \"description\": \"解析快速扫描数据中的cabin 2或4数据段。\",\n      \"description_en\": \"Parse cabin 2 or 4 data segments from express scan data.\"\n    },\n    {\n      \"action_name\": \"auto-readCabin5\",\n      \"description\": \"解析快速扫描数据中的cabin 5数据段。\",\n      \"description_en\": \"Parse cabin 5 data segments from express scan data.\"\n    },\n    {\n      \"action_name\": \"auto-calcDist\",\n      \"description\": \"根据原始快速扫描参数计算距离值。\",\n      \"description_en\": \"Calculate a distance value from raw express scan parameters.\"\n    },\n    {\n      \"action_name\": \"auto-calcDelta\",\n      \"description\": \"根据原始快速扫描参数计算角度增量。\",\n      \"description_en\": \"Calculate an angular increment from raw express scan parameters.\"\n    },\n    {\n      \"action_name\": \"auto-start_express_scan\",\n      \"description\": \"启动快速扫描并解析采集到的数据。\",\n      \"description_en\": \"Start an express scan and parse the acquired data.\"\n    },\n    {\n      \"action_name\": \"auto-start_motor_max\",\n      \"description\": \"将电机设置为最高转速。\",\n      \"description_en\": \"Set the motor to its maximum rotation speed.\"\n    },\n    {\n      \"action_name\": \"auto-start_motor_34\",\n      \"description\": \"将电机设置为约75%转速。\",\n      \"description_en\": \"Set the motor to about 75% rotation speed.\"\n    },\n    {\n      \"action_name\": \"auto-start_motor_half\",\n      \"description\": \"将电机设置为约50%转速。\",\n      \"description_en\": \"Set the motor to about 50% rotation speed.\"\n    },\n    {\n      \"action_name\": \"auto-start_motor_14\",\n      \"description\": \"将电机设置为约25%转速。\",\n      \"description_en\": \"Set the motor to about 25% rotation speed.\"\n    },\n    {\n      \"action_name\": \"auto-start_motor_slow\",\n      \"description\": \"将电机设置为最低可用转速。\",\n      \"description_en\": \"Set the motor to the minimum usable rotation speed.\"\n    },\n    {\n      \"action_name\": \"auto-stop_motor\",\n      \"description\": \"停止电机转动。\",\n      \"description_en\": \"Stop the motor rotation.\"\n    },\n    {\n      \"action_name\": \"auto-stop_scan\",\n      \"description\": \"停止扫描数据传输。\",\n      \"description_en\": \"Stop scan data transmission.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"重置设备。\",\n      \"description_en\": \"Reset the device.\"\n    },\n    {\n      \"action_name\": \"auto-get_device_health\",\n      \"description\": \"获取设备健康状态。\",\n      \"description_en\": \"get device health status\"\n    },\n    {\n      \"action_name\": \"auto-get_device_info\",\n      \"description\": \"获取设备信息。\",\n      \"description_en\": \"get device information\"\n    },\n    {\n      \"action_name\": \"auto-get_sample_rate\",\n      \"description\": \"获取默认采样率。\",\n      \"description_en\": \"get default sample rate\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2407,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2372,
+      "output_tokens_details": {
+        "reasoning_tokens": 1034
+      },
+      "total_tokens": 4779
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2407,
+      "output_token_count": 2372,
+      "predict_time": 47.410235988
+    }
+  },
+  "output_text": "{\n  \"name\": \"RPLIDAR激光雷达\",\n  \"name_en\": \"RPLIDAR LiDAR\",\n  \"manufacturer\": \"\",\n  \"description\": \"一款通过串口连接的二维旋转式激光雷达，可控制电机转速并启动标准扫描或快速扫描，采集距离点数据并进行实时可视化，适用于环境感知、定位建图和障碍检测等实验。\",\n  \"description_en\": \"A serial-connected 2D rotating LiDAR that can control motor speed and run standard or express scans to collect distance points with real-time visualization, suitable for experiments in environment sensing, localization and mapping, and obstacle detection.\",\n  \"tag_hints\": [\n    \"2D lidar\",\n    \"serial communication\",\n    \"rotating scan\",\n    \"distance point cloud\",\n    \"motor speed control\",\n    \"environment mapping\",\n    \"real-time scan visualization\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"连接激光雷达串口并初始化显示环境。\",\n      \"description_en\": \"Connect to the LiDAR serial port and initialize the display environment.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开激光雷达与计算机的连接。\",\n      \"description_en\": \"Disconnect the LiDAR from the computer.\"\n    },\n    {\n      \"action_name\": \"auto-add_checksum\",\n      \"description\": \"为发送给设备的命令字节串计算并附加校验和。\",\n      \"description_en\": \"Calculate and append a checksum to a command byte string sent to the device.\"\n    },\n    {\n      \"action_name\": \"auto-drawPoints\",\n      \"description\": \"在可视化窗口中绘制最新扫描点、坐标轴和状态信息。\",\n      \"description_en\": \"Draw the latest scan points, coordinate axes, and status information in the visualization window.\"\n    },\n    {\n      \"action_name\": \"auto-getControlInputs\",\n      \"description\": \"读取并处理扫描显示界面的用户控制输入。\",\n      \"description_en\": \"Read and process user control inputs for the scan display interface.\"\n    },\n    {\n      \"action_name\": \"auto-start_standard_scan\",\n      \"description\": \"启动标准扫描并记录采集到的点数据。\",\n      \"description_en\": \"Start a standard scan and record the collected point data.\"\n    },\n    {\n      \"action_name\": \"auto-calcAndAddPoints\",\n      \"description\": \"根据原始距离和角度增量计算点坐标并加入扫描结果。\",\n      \"description_en\": \"Calculate point coordinates from raw distances and angular increments and add them to the scan result.\"\n    },\n    {\n      \"action_name\": \"auto-readCabin1or3\",\n      \"description\": \"解析快速扫描数据中的cabin 1或3数据段。\",\n      \"description_en\": \"Parse cabin 1 or 3 data segments from express scan data.\"\n    },\n    {\n      \"action_name\": \"auto-readCabin2or4\",\n      \"description\": \"解析快速扫描数据中的cabin 2或4数据段。\",\n      \"description_en\": \"Parse cabin 2 or 4 data segments from express scan data.\"\n    },\n    {\n      \"action_name\": \"auto-readCabin5\",\n      \"description\": \"解析快速扫描数据中的cabin 5数据段。\",\n      \"description_en\": \"Parse cabin 5 data segments from express scan data.\"\n    },\n    {\n      \"action_name\": \"auto-calcDist\",\n      \"description\": \"根据原始快速扫描参数计算距离值。\",\n      \"description_en\": \"Calculate a distance value from raw express scan parameters.\"\n    },\n    {\n      \"action_name\": \"auto-calcDelta\",\n      \"description\": \"根据原始快速扫描参数计算角度增量。\",\n      \"description_en\": \"Calculate an angular increment from raw express scan parameters.\"\n    },\n    {\n      \"action_name\": \"auto-start_express_scan\",\n      \"description\": \"启动快速扫描并解析采集到的数据。\",\n      \"description_en\": \"Start an express scan and parse the acquired data.\"\n    },\n    {\n      \"action_name\": \"auto-start_motor_max\",\n      \"description\": \"将电机设置为最高转速。\",\n      \"description_en\": \"Set the motor to its maximum rotation speed.\"\n    },\n    {\n      \"action_name\": \"auto-start_motor_34\",\n      \"description\": \"将电机设置为约75%转速。\",\n      \"description_en\": \"Set the motor to about 75% rotation speed.\"\n    },\n    {\n      \"action_name\": \"auto-start_motor_half\",\n      \"description\": \"将电机设置为约50%转速。\",\n      \"description_en\": \"Set the motor to about 50% rotation speed.\"\n    },\n    {\n      \"action_name\": \"auto-start_motor_14\",\n      \"description\": \"将电机设置为约25%转速。\",\n      \"description_en\": \"Set the motor to about 25% rotation speed.\"\n    },\n    {\n      \"action_name\": \"auto-start_motor_slow\",\n      \"description\": \"将电机设置为最低可用转速。\",\n      \"description_en\": \"Set the motor to the minimum usable rotation speed.\"\n    },\n    {\n      \"action_name\": \"auto-stop_motor\",\n      \"description\": \"停止电机转动。\",\n      \"description_en\": \"Stop the motor rotation.\"\n    },\n    {\n      \"action_name\": \"auto-stop_scan\",\n      \"description\": \"停止扫描数据传输。\",\n      \"description_en\": \"Stop scan data transmission.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"重置设备。\",\n      \"description_en\": \"Reset the device.\"\n    },\n    {\n      \"action_name\": \"auto-get_device_health\",\n      \"description\": \"获取设备健康状态。\",\n      \"description_en\": \"get device health status\"\n    },\n    {\n      \"action_name\": \"auto-get_device_info\",\n      \"description\": \"获取设备信息。\",\n      \"description_en\": \"get device information\"\n    },\n    {\n      \"action_name\": \"auto-get_sample_rate\",\n      \"description\": \"获取默认采样率。\",\n      \"description_en\": \"get default sample rate\"\n    }\n  ]\n}"
+}

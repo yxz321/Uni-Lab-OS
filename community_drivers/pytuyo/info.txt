@@ -1,33 +1,88 @@
-Device: pytuyo
-Registry Key: pytuyo
-Short Description: Pytuyo是由Pytuyo生产的专业实验设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (7):
-- auto-check_resp -> check_resp [UniLabJsonCommand] goal_params: none
-- auto-get_device_info -> get_device_info [UniLabJsonCommand] goal_params: timeout
-- auto-get_reading -> get_reading [UniLabJsonCommand] goal_params: timeout
-- auto-request_device_info -> request_device_info [UniLabJsonCommand] goal_params: timeout
-- auto-request_read -> request_read [UniLabJsonCommand] goal_params: timeout
-- auto-send_cmd -> send_cmd [UniLabJsonCommand] goal_params: cmd, timeout
-- auto-set_unit_scale -> set_unit_scale [UniLabJsonCommand] goal_params: cls, scale
-
-Driver Functions (13):
-- Pytuyo.set_unit_scale(cls, scale) (line 89)
-- Pytuyo.__init__(self, usb_dev) (line 93)
-- Pytuyo.setup(self) (line 109)
-- Pytuyo.send_cmd(self, cmd, timeout) (line 133)
-- Pytuyo.request_read(self, timeout) (line 165)
-- Pytuyo.request_device_info(self, timeout) (line 169)
-- Pytuyo.get_reading(self, timeout) (line 173)
-- Pytuyo.get_device_info(self, timeout) (line 186)
-- Pytuyo._process_data_resp(self, response) (line 200)
-- Pytuyo._process_device_info_resp(self, response) (line 223)
-- Pytuyo._process_status_resp(self, response) (line 231)
-- Pytuyo._rx(self) (line 238)
-- Pytuyo.check_resp(self) (line 267)
+pytuyo:
+  name: 微米级位移测量仪
+  name_en: Micrometer-Scale Displacement Meter
+  manufacturer: ''
+  category:
+  - 位移测量仪
+  tags:
+  - 表征设备
+  - 传感测量与环境感知
+  - 距离测量与接近感知
+  - 位移测量仪
+  description: 一种通过命令通信获取测量值和设备信息的位移测量设备，支持设置读数单位缩放，适合实验中读取位移、距离或类似单值尺寸信号。
+  description_en: A displacement measurement instrument accessed through command-based
+    communication, supporting reading retrieval, device information queries, and unit
+    scaling. It is suitable for laboratory measurement of displacement, distance,
+    or similar single-value dimensional signals.
+  class:
+    action_value_mappings:
+      auto-set_unit_scale:
+        schema:
+          description: 设置读数单位缩放比例
+          description_en: Set the reading unit scale.
+      auto-send_cmd:
+        schema:
+          description: 发送设备命令
+          description_en: Send a command to the device.
+      auto-request_read:
+        schema:
+          description: 请求一次测量读数
+          description_en: Request a measurement reading.
+      auto-request_device_info:
+        schema:
+          description: 请求设备信息
+          description_en: Request device information.
+      auto-get_reading:
+        schema:
+          description: 获取测量读数
+          description_en: Get the measurement reading.
+      auto-get_device_info:
+        schema:
+          description: 获取设备信息
+          description_en: Get device information.
+      auto-check_resp:
+        schema:
+          description: 检查设备响应是否有效
+          description_en: Check whether the device response is valid.
+auto_annotation_metadata:
+  registry_key: pytuyo
+  annotation_workflow_version: v4
+  tag_hints:
+  - displacement measurement
+  - distance sensing
+  - micrometer resolution
+  - serial command protocol
+  - device information query
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该设备用于读取位移/距离等单值测量结果，属于实验中的测量表征环节。
+  - id: P-1108
+    name: 传感测量与环境感知
+    name_en: Sensing Measurement & Environmental Perception
+    type: experimental_domain
+    rationale: 设备核心能力是获取位移或距离读数，符合传感测量类实验域。
+  - id: P-1109
+    name: 距离测量与接近感知
+    name_en: Distance Measurement & Proximity Sensing
+    type: experimental_scene
+    rationale: 描述中明确提到位移、距离及类似尺寸信号读取，直接对应距离/位移测量场景。
+  proposed_new_tags:
+  - id: P-400001
+    name: 位移测量仪
+    name_en: Displacement Meter
+    type: device_template_tag
+    rationale: 该设备是通过命令通信读取微米级位移值的测量仪，现有模板缺少对位移测量仪的直接覆盖。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

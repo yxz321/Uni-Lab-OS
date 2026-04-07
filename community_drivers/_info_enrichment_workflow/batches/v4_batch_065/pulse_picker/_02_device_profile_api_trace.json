@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: pulse_picker\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pcdsdevices/pulsepicker.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.optical.pulse_picker:PulsePicker\n\nClass: PulsePicker (focal)\n  Bases: ['InOutPVStatePositioner', 'LightpathInOutMixin']\n  Docstring: Device that picks which pulses to let through.\n\nThis device opens/closes in response to event codes to let certain pulses\nthrough and block others.\n\nClass: PulsePickerInOut \n  Bases: ['PulsePicker', 'GroupDevice']\n  Docstring: `PulsePicker` paired with a states record to control the Y position.\n\nThis allows us to insert and remove the entire device from the beam.\n\nThe inout states record lives in a separate IOC from the main pulsepicker\ndue to versioning issues. The parent IOC is called 'device_states'. We're\nexpecting the resulting states record to have states 'Unknown', 'OUT',\nand 'IN', in that order. The naming convention for the states is to take\nthe first two segments of the pulsepicker prefix and add 'PP:Y' to the end.\nSo therefore, if the picker is 'TST:DG1:MMS:03', the inout states should be\n'TST:DG1:PP:Y'.\n\nFocal class methods:\n  [command] reset(self, wait=False)\n    comment: Cancel the current mode.\n\n        Parameters\n        ----------\n        wait : bool, optional\n            If `True`, block until procedure is done.\n  [command] open(self, wait=False)\n    comment: Cancel the current mode and leave the PulsePicker OPEN.\n\n        Parameters\n        ----------\n        wait : bool, optional\n            If `True`, block until procedure is done.\n  [command] close(self, wait=False)\n    comment: Cancel the current mode and leave the PulsePicker CLOSED.\n\n        Parameters\n        ----------\n        wait : bool, optional\n            If `True`, block until procedure is done.\n  [command] flipflop(self, wait=False)\n    comment: Change the current mode to FLIP-FLOP.\n\n        Parameters\n        ----------\n        wait : bool, optional\n            If `True`, block until procedure is done.\n  [command] burst(self, wait=False)\n    comment: Change the current mode to BURST.\n\n        Parameters\n        ----------\n        wait : bool, optional\n            If `True`, block until procedure is done.\n  [command] follower(self, wait=False)\n    comment: Change the current mode to FOLLOWER.\n\n        Parameters\n        ----------\n        wait : bool, optional\n            If `True`, block until procedure is done.\n\nRegistry actions:\n  auto-burst (from burst())\n  auto-close (from close())\n  auto-flipflop (from flipflop())\n  auto-follower (from follower())\n  auto-open (from open())\n  auto-reset (from reset())\n\nRequired output action ids:\n  auto-burst\n  auto-close\n  auto-flipflop\n  auto-follower\n  auto-open\n  auto-reset"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0dade5c3e29109fe0069d54c1ee2e4819381999618a22bb7c7",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3805,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3045,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0dade5c3e29109fe0069d54c1f499881938c1386a71e6d9eba",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0dade5c3e29109fe0069d54c245c788193bcdaa3da92f446e2",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"光学脉冲选择器\",\n  \"name_en\": \"Optical Pulse Picker\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于按事件码控制光束脉冲通断的脉冲选择器。设备可在打开、关闭及多种工作模式之间切换，以选择性放行特定脉冲并阻挡其余脉冲，常用于光学束线或激光实验中的脉冲选通与时序控制。\",\n  \"description_en\": \"A pulse picker used to gate beam pulses based on event codes. The device can switch between open, closed, and several operating modes to pass selected pulses while blocking others, commonly for pulse gating and timing control in optical beamlines or laser experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-burst\",\n      \"description\": \"切换到突发模式以按设定方式成组放行脉冲。\",\n      \"description_en\": \"Switch to burst mode to pass pulses in bursts.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"取消当前模式并将脉冲选择器保持为关闭状态。\",\n      \"description_en\": \"Cancel the current mode and leave the pulse picker closed.\"\n    },\n    {\n      \"action_name\": \"auto-flipflop\",\n      \"description\": \"切换到翻转模式以交替放行和阻挡脉冲。\",\n      \"description_en\": \"Switch to flip-flop mode to alternate between passing and blocking pulses.\"\n    },\n    {\n      \"action_name\": \"auto-follower\",\n      \"description\": \"切换到跟随模式以跟随外部事件码进行脉冲选通。\",\n      \"description_en\": \"Switch to follower mode to gate pulses by following external event codes.\"\n    },\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"取消当前模式并将脉冲选择器保持为打开状态。\",\n      \"description_en\": \"Cancel the current mode and leave the pulse picker open.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"取消当前工作模式并复位设备状态。\",\n      \"description_en\": \"Cancel the current operating mode and reset the device state.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"pulse picking\",\n    \"optical gating\",\n    \"event-code triggering\",\n    \"beam shuttering\",\n    \"burst mode\",\n    \"flip-flop mode\",\n    \"follower mode\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1325,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 813,
+      "output_tokens_details": {
+        "reasoning_tokens": 270
+      },
+      "total_tokens": 2138
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1325,
+      "output_token_count": 813,
+      "predict_time": 13.993867865
+    }
+  },
+  "output_text": "{\n  \"name\": \"光学脉冲选择器\",\n  \"name_en\": \"Optical Pulse Picker\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于按事件码控制光束脉冲通断的脉冲选择器。设备可在打开、关闭及多种工作模式之间切换，以选择性放行特定脉冲并阻挡其余脉冲，常用于光学束线或激光实验中的脉冲选通与时序控制。\",\n  \"description_en\": \"A pulse picker used to gate beam pulses based on event codes. The device can switch between open, closed, and several operating modes to pass selected pulses while blocking others, commonly for pulse gating and timing control in optical beamlines or laser experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-burst\",\n      \"description\": \"切换到突发模式以按设定方式成组放行脉冲。\",\n      \"description_en\": \"Switch to burst mode to pass pulses in bursts.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"取消当前模式并将脉冲选择器保持为关闭状态。\",\n      \"description_en\": \"Cancel the current mode and leave the pulse picker closed.\"\n    },\n    {\n      \"action_name\": \"auto-flipflop\",\n      \"description\": \"切换到翻转模式以交替放行和阻挡脉冲。\",\n      \"description_en\": \"Switch to flip-flop mode to alternate between passing and blocking pulses.\"\n    },\n    {\n      \"action_name\": \"auto-follower\",\n      \"description\": \"切换到跟随模式以跟随外部事件码进行脉冲选通。\",\n      \"description_en\": \"Switch to follower mode to gate pulses by following external event codes.\"\n    },\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"取消当前模式并将脉冲选择器保持为打开状态。\",\n      \"description_en\": \"Cancel the current mode and leave the pulse picker open.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"取消当前工作模式并复位设备状态。\",\n      \"description_en\": \"Cancel the current operating mode and reset the device state.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"pulse picking\",\n    \"optical gating\",\n    \"event-code triggering\",\n    \"beam shuttering\",\n    \"burst mode\",\n    \"flip-flop mode\",\n    \"follower mode\"\n  ]\n}"
+}

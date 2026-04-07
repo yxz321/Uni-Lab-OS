@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: pm100_usb\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/thorlabs/pm100usb.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.optical_power_meter.thorlabs_pm100usb:PM100USB\n\nClass: PM100USB (focal)\n  Bases: ['SCPIInstrument']\n  Docstring: Instrument class for the `ThorLabs PM100USB`_ power meter.\nNote that as this is an SCPI-compliant instrument, the properties and\nmethods of :class:`~instruments.generic_scpi.SCPIInstrument` may be used\nas well.\n\n.. _ThorLabs PM100USB: http://www.thorlabs.com/thorproduct.cfm?partnumber=PM100USB\n\nFocal class methods:\n  [status_getter] cache_units(self)\n    comment: If enabled, then units are not checked every time a measurement is\n        made, reducing by half the number of round-trips to the device.\n\n        .. warning::\n\n            Setting this to `True` may...\n  [status_setter] cache_units(self, newval)\n  [status_getter] sensor(self)\n    comment: Returns information about the currently connected sensor.\n\n        :type: :class:`PM100USB.Sensor`\n  [status_getter] averaging_count(self)\n    comment: Integer specifying how many samples to collect and average over for\n        each measurement, with each sample taking approximately 3 ms.\n  [status_setter] averaging_count(self, newval)\n  [command] read(self, size=-1, encoding='utf-8')\n    comment: Get the current configuration to find out the units we need to\n    comment: attach.\n    comment: Reads a measurement from this instrument, according to its current\n        configuration mode.\n\n        :param int size: Number of bytes to read from the instrument. Default\n            of ``-1`` read...\n\nRegistry actions:\n  auto-averaging_count (from averaging_count())\n  auto-cache_units (from cache_units())\n  auto-measurement_configuration (from measurement_configuration())\n  auto-read (from read())\n  auto-sensor (from sensor())\n  auto-name (from name())\n  auto-serial_number (from serial_number())\n  auto-calibration_message (from calibration_message())\n  auto-type (from type())\n  auto-flags (from flags())\n\nRequired output action ids:\n  auto-averaging_count\n  auto-cache_units\n  auto-measurement_configuration\n  auto-read\n  auto-sensor\n  auto-name\n  auto-serial_number\n  auto-calibration_message\n  auto-type\n  auto-flags"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_092a83f37682c60f0069d549c662c8819785fccd33ac8c63a7",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3313,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5130,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_092a83f37682c60f0069d549c6dbc08197a89386f9476f4c18",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_092a83f37682c60f0069d549d2c500819798ef2706e623c2ba",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Thorlabs PM100USB 光功率计\",\n  \"name_en\": \"Thorlabs PM100USB Optical Power Meter\",\n  \"manufacturer\": \"Thorlabs\",\n  \"description\": \"一款通过 USB 连接并使用 SCPI 指令控制的光功率计，用于配合已连接的光学传感器读取当前测量配置下的光功率等测量值。该设备支持设置平均采样次数、查询传感器信息以及读取校准相关信息，适合实验室中的激光与光学功率测量。\",\n  \"description_en\": \"A USB-connected, SCPI-controlled optical power meter used with a connected optical sensor to read optical power and related measurements under the current measurement configuration. It supports averaging setup, sensor information queries, and calibration-related information retrieval for laboratory laser and optical power measurements.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-averaging_count\",\n      \"description\": \"获取/设置每次测量的平均采样次数。\",\n      \"description_en\": \"Get/set the number of samples averaged for each measurement.\"\n    },\n    {\n      \"action_name\": \"auto-cache_units\",\n      \"description\": \"获取/设置是否缓存测量单位。\",\n      \"description_en\": \"Get/set whether measurement units are cached.\"\n    },\n    {\n      \"action_name\": \"auto-measurement_configuration\",\n      \"description\": \"获取/设置测量配置模式。\",\n      \"description_en\": \"Get/set the measurement configuration mode.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取当前测量配置模式下的测量值。\",\n      \"description_en\": \"Read a measurement according to the current measurement configuration mode.\"\n    },\n    {\n      \"action_name\": \"auto-sensor\",\n      \"description\": \"获取当前连接传感器的信息。\",\n      \"description_en\": \"Get information about the currently connected sensor.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取当前连接传感器的名称。\",\n      \"description_en\": \"Get the name of the currently connected sensor.\"\n    },\n    {\n      \"action_name\": \"auto-serial_number\",\n      \"description\": \"获取当前连接传感器的序列号。\",\n      \"description_en\": \"Get the serial number of the currently connected sensor.\"\n    },\n    {\n      \"action_name\": \"auto-calibration_message\",\n      \"description\": \"获取当前连接传感器的校准信息。\",\n      \"description_en\": \"Get the calibration information for the currently connected sensor.\"\n    },\n    {\n      \"action_name\": \"auto-type\",\n      \"description\": \"获取当前连接传感器的类型。\",\n      \"description_en\": \"Get the type of the currently connected sensor.\"\n    },\n    {\n      \"action_name\": \"auto-flags\",\n      \"description\": \"获取当前连接传感器的状态标志信息。\",\n      \"description_en\": \"Get status flag information for the currently connected sensor.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"optical power measurement\",\n    \"laser power meter\",\n    \"Thorlabs PM100USB\",\n    \"USB SCPI instrument\",\n    \"photodiode/thermal sensor readout\",\n    \"averaging configuration\",\n    \"sensor calibration info\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1233,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1224,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2457
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1233,
+      "output_token_count": 1224,
+      "predict_time": 26.350879415
+    }
+  },
+  "output_text": "{\n  \"name\": \"Thorlabs PM100USB 光功率计\",\n  \"name_en\": \"Thorlabs PM100USB Optical Power Meter\",\n  \"manufacturer\": \"Thorlabs\",\n  \"description\": \"一款通过 USB 连接并使用 SCPI 指令控制的光功率计，用于配合已连接的光学传感器读取当前测量配置下的光功率等测量值。该设备支持设置平均采样次数、查询传感器信息以及读取校准相关信息，适合实验室中的激光与光学功率测量。\",\n  \"description_en\": \"A USB-connected, SCPI-controlled optical power meter used with a connected optical sensor to read optical power and related measurements under the current measurement configuration. It supports averaging setup, sensor information queries, and calibration-related information retrieval for laboratory laser and optical power measurements.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-averaging_count\",\n      \"description\": \"获取/设置每次测量的平均采样次数。\",\n      \"description_en\": \"Get/set the number of samples averaged for each measurement.\"\n    },\n    {\n      \"action_name\": \"auto-cache_units\",\n      \"description\": \"获取/设置是否缓存测量单位。\",\n      \"description_en\": \"Get/set whether measurement units are cached.\"\n    },\n    {\n      \"action_name\": \"auto-measurement_configuration\",\n      \"description\": \"获取/设置测量配置模式。\",\n      \"description_en\": \"Get/set the measurement configuration mode.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取当前测量配置模式下的测量值。\",\n      \"description_en\": \"Read a measurement according to the current measurement configuration mode.\"\n    },\n    {\n      \"action_name\": \"auto-sensor\",\n      \"description\": \"获取当前连接传感器的信息。\",\n      \"description_en\": \"Get information about the currently connected sensor.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取当前连接传感器的名称。\",\n      \"description_en\": \"Get the name of the currently connected sensor.\"\n    },\n    {\n      \"action_name\": \"auto-serial_number\",\n      \"description\": \"获取当前连接传感器的序列号。\",\n      \"description_en\": \"Get the serial number of the currently connected sensor.\"\n    },\n    {\n      \"action_name\": \"auto-calibration_message\",\n      \"description\": \"获取当前连接传感器的校准信息。\",\n      \"description_en\": \"Get the calibration information for the currently connected sensor.\"\n    },\n    {\n      \"action_name\": \"auto-type\",\n      \"description\": \"获取当前连接传感器的类型。\",\n      \"description_en\": \"Get the type of the currently connected sensor.\"\n    },\n    {\n      \"action_name\": \"auto-flags\",\n      \"description\": \"获取当前连接传感器的状态标志信息。\",\n      \"description_en\": \"Get status flag information for the currently connected sensor.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"optical power measurement\",\n    \"laser power meter\",\n    \"Thorlabs PM100USB\",\n    \"USB SCPI instrument\",\n    \"photodiode/thermal sensor readout\",\n    \"averaging configuration\",\n    \"sensor calibration info\"\n  ]\n}"
+}

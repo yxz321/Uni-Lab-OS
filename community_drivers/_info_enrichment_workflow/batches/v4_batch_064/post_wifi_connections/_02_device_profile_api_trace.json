@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: post_wifi_connections\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: mir100_client/models/post_wifi_connections.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.post_wifi_connections:PostWifiConnections\n\nClass: PostWifiConnections (focal)\n  Bases: ['object']\n  Docstring: NOTE: This class is auto generated by the swagger code generator program.\n\nDo not edit the class manually.\n\nFocal class methods:\n  [command] address(self)\n    comment: Gets the address of this PostWifiConnections.  # noqa: E501\n\n\n        :return: The address of this PostWifiConnections.  # noqa: E501\n        :rtype: str\n  [command] address(self, address)\n    comment: Sets the address of this PostWifiConnections.\n\n\n        :param address: The address of this PostWifiConnections.  # noqa: E501\n        :type: str\n  [command] device(self)\n    comment: Gets the device of this PostWifiConnections.  # noqa: E501\n\n\n        :return: The device of this PostWifiConnections.  # noqa: E501\n        :rtype: str\n  [command] device(self, device)\n    comment: Sets the device of this PostWifiConnections.\n\n\n        :param device: The device of this PostWifiConnections.  # noqa: E501\n        :type: str\n  [command] dns(self)\n    comment: Gets the dns of this PostWifiConnections.  # noqa: E501\n\n\n        :return: The dns of this PostWifiConnections.  # noqa: E501\n        :rtype: str\n  [command] dns(self, dns)\n    comment: Sets the dns of this PostWifiConnections.\n\n\n        :param dns: The dns of this PostWifiConnections.  # noqa: E501\n        :type: str\n  [command] gateway(self)\n    comment: Gets the gateway of this PostWifiConnections.  # noqa: E501\n\n\n        :return: The gateway of this PostWifiConnections.  # noqa: E501\n        :rtype: str\n  [command] gateway(self, gateway)\n    comment: Sets the gateway of this PostWifiConnections.\n\n\n        :param gateway: The gateway of this PostWifiConnections.  # noqa: E501\n        :type: str\n  [command] netmask(self)\n    comment: Gets the netmask of this PostWifiConnections.  # noqa: E501\n\n\n        :return: The netmask of this PostWifiConnections.  # noqa: E501\n        :rtype: str\n  [command] netmask(self, netmask)\n    comment: Sets the netmask of this PostWifiConnections.\n\n\n        :param netmask: The netmask of this PostWifiConnections.  # noqa: E501\n        :type: str\n  [command] security(self)\n    comment: Gets the security of this PostWifiConnections.  # noqa: E501\n\n\n        :return: The security of this PostWifiConnections.  # noqa: E501\n        :rtype: str\n  [command] security(self, security)\n    comment: Sets the security of this PostWifiConnections.\n\n\n        :param security: The security of this PostWifiConnections.  # noqa: E501\n        :type: str\n  [command] ssid(self)\n    comment: Gets the ssid of this PostWifiConnections.  # noqa: E501\n\n\n        :return: The ssid of this PostWifiConnections.  # noqa: E501\n        :rtype: str\n  [command] ssid(self, ssid)\n    comment: Sets the ssid of this PostWifiConnections.\n\n\n        :param ssid: The ssid of this PostWifiConnections.  # noqa: E501\n        :type: str\n  [command] to_dict(self)\n    comment: Returns the model properties as a dict\n  [command] to_str(self)\n    comment: Returns the string representation of the model\n\nRegistry actions:\n  auto-address (from address())\n  auto-device (from device())\n  auto-dns (from dns())\n  auto-gateway (from gateway())\n  auto-netmask (from netmask())\n  auto-security (from security())\n  auto-ssid (from ssid())\n  auto-to_dict (from to_dict())\n  auto-to_str (from to_str())\n\nRequired output action ids:\n  auto-address\n  auto-device\n  auto-dns\n  auto-gateway\n  auto-netmask\n  auto-security\n  auto-ssid\n  auto-to_dict\n  auto-to_str"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0504106e4faa6f920069d54be665148190963733b98c729c84",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4805,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4919,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0504106e4faa6f920069d54be6e8d481909eed2dab5af6d2f1",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0504106e4faa6f920069d54bf0ffe08190b2436c2c5a935916",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Wi‑Fi连接配置模型\",\n  \"name_en\": \"Wi-Fi Connection Configuration Model\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件数据模型，用于表示和组织设备或系统的 Wi‑Fi 连接参数，如 SSID、安全方式、IP 地址、网关、DNS、网卡名称和子网掩码，常用于实验室设备或移动平台的网络配置提交与序列化。\",\n  \"description_en\": \"A non-physical software data model used to represent and organize Wi-Fi connection parameters for a device or system, such as SSID, security mode, IP address, gateway, DNS, interface name, and netmask. It is typically used for network configuration submission and serialization in lab devices or mobile platforms.\",\n  \"tag_hints\": [\n    \"Wi-Fi configuration\",\n    \"network settings\",\n    \"SSID\",\n    \"IP addressing\",\n    \"DNS and gateway\",\n    \"security mode\",\n    \"configuration model\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-address\",\n      \"description\": \"获取或设置 Wi‑Fi 连接的地址参数。\",\n      \"description_en\": \"Get or set the address parameter of the Wi-Fi connection.\"\n    },\n    {\n      \"action_name\": \"auto-device\",\n      \"description\": \"获取或设置 Wi‑Fi 连接使用的设备或网络接口名称。\",\n      \"description_en\": \"Get or set the device or network interface name used for the Wi-Fi connection.\"\n    },\n    {\n      \"action_name\": \"auto-dns\",\n      \"description\": \"获取或设置 Wi‑Fi 连接的 DNS 服务器参数。\",\n      \"description_en\": \"Get or set the DNS server parameter of the Wi-Fi connection.\"\n    },\n    {\n      \"action_name\": \"auto-gateway\",\n      \"description\": \"获取或设置 Wi‑Fi 连接的网关参数。\",\n      \"description_en\": \"Get or set the gateway parameter of the Wi-Fi connection.\"\n    },\n    {\n      \"action_name\": \"auto-netmask\",\n      \"description\": \"获取或设置 Wi‑Fi 连接的子网掩码。\",\n      \"description_en\": \"Get or set the netmask of the Wi-Fi connection.\"\n    },\n    {\n      \"action_name\": \"auto-security\",\n      \"description\": \"获取或设置 Wi‑Fi 连接的安全方式。\",\n      \"description_en\": \"Get or set the security mode of the Wi-Fi connection.\"\n    },\n    {\n      \"action_name\": \"auto-ssid\",\n      \"description\": \"获取或设置 Wi‑Fi 连接的 SSID。\",\n      \"description_en\": \"Get or set the SSID of the Wi-Fi connection.\"\n    },\n    {\n      \"action_name\": \"auto-to_dict\",\n      \"description\": \"将该 Wi‑Fi 连接配置模型转换为字典。\",\n      \"description_en\": \"Convert this Wi-Fi connection configuration model to a dictionary.\"\n    },\n    {\n      \"action_name\": \"auto-to_str\",\n      \"description\": \"获取该 Wi‑Fi 连接配置模型的字符串表示。\",\n      \"description_en\": \"Get the string representation of this Wi-Fi connection configuration model.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1642,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1195,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2837
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1642,
+      "output_token_count": 1195,
+      "predict_time": 21.929955505
+    }
+  },
+  "output_text": "{\n  \"name\": \"Wi‑Fi连接配置模型\",\n  \"name_en\": \"Wi-Fi Connection Configuration Model\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件数据模型，用于表示和组织设备或系统的 Wi‑Fi 连接参数，如 SSID、安全方式、IP 地址、网关、DNS、网卡名称和子网掩码，常用于实验室设备或移动平台的网络配置提交与序列化。\",\n  \"description_en\": \"A non-physical software data model used to represent and organize Wi-Fi connection parameters for a device or system, such as SSID, security mode, IP address, gateway, DNS, interface name, and netmask. It is typically used for network configuration submission and serialization in lab devices or mobile platforms.\",\n  \"tag_hints\": [\n    \"Wi-Fi configuration\",\n    \"network settings\",\n    \"SSID\",\n    \"IP addressing\",\n    \"DNS and gateway\",\n    \"security mode\",\n    \"configuration model\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-address\",\n      \"description\": \"获取或设置 Wi‑Fi 连接的地址参数。\",\n      \"description_en\": \"Get or set the address parameter of the Wi-Fi connection.\"\n    },\n    {\n      \"action_name\": \"auto-device\",\n      \"description\": \"获取或设置 Wi‑Fi 连接使用的设备或网络接口名称。\",\n      \"description_en\": \"Get or set the device or network interface name used for the Wi-Fi connection.\"\n    },\n    {\n      \"action_name\": \"auto-dns\",\n      \"description\": \"获取或设置 Wi‑Fi 连接的 DNS 服务器参数。\",\n      \"description_en\": \"Get or set the DNS server parameter of the Wi-Fi connection.\"\n    },\n    {\n      \"action_name\": \"auto-gateway\",\n      \"description\": \"获取或设置 Wi‑Fi 连接的网关参数。\",\n      \"description_en\": \"Get or set the gateway parameter of the Wi-Fi connection.\"\n    },\n    {\n      \"action_name\": \"auto-netmask\",\n      \"description\": \"获取或设置 Wi‑Fi 连接的子网掩码。\",\n      \"description_en\": \"Get or set the netmask of the Wi-Fi connection.\"\n    },\n    {\n      \"action_name\": \"auto-security\",\n      \"description\": \"获取或设置 Wi‑Fi 连接的安全方式。\",\n      \"description_en\": \"Get or set the security mode of the Wi-Fi connection.\"\n    },\n    {\n      \"action_name\": \"auto-ssid\",\n      \"description\": \"获取或设置 Wi‑Fi 连接的 SSID。\",\n      \"description_en\": \"Get or set the SSID of the Wi-Fi connection.\"\n    },\n    {\n      \"action_name\": \"auto-to_dict\",\n      \"description\": \"将该 Wi‑Fi 连接配置模型转换为字典。\",\n      \"description_en\": \"Convert this Wi-Fi connection configuration model to a dictionary.\"\n    },\n    {\n      \"action_name\": \"auto-to_str\",\n      \"description\": \"获取该 Wi‑Fi 连接配置模型的字符串表示。\",\n      \"description_en\": \"Get the string representation of this Wi-Fi connection configuration model.\"\n    }\n  ]\n}"
+}

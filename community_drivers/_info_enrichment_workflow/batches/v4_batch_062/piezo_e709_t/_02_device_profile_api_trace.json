@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: piezo_e709_t\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: PYME/Acquire/Hardware/Piezos/piezo_e709.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.piezo.piezo_e709_t:piezo_e709T\n\nClass: piezo_e709 \n  Bases: ['PiezoBase']\n\nClass: piezo_e709T (focal)\n  Bases: ['PiezoBase']\n\nFocal class methods:\n  [command] close(self)\n  [command] SetServo(self, state=1)\n    comment: time.sleep(.01)\n    comment: self.ser_port.close()\n    comment: self.ser_port.write(b'SVO 2 %d\\n' % state)\n  [command] ReInit(self, reference=True)\n    comment: def SetParameter(self, paramID, state):\n    comment: self.lock.acquire()\n    comment: try:\n    comment: self.ser_port.write(b'SVO 1 %d\\n' % state)\n    comment: self.ser_port.write(b'SVO 2 %d\\n' % state)\n    comment: self.servo = state == 1\n    comment: finally:\n    comment: self.lock.release()\n    comment: self.ser_port.write(b'WTO A0\\n')\n    comment: self.ser_port.write(b'SVO 2 1\\n')\n    comment: if reference:\n    comment: find reference switch (should be in centre of range)\n    comment: self.ser_port.write(b'FRF\\n')\n  [command] MoveTo(self, iChannel, fPos, bTimeOut=True, vel=None)\n    comment: def GetVelocity(self, chan):\n    comment: return self.velocity[chan-1]\n    comment: if vel == None:\n    comment: vel = self.maxvelocity\n    comment: self.targetVelocity[chan] = vel\n  [command] MoveRel(self, iChannel, incr, bTimeOut=True)\n  [command] OnTarget(self)\n    comment: def MoveToXY(self, xPos, yPos, bTimeOut=True, vel=None):\n    comment: if vel == None:\n    comment: vel = self.maxvelocity\n    comment: self.targetPosition[0] = min(max(xPos, self.validRegion[0][0]),self.validRegion[0][1])\n    comment: self.targetPosition[1] = min(max(yPos, self.validRegion[1][0]),self.validRegion[1][1])\n    comment: self.targetVelocity[:] = vel\n  [command] GetPos(self, iChannel=0)\n    comment: self.ser_port.flush()\n    comment: time.sleep(0.005)\n    comment: self.ser_port.write(b'POS? %d\\n' % iChannel)\n    comment: self.ser_port.flushOutput()\n    comment: time.sleep(0.005)\n    comment: res = self.ser_port.readline()\n  [command] GetPosXY(self)\n  [command] GetTargetPos(self, iChannel=0)\n  [command] MoveInDir(self, dx, dy, th=0.0)\n    comment: self.targetVelocity[0] = abs(dx)*self.maxvelocity\n    comment: self.targetVelocity[1] = abs(dy)*self.maxvelocity\n  [command] StopMove(self)\n  [command] GetControlReady(self)\n  [command] GetChannelObject(self)\n  [command] GetChannelPhase(self)\n  [command] GetMin(self, iChan=1)\n  [command] GetMax(self, iChan=1)\n  [command] GetFirmwareVersion(self)\n\nRegistry actions:\n  auto-close (from close())\n  auto-SetServo (from SetServo())\n  auto-ReInit (from ReInit())\n  auto-MoveTo (from MoveTo())\n  auto-MoveRel (from MoveRel())\n  auto-OnTarget (from OnTarget())\n  auto-GetPos (from GetPos())\n  auto-GetPosXY (from GetPosXY())\n  auto-GetTargetPos (from GetTargetPos())\n  auto-MoveInDir (from MoveInDir())\n  auto-StopMove (from StopMove())\n  auto-GetControlReady (from GetControlReady())\n  auto-GetChannelObject (from GetChannelObject())\n  auto-GetChannelPhase (from GetChannelPhase())\n  auto-GetMin (from GetMin())\n  auto-GetMax (from GetMax())\n  auto-GetFirmwareVersion (from GetFirmwareVersion())\n\nRequired output action ids:\n  auto-close\n  auto-SetServo\n  auto-ReInit\n  auto-MoveTo\n  auto-MoveRel\n  auto-OnTarget\n  auto-GetPos\n  auto-GetPosXY\n  auto-GetTargetPos\n  auto-MoveInDir\n  auto-StopMove\n  auto-GetControlReady\n  auto-GetChannelObject\n  auto-GetChannelPhase\n  auto-GetMin\n  auto-GetMax\n  auto-GetFirmwareVersion"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_004e77633d95063d0069d5478734748197a04cf9a6853e272e",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4614,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 8104,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_004e77633d95063d0069d54787cf9881979bf4f0f3862e1aa6",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_004e77633d95063d0069d5479bfd948197808abdae05dffa67",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"PI E-709压电定位控制器\",\n  \"name_en\": \"PI E-709 Piezo Positioning Controller\",\n  \"manufacturer\": \"Physik Instrumente (PI)\",\n  \"description\": \"用于控制双通道或XY压电定位平台的运动控制器，可执行绝对/相对移动、伺服闭环控制、位置读取、到位判断和参考初始化，常用于显微成像中的纳米级定位与扫描。\",\n  \"description_en\": \"A motion controller for dual-channel or XY piezo positioning stages. It supports absolute/relative moves, closed-loop servo control, position readback, on-target checks, and reference initialization, commonly used for nanoscale positioning and scanning in microscopy.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭与压电控制器的通信连接。\",\n      \"description_en\": \"Close the communication connection to the piezo controller.\"\n    },\n    {\n      \"action_name\": \"auto-SetServo\",\n      \"description\": \"设置伺服闭环控制状态。\",\n      \"description_en\": \"Set the closed-loop servo control state.\"\n    },\n    {\n      \"action_name\": \"auto-ReInit\",\n      \"description\": \"重新初始化控制器，并可选择执行参考定位流程。\",\n      \"description_en\": \"Reinitialize the controller and optionally run the reference-finding procedure.\"\n    },\n    {\n      \"action_name\": \"auto-MoveTo\",\n      \"description\": \"将指定通道移动到绝对目标位置。\",\n      \"description_en\": \"Move the specified channel to an absolute target position.\"\n    },\n    {\n      \"action_name\": \"auto-MoveRel\",\n      \"description\": \"使指定通道相对当前位置移动指定增量。\",\n      \"description_en\": \"Move the specified channel by a relative increment from its current position.\"\n    },\n    {\n      \"action_name\": \"auto-OnTarget\",\n      \"description\": \"查询设备是否已到达目标位置。\",\n      \"description_en\": \"Query whether the device has reached its target position.\"\n    },\n    {\n      \"action_name\": \"auto-GetPos\",\n      \"description\": \"读取指定通道的当前位置。\",\n      \"description_en\": \"Read the current position of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-GetPosXY\",\n      \"description\": \"读取XY两个通道的当前位置。\",\n      \"description_en\": \"Read the current positions of the X and Y channels.\"\n    },\n    {\n      \"action_name\": \"auto-GetTargetPos\",\n      \"description\": \"读取指定通道的目标位置。\",\n      \"description_en\": \"Read the target position of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-MoveInDir\",\n      \"description\": \"按给定方向分量驱动XY轴运动。\",\n      \"description_en\": \"Drive the XY axes in the specified direction components.\"\n    },\n    {\n      \"action_name\": \"auto-StopMove\",\n      \"description\": \"停止当前运动。\",\n      \"description_en\": \"Stop the current motion.\"\n    },\n    {\n      \"action_name\": \"auto-GetControlReady\",\n      \"description\": \"查询控制器是否已准备好接收控制命令。\",\n      \"description_en\": \"Query whether the controller is ready to accept control commands.\"\n    },\n    {\n      \"action_name\": \"auto-GetChannelObject\",\n      \"description\": \"查询通道对象标识或配置。\",\n      \"description_en\": \"Query the channel object identifier or configuration.\"\n    },\n    {\n      \"action_name\": \"auto-GetChannelPhase\",\n      \"description\": \"查询通道相位信息。\",\n      \"description_en\": \"Query channel phase information.\"\n    },\n    {\n      \"action_name\": \"auto-GetMin\",\n      \"description\": \"查询指定通道的最小允许位置。\",\n      \"description_en\": \"Query the minimum allowed position for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-GetMax\",\n      \"description\": \"查询指定通道的最大允许位置。\",\n      \"description_en\": \"Query the maximum allowed position for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-GetFirmwareVersion\",\n      \"description\": \"查询控制器固件版本。\",\n      \"description_en\": \"Query the controller firmware version.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"piezo nanopositioning\",\n    \"XY stage control\",\n    \"closed-loop servo\",\n    \"microscopy positioning\",\n    \"serial motion controller\",\n    \"reference finding\",\n    \"nanometer motion\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1733,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2078,
+      "output_tokens_details": {
+        "reasoning_tokens": 1094
+      },
+      "total_tokens": 3811
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1733,
+      "output_token_count": 2078,
+      "predict_time": 33.622052355
+    }
+  },
+  "output_text": "{\n  \"name\": \"PI E-709压电定位控制器\",\n  \"name_en\": \"PI E-709 Piezo Positioning Controller\",\n  \"manufacturer\": \"Physik Instrumente (PI)\",\n  \"description\": \"用于控制双通道或XY压电定位平台的运动控制器，可执行绝对/相对移动、伺服闭环控制、位置读取、到位判断和参考初始化，常用于显微成像中的纳米级定位与扫描。\",\n  \"description_en\": \"A motion controller for dual-channel or XY piezo positioning stages. It supports absolute/relative moves, closed-loop servo control, position readback, on-target checks, and reference initialization, commonly used for nanoscale positioning and scanning in microscopy.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭与压电控制器的通信连接。\",\n      \"description_en\": \"Close the communication connection to the piezo controller.\"\n    },\n    {\n      \"action_name\": \"auto-SetServo\",\n      \"description\": \"设置伺服闭环控制状态。\",\n      \"description_en\": \"Set the closed-loop servo control state.\"\n    },\n    {\n      \"action_name\": \"auto-ReInit\",\n      \"description\": \"重新初始化控制器，并可选择执行参考定位流程。\",\n      \"description_en\": \"Reinitialize the controller and optionally run the reference-finding procedure.\"\n    },\n    {\n      \"action_name\": \"auto-MoveTo\",\n      \"description\": \"将指定通道移动到绝对目标位置。\",\n      \"description_en\": \"Move the specified channel to an absolute target position.\"\n    },\n    {\n      \"action_name\": \"auto-MoveRel\",\n      \"description\": \"使指定通道相对当前位置移动指定增量。\",\n      \"description_en\": \"Move the specified channel by a relative increment from its current position.\"\n    },\n    {\n      \"action_name\": \"auto-OnTarget\",\n      \"description\": \"查询设备是否已到达目标位置。\",\n      \"description_en\": \"Query whether the device has reached its target position.\"\n    },\n    {\n      \"action_name\": \"auto-GetPos\",\n      \"description\": \"读取指定通道的当前位置。\",\n      \"description_en\": \"Read the current position of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-GetPosXY\",\n      \"description\": \"读取XY两个通道的当前位置。\",\n      \"description_en\": \"Read the current positions of the X and Y channels.\"\n    },\n    {\n      \"action_name\": \"auto-GetTargetPos\",\n      \"description\": \"读取指定通道的目标位置。\",\n      \"description_en\": \"Read the target position of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-MoveInDir\",\n      \"description\": \"按给定方向分量驱动XY轴运动。\",\n      \"description_en\": \"Drive the XY axes in the specified direction components.\"\n    },\n    {\n      \"action_name\": \"auto-StopMove\",\n      \"description\": \"停止当前运动。\",\n      \"description_en\": \"Stop the current motion.\"\n    },\n    {\n      \"action_name\": \"auto-GetControlReady\",\n      \"description\": \"查询控制器是否已准备好接收控制命令。\",\n      \"description_en\": \"Query whether the controller is ready to accept control commands.\"\n    },\n    {\n      \"action_name\": \"auto-GetChannelObject\",\n      \"description\": \"查询通道对象标识或配置。\",\n      \"description_en\": \"Query the channel object identifier or configuration.\"\n    },\n    {\n      \"action_name\": \"auto-GetChannelPhase\",\n      \"description\": \"查询通道相位信息。\",\n      \"description_en\": \"Query channel phase information.\"\n    },\n    {\n      \"action_name\": \"auto-GetMin\",\n      \"description\": \"查询指定通道的最小允许位置。\",\n      \"description_en\": \"Query the minimum allowed position for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-GetMax\",\n      \"description\": \"查询指定通道的最大允许位置。\",\n      \"description_en\": \"Query the maximum allowed position for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-GetFirmwareVersion\",\n      \"description\": \"查询控制器固件版本。\",\n      \"description_en\": \"Query the controller firmware version.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"piezo nanopositioning\",\n    \"XY stage control\",\n    \"closed-loop servo\",\n    \"microscopy positioning\",\n    \"serial motion controller\",\n    \"reference finding\",\n    \"nanometer motion\"\n  ]\n}"
+}

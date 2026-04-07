@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: rigol_ds1000_series\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/rigol/rigolds1000.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.rigol_ds1000.rigol_ds1000:RigolDS1000Series\n\nClass: RigolDS1000Series (focal)\n  Bases: ['SCPIInstrument', 'Oscilloscope']\n  Docstring: The Rigol DS1000-series is a popular budget oriented oscilloscope\nthat has featured wide adoption across hobbyist circles.\n\n.. warning:: This instrument is not complete, and probably not even\n    functional!\n\nFocal class methods:\n  [status_getter] channel(self)\n    comment: Rigol DS1000 series oscilloscopes all have two channels,\n    comment: according to the documentation.\n  [status_getter] math(self)\n  [status_getter] ref(self)\n  [status_getter] acquire_averages(self)\n    comment: Gets/sets the number of averages the oscilloscope should take per\n        acquisition.\n\n        :type: `int`\n  [status_setter] acquire_averages(self, newval)\n  [command] force_trigger(self)\n    comment: METHODS ##\n  [command] run(self)\n    comment: TODO: consider moving the next few methods to Oscilloscope.\n    comment: Starts running the oscilloscope trigger.\n  [command] stop(self)\n    comment: Stops running the oscilloscope trigger.\n  [command] release_panel(self)\n    comment: TODO: better name?\n    comment: NOTE: method may be redundant with the panel_locked property.\n    comment: Releases any lockout of the local control panel.\n\nRegistry actions:\n  auto-acquire_averages (from acquire_averages())\n  auto-acquire_type (from acquire_type())\n  auto-force_trigger (from force_trigger())\n  auto-panel_locked (from panel_locked())\n  auto-release_panel (from release_panel())\n  auto-run (from run())\n  auto-stop (from stop())\n  auto-channel (from channel())\n  auto-math (from math())\n  auto-ref (from ref())\n  auto-name (from name())\n  auto-read_waveform (from read_waveform())\n  auto-sendcmd (from sendcmd())\n  auto-query (from query())\n\nRequired output action ids:\n  auto-acquire_averages\n  auto-acquire_type\n  auto-force_trigger\n  auto-panel_locked\n  auto-release_panel\n  auto-run\n  auto-stop\n  auto-channel\n  auto-math\n  auto-ref\n  auto-name\n  auto-read_waveform\n  auto-sendcmd\n  auto-query"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_05e147a039aee3090069d55081b3288194a2fd6a464cec3f57",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3252,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5496,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_05e147a039aee3090069d5508231648194888e220ae02c097e",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_05e147a039aee3090069d5508bc1c08194b4ce3b9f7e240c7a",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"普源 DS1000 系列示波器\",\n  \"name_en\": \"Rigol DS1000 Series Oscilloscope\",\n  \"manufacturer\": \"Rigol\",\n  \"description\": \"一款基于 SCPI 控制的数字示波器，用于采集和观察电信号波形，支持运行/停止触发、强制触发、波形读取以及采集参数设置，适合电子实验中的时域信号测量与调试。\",\n  \"description_en\": \"A SCPI-controlled digital oscilloscope for capturing and viewing electrical waveforms. It supports run/stop control, force trigger, waveform readout, and acquisition parameter settings for time-domain signal measurement and debugging in electronics labs.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-acquire_averages\",\n      \"description\": \"获取/设置采集平均次数。\",\n      \"description_en\": \"Get/set the acquisition averaging count.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_type\",\n      \"description\": \"获取/设置采集类型。\",\n      \"description_en\": \"Get/set the acquisition type.\"\n    },\n    {\n      \"action_name\": \"auto-force_trigger\",\n      \"description\": \"强制触发一次示波器采集。\",\n      \"description_en\": \"Force the oscilloscope to trigger an acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-panel_locked\",\n      \"description\": \"获取/设置前面板锁定状态。\",\n      \"description_en\": \"Get/set the front-panel lock state.\"\n    },\n    {\n      \"action_name\": \"auto-release_panel\",\n      \"description\": \"解除本地前面板控制锁定。\",\n      \"description_en\": \"Release the local front-panel control lockout.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"启动示波器运行与触发采集。\",\n      \"description_en\": \"Start oscilloscope running and trigger acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止示波器运行与触发采集。\",\n      \"description_en\": \"Stop oscilloscope running and trigger acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取通道信息。\",\n      \"description_en\": \"Get channel information.\"\n    },\n    {\n      \"action_name\": \"auto-math\",\n      \"description\": \"获取数学运算波形功能信息。\",\n      \"description_en\": \"Get math waveform function information.\"\n    },\n    {\n      \"action_name\": \"auto-ref\",\n      \"description\": \"获取参考波形信息。\",\n      \"description_en\": \"Get reference waveform information.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取仪器名称。\",\n      \"description_en\": \"Get the instrument name.\"\n    },\n    {\n      \"action_name\": \"auto-read_waveform\",\n      \"description\": \"读取已采集的波形数据。\",\n      \"description_en\": \"Read acquired waveform data.\"\n    },\n    {\n      \"action_name\": \"auto-sendcmd\",\n      \"description\": \"向仪器发送原始 SCPI 命令。\",\n      \"description_en\": \"Send a raw SCPI command to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-query\",\n      \"description\": \"向仪器发送 SCPI 查询并读取返回结果。\",\n      \"description_en\": \"Send a SCPI query to the instrument and read the response.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"digital oscilloscope\",\n    \"waveform acquisition\",\n    \"SCPI control\",\n    \"electrical signal measurement\",\n    \"trigger control\",\n    \"waveform readout\",\n    \"bench oscilloscope\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1241,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1323,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2564
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1241,
+      "output_token_count": 1323,
+      "predict_time": 22.698945095
+    }
+  },
+  "output_text": "{\n  \"name\": \"普源 DS1000 系列示波器\",\n  \"name_en\": \"Rigol DS1000 Series Oscilloscope\",\n  \"manufacturer\": \"Rigol\",\n  \"description\": \"一款基于 SCPI 控制的数字示波器，用于采集和观察电信号波形，支持运行/停止触发、强制触发、波形读取以及采集参数设置，适合电子实验中的时域信号测量与调试。\",\n  \"description_en\": \"A SCPI-controlled digital oscilloscope for capturing and viewing electrical waveforms. It supports run/stop control, force trigger, waveform readout, and acquisition parameter settings for time-domain signal measurement and debugging in electronics labs.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-acquire_averages\",\n      \"description\": \"获取/设置采集平均次数。\",\n      \"description_en\": \"Get/set the acquisition averaging count.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_type\",\n      \"description\": \"获取/设置采集类型。\",\n      \"description_en\": \"Get/set the acquisition type.\"\n    },\n    {\n      \"action_name\": \"auto-force_trigger\",\n      \"description\": \"强制触发一次示波器采集。\",\n      \"description_en\": \"Force the oscilloscope to trigger an acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-panel_locked\",\n      \"description\": \"获取/设置前面板锁定状态。\",\n      \"description_en\": \"Get/set the front-panel lock state.\"\n    },\n    {\n      \"action_name\": \"auto-release_panel\",\n      \"description\": \"解除本地前面板控制锁定。\",\n      \"description_en\": \"Release the local front-panel control lockout.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"启动示波器运行与触发采集。\",\n      \"description_en\": \"Start oscilloscope running and trigger acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止示波器运行与触发采集。\",\n      \"description_en\": \"Stop oscilloscope running and trigger acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取通道信息。\",\n      \"description_en\": \"Get channel information.\"\n    },\n    {\n      \"action_name\": \"auto-math\",\n      \"description\": \"获取数学运算波形功能信息。\",\n      \"description_en\": \"Get math waveform function information.\"\n    },\n    {\n      \"action_name\": \"auto-ref\",\n      \"description\": \"获取参考波形信息。\",\n      \"description_en\": \"Get reference waveform information.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取仪器名称。\",\n      \"description_en\": \"Get the instrument name.\"\n    },\n    {\n      \"action_name\": \"auto-read_waveform\",\n      \"description\": \"读取已采集的波形数据。\",\n      \"description_en\": \"Read acquired waveform data.\"\n    },\n    {\n      \"action_name\": \"auto-sendcmd\",\n      \"description\": \"向仪器发送原始 SCPI 命令。\",\n      \"description_en\": \"Send a raw SCPI command to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-query\",\n      \"description\": \"向仪器发送 SCPI 查询并读取返回结果。\",\n      \"description_en\": \"Send a SCPI query to the instrument and read the response.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"digital oscilloscope\",\n    \"waveform acquisition\",\n    \"SCPI control\",\n    \"electrical signal measurement\",\n    \"trigger control\",\n    \"waveform readout\",\n    \"bench oscilloscope\"\n  ]\n}"
+}

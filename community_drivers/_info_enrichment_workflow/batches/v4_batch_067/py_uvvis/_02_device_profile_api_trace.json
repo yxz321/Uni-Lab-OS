@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: py_uvvis\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pyUVVIS.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.py_uvvis:pyUVVIS\n\nClass: pyUVVIS (focal)\n  Bases: ['wx.Frame']\n\nFocal class methods:\n  [command] createUI(self)\n    comment: --------------------------------------------------------------------------\n    comment: GUI creation stuff\n  [command] createTB(self)\n    comment: create toolbar\n    comment: finalize TB\n    comment: add event bindings\n    comment: bind the app exit event to an event handler so we can check whether there are some experiments running and shut down all the modules properly\n  [command] createPlotWnd(self)\n  [command] connectCamera(self)\n    comment: --------------------------------------------------------------------------\n    comment: camera interaction\n  [command] connectUC480(self)\n  [command] connectOO(self)\n  [command] camClose(self)\n  [command] readCamera(self)\n    comment: read a frame from the active input device and check for overexposure\n  [command] camSupportsGain(self)\n  [command] camSupportsExp(self)\n  [command] camSetGain(self, g)\n  [command] camSetExp(self, e)\n  [command] getWlAxis(self)\n    comment: get wavelength axis\n    comment: if uc480 is used and calibration file exists\n  [command] addLine(self, x, y, id=None)\n    comment: add line to plot window\n    comment: convert arrays to array of point tuples\n    comment: get plot colors\n    comment: generate new line object\n    comment: add to line stack\n    comment: replot\n  [command] refreshPlot(self)\n    comment: refresh the plot window\n  [command] OnQuit(self, event)\n    comment: -------------------------------------------------------------------------------------------------------------------\n    comment: events\n  [command] OnTBSave(self, event)\n    comment: set new working directory\n    comment: save file\n    comment: add to plot window\n  [command] OnTBLoad(self, event)\n    comment: set new working directory\n    comment: save file\n    comment: add to plot window\n  [command] OnTBDelete(self, event)\n    comment: remove the last plot in the list\n  [command] OnTBAvgInc(self, event=None)\n  [command] OnTBAvgDec(self, event=None)\n  [command] OnTBGainInc(self, event=None)\n  [command] OnTBGainDec(self, event=None)\n  [command] OnTBExpInc(self, event=None)\n  [command] OnTBExpDec(self, event=None)\n  [command] OnRTBAvgInc(self, event=None)\n  [command] OnRTBAvgDec(self, event=None)\n  [command] OnRTBGainInc(self, event=None)\n  [command] OnRTBGainDec(self, event=None)\n  [command] OnRTBExpInc(self, event=None)\n  [command] OnRTBExpDec(self, event=None)\n  [command] OnTBStart(self, event=None)\n  [command] OnTBRecord(self, event=None)\n  [command] OnTBMode(self, event)\n  [command] OnTBAuto(self, event)\n    comment: auto exposure / gain settings\n  [command] OnTBDark(self, event)\n  [command] OnUpdate(self, event=None)\n    comment: --------------------------------------------------------------------------\n    comment: this is the main measurement routine where all the magic happens\n    comment: read data from camera\n    comment: if self.cam is None:\n    comment: return\n    comment: light level warning\n    comment: dark level subtraction\n    comment: force minimum pixel value to be 1 to prevent NaNs\n    comment: UVVIS or spectrum\n    comment: add to running average if recording\n    comment: force some kind of x-axis\n    comment: overwrite main line in plot\n    comment: restart timer\n\nRegistry actions:\n  auto-createUI (from createUI())\n  auto-createTB (from createTB())\n  auto-createPlotWnd (from createPlotWnd())\n  auto-connectCamera (from connectCamera())\n  auto-connectUC480 (from connectUC480())\n  auto-connectOO (from connectOO())\n  auto-camClose (from camClose())\n  auto-readCamera (from readCamera())\n  auto-camSupportsGain (from camSupportsGain())\n  auto-camSupportsExp (from camSupportsExp())\n  auto-camSetGain (from camSetGain())\n  auto-camSetExp (from camSetExp())\n  auto-getWlAxis (from getWlAxis())\n  auto-addLine (from addLine())\n  auto-refreshPlot (from refreshPlot())\n  auto-OnQuit (from OnQuit())\n  auto-OnTBSave (from OnTBSave())\n  auto-OnTBLoad (from OnTBLoad())\n  auto-OnTBDelete (from OnTBDelete())\n  auto-OnTBAvgInc (from OnTBAvgInc())\n  auto-OnTBAvgDec (from OnTBAvgDec())\n  auto-OnTBGainInc (from OnTBGainInc())\n  auto-OnTBGainDec (from OnTBGainDec())\n  auto-OnTBExpInc (from OnTBExpInc())\n  auto-OnTBExpDec (from OnTBExpDec())\n  auto-OnRTBAvgInc (from OnRTBAvgInc())\n  auto-OnRTBAvgDec (from OnRTBAvgDec())\n  auto-OnRTBGainInc (from OnRTBGainInc())\n  auto-OnRTBGainDec (from OnRTBGainDec())\n  auto-OnRTBExpInc (from OnRTBExpInc())\n  auto-OnRTBExpDec (from OnRTBExpDec())\n  auto-OnTBStart (from OnTBStart())\n  auto-OnTBRecord (from OnTBRecord())\n  auto-OnTBMode (from OnTBMode())\n  auto-OnTBAuto (from OnTBAuto())\n  auto-OnTBDark (from OnTBDark())\n  auto-OnUpdate (from OnUpdate())\n\nRequired output action ids:\n  auto-createUI\n  auto-createTB\n  auto-createPlotWnd\n  auto-connectCamera\n  auto-connectUC480\n  auto-connectOO\n  auto-camClose\n  auto-readCamera\n  auto-camSupportsGain\n  auto-camSupportsExp\n  auto-camSetGain\n  auto-camSetExp\n  auto-getWlAxis\n  auto-addLine\n  auto-refreshPlot\n  auto-OnQuit\n  auto-OnTBSave\n  auto-OnTBLoad\n  auto-OnTBDelete\n  auto-OnTBAvgInc\n  auto-OnTBAvgDec\n  auto-OnTBGainInc\n  auto-OnTBGainDec\n  auto-OnTBExpInc\n  auto-OnTBExpDec\n  auto-OnRTBAvgInc\n  auto-OnRTBAvgDec\n  auto-OnRTBGainInc\n  auto-OnRTBGainDec\n  auto-OnRTBExpInc\n  auto-OnRTBExpDec\n  auto-OnTBStart\n  auto-OnTBRecord\n  auto-OnTBMode\n  auto-OnTBAuto\n  auto-OnTBDark\n  auto-OnUpdate"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_002e4c3ac743d0c40069d54e36c0ec8190bb59b881e971b330",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6719,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 11840,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_002e4c3ac743d0c40069d54e372e80819095d0a642d1e55965",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_002e4c3ac743d0c40069d54e4de77481908d0189980785fb6f",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"pyUVVIS紫外-可见光谱采集软件\",\n  \"name_en\": \"pyUVVIS UV-Vis Acquisition Application\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的桌面图形软件组件，用于实验中的紫外-可见光谱采集与显示。它可连接 UC480 相机或 Ocean Optics 光谱输入设备，执行实时读数、波长轴处理、曝光与增益调节、暗背景扣除、平均记录、曲线绘图，以及数据保存和加载。\",\n  \"description_en\": \"A non-physical desktop GUI software component for UV-Vis spectral acquisition and display in laboratory experiments. It can connect to UC480 cameras or Ocean Optics spectral input devices, perform real-time readout, wavelength-axis handling, exposure and gain adjustment, dark subtraction, averaging/recording, curve plotting, and data save/load operations.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-createUI\",\n      \"description\": \"创建图形用户界面。\",\n      \"description_en\": \"Create the graphical user interface.\"\n    },\n    {\n      \"action_name\": \"auto-createTB\",\n      \"description\": \"创建工具栏并绑定界面事件。\",\n      \"description_en\": \"Create the toolbar and bind UI events.\"\n    },\n    {\n      \"action_name\": \"auto-createPlotWnd\",\n      \"description\": \"创建光谱绘图窗口。\",\n      \"description_en\": \"Create the spectrum plotting window.\"\n    },\n    {\n      \"action_name\": \"auto-connectCamera\",\n      \"description\": \"连接当前选择的相机输入设备。\",\n      \"description_en\": \"Connect the currently selected camera input device.\"\n    },\n    {\n      \"action_name\": \"auto-connectUC480\",\n      \"description\": \"连接 UC480 相机。\",\n      \"description_en\": \"Connect a UC480 camera.\"\n    },\n    {\n      \"action_name\": \"auto-connectOO\",\n      \"description\": \"连接 Ocean Optics 光谱输入设备。\",\n      \"description_en\": \"Connect an Ocean Optics spectral input device.\"\n    },\n    {\n      \"action_name\": \"auto-camClose\",\n      \"description\": \"关闭当前相机或输入设备连接。\",\n      \"description_en\": \"Close the current camera or input-device connection.\"\n    },\n    {\n      \"action_name\": \"auto-readCamera\",\n      \"description\": \"从活动输入设备读取一帧数据。\",\n      \"description_en\": \"Read one frame from the active input device.\"\n    },\n    {\n      \"action_name\": \"auto-camSupportsGain\",\n      \"description\": \"检查当前设备是否支持增益调节。\",\n      \"description_en\": \"Check whether the current device supports gain adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-camSupportsExp\",\n      \"description\": \"检查当前设备是否支持曝光调节。\",\n      \"description_en\": \"Check whether the current device supports exposure adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-camSetGain\",\n      \"description\": \"设置当前设备的增益。\",\n      \"description_en\": \"Set the gain of the current device.\"\n    },\n    {\n      \"action_name\": \"auto-camSetExp\",\n      \"description\": \"设置当前设备的曝光时间。\",\n      \"description_en\": \"Set the exposure time of the current device.\"\n    },\n    {\n      \"action_name\": \"auto-getWlAxis\",\n      \"description\": \"获取波长轴数据。\",\n      \"description_en\": \"Get the wavelength axis data.\"\n    },\n    {\n      \"action_name\": \"auto-addLine\",\n      \"description\": \"向绘图窗口添加一条曲线。\",\n      \"description_en\": \"Add a curve to the plot window.\"\n    },\n    {\n      \"action_name\": \"auto-refreshPlot\",\n      \"description\": \"刷新绘图窗口显示。\",\n      \"description_en\": \"Refresh the plot window display.\"\n    },\n    {\n      \"action_name\": \"auto-OnQuit\",\n      \"description\": \"退出程序并关闭相关模块。\",\n      \"description_en\": \"Quit the application and close related modules.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBSave\",\n      \"description\": \"保存当前光谱数据。\",\n      \"description_en\": \"Save the current spectrum data.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBLoad\",\n      \"description\": \"加载已保存的光谱数据。\",\n      \"description_en\": \"Load saved spectrum data.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBDelete\",\n      \"description\": \"删除最近添加的曲线。\",\n      \"description_en\": \"Delete the most recently added curve.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBAvgInc\",\n      \"description\": \"增加平均次数设置。\",\n      \"description_en\": \"Increase the averaging setting.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBAvgDec\",\n      \"description\": \"减少平均次数设置。\",\n      \"description_en\": \"Decrease the averaging setting.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBGainInc\",\n      \"description\": \"增加增益设置。\",\n      \"description_en\": \"Increase the gain setting.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBGainDec\",\n      \"description\": \"减少增益设置。\",\n      \"description_en\": \"Decrease the gain setting.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBExpInc\",\n      \"description\": \"增加曝光设置。\",\n      \"description_en\": \"Increase the exposure setting.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBExpDec\",\n      \"description\": \"减少曝光设置。\",\n      \"description_en\": \"Decrease the exposure setting.\"\n    },\n    {\n      \"action_name\": \"auto-OnRTBAvgInc\",\n      \"description\": \"在实时工具栏中增加平均次数设置。\",\n      \"description_en\": \"Increase the averaging setting from the realtime toolbar.\"\n    },\n    {\n      \"action_name\": \"auto-OnRTBAvgDec\",\n      \"description\": \"在实时工具栏中减少平均次数设置。\",\n      \"description_en\": \"Decrease the averaging setting from the realtime toolbar.\"\n    },\n    {\n      \"action_name\": \"auto-OnRTBGainInc\",\n      \"description\": \"在实时工具栏中增加增益设置。\",\n      \"description_en\": \"Increase the gain setting from the realtime toolbar.\"\n    },\n    {\n      \"action_name\": \"auto-OnRTBGainDec\",\n      \"description\": \"在实时工具栏中减少增益设置。\",\n      \"description_en\": \"Decrease the gain setting from the realtime toolbar.\"\n    },\n    {\n      \"action_name\": \"auto-OnRTBExpInc\",\n      \"description\": \"在实时工具栏中增加曝光设置。\",\n      \"description_en\": \"Increase the exposure setting from the realtime toolbar.\"\n    },\n    {\n      \"action_name\": \"auto-OnRTBExpDec\",\n      \"description\": \"在实时工具栏中减少曝光设置。\",\n      \"description_en\": \"Decrease the exposure setting from the realtime toolbar.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBStart\",\n      \"description\": \"开始采集或测量。\",\n      \"description_en\": \"Start acquisition or measurement.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBRecord\",\n      \"description\": \"切换记录或平均采集状态。\",\n      \"description_en\": \"Toggle recording or averaged acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBMode\",\n      \"description\": \"切换显示或测量模式。\",\n      \"description_en\": \"Switch the display or measurement mode.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBAuto\",\n      \"description\": \"自动调整曝光和增益。\",\n      \"description_en\": \"Automatically adjust exposure and gain.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBDark\",\n      \"description\": \"执行暗背景采集或暗信号校正。\",\n      \"description_en\": \"Perform dark-background acquisition or dark-signal correction.\"\n    },\n    {\n      \"action_name\": \"auto-OnUpdate\",\n      \"description\": \"执行主测量更新循环，读取数据并更新显示。\",\n      \"description_en\": \"Run the main measurement update loop, read data, and update the display.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"UV-Vis spectroscopy\",\n    \"spectral acquisition GUI\",\n    \"real-time plotting\",\n    \"Ocean Optics spectrometer\",\n    \"UC480 camera\",\n    \"dark subtraction\",\n    \"exposure and gain control\",\n    \"wavelength calibration\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2209,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3143,
+      "output_tokens_details": {
+        "reasoning_tokens": 1325
+      },
+      "total_tokens": 5352
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2209,
+      "output_token_count": 3143,
+      "predict_time": 45.940045608
+    }
+  },
+  "output_text": "{\n  \"name\": \"pyUVVIS紫外-可见光谱采集软件\",\n  \"name_en\": \"pyUVVIS UV-Vis Acquisition Application\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的桌面图形软件组件，用于实验中的紫外-可见光谱采集与显示。它可连接 UC480 相机或 Ocean Optics 光谱输入设备，执行实时读数、波长轴处理、曝光与增益调节、暗背景扣除、平均记录、曲线绘图，以及数据保存和加载。\",\n  \"description_en\": \"A non-physical desktop GUI software component for UV-Vis spectral acquisition and display in laboratory experiments. It can connect to UC480 cameras or Ocean Optics spectral input devices, perform real-time readout, wavelength-axis handling, exposure and gain adjustment, dark subtraction, averaging/recording, curve plotting, and data save/load operations.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-createUI\",\n      \"description\": \"创建图形用户界面。\",\n      \"description_en\": \"Create the graphical user interface.\"\n    },\n    {\n      \"action_name\": \"auto-createTB\",\n      \"description\": \"创建工具栏并绑定界面事件。\",\n      \"description_en\": \"Create the toolbar and bind UI events.\"\n    },\n    {\n      \"action_name\": \"auto-createPlotWnd\",\n      \"description\": \"创建光谱绘图窗口。\",\n      \"description_en\": \"Create the spectrum plotting window.\"\n    },\n    {\n      \"action_name\": \"auto-connectCamera\",\n      \"description\": \"连接当前选择的相机输入设备。\",\n      \"description_en\": \"Connect the currently selected camera input device.\"\n    },\n    {\n      \"action_name\": \"auto-connectUC480\",\n      \"description\": \"连接 UC480 相机。\",\n      \"description_en\": \"Connect a UC480 camera.\"\n    },\n    {\n      \"action_name\": \"auto-connectOO\",\n      \"description\": \"连接 Ocean Optics 光谱输入设备。\",\n      \"description_en\": \"Connect an Ocean Optics spectral input device.\"\n    },\n    {\n      \"action_name\": \"auto-camClose\",\n      \"description\": \"关闭当前相机或输入设备连接。\",\n      \"description_en\": \"Close the current camera or input-device connection.\"\n    },\n    {\n      \"action_name\": \"auto-readCamera\",\n      \"description\": \"从活动输入设备读取一帧数据。\",\n      \"description_en\": \"Read one frame from the active input device.\"\n    },\n    {\n      \"action_name\": \"auto-camSupportsGain\",\n      \"description\": \"检查当前设备是否支持增益调节。\",\n      \"description_en\": \"Check whether the current device supports gain adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-camSupportsExp\",\n      \"description\": \"检查当前设备是否支持曝光调节。\",\n      \"description_en\": \"Check whether the current device supports exposure adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-camSetGain\",\n      \"description\": \"设置当前设备的增益。\",\n      \"description_en\": \"Set the gain of the current device.\"\n    },\n    {\n      \"action_name\": \"auto-camSetExp\",\n      \"description\": \"设置当前设备的曝光时间。\",\n      \"description_en\": \"Set the exposure time of the current device.\"\n    },\n    {\n      \"action_name\": \"auto-getWlAxis\",\n      \"description\": \"获取波长轴数据。\",\n      \"description_en\": \"Get the wavelength axis data.\"\n    },\n    {\n      \"action_name\": \"auto-addLine\",\n      \"description\": \"向绘图窗口添加一条曲线。\",\n      \"description_en\": \"Add a curve to the plot window.\"\n    },\n    {\n      \"action_name\": \"auto-refreshPlot\",\n      \"description\": \"刷新绘图窗口显示。\",\n      \"description_en\": \"Refresh the plot window display.\"\n    },\n    {\n      \"action_name\": \"auto-OnQuit\",\n      \"description\": \"退出程序并关闭相关模块。\",\n      \"description_en\": \"Quit the application and close related modules.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBSave\",\n      \"description\": \"保存当前光谱数据。\",\n      \"description_en\": \"Save the current spectrum data.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBLoad\",\n      \"description\": \"加载已保存的光谱数据。\",\n      \"description_en\": \"Load saved spectrum data.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBDelete\",\n      \"description\": \"删除最近添加的曲线。\",\n      \"description_en\": \"Delete the most recently added curve.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBAvgInc\",\n      \"description\": \"增加平均次数设置。\",\n      \"description_en\": \"Increase the averaging setting.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBAvgDec\",\n      \"description\": \"减少平均次数设置。\",\n      \"description_en\": \"Decrease the averaging setting.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBGainInc\",\n      \"description\": \"增加增益设置。\",\n      \"description_en\": \"Increase the gain setting.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBGainDec\",\n      \"description\": \"减少增益设置。\",\n      \"description_en\": \"Decrease the gain setting.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBExpInc\",\n      \"description\": \"增加曝光设置。\",\n      \"description_en\": \"Increase the exposure setting.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBExpDec\",\n      \"description\": \"减少曝光设置。\",\n      \"description_en\": \"Decrease the exposure setting.\"\n    },\n    {\n      \"action_name\": \"auto-OnRTBAvgInc\",\n      \"description\": \"在实时工具栏中增加平均次数设置。\",\n      \"description_en\": \"Increase the averaging setting from the realtime toolbar.\"\n    },\n    {\n      \"action_name\": \"auto-OnRTBAvgDec\",\n      \"description\": \"在实时工具栏中减少平均次数设置。\",\n      \"description_en\": \"Decrease the averaging setting from the realtime toolbar.\"\n    },\n    {\n      \"action_name\": \"auto-OnRTBGainInc\",\n      \"description\": \"在实时工具栏中增加增益设置。\",\n      \"description_en\": \"Increase the gain setting from the realtime toolbar.\"\n    },\n    {\n      \"action_name\": \"auto-OnRTBGainDec\",\n      \"description\": \"在实时工具栏中减少增益设置。\",\n      \"description_en\": \"Decrease the gain setting from the realtime toolbar.\"\n    },\n    {\n      \"action_name\": \"auto-OnRTBExpInc\",\n      \"description\": \"在实时工具栏中增加曝光设置。\",\n      \"description_en\": \"Increase the exposure setting from the realtime toolbar.\"\n    },\n    {\n      \"action_name\": \"auto-OnRTBExpDec\",\n      \"description\": \"在实时工具栏中减少曝光设置。\",\n      \"description_en\": \"Decrease the exposure setting from the realtime toolbar.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBStart\",\n      \"description\": \"开始采集或测量。\",\n      \"description_en\": \"Start acquisition or measurement.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBRecord\",\n      \"description\": \"切换记录或平均采集状态。\",\n      \"description_en\": \"Toggle recording or averaged acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBMode\",\n      \"description\": \"切换显示或测量模式。\",\n      \"description_en\": \"Switch the display or measurement mode.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBAuto\",\n      \"description\": \"自动调整曝光和增益。\",\n      \"description_en\": \"Automatically adjust exposure and gain.\"\n    },\n    {\n      \"action_name\": \"auto-OnTBDark\",\n      \"description\": \"执行暗背景采集或暗信号校正。\",\n      \"description_en\": \"Perform dark-background acquisition or dark-signal correction.\"\n    },\n    {\n      \"action_name\": \"auto-OnUpdate\",\n      \"description\": \"执行主测量更新循环，读取数据并更新显示。\",\n      \"description_en\": \"Run the main measurement update loop, read data, and update the display.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"UV-Vis spectroscopy\",\n    \"spectral acquisition GUI\",\n    \"real-time plotting\",\n    \"Ocean Optics spectrometer\",\n    \"UC480 camera\",\n    \"dark subtraction\",\n    \"exposure and gain control\",\n    \"wavelength calibration\"\n  ]\n}"
+}

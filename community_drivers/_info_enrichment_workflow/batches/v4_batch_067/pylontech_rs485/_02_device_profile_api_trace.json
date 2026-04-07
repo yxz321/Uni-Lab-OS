@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: pylontech_rs485\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pylontech/pylontech_base.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.pylontech_rs485:PylontechRS485\n\nClass: PylontechTimeoutException \n  Bases: ['Exception']\n  Docstring: Raised when receive timeout occurred \n\nClass: PylontechChecksumException \n  Bases: ['Exception']\n  Docstring: Raised when receive timeout occurred \n\nClass: Rs485Handler \n  Bases: []\n  Docstring: Handles the USB to RS485 adapter with TE / Transmit Enable on RTS\nprovides sending and receiving frames defined by start byte and end byte\npreset for\n- 9600 baud,8n1\n- /dev/ttyUSB0 als serial device\n\nClass: PylontechRS485 (focal)\n  Bases: []\n  Docstring: pylontech rs485 protocol handler\ncan send and receive using a RS-485 adapter\n- checks the packet checksum for received packets.\n- adapts the packet checksum and adds prefix and suffix for packets to be sent.\n\nFocal class methods:\n  [command] verbose(self, level=0)\n  [command] receive(self, timeout=1)\n    comment: check len\n    comment: smaller then minimal size\n    comment: check prefix and suffix\n    comment: pefix missing\n    comment: suffix missing\n    comment: try to receive a pylontech type packet from the RS-485 serial port.\n        checks the packet checksum and returns the packet if the checksum is correct.\n        :param timeout:\n            timespan u...\n  [command] get_chk_sum(data, size)\n  [command] send(self, data)\n    comment: sends a pylontech type packet to the RS-485 serial port.\n        :param data: packet as binary string\n                     - checksum will be calculated and written,\n                     - prefix/suff...\n  [command] clear_rx_buffer(self)\n    comment: clear pending characters from serial buffer. especially important for network adapters\n  [command] reconnect(self)\n    comment: force reconnect to serial port\n  [command] close(self)\n    comment: force close serial connection\n\nRegistry actions:\n  auto-verbose (from verbose())\n  auto-receive (from receive())\n  auto-get_chk_sum (from get_chk_sum())\n  auto-send (from send())\n  auto-clear_rx_buffer (from clear_rx_buffer())\n  auto-reconnect (from reconnect())\n  auto-close (from close())\n\nRequired output action ids:\n  auto-verbose\n  auto-receive\n  auto-get_chk_sum\n  auto-send\n  auto-clear_rx_buffer\n  auto-reconnect\n  auto-close"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_02e10db6f2b8dcea0069d54e44e6d08190b2d92c28ad46d613",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3410,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3893,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_02e10db6f2b8dcea0069d54e4552808190ab49b66b40d91815",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_02e10db6f2b8dcea0069d54e4b8a6c8190a973968bf946bba2",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Pylontech RS485 通信协议组件\",\n  \"name_en\": \"Pylontech RS485 Protocol Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非实体的通信协议组件，用于通过 USB 转 RS-485 串口适配器与 Pylontech 协议设备进行报文收发。它负责数据包的前后缀处理、校验和计算与校验、接收超时处理，以及串口连接与接收缓冲区管理，适合在实验系统中作为底层串口通信辅助模块使用。\",\n  \"description_en\": \"This is a non-physical communication/protocol component for sending and receiving packets to Pylontech-protocol devices through a USB-to-RS485 serial adapter. It handles packet prefix/suffix framing, checksum calculation and validation, receive timeouts, and serial connection and RX buffer management, making it suitable as a low-level serial communication helper in laboratory systems.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-verbose\",\n      \"description\": \"设置通信组件的详细输出级别。\",\n      \"description_en\": \"Set the verbosity level of the communication component.\"\n    },\n    {\n      \"action_name\": \"auto-receive\",\n      \"description\": \"从 RS-485 串口接收一个 Pylontech 协议数据包，并检查长度、前后缀和校验和。\",\n      \"description_en\": \"Receive one Pylontech-protocol packet from the RS-485 serial port and check its length, framing bytes, and checksum.\"\n    },\n    {\n      \"action_name\": \"auto-get_chk_sum\",\n      \"description\": \"计算给定数据的校验和。\",\n      \"description_en\": \"Calculate the checksum for the given data.\"\n    },\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"向 RS-485 串口发送一个 Pylontech 协议数据包，并自动补充前后缀与校验和。\",\n      \"description_en\": \"Send one Pylontech-protocol packet over the RS-485 serial port, automatically adding framing bytes and checksum.\"\n    },\n    {\n      \"action_name\": \"auto-clear_rx_buffer\",\n      \"description\": \"清空串口接收缓冲区中的待处理数据。\",\n      \"description_en\": \"Clear pending data from the serial receive buffer.\"\n    },\n    {\n      \"action_name\": \"auto-reconnect\",\n      \"description\": \"强制重新连接串口。\",\n      \"description_en\": \"Force reconnection to the serial port.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭串口连接。\",\n      \"description_en\": \"Close the serial connection.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"RS-485 serial communication\",\n    \"USB-to-RS485 adapter\",\n    \"packet framing\",\n    \"checksum validation\",\n    \"serial port reconnect\",\n    \"Pylontech protocol\",\n    \"RX buffer management\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1250,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 969,
+      "output_tokens_details": {
+        "reasoning_tokens": 326
+      },
+      "total_tokens": 2219
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1250,
+      "output_token_count": 969,
+      "predict_time": 18.893217152
+    }
+  },
+  "output_text": "{\n  \"name\": \"Pylontech RS485 通信协议组件\",\n  \"name_en\": \"Pylontech RS485 Protocol Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非实体的通信协议组件，用于通过 USB 转 RS-485 串口适配器与 Pylontech 协议设备进行报文收发。它负责数据包的前后缀处理、校验和计算与校验、接收超时处理，以及串口连接与接收缓冲区管理，适合在实验系统中作为底层串口通信辅助模块使用。\",\n  \"description_en\": \"This is a non-physical communication/protocol component for sending and receiving packets to Pylontech-protocol devices through a USB-to-RS485 serial adapter. It handles packet prefix/suffix framing, checksum calculation and validation, receive timeouts, and serial connection and RX buffer management, making it suitable as a low-level serial communication helper in laboratory systems.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-verbose\",\n      \"description\": \"设置通信组件的详细输出级别。\",\n      \"description_en\": \"Set the verbosity level of the communication component.\"\n    },\n    {\n      \"action_name\": \"auto-receive\",\n      \"description\": \"从 RS-485 串口接收一个 Pylontech 协议数据包，并检查长度、前后缀和校验和。\",\n      \"description_en\": \"Receive one Pylontech-protocol packet from the RS-485 serial port and check its length, framing bytes, and checksum.\"\n    },\n    {\n      \"action_name\": \"auto-get_chk_sum\",\n      \"description\": \"计算给定数据的校验和。\",\n      \"description_en\": \"Calculate the checksum for the given data.\"\n    },\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"向 RS-485 串口发送一个 Pylontech 协议数据包，并自动补充前后缀与校验和。\",\n      \"description_en\": \"Send one Pylontech-protocol packet over the RS-485 serial port, automatically adding framing bytes and checksum.\"\n    },\n    {\n      \"action_name\": \"auto-clear_rx_buffer\",\n      \"description\": \"清空串口接收缓冲区中的待处理数据。\",\n      \"description_en\": \"Clear pending data from the serial receive buffer.\"\n    },\n    {\n      \"action_name\": \"auto-reconnect\",\n      \"description\": \"强制重新连接串口。\",\n      \"description_en\": \"Force reconnection to the serial port.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭串口连接。\",\n      \"description_en\": \"Close the serial connection.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"RS-485 serial communication\",\n    \"USB-to-RS485 adapter\",\n    \"packet framing\",\n    \"checksum validation\",\n    \"serial port reconnect\",\n    \"Pylontech protocol\",\n    \"RX buffer management\"\n  ]\n}"
+}

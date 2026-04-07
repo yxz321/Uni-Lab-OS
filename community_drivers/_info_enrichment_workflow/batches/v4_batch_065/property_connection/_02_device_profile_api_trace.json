@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: property_connection\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: nion/swift/model/Connection.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.property_connection.property_connection:PropertyConnection\n\nClass: Connection \n  Bases: ['Persistence.PersistentObject']\n  Docstring: Represents a connection between two objects. \n\nClass: PropertyConnection (focal)\n  Bases: ['Connection']\n  Docstring: Binds the properties of two objects together. \n\nClass: IntervalListConnection \n  Bases: ['Connection']\n  Docstring: Binds the intervals on a display to the interval_descriptors on a line profile graphic.\n\nThis is a one way connection from the display to the line profile graphic.\n\nFocal class methods:\n  [command] close(self)\n  [status_getter] source_specifier(self)\n  [status_setter] source_specifier(self, value)\n  [status_getter] target_specifier(self)\n  [status_setter] target_specifier(self, value)\n  [status_getter] source_property(self)\n  [status_setter] source_property(self, value)\n  [status_getter] target_property(self)\n  [status_setter] target_property(self, value)\n  [status_getter] connected_items(self)\n  [status_getter] source(self)\n  [status_getter] target(self)\n\nRegistry actions:\n  auto-close (from close())\n  auto-source_specifier (from source_specifier())\n  auto-target_specifier (from target_specifier())\n  auto-source_property (from source_property())\n  auto-target_property (from target_property())\n\nRequired output action ids:\n  auto-close\n  auto-source_specifier\n  auto-target_specifier\n  auto-source_property\n  auto-target_property"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_02de67ffd611b0380069d54bffda8481948d53e4f22ca909d8",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2612,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4174,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_02de67ffd611b0380069d54c005c14819498ce6cac3eea6269",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_02de67ffd611b0380069d54c09c63881949ebd295ed49a15ff",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"属性连接组件\",\n  \"name_en\": \"Property Connection\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件连接组件，用于将两个对象的属性绑定在一起。在实验软件模型或界面中，它可用于维护源对象与目标对象之间的属性同步，并记录源/目标对象标识及对应的属性名。\",\n  \"description_en\": \"A non-physical software connection component that binds the properties of two objects together. In experiment software models or user interfaces, it is used to maintain synchronization between a source object's property and a target object's property, while storing the source/target specifiers and property names.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭属性连接。\",\n      \"description_en\": \"Close the property connection.\"\n    },\n    {\n      \"action_name\": \"auto-source_specifier\",\n      \"description\": \"获取/设置/定义源对象标识。\",\n      \"description_en\": \"Get/set/define the source object specifier.\"\n    },\n    {\n      \"action_name\": \"auto-target_specifier\",\n      \"description\": \"获取/设置/定义目标对象标识。\",\n      \"description_en\": \"Get/set/define the target object specifier.\"\n    },\n    {\n      \"action_name\": \"auto-source_property\",\n      \"description\": \"获取/设置/定义源属性名称。\",\n      \"description_en\": \"Get/set/define the source property name.\"\n    },\n    {\n      \"action_name\": \"auto-target_property\",\n      \"description\": \"获取/设置/定义目标属性名称。\",\n      \"description_en\": \"Get/set/define the target property name.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"property binding\",\n    \"object synchronization\",\n    \"experiment software model\",\n    \"UI property linkage\",\n    \"source target mapping\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1046,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 918,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 1964
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1046,
+      "output_token_count": 918,
+      "predict_time": 19.557766818
+    }
+  },
+  "output_text": "{\n  \"name\": \"属性连接组件\",\n  \"name_en\": \"Property Connection\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件连接组件，用于将两个对象的属性绑定在一起。在实验软件模型或界面中，它可用于维护源对象与目标对象之间的属性同步，并记录源/目标对象标识及对应的属性名。\",\n  \"description_en\": \"A non-physical software connection component that binds the properties of two objects together. In experiment software models or user interfaces, it is used to maintain synchronization between a source object's property and a target object's property, while storing the source/target specifiers and property names.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭属性连接。\",\n      \"description_en\": \"Close the property connection.\"\n    },\n    {\n      \"action_name\": \"auto-source_specifier\",\n      \"description\": \"获取/设置/定义源对象标识。\",\n      \"description_en\": \"Get/set/define the source object specifier.\"\n    },\n    {\n      \"action_name\": \"auto-target_specifier\",\n      \"description\": \"获取/设置/定义目标对象标识。\",\n      \"description_en\": \"Get/set/define the target object specifier.\"\n    },\n    {\n      \"action_name\": \"auto-source_property\",\n      \"description\": \"获取/设置/定义源属性名称。\",\n      \"description_en\": \"Get/set/define the source property name.\"\n    },\n    {\n      \"action_name\": \"auto-target_property\",\n      \"description\": \"获取/设置/定义目标属性名称。\",\n      \"description_en\": \"Get/set/define the target property name.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"property binding\",\n    \"object synchronization\",\n    \"experiment software model\",\n    \"UI property linkage\",\n    \"source target mapping\"\n  ]\n}"
+}

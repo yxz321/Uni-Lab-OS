@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: plate_reader\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pylabrobot/plate_reading/plate_reader.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.plate_reader.device:PlateReader\n\nClass: PlateReader (focal)\n  Bases: ['ResourceHolder', 'Machine']\n  Docstring: The front end for plate readers. Plate readers are devices that can read luminescence,\nabsorbance, or fluorescence from a plate.\n\nPlate readers are asynchronous, meaning that their methods will return immediately and\nwill not block.\n\nHere's an example of how to use this class in a Jupyter Notebook:\n\n>>> from pylabrobot.plate_reading.clario_star import CLARIOStarBackend\n>>> pr = PlateReader(backend=CLARIOStarBackend())\n>>> pr.setup()\n>>> await pr.read_luminescence()\n[[value1, value2, value3, ...], [value1, value2, value3, ...], ...\n\nFocal class methods:\n  [command] assign_child_resource(self, resource, location=None, reassign=True)\n  [status_getter] get_plate(self)\n  [command] open(self, **backend_kwargs)\n  [command] close(self, **backend_kwargs)\n  [command] read_luminescence(self, focal_height, wells=None, use_new_return_type=False, **backend_kwargs)\n    comment: Read the luminescence from the plate reader.\n\n    Args:\n      focal_height: The focal height to read the luminescence at, in micrometers.\n      use_new_return_type: Whether to return the new return ty...\n  [command] read_absorbance(self, wavelength, wells=None, use_new_return_type=False, **backend_kwargs)\n    comment: Read the absorbance from the plate reader.\n\n    Args:\n      wavelength: The wavelength to read the absorbance at, in nanometers.\n      use_new_return_type: Whether to return the new return type, which...\n  [command] read_fluorescence(self, excitation_wavelength, emission_wavelength, focal_height, wells=None, use_new_return_type=False, **backend_kwargs)\n    comment: Read the fluorescence from the plate reader.\n\n    Args:\n      excitation_wavelength: The excitation wavelength to read the fluorescence at, in nanometers.\n      emission_wavelength: The emission wavel...\n  [command] serialize(self)\n\nRegistry actions:\n  auto-assign_child_resource (from assign_child_resource())\n  auto-close (from close())\n  auto-open (from open())\n  auto-read_absorbance (from read_absorbance())\n  auto-read_fluorescence (from read_fluorescence())\n  auto-read_luminescence (from read_luminescence())\n  auto-serialize (from serialize())\n  auto-get_plate (from get_plate())\n\nRequired output action ids:\n  auto-assign_child_resource\n  auto-close\n  auto-open\n  auto-read_absorbance\n  auto-read_fluorescence\n  auto-read_luminescence\n  auto-serialize\n  auto-get_plate"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0cbe0444256ef72a0069d549ac4e8881939237a2cb0b249265",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1790,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4508,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0cbe0444256ef72a0069d549accf54819393c0113c886a5130",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0cbe0444256ef72a0069d549b7f03c81938208bd432f6226cb",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"多功能酶标仪\",\n  \"name_en\": \"Microplate Reader\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于读取微孔板中各孔的吸光度、荧光和发光信号的实验仪器，常用于生化分析、细胞实验和板式检测流程。\",\n  \"description_en\": \"An instrument used to read absorbance, fluorescence, and luminescence signals from wells in a microplate, commonly used for biochemical assays, cell-based experiments, and plate-based analytical workflows.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-assign_child_resource\",\n      \"description\": \"将微孔板资源分配并装载到酶标仪中。\",\n      \"description_en\": \"Assign and load a microplate resource into the plate reader.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭酶标仪的舱门或托盘，以准备检测。\",\n      \"description_en\": \"Close the plate reader door or tray to prepare for measurement.\"\n    },\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开酶标仪的舱门或托盘，以便放入或取出微孔板。\",\n      \"description_en\": \"Open the plate reader door or tray to insert or remove a microplate.\"\n    },\n    {\n      \"action_name\": \"auto-read_absorbance\",\n      \"description\": \"在指定波长下读取微孔板各孔的吸光度。\",\n      \"description_en\": \"Read absorbance from the wells of a microplate at a specified wavelength.\"\n    },\n    {\n      \"action_name\": \"auto-read_fluorescence\",\n      \"description\": \"在指定激发波长、发射波长和焦高条件下读取微孔板各孔的荧光信号。\",\n      \"description_en\": \"Read fluorescence from the wells of a microplate using specified excitation wavelength, emission wavelength, and focal height.\"\n    },\n    {\n      \"action_name\": \"auto-read_luminescence\",\n      \"description\": \"在指定焦高条件下读取微孔板各孔的发光信号。\",\n      \"description_en\": \"Read luminescence from the wells of a microplate at a specified focal height.\"\n    },\n    {\n      \"action_name\": \"auto-serialize\",\n      \"description\": \"序列化酶标仪的当前状态或资源信息。\",\n      \"description_en\": \"Serialize the current state or resource information of the plate reader.\"\n    },\n    {\n      \"action_name\": \"auto-get_plate\",\n      \"description\": \"获取当前装载的微孔板。\",\n      \"description_en\": \"Get the currently loaded microplate.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"microplate reader\",\n    \"absorbance measurement\",\n    \"fluorescence detection\",\n    \"luminescence assay\",\n    \"plate-based assays\",\n    \"microplate handling\",\n    \"asynchronous instrument control\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1317,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1151,
+      "output_tokens_details": {
+        "reasoning_tokens": 503
+      },
+      "total_tokens": 2468
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1317,
+      "output_token_count": 1151,
+      "predict_time": 23.130557592
+    }
+  },
+  "output_text": "{\n  \"name\": \"多功能酶标仪\",\n  \"name_en\": \"Microplate Reader\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于读取微孔板中各孔的吸光度、荧光和发光信号的实验仪器，常用于生化分析、细胞实验和板式检测流程。\",\n  \"description_en\": \"An instrument used to read absorbance, fluorescence, and luminescence signals from wells in a microplate, commonly used for biochemical assays, cell-based experiments, and plate-based analytical workflows.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-assign_child_resource\",\n      \"description\": \"将微孔板资源分配并装载到酶标仪中。\",\n      \"description_en\": \"Assign and load a microplate resource into the plate reader.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭酶标仪的舱门或托盘，以准备检测。\",\n      \"description_en\": \"Close the plate reader door or tray to prepare for measurement.\"\n    },\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开酶标仪的舱门或托盘，以便放入或取出微孔板。\",\n      \"description_en\": \"Open the plate reader door or tray to insert or remove a microplate.\"\n    },\n    {\n      \"action_name\": \"auto-read_absorbance\",\n      \"description\": \"在指定波长下读取微孔板各孔的吸光度。\",\n      \"description_en\": \"Read absorbance from the wells of a microplate at a specified wavelength.\"\n    },\n    {\n      \"action_name\": \"auto-read_fluorescence\",\n      \"description\": \"在指定激发波长、发射波长和焦高条件下读取微孔板各孔的荧光信号。\",\n      \"description_en\": \"Read fluorescence from the wells of a microplate using specified excitation wavelength, emission wavelength, and focal height.\"\n    },\n    {\n      \"action_name\": \"auto-read_luminescence\",\n      \"description\": \"在指定焦高条件下读取微孔板各孔的发光信号。\",\n      \"description_en\": \"Read luminescence from the wells of a microplate at a specified focal height.\"\n    },\n    {\n      \"action_name\": \"auto-serialize\",\n      \"description\": \"序列化酶标仪的当前状态或资源信息。\",\n      \"description_en\": \"Serialize the current state or resource information of the plate reader.\"\n    },\n    {\n      \"action_name\": \"auto-get_plate\",\n      \"description\": \"获取当前装载的微孔板。\",\n      \"description_en\": \"Get the currently loaded microplate.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"microplate reader\",\n    \"absorbance measurement\",\n    \"fluorescence detection\",\n    \"luminescence assay\",\n    \"plate-based assays\",\n    \"microplate handling\",\n    \"asynchronous instrument control\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: pulsar\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pycqed/measurement/waveform_control/pulsar.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.awg_controller.pulsar:Pulsar\n\nClass: Pulsar (focal)\n  Bases: ['Instrument']\n  Docstring: A meta-instrument responsible for all communication with the AWGs.\nContains information about all the available awg-channels in the setup.\nStarting, stopping and programming and changing the parameters of the AWGs\nshould be done through Pulsar. Supports Tektronix AWG5014 and partially\nZI UHFLI.\n\nArgs:\n    default_AWG: Name of the AWG that new channels get defined on if no\n                 AWG is specified\n    master_AWG: Name of the AWG that triggers all the other AWG-s and\n                should be started last (after other AWG-s are already\n                waiting for a trigger.\n\nFocal class methods:\n  [command] define_channel(self, id, name, type, delay, offset, high, low, active, AWG=None)\n    comment: channel handling\n    comment: The AWG object must be created before creating channels for that AWG\n\n        Args:\n            id: channel id. For the Tektronix 5014 must be of the form\n                ch#(_marker#) with # a number...\n  [command] AWG_obj(self, **kw)\n    comment: Return the AWG object corresponding to a channel or an AWG name.\n\n        Args:\n            AWG: Name of the AWG Instrument.\n            channel: Name of the channel\n\n        Returns: An instance of I...\n  [command] clock(self, channel)\n    comment: Returns the clock rate of channel `channel`\n        Args:\n            channel: name of the channel\n        Returns: clock rate in samples per second\n  [command] channel_opt(self, name, option, value=None)\n    comment: Convenience function to get or set a channel option.\n        Args:\n            name: Name of the channel.\n            option: Name of the option. Available options:\n                * 'id'\n            ...\n  [command] used_AWGs(self)\n    comment: Returns:\n            A set of the names of the active AWGs registered\n  [command] start(self)\n    comment: Start the active AWGs. If multiple AWGs are used in a setup where the\n        slave AWGs are triggered by the master AWG, then the slave AWGs must be\n        running and waiting for trigger when the m...\n  [command] stop(self)\n    comment: Stop all active AWGs.\n  [command] program_awgs(self, sequence, *elements, AWGs='all', channels='all', loop=True, allow_first_nonzero=True, verbose=False)\n    comment: Stores the last uploaded elements for easy access and plotting\n    comment: prequery all AWG clock values\n    comment: dict(name of AWG ->\n    comment: dict(element name ->\n    comment: dict(channel id ->\n    comment: waveform data)))\n    comment: Args:\n            sequence: The `Sequence` object that determines the segment order,\n                      repetition and trigger wait.\n            *elements: The `Element` objects to program to the A...\n  [command] update_channel_settings()\n  [command] update_AWG5014_settings(self, AWGs='all')\n    comment: Updates the AWG5014 parameters to the values in\n        `self.channels`\n\n        Args:\n            AWGs: A list of AWG names to update or 'all'. Default 'all'.\n\nRegistry actions:\n  auto-define_channel (from define_channel())\n  auto-AWG_obj (from AWG_obj())\n  auto-clock (from clock())\n  auto-channel_opt (from channel_opt())\n  auto-used_AWGs (from used_AWGs())\n  auto-program_awgs (from program_awgs())\n  auto-update_channel_settings (from update_channel_settings())\n  auto-update_AWG5014_settings (from update_AWG5014_settings())\n\nRequired output action ids:\n  auto-define_channel\n  auto-AWG_obj\n  auto-clock\n  auto-channel_opt\n  auto-used_AWGs\n  auto-program_awgs\n  auto-update_channel_settings\n  auto-update_AWG5014_settings"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0d8df66629549a100069d54c15a60881979eb34096d0b0dca3",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1793,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5521,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0d8df66629549a100069d54c17cec88197b945dc0338282d88",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0d8df66629549a100069d54c2595c88197baf3b9c98990d036",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Pulsar任意波形发生器协调控制器\",\n  \"name_en\": \"Pulsar AWG Orchestration Controller\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件组件，用于在实验中统一管理、配置和编程一台或多台任意波形发生器（AWG）。它维护通道定义、查询时钟、协调主从AWG启动，并将序列与波形元素下发到受支持的AWG，证据显示其主要面向 Tektronix AWG5014，并部分支持 Zurich Instruments UHFLI。\",\n  \"description_en\": \"A non-physical software component for centrally managing, configuring, and programming one or more arbitrary waveform generators (AWGs) in experiments. It keeps channel definitions, queries clock rates, coordinates master/slave AWG startup, and uploads sequences and waveform elements to supported AWGs. The evidence indicates primary support for the Tektronix AWG5014 and partial support for the Zurich Instruments UHFLI.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-define_channel\",\n      \"description\": \"定义并登记AWG通道及其延迟、偏置、电平、激活状态和所属AWG，用于后续波形映射与控制。\",\n      \"description_en\": \"Define and register an AWG channel with its delay, offset, levels, active state, and assigned AWG for later waveform mapping and control.\"\n    },\n    {\n      \"action_name\": \"auto-AWG_obj\",\n      \"description\": \"根据AWG名称或通道名称返回对应的AWG对象，用于定位目标仪器。\",\n      \"description_en\": \"Return the corresponding AWG object based on an AWG name or channel name to identify the target instrument.\"\n    },\n    {\n      \"action_name\": \"auto-clock\",\n      \"description\": \"获取指定通道对应AWG的采样时钟速率。\",\n      \"description_en\": \"Get the sampling clock rate of the AWG associated with a specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-channel_opt\",\n      \"description\": \"获取或设置已定义通道的配置选项。\",\n      \"description_en\": \"Get or set a configuration option for a previously defined channel.\"\n    },\n    {\n      \"action_name\": \"auto-used_AWGs\",\n      \"description\": \"返回当前已注册并处于活动使用状态的AWG名称集合。\",\n      \"description_en\": \"Return the set of AWG names that are currently registered and actively used.\"\n    },\n    {\n      \"action_name\": \"auto-program_awgs\",\n      \"description\": \"将实验序列和波形元素编程到一个或多个AWG，上传波形并设置段顺序、循环和触发等待。\",\n      \"description_en\": \"Program one or more AWGs with an experimental sequence and waveform elements, uploading waveforms and setting segment order, looping, and trigger waiting.\"\n    },\n    {\n      \"action_name\": \"auto-update_channel_settings\",\n      \"description\": \"根据当前保存的通道定义更新相关AWG的通道设置。\",\n      \"description_en\": \"Update AWG channel settings based on the currently stored channel definitions.\"\n    },\n    {\n      \"action_name\": \"auto-update_AWG5014_settings\",\n      \"description\": \"将保存的通道参数写入Tektronix AWG5014的设置中。\",\n      \"description_en\": \"Apply the stored channel parameters to the settings of a Tektronix AWG5014.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"AWG orchestration\",\n    \"multi-AWG synchronization\",\n    \"waveform programming\",\n    \"channel mapping\",\n    \"master-slave triggering\",\n    \"Tektronix AWG5014\",\n    \"Zurich Instruments UHFLI\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1584,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1528,
+      "output_tokens_details": {
+        "reasoning_tokens": 708
+      },
+      "total_tokens": 3112
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1584,
+      "output_token_count": 1528,
+      "predict_time": 32.993935287
+    }
+  },
+  "output_text": "{\n  \"name\": \"Pulsar任意波形发生器协调控制器\",\n  \"name_en\": \"Pulsar AWG Orchestration Controller\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件组件，用于在实验中统一管理、配置和编程一台或多台任意波形发生器（AWG）。它维护通道定义、查询时钟、协调主从AWG启动，并将序列与波形元素下发到受支持的AWG，证据显示其主要面向 Tektronix AWG5014，并部分支持 Zurich Instruments UHFLI。\",\n  \"description_en\": \"A non-physical software component for centrally managing, configuring, and programming one or more arbitrary waveform generators (AWGs) in experiments. It keeps channel definitions, queries clock rates, coordinates master/slave AWG startup, and uploads sequences and waveform elements to supported AWGs. The evidence indicates primary support for the Tektronix AWG5014 and partial support for the Zurich Instruments UHFLI.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-define_channel\",\n      \"description\": \"定义并登记AWG通道及其延迟、偏置、电平、激活状态和所属AWG，用于后续波形映射与控制。\",\n      \"description_en\": \"Define and register an AWG channel with its delay, offset, levels, active state, and assigned AWG for later waveform mapping and control.\"\n    },\n    {\n      \"action_name\": \"auto-AWG_obj\",\n      \"description\": \"根据AWG名称或通道名称返回对应的AWG对象，用于定位目标仪器。\",\n      \"description_en\": \"Return the corresponding AWG object based on an AWG name or channel name to identify the target instrument.\"\n    },\n    {\n      \"action_name\": \"auto-clock\",\n      \"description\": \"获取指定通道对应AWG的采样时钟速率。\",\n      \"description_en\": \"Get the sampling clock rate of the AWG associated with a specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-channel_opt\",\n      \"description\": \"获取或设置已定义通道的配置选项。\",\n      \"description_en\": \"Get or set a configuration option for a previously defined channel.\"\n    },\n    {\n      \"action_name\": \"auto-used_AWGs\",\n      \"description\": \"返回当前已注册并处于活动使用状态的AWG名称集合。\",\n      \"description_en\": \"Return the set of AWG names that are currently registered and actively used.\"\n    },\n    {\n      \"action_name\": \"auto-program_awgs\",\n      \"description\": \"将实验序列和波形元素编程到一个或多个AWG，上传波形并设置段顺序、循环和触发等待。\",\n      \"description_en\": \"Program one or more AWGs with an experimental sequence and waveform elements, uploading waveforms and setting segment order, looping, and trigger waiting.\"\n    },\n    {\n      \"action_name\": \"auto-update_channel_settings\",\n      \"description\": \"根据当前保存的通道定义更新相关AWG的通道设置。\",\n      \"description_en\": \"Update AWG channel settings based on the currently stored channel definitions.\"\n    },\n    {\n      \"action_name\": \"auto-update_AWG5014_settings\",\n      \"description\": \"将保存的通道参数写入Tektronix AWG5014的设置中。\",\n      \"description_en\": \"Apply the stored channel parameters to the settings of a Tektronix AWG5014.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"AWG orchestration\",\n    \"multi-AWG synchronization\",\n    \"waveform programming\",\n    \"channel mapping\",\n    \"master-slave triggering\",\n    \"Tektronix AWG5014\",\n    \"Zurich Instruments UHFLI\"\n  ]\n}"
+}

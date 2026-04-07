@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: rigol1054z\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: drivers/oscilloscopes/rigol_1000z.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.oscilloscope.rigol.rigol_ds1054z:Rigol1054z\n\nClass: _Usbtmc \n  Bases: []\n  Docstring: Simple usbmtc device\n\nClass: _Rigol1054zChannel \n  Bases: []\n\nClass: _Rigol1054zTrigger \n  Bases: []\n\nClass: _Rigol1054zTimebase \n  Bases: []\n\nClass: Rigol1054z (focal)\n  Bases: ['_Usbtmc']\n\nFocal class methods:\n  [command] autoscale(self)\n  [command] clear(self)\n  [command] run(self)\n  [command] stop(self)\n  [command] force(self)\n  [command] set_single_shot(self)\n  [status_getter] get_id(self)\n  [status_getter] get_averaging(self)\n  [status_setter] set_averaging(self, count)\n  [command] set_averaging_mode(self)\n  [command] set_normal_mode(self)\n  [command] set_high_resolution_mode(self)\n  [command] set_peak_mode(self)\n  [status_getter] get_mode(self)\n  [status_getter] get_sampling_rate(self)\n  [status_getter] get_memory_depth(self)\n  [status_setter] set_memory_depth(self, pts)\n  [status_getter] get_channels_enabled(self)\n  [command] selected_channel(self)\n  [status_getter] get_screenshot(self, filename, type='png')\n\nRegistry actions:\n  auto-autoscale (from autoscale())\n  auto-clear (from clear())\n  auto-run (from run())\n  auto-stop (from stop())\n  auto-force (from force())\n  auto-set_single_shot (from set_single_shot())\n  auto-set_averaging (from set_averaging())\n  auto-set_averaging_mode (from set_averaging_mode())\n  auto-set_normal_mode (from set_normal_mode())\n  auto-set_high_resolution_mode (from set_high_resolution_mode())\n  auto-set_peak_mode (from set_peak_mode())\n  auto-set_memory_depth (from set_memory_depth())\n  auto-selected_channel (from selected_channel())\n  auto-get_id (from get_id())\n  auto-get_averaging (from get_averaging())\n  auto-get_mode (from get_mode())\n  auto-get_sampling_rate (from get_sampling_rate())\n  auto-get_memory_depth (from get_memory_depth())\n  auto-get_channels_enabled (from get_channels_enabled())\n  auto-get_screenshot (from get_screenshot())\n  auto-get_voltage_rms_V (from get_voltage_rms_V())\n  auto-select_channel (from select_channel())\n  auto-get_coupling (from get_coupling())\n  auto-set_coupling (from set_coupling())\n  auto-enable (from enable())\n  auto-disable (from disable())\n  auto-enabled (from enabled())\n  auto-disabled (from disabled())\n  auto-get_offset_V (from get_offset_V())\n  auto-set_offset_V (from set_offset_V())\n  auto-get_range_V (from get_range_V())\n  auto-set_range_V (from set_range_V())\n  auto-set_vertical_scale_V (from set_vertical_scale_V())\n  auto-get_probe_ratio (from get_probe_ratio())\n  auto-set_probe_ratio (from set_probe_ratio())\n  auto-get_units (from get_units())\n  auto-set_units (from set_units())\n  auto-get_data_premable (from get_data_premable())\n  auto-get_data (from get_data())\n  auto-get_trigger_level_V (from get_trigger_level_V())\n  auto-set_trigger_level_V (from set_trigger_level_V())\n  auto-get_trigger_holdoff_s (from get_trigger_holdoff_s())\n  auto-set_trigger_holdoff_s (from set_trigger_holdoff_s())\n  auto-get_timebase_scale_s_div (from get_timebase_scale_s_div())\n  auto-set_timebase_scale_s_div (from set_timebase_scale_s_div())\n  auto-get_timebase_mode (from get_timebase_mode())\n  auto-set_timebase_mode (from set_timebase_mode())\n  auto-get_timebase_offset_s (from get_timebase_offset_s())\n  auto-set_timebase_offset_s (from set_timebase_offset_s())\n\nRequired output action ids:\n  auto-autoscale\n  auto-clear\n  auto-run\n  auto-stop\n  auto-force\n  auto-set_single_shot\n  auto-set_averaging\n  auto-set_averaging_mode\n  auto-set_normal_mode\n  auto-set_high_resolution_mode\n  auto-set_peak_mode\n  auto-set_memory_depth\n  auto-selected_channel\n  auto-get_id\n  auto-get_averaging\n  auto-get_mode\n  auto-get_sampling_rate\n  auto-get_memory_depth\n  auto-get_channels_enabled\n  auto-get_screenshot\n  auto-get_voltage_rms_V\n  auto-select_channel\n  auto-get_coupling\n  auto-set_coupling\n  auto-enable\n  auto-disable\n  auto-enabled\n  auto-disabled\n  auto-get_offset_V\n  auto-set_offset_V\n  auto-get_range_V\n  auto-set_range_V\n  auto-set_vertical_scale_V\n  auto-get_probe_ratio\n  auto-set_probe_ratio\n  auto-get_units\n  auto-set_units\n  auto-get_data_premable\n  auto-get_data\n  auto-get_trigger_level_V\n  auto-set_trigger_level_V\n  auto-get_trigger_holdoff_s\n  auto-set_trigger_holdoff_s\n  auto-get_timebase_scale_s_div\n  auto-set_timebase_scale_s_div\n  auto-get_timebase_mode\n  auto-set_timebase_mode\n  auto-get_timebase_offset_s\n  auto-set_timebase_offset_s"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_08d2abda4f140d710069d550691b488193ba3f6a110fc40766",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5662,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 14614,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_08d2abda4f140d710069d550697f1881938ee88c1698a080d3",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_08d2abda4f140d710069d5508236cc81938527fada7f3e685d",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Rigol DS1054Z数字示波器\",\n  \"name_en\": \"Rigol DS1054Z Digital Oscilloscope\",\n  \"manufacturer\": \"Rigol\",\n  \"description\": \"这是一台台式数字示波器，通过USBTMC接口进行控制，用于采集和显示电信号波形，并可进行通道配置、触发设置、时基调整、采样与存储深度查询、波形数据读取以及屏幕截图获取，适合实验中的通用电信号观测与分析。\",\n  \"description_en\": \"This is a bench digital oscilloscope controlled over USBTMC, used to acquire and display electrical waveforms. It supports channel configuration, trigger setup, timebase adjustment, sampling and memory-depth queries, waveform data retrieval, and screenshot capture for general laboratory signal observation and analysis.\",\n  \"tag_hints\": [\n    \"digital oscilloscope\",\n    \"waveform acquisition\",\n    \"USBTMC\",\n    \"trigger control\",\n    \"timebase setting\",\n    \"channel scaling\",\n    \"waveform export\",\n    \"RMS voltage measurement\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-autoscale\",\n      \"description\": \"自动调整示波器设置以稳定显示波形\",\n      \"description_en\": \"automatically adjust oscilloscope settings to stabilize the waveform display\"\n    },\n    {\n      \"action_name\": \"auto-clear\",\n      \"description\": \"清除示波器显示或采集状态\",\n      \"description_en\": \"clear the oscilloscope display or acquisition state\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"开始连续采集波形\",\n      \"description_en\": \"start continuous waveform acquisition\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止波形采集\",\n      \"description_en\": \"stop waveform acquisition\"\n    },\n    {\n      \"action_name\": \"auto-force\",\n      \"description\": \"强制触发一次采集\",\n      \"description_en\": \"force a trigger event\"\n    },\n    {\n      \"action_name\": \"auto-set_single_shot\",\n      \"description\": \"设置单次采集模式\",\n      \"description_en\": \"set single-shot acquisition mode\"\n    },\n    {\n      \"action_name\": \"auto-set_averaging\",\n      \"description\": \"设置平均次数\",\n      \"description_en\": \"set averaging count\"\n    },\n    {\n      \"action_name\": \"auto-set_averaging_mode\",\n      \"description\": \"设置平均采集模式\",\n      \"description_en\": \"set averaging acquisition mode\"\n    },\n    {\n      \"action_name\": \"auto-set_normal_mode\",\n      \"description\": \"设置普通采集模式\",\n      \"description_en\": \"set normal acquisition mode\"\n    },\n    {\n      \"action_name\": \"auto-set_high_resolution_mode\",\n      \"description\": \"设置高分辨率采集模式\",\n      \"description_en\": \"set high-resolution acquisition mode\"\n    },\n    {\n      \"action_name\": \"auto-set_peak_mode\",\n      \"description\": \"设置峰值检测模式\",\n      \"description_en\": \"set peak-detect mode\"\n    },\n    {\n      \"action_name\": \"auto-set_memory_depth\",\n      \"description\": \"设置存储深度\",\n      \"description_en\": \"set memory depth\"\n    },\n    {\n      \"action_name\": \"auto-selected_channel\",\n      \"description\": \"选择当前活动通道\",\n      \"description_en\": \"select the active channel\"\n    },\n    {\n      \"action_name\": \"auto-get_id\",\n      \"description\": \"获取设备标识\",\n      \"description_en\": \"get device identification\"\n    },\n    {\n      \"action_name\": \"auto-get_averaging\",\n      \"description\": \"获取平均次数\",\n      \"description_en\": \"get averaging count\"\n    },\n    {\n      \"action_name\": \"auto-get_mode\",\n      \"description\": \"获取采集模式\",\n      \"description_en\": \"get acquisition mode\"\n    },\n    {\n      \"action_name\": \"auto-get_sampling_rate\",\n      \"description\": \"获取采样率\",\n      \"description_en\": \"get sampling rate\"\n    },\n    {\n      \"action_name\": \"auto-get_memory_depth\",\n      \"description\": \"获取存储深度\",\n      \"description_en\": \"get memory depth\"\n    },\n    {\n      \"action_name\": \"auto-get_channels_enabled\",\n      \"description\": \"获取已启用的通道\",\n      \"description_en\": \"get enabled channels\"\n    },\n    {\n      \"action_name\": \"auto-get_screenshot\",\n      \"description\": \"获取示波器屏幕截图\",\n      \"description_en\": \"get an oscilloscope screenshot\"\n    },\n    {\n      \"action_name\": \"auto-get_voltage_rms_V\",\n      \"description\": \"获取电压均方根值（伏）\",\n      \"description_en\": \"get RMS voltage in volts\"\n    },\n    {\n      \"action_name\": \"auto-select_channel\",\n      \"description\": \"选择通道\",\n      \"description_en\": \"select the channel\"\n    },\n    {\n      \"action_name\": \"auto-get_coupling\",\n      \"description\": \"获取输入耦合方式\",\n      \"description_en\": \"get input coupling\"\n    },\n    {\n      \"action_name\": \"auto-set_coupling\",\n      \"description\": \"设置输入耦合方式\",\n      \"description_en\": \"set input coupling\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"启用通道\",\n      \"description_en\": \"enable the channel\"\n    },\n    {\n      \"action_name\": \"auto-disable\",\n      \"description\": \"禁用通道\",\n      \"description_en\": \"disable the channel\"\n    },\n    {\n      \"action_name\": \"auto-enabled\",\n      \"description\": \"获取通道是否已启用\",\n      \"description_en\": \"get whether the channel is enabled\"\n    },\n    {\n      \"action_name\": \"auto-disabled\",\n      \"description\": \"获取通道是否已禁用\",\n      \"description_en\": \"get whether the channel is disabled\"\n    },\n    {\n      \"action_name\": \"auto-get_offset_V\",\n      \"description\": \"获取垂直偏置（伏）\",\n      \"description_en\": \"get vertical offset in volts\"\n    },\n    {\n      \"action_name\": \"auto-set_offset_V\",\n      \"description\": \"设置垂直偏置（伏）\",\n      \"description_en\": \"set vertical offset in volts\"\n    },\n    {\n      \"action_name\": \"auto-get_range_V\",\n      \"description\": \"获取垂直量程（伏）\",\n      \"description_en\": \"get vertical range in volts\"\n    },\n    {\n      \"action_name\": \"auto-set_range_V\",\n      \"description\": \"设置垂直量程（伏）\",\n      \"description_en\": \"set vertical range in volts\"\n    },\n    {\n      \"action_name\": \"auto-set_vertical_scale_V\",\n      \"description\": \"设置垂直刻度（伏/格）\",\n      \"description_en\": \"set vertical scale in volts per division\"\n    },\n    {\n      \"action_name\": \"auto-get_probe_ratio\",\n      \"description\": \"获取探头倍率\",\n      \"description_en\": \"get probe ratio\"\n    },\n    {\n      \"action_name\": \"auto-set_probe_ratio\",\n      \"description\": \"设置探头倍率\",\n      \"description_en\": \"set probe ratio\"\n    },\n    {\n      \"action_name\": \"auto-get_units\",\n      \"description\": \"获取通道单位\",\n      \"description_en\": \"get channel units\"\n    },\n    {\n      \"action_name\": \"auto-set_units\",\n      \"description\": \"设置通道单位\",\n      \"description_en\": \"set channel units\"\n    },\n    {\n      \"action_name\": \"auto-get_data_premable\",\n      \"description\": \"获取波形数据前导信息\",\n      \"description_en\": \"get waveform data preamble\"\n    },\n    {\n      \"action_name\": \"auto-get_data\",\n      \"description\": \"获取波形数据\",\n      \"description_en\": \"get waveform data\"\n    },\n    {\n      \"action_name\": \"auto-get_trigger_level_V\",\n      \"description\": \"获取触发电平（伏）\",\n      \"description_en\": \"get trigger level in volts\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_level_V\",\n      \"description\": \"设置触发电平（伏）\",\n      \"description_en\": \"set trigger level in volts\"\n    },\n    {\n      \"action_name\": \"auto-get_trigger_holdoff_s\",\n      \"description\": \"获取触发保持时间（秒）\",\n      \"description_en\": \"get trigger holdoff in seconds\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_holdoff_s\",\n      \"description\": \"设置触发保持时间（秒）\",\n      \"description_en\": \"set trigger holdoff in seconds\"\n    },\n    {\n      \"action_name\": \"auto-get_timebase_scale_s_div\",\n      \"description\": \"获取时基刻度（秒/格）\",\n      \"description_en\": \"get timebase scale in seconds per division\"\n    },\n    {\n      \"action_name\": \"auto-set_timebase_scale_s_div\",\n      \"description\": \"设置时基刻度（秒/格）\",\n      \"description_en\": \"set timebase scale in seconds per division\"\n    },\n    {\n      \"action_name\": \"auto-get_timebase_mode\",\n      \"description\": \"获取时基模式\",\n      \"description_en\": \"get timebase mode\"\n    },\n    {\n      \"action_name\": \"auto-set_timebase_mode\",\n      \"description\": \"设置时基模式\",\n      \"description_en\": \"set timebase mode\"\n    },\n    {\n      \"action_name\": \"auto-get_timebase_offset_s\",\n      \"description\": \"获取时基偏移（秒）\",\n      \"description_en\": \"get timebase offset in seconds\"\n    },\n    {\n      \"action_name\": \"auto-set_timebase_offset_s\",\n      \"description\": \"设置时基偏移（秒）\",\n      \"description_en\": \"set timebase offset in seconds\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1907,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3703,
+      "output_tokens_details": {
+        "reasoning_tokens": 1530
+      },
+      "total_tokens": 5610
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1907,
+      "output_token_count": 3703,
+      "predict_time": 51.263664052
+    }
+  },
+  "output_text": "{\n  \"name\": \"Rigol DS1054Z数字示波器\",\n  \"name_en\": \"Rigol DS1054Z Digital Oscilloscope\",\n  \"manufacturer\": \"Rigol\",\n  \"description\": \"这是一台台式数字示波器，通过USBTMC接口进行控制，用于采集和显示电信号波形，并可进行通道配置、触发设置、时基调整、采样与存储深度查询、波形数据读取以及屏幕截图获取，适合实验中的通用电信号观测与分析。\",\n  \"description_en\": \"This is a bench digital oscilloscope controlled over USBTMC, used to acquire and display electrical waveforms. It supports channel configuration, trigger setup, timebase adjustment, sampling and memory-depth queries, waveform data retrieval, and screenshot capture for general laboratory signal observation and analysis.\",\n  \"tag_hints\": [\n    \"digital oscilloscope\",\n    \"waveform acquisition\",\n    \"USBTMC\",\n    \"trigger control\",\n    \"timebase setting\",\n    \"channel scaling\",\n    \"waveform export\",\n    \"RMS voltage measurement\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-autoscale\",\n      \"description\": \"自动调整示波器设置以稳定显示波形\",\n      \"description_en\": \"automatically adjust oscilloscope settings to stabilize the waveform display\"\n    },\n    {\n      \"action_name\": \"auto-clear\",\n      \"description\": \"清除示波器显示或采集状态\",\n      \"description_en\": \"clear the oscilloscope display or acquisition state\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"开始连续采集波形\",\n      \"description_en\": \"start continuous waveform acquisition\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止波形采集\",\n      \"description_en\": \"stop waveform acquisition\"\n    },\n    {\n      \"action_name\": \"auto-force\",\n      \"description\": \"强制触发一次采集\",\n      \"description_en\": \"force a trigger event\"\n    },\n    {\n      \"action_name\": \"auto-set_single_shot\",\n      \"description\": \"设置单次采集模式\",\n      \"description_en\": \"set single-shot acquisition mode\"\n    },\n    {\n      \"action_name\": \"auto-set_averaging\",\n      \"description\": \"设置平均次数\",\n      \"description_en\": \"set averaging count\"\n    },\n    {\n      \"action_name\": \"auto-set_averaging_mode\",\n      \"description\": \"设置平均采集模式\",\n      \"description_en\": \"set averaging acquisition mode\"\n    },\n    {\n      \"action_name\": \"auto-set_normal_mode\",\n      \"description\": \"设置普通采集模式\",\n      \"description_en\": \"set normal acquisition mode\"\n    },\n    {\n      \"action_name\": \"auto-set_high_resolution_mode\",\n      \"description\": \"设置高分辨率采集模式\",\n      \"description_en\": \"set high-resolution acquisition mode\"\n    },\n    {\n      \"action_name\": \"auto-set_peak_mode\",\n      \"description\": \"设置峰值检测模式\",\n      \"description_en\": \"set peak-detect mode\"\n    },\n    {\n      \"action_name\": \"auto-set_memory_depth\",\n      \"description\": \"设置存储深度\",\n      \"description_en\": \"set memory depth\"\n    },\n    {\n      \"action_name\": \"auto-selected_channel\",\n      \"description\": \"选择当前活动通道\",\n      \"description_en\": \"select the active channel\"\n    },\n    {\n      \"action_name\": \"auto-get_id\",\n      \"description\": \"获取设备标识\",\n      \"description_en\": \"get device identification\"\n    },\n    {\n      \"action_name\": \"auto-get_averaging\",\n      \"description\": \"获取平均次数\",\n      \"description_en\": \"get averaging count\"\n    },\n    {\n      \"action_name\": \"auto-get_mode\",\n      \"description\": \"获取采集模式\",\n      \"description_en\": \"get acquisition mode\"\n    },\n    {\n      \"action_name\": \"auto-get_sampling_rate\",\n      \"description\": \"获取采样率\",\n      \"description_en\": \"get sampling rate\"\n    },\n    {\n      \"action_name\": \"auto-get_memory_depth\",\n      \"description\": \"获取存储深度\",\n      \"description_en\": \"get memory depth\"\n    },\n    {\n      \"action_name\": \"auto-get_channels_enabled\",\n      \"description\": \"获取已启用的通道\",\n      \"description_en\": \"get enabled channels\"\n    },\n    {\n      \"action_name\": \"auto-get_screenshot\",\n      \"description\": \"获取示波器屏幕截图\",\n      \"description_en\": \"get an oscilloscope screenshot\"\n    },\n    {\n      \"action_name\": \"auto-get_voltage_rms_V\",\n      \"description\": \"获取电压均方根值（伏）\",\n      \"description_en\": \"get RMS voltage in volts\"\n    },\n    {\n      \"action_name\": \"auto-select_channel\",\n      \"description\": \"选择通道\",\n      \"description_en\": \"select the channel\"\n    },\n    {\n      \"action_name\": \"auto-get_coupling\",\n      \"description\": \"获取输入耦合方式\",\n      \"description_en\": \"get input coupling\"\n    },\n    {\n      \"action_name\": \"auto-set_coupling\",\n      \"description\": \"设置输入耦合方式\",\n      \"description_en\": \"set input coupling\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"启用通道\",\n      \"description_en\": \"enable the channel\"\n    },\n    {\n      \"action_name\": \"auto-disable\",\n      \"description\": \"禁用通道\",\n      \"description_en\": \"disable the channel\"\n    },\n    {\n      \"action_name\": \"auto-enabled\",\n      \"description\": \"获取通道是否已启用\",\n      \"description_en\": \"get whether the channel is enabled\"\n    },\n    {\n      \"action_name\": \"auto-disabled\",\n      \"description\": \"获取通道是否已禁用\",\n      \"description_en\": \"get whether the channel is disabled\"\n    },\n    {\n      \"action_name\": \"auto-get_offset_V\",\n      \"description\": \"获取垂直偏置（伏）\",\n      \"description_en\": \"get vertical offset in volts\"\n    },\n    {\n      \"action_name\": \"auto-set_offset_V\",\n      \"description\": \"设置垂直偏置（伏）\",\n      \"description_en\": \"set vertical offset in volts\"\n    },\n    {\n      \"action_name\": \"auto-get_range_V\",\n      \"description\": \"获取垂直量程（伏）\",\n      \"description_en\": \"get vertical range in volts\"\n    },\n    {\n      \"action_name\": \"auto-set_range_V\",\n      \"description\": \"设置垂直量程（伏）\",\n      \"description_en\": \"set vertical range in volts\"\n    },\n    {\n      \"action_name\": \"auto-set_vertical_scale_V\",\n      \"description\": \"设置垂直刻度（伏/格）\",\n      \"description_en\": \"set vertical scale in volts per division\"\n    },\n    {\n      \"action_name\": \"auto-get_probe_ratio\",\n      \"description\": \"获取探头倍率\",\n      \"description_en\": \"get probe ratio\"\n    },\n    {\n      \"action_name\": \"auto-set_probe_ratio\",\n      \"description\": \"设置探头倍率\",\n      \"description_en\": \"set probe ratio\"\n    },\n    {\n      \"action_name\": \"auto-get_units\",\n      \"description\": \"获取通道单位\",\n      \"description_en\": \"get channel units\"\n    },\n    {\n      \"action_name\": \"auto-set_units\",\n      \"description\": \"设置通道单位\",\n      \"description_en\": \"set channel units\"\n    },\n    {\n      \"action_name\": \"auto-get_data_premable\",\n      \"description\": \"获取波形数据前导信息\",\n      \"description_en\": \"get waveform data preamble\"\n    },\n    {\n      \"action_name\": \"auto-get_data\",\n      \"description\": \"获取波形数据\",\n      \"description_en\": \"get waveform data\"\n    },\n    {\n      \"action_name\": \"auto-get_trigger_level_V\",\n      \"description\": \"获取触发电平（伏）\",\n      \"description_en\": \"get trigger level in volts\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_level_V\",\n      \"description\": \"设置触发电平（伏）\",\n      \"description_en\": \"set trigger level in volts\"\n    },\n    {\n      \"action_name\": \"auto-get_trigger_holdoff_s\",\n      \"description\": \"获取触发保持时间（秒）\",\n      \"description_en\": \"get trigger holdoff in seconds\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_holdoff_s\",\n      \"description\": \"设置触发保持时间（秒）\",\n      \"description_en\": \"set trigger holdoff in seconds\"\n    },\n    {\n      \"action_name\": \"auto-get_timebase_scale_s_div\",\n      \"description\": \"获取时基刻度（秒/格）\",\n      \"description_en\": \"get timebase scale in seconds per division\"\n    },\n    {\n      \"action_name\": \"auto-set_timebase_scale_s_div\",\n      \"description\": \"设置时基刻度（秒/格）\",\n      \"description_en\": \"set timebase scale in seconds per division\"\n    },\n    {\n      \"action_name\": \"auto-get_timebase_mode\",\n      \"description\": \"获取时基模式\",\n      \"description_en\": \"get timebase mode\"\n    },\n    {\n      \"action_name\": \"auto-set_timebase_mode\",\n      \"description\": \"设置时基模式\",\n      \"description_en\": \"set timebase mode\"\n    },\n    {\n      \"action_name\": \"auto-get_timebase_offset_s\",\n      \"description\": \"获取时基偏移（秒）\",\n      \"description_en\": \"get timebase offset in seconds\"\n    },\n    {\n      \"action_name\": \"auto-set_timebase_offset_s\",\n      \"description\": \"设置时基偏移（秒）\",\n      \"description_en\": \"set timebase offset in seconds\"\n    }\n  ]\n}"
+}

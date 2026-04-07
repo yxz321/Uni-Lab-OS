@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: raw_client\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: acq400_hapi/acq400.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.raw_client:RawClient\n\nClass: DataNotAvailableError \n  Bases: ['Exception']\n\nClass: AcqPorts \n  Bases: []\n  Docstring: uut server port constants\n\nClass: AcqSites \n  Bases: []\n  Docstring: uut site constants\n\nClass: SF \n  Bases: []\n  Docstring: uut system state constants\n\nClass: STATE \n  Bases: []\n  Docstring: transient state constants\n\nClass: Signals \n  Bases: []\n\nClass: StreamClient \n  Bases: ['netclient.Netclient']\n  Docstring: handles live streaming data\n\nClass: RawClient (focal)\n  Bases: ['netclient.Netclient']\n  Docstring: handles raw data from any service port\n\nClass: MgtDramPullClient \n  Bases: ['RawClient']\n\nClass: ChannelClient \n  Bases: ['RawClient']\n  Docstring: handles post shot data for one channel.\n\nArgs:\n    addr (str) : ip address or hostname\n\n    ch (int) : channel number 1..N\n\nClass: ExitCommand \n  Bases: ['Exception']\n\nClass: Statusmonitor \n  Bases: []\n  Docstring: monitors the status channel\n\nEfficient event-driven monitoring in a separate thread\n\nClass: NullFilter \n  Bases: []\n\nClass: ProcessMonitor \n  Bases: []\n\nClass: Acq400 \n  Bases: []\n  Docstring: Host-side proxy for Acq400 uut.\n\nacq400 discovers and maintains all site servers, maintains a monitor  and     handles multiple channel post shot upload\n\nClass: Acq2106 \n  Bases: ['Acq400']\n  Docstring: Acq2106 specialization of Acq400\n\nDefines features specific to ACQ2106\n\nClass: Mgt508Ports \n  Bases: []\n\nClass: DotFilter \n  Bases: []\n\nClass: Mgt508 \n  Bases: ['Acq400']\n  Docstring: Warning: not true to say \"Mgt508 is a Acq400\". The commonality is limited to an S0 service.\n@@todo: refactor with a common base class Device, then Mgt508 is a Device and Acq400 is a Device\n\nClass: Acq2106_Mgtdram8 \n  Bases: ['Acq2106']\n  Docstring: Mgtdram8 specialization of Acq2106\n\nDefines features specific to Acq2106_Mgtdram8\n\nClass: Acq2106_TIGA \n  Bases: ['Acq2106']\n  Docstring: TIGA specialization of Acq2106\n\nDefines features specific to Acq2106_TIGA\n\nClass: Acq1102 \n  Bases: ['Acq2106']\n\nFocal class methods:\n  [command] read(self, nelems, data_size=2)\n    comment: python 2.7 hack\n    comment: read data from channel data server\n\n        Args:\n            nelems (int): data elements \n            data_size (int, optional): data size in bytes 2|4 short or int. Defaults to 2.\n        Returns:\n ...\n  [command] get_blocks(self, nelems, data_size=2)\n\nRegistry actions:\n  auto-read (from read())\n  auto-get_blocks (from get_blocks())\n\nRequired output action ids:\n  auto-read\n  auto-get_blocks"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_09cd01eed7a120340069d5504f34d8819789b7563f90c722c3",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3745,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3210,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_09cd01eed7a120340069d5504fb1ac8197bb64ca01ad3b067a",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_09cd01eed7a120340069d5505aaeac8197b2148cd79ec4d895",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"ACQ400 原始数据网络客户端\",\n  \"name_en\": \"ACQ400 Raw Data Network Client\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于 ACQ400/ACQ2106 数据采集系统的非物理主机端网络客户端，通过设备服务端口读取原始二进制数据，可用于实验中的通道数据拉取、分块传输和采集后数据处理。\",\n  \"description_en\": \"A non-physical host-side network client for ACQ400/ACQ2106 data acquisition systems. It reads raw binary data from device service ports and is used for channel data retrieval, block transfer, and post-acquisition data handling in experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"从服务端口读取指定数量的原始数据元素。\",\n      \"description_en\": \"Read a specified number of raw data elements from a service port.\"\n    },\n    {\n      \"action_name\": \"auto-get_blocks\",\n      \"description\": \"以分块方式获取原始数据，便于连续传输或后处理。\",\n      \"description_en\": \"Retrieve raw data in blocks for continuous transfer or post-processing.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"ACQ400\",\n    \"raw data acquisition\",\n    \"network client\",\n    \"post-shot data retrieval\",\n    \"channel data server\",\n    \"binary data streaming\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1412,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 804,
+      "output_tokens_details": {
+        "reasoning_tokens": 490
+      },
+      "total_tokens": 2216
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1412,
+      "output_token_count": 804,
+      "predict_time": 18.166125288
+    }
+  },
+  "output_text": "{\n  \"name\": \"ACQ400 原始数据网络客户端\",\n  \"name_en\": \"ACQ400 Raw Data Network Client\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于 ACQ400/ACQ2106 数据采集系统的非物理主机端网络客户端，通过设备服务端口读取原始二进制数据，可用于实验中的通道数据拉取、分块传输和采集后数据处理。\",\n  \"description_en\": \"A non-physical host-side network client for ACQ400/ACQ2106 data acquisition systems. It reads raw binary data from device service ports and is used for channel data retrieval, block transfer, and post-acquisition data handling in experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"从服务端口读取指定数量的原始数据元素。\",\n      \"description_en\": \"Read a specified number of raw data elements from a service port.\"\n    },\n    {\n      \"action_name\": \"auto-get_blocks\",\n      \"description\": \"以分块方式获取原始数据，便于连续传输或后处理。\",\n      \"description_en\": \"Retrieve raw data in blocks for continuous transfer or post-processing.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"ACQ400\",\n    \"raw data acquisition\",\n    \"network client\",\n    \"post-shot data retrieval\",\n    \"channel data server\",\n    \"binary data streaming\"\n  ]\n}"
+}

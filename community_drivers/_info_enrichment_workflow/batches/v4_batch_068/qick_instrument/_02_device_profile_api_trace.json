@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: qick_instrument\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: qcodes_qick/instruments.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.quantum_control.qick_instrument:QickInstrument\n\nClass: QickInstrument (focal)\n  Bases: ['Instrument']\n\nClass: Ddr4Buffer \n  Bases: ['InstrumentModule']\n\nFocal class methods:\n  [command] cycles2sec_tproc(self, reg)\n    comment: Convert time from the number of tProc clock cycles to seconds.\n  [command] sec2cycles_tproc(self, sec)\n    comment: Convert time from seconds to the number of tProc clock cycles.\n  [status_getter] get_idn(self)\n\nRegistry actions:\n  auto-cycles2sec_tproc (from cycles2sec_tproc())\n  auto-sec2cycles_tproc (from sec2cycles_tproc())\n  auto-get_idn (from get_idn())\n\nRequired output action ids:\n  auto-cycles2sec_tproc\n  auto-sec2cycles_tproc\n  auto-get_idn"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_014a3a35fb6f51b70069d54e4294d081979fc69922529ac8d7",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1855,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3726,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_014a3a35fb6f51b70069d54e4317c88197b5fc5ef82dd25078",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_014a3a35fb6f51b70069d54e4cdacc8197a3c21c365bf8bea9",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"QICK量子控制软件组件\",\n  \"name_en\": \"QICK Quantum Control Software Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于实验控制程序中表示与QICK量子控制平台相关的仪器对象。根据现有证据，它主要提供 tProc 时钟周期与秒之间的时间换算，以及读取设备标识信息，适合在量子控制实验的软件流程中做时序参数处理与基本识别。\",\n  \"description_en\": \"This is a non-physical software component representing an instrument object associated with the QICK quantum control platform in experiment-control software. Based on the available evidence, it mainly provides time conversion between tProc clock cycles and seconds, plus retrieval of identification information, for timing parameter handling and basic device identification in quantum-control workflows.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-cycles2sec_tproc\",\n      \"description\": \"将 tProc 时钟周期数转换为秒\",\n      \"description_en\": \"Convert the number of tProc clock cycles to seconds.\"\n    },\n    {\n      \"action_name\": \"auto-sec2cycles_tproc\",\n      \"description\": \"将秒转换为 tProc 时钟周期数\",\n      \"description_en\": \"Convert seconds to the number of tProc clock cycles.\"\n    },\n    {\n      \"action_name\": \"auto-get_idn\",\n      \"description\": \"获取设备标识信息\",\n      \"description_en\": \"Get device identification information.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"QICK\",\n    \"quantum control\",\n    \"tProc timing\",\n    \"clock cycle conversion\",\n    \"instrument identification\",\n    \"experiment control software\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 913,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 871,
+      "output_tokens_details": {
+        "reasoning_tokens": 496
+      },
+      "total_tokens": 1784
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 913,
+      "output_token_count": 871,
+      "predict_time": 19.098927844
+    }
+  },
+  "output_text": "{\n  \"name\": \"QICK量子控制软件组件\",\n  \"name_en\": \"QICK Quantum Control Software Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于实验控制程序中表示与QICK量子控制平台相关的仪器对象。根据现有证据，它主要提供 tProc 时钟周期与秒之间的时间换算，以及读取设备标识信息，适合在量子控制实验的软件流程中做时序参数处理与基本识别。\",\n  \"description_en\": \"This is a non-physical software component representing an instrument object associated with the QICK quantum control platform in experiment-control software. Based on the available evidence, it mainly provides time conversion between tProc clock cycles and seconds, plus retrieval of identification information, for timing parameter handling and basic device identification in quantum-control workflows.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-cycles2sec_tproc\",\n      \"description\": \"将 tProc 时钟周期数转换为秒\",\n      \"description_en\": \"Convert the number of tProc clock cycles to seconds.\"\n    },\n    {\n      \"action_name\": \"auto-sec2cycles_tproc\",\n      \"description\": \"将秒转换为 tProc 时钟周期数\",\n      \"description_en\": \"Convert seconds to the number of tProc clock cycles.\"\n    },\n    {\n      \"action_name\": \"auto-get_idn\",\n      \"description\": \"获取设备标识信息\",\n      \"description_en\": \"Get device identification information.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"QICK\",\n    \"quantum control\",\n    \"tProc timing\",\n    \"clock cycle conversion\",\n    \"instrument identification\",\n    \"experiment control software\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: port_reader\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: port.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.port_reader:PortReader\n\nClass: PortReader (focal)\n  Bases: ['object']\n\nFocal class methods:\n  [command] clear_array(self)\n  [command] thread_foo(self)\n  [command] takeReadout(self)\n  [command] takeNpArray(self)\n  [command] close_PortReader(self)\n\nRegistry actions:\n  auto-clear_array (from clear_array())\n  auto-thread_foo (from thread_foo())\n  auto-takeReadout (from takeReadout())\n  auto-takeNpArray (from takeNpArray())\n  auto-close_PortReader (from close_PortReader())\n\nRequired output action ids:\n  auto-clear_array\n  auto-thread_foo\n  auto-takeReadout\n  auto-takeNpArray\n  auto-close_PortReader"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_051a1d0cb7a367500069d549e09f8481979493f70168da87cb",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1758,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3023,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_051a1d0cb7a367500069d549e1091081978e390abb6d00764e",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_051a1d0cb7a367500069d549e8976c8197bbe4e936e38f49f2",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"端口读出组件\",\n  \"name_en\": \"Port Reader Helper\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件组件，用于在实验流程中从通用通信端口读取数据、缓存读数，并以普通读出或 NumPy 数组形式提供结果。\",\n  \"description_en\": \"A non-physical software component for reading data from a generic communication port in laboratory workflows, buffering readouts, and providing results as standard readouts or NumPy arrays.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-clear_array\",\n      \"description\": \"清空缓存数据数组。\",\n      \"description_en\": \"Clear the buffered data array.\"\n    },\n    {\n      \"action_name\": \"auto-thread_foo\",\n      \"description\": \"执行组件的线程例程。\",\n      \"description_en\": \"Run the component's thread routine.\"\n    },\n    {\n      \"action_name\": \"auto-takeReadout\",\n      \"description\": \"获取一次端口读出。\",\n      \"description_en\": \"Take a readout from the port.\"\n    },\n    {\n      \"action_name\": \"auto-takeNpArray\",\n      \"description\": \"以 NumPy 数组形式获取数据。\",\n      \"description_en\": \"Get the data as a NumPy array.\"\n    },\n    {\n      \"action_name\": \"auto-close_PortReader\",\n      \"description\": \"关闭端口读出组件。\",\n      \"description_en\": \"Close the port reader component.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"port I/O\",\n    \"data acquisition helper\",\n    \"readout buffering\",\n    \"NumPy array export\",\n    \"threaded polling\",\n    \"generic lab software\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 882,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 741,
+      "output_tokens_details": {
+        "reasoning_tokens": 368
+      },
+      "total_tokens": 1623
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 882,
+      "output_token_count": 741,
+      "predict_time": 15.564908979
+    }
+  },
+  "output_text": "{\n  \"name\": \"端口读出组件\",\n  \"name_en\": \"Port Reader Helper\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件组件，用于在实验流程中从通用通信端口读取数据、缓存读数，并以普通读出或 NumPy 数组形式提供结果。\",\n  \"description_en\": \"A non-physical software component for reading data from a generic communication port in laboratory workflows, buffering readouts, and providing results as standard readouts or NumPy arrays.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-clear_array\",\n      \"description\": \"清空缓存数据数组。\",\n      \"description_en\": \"Clear the buffered data array.\"\n    },\n    {\n      \"action_name\": \"auto-thread_foo\",\n      \"description\": \"执行组件的线程例程。\",\n      \"description_en\": \"Run the component's thread routine.\"\n    },\n    {\n      \"action_name\": \"auto-takeReadout\",\n      \"description\": \"获取一次端口读出。\",\n      \"description_en\": \"Take a readout from the port.\"\n    },\n    {\n      \"action_name\": \"auto-takeNpArray\",\n      \"description\": \"以 NumPy 数组形式获取数据。\",\n      \"description_en\": \"Get the data as a NumPy array.\"\n    },\n    {\n      \"action_name\": \"auto-close_PortReader\",\n      \"description\": \"关闭端口读出组件。\",\n      \"description_en\": \"Close the port reader component.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"port I/O\",\n    \"data acquisition helper\",\n    \"readout buffering\",\n    \"NumPy array export\",\n    \"threaded polling\",\n    \"generic lab software\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: raw_broadcast_udp_client\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: lantz/drivers/legacy/rpc.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.network.client.raw_broadcast_udp_client:RawBroadcastUDPClient\n\nClass: msg_type \n  Bases: ['enum.IntEnum']\n\nClass: auth_flavor \n  Bases: ['enum.IntEnum']\n\nClass: reply_stat \n  Bases: ['enum.IntEnum']\n\nClass: accept_stat \n  Bases: ['enum.IntEnum']\n\nClass: reject_stat \n  Bases: ['enum.IntEnum']\n\nClass: auth_stat \n  Bases: ['enum.IntEnum']\n\nClass: RPCError \n  Bases: ['Exception']\n\nClass: RPCBadFormat \n  Bases: ['RPCError']\n\nClass: RPCBadVersion \n  Bases: ['RPCError']\n\nClass: RPCGarbageArgs \n  Bases: ['RPCError']\n\nClass: RPCUnpackError \n  Bases: ['RPCError']\n\nClass: Packer \n  Bases: ['xdrlib.Packer']\n\nClass: Unpacker \n  Bases: ['xdrlib.Unpacker']\n\nClass: Client \n  Bases: []\n  Docstring: Common base class for clients.\n    \n\nClass: RawTCPClient \n  Bases: ['Client']\n  Docstring: Client using TCP to a specific port.\n    \n\nClass: RawUDPClient \n  Bases: ['Client']\n\nClass: RawBroadcastUDPClient (focal)\n  Bases: ['RawUDPClient']\n  Docstring: Client using UDP broadcast to a specific port.\n    \n\nClass: PMAP_VERS \n  Bases: ['enum.IntEnum']\n\nClass: PortMapperPacker \n  Bases: ['Packer']\n\nClass: PortMapperUnpacker \n  Bases: ['Unpacker']\n\nClass: PartialPortMapperClient \n  Bases: []\n\nClass: TCPPortMapperClient \n  Bases: ['PartialPortMapperClient', 'RawTCPClient']\n\nClass: UDPPortMapperClient \n  Bases: ['PartialPortMapperClient', 'RawUDPClient']\n\nClass: BroadcastUDPPortMapperClient \n  Bases: ['PartialPortMapperClient', 'RawBroadcastUDPClient']\n\nClass: TCPClient \n  Bases: ['RawTCPClient']\n  Docstring: A TCP Client that find their server through the Port mapper\n    \n\nClass: UDPClient \n  Bases: ['RawUDPClient']\n  Docstring: A UDP Client that find their server through the Port mapper\n    \n\nClass: BroadcastUDPClient \n  Bases: ['Client']\n  Docstring: A Broadcast UDP Client that find their server through the Port mapper\n    \n\nClass: Server \n  Bases: []\n\nClass: TCPServer \n  Bases: ['Server']\n\nClass: UDPServer \n  Bases: ['Server']\n\nFocal class methods:\n  [command] connect(self)\n  [command] set_reply_handler(self, reply_handler)\n  [command] set_timeout(self, timeout)\n  [command] make_call(self, proc, args, pack_func, unpack_func)\n\nRegistry actions:\n  auto-connect (from connect())\n  auto-make_call (from make_call())\n  auto-set_reply_handler (from set_reply_handler())\n  auto-set_timeout (from set_timeout())\n  auto-pack_auth (from pack_auth())\n  auto-pack_auth_unix (from pack_auth_unix())\n  auto-pack_callheader (from pack_callheader())\n  auto-pack_replyheader (from pack_replyheader())\n  auto-unpack_auth (from unpack_auth())\n  auto-unpack_callheader (from unpack_callheader())\n  auto-unpack_replyheader (from unpack_replyheader())\n  auto-start_call (from start_call())\n  auto-do_call (from do_call())\n  auto-mkcred (from mkcred())\n  auto-mkverf (from mkverf())\n  auto-call_0 (from call_0())\n  auto-pack_mapping (from pack_mapping())\n  auto-pack_pmaplist (from pack_pmaplist())\n  auto-pack_call_args (from pack_call_args())\n  auto-unpack_mapping (from unpack_mapping())\n  auto-unpack_pmaplist (from unpack_pmaplist())\n  auto-unpack_call_result (from unpack_call_result())\n  auto-set (from set())\n  auto-unset (from unset())\n  auto-get_port (from get_port())\n  auto-dump (from dump())\n  auto-callit (from callit())\n  auto-my_reply_handler (from my_reply_handler())\n  auto-register (from register())\n  auto-unregister (from unregister())\n  auto-handle (from handle())\n  auto-turn_around (from turn_around())\n  auto-handle_0 (from handle_0())\n  auto-addpackers (from addpackers())\n  auto-loop (from loop())\n  auto-session (from session())\n  auto-forkingloop (from forkingloop())\n  auto-forksession (from forksession())\n\nRequired output action ids:\n  auto-connect\n  auto-make_call\n  auto-set_reply_handler\n  auto-set_timeout\n  auto-pack_auth\n  auto-pack_auth_unix\n  auto-pack_callheader\n  auto-pack_replyheader\n  auto-unpack_auth\n  auto-unpack_callheader\n  auto-unpack_replyheader\n  auto-start_call\n  auto-do_call\n  auto-mkcred\n  auto-mkverf\n  auto-call_0\n  auto-pack_mapping\n  auto-pack_pmaplist\n  auto-pack_call_args\n  auto-unpack_mapping\n  auto-unpack_pmaplist\n  auto-unpack_call_result\n  auto-set\n  auto-unset\n  auto-get_port\n  auto-dump\n  auto-callit\n  auto-my_reply_handler\n  auto-register\n  auto-unregister\n  auto-handle\n  auto-turn_around\n  auto-handle_0\n  auto-addpackers\n  auto-loop\n  auto-session\n  auto-forkingloop\n  auto-forksession"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_01025f8cd278509e0069d54e6beb188190a3448d76cda73fae",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5699,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 11128,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_01025f8cd278509e0069d54e6c63f48190b37aef969417c1bb",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_01025f8cd278509e0069d54e7dd83c81909bbdbed7eaba061e",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"原始广播 UDP 远程过程调用客户端\",\n  \"name_en\": \"Raw Broadcast UDP RPC Client\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件通信组件，通过 UDP 广播向指定端口发送基于 XDR 的远程过程调用请求，并处理认证、消息打包解包、超时和回复回调。它适合用于实验系统中的网络服务发现、端口映射查询以及分布式控制服务通信，不直接对应具体实验仪器。\",\n  \"description_en\": \"This is a non-physical software communication component that sends XDR-based remote procedure calls over UDP broadcast to a specific port and handles authentication, message packing/unpacking, timeouts, and reply callbacks. It is suitable for network service discovery, port-mapper queries, and communication with distributed control services in lab systems, and does not directly correspond to a specific physical instrument.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"建立或初始化广播 UDP 通信连接。\",\n      \"description_en\": \"Establish or initialize the broadcast UDP communication connection.\"\n    },\n    {\n      \"action_name\": \"auto-make_call\",\n      \"description\": \"发送一次远程过程调用并接收回复。\",\n      \"description_en\": \"Send a remote procedure call and receive replies.\"\n    },\n    {\n      \"action_name\": \"auto-set_reply_handler\",\n      \"description\": \"设置用于处理广播回复的回调函数。\",\n      \"description_en\": \"Set the callback used to handle broadcast replies.\"\n    },\n    {\n      \"action_name\": \"auto-set_timeout\",\n      \"description\": \"设置网络调用的超时时间。\",\n      \"description_en\": \"Set the timeout for network calls.\"\n    },\n    {\n      \"action_name\": \"auto-pack_auth\",\n      \"description\": \"打包远程过程调用认证信息。\",\n      \"description_en\": \"Pack RPC authentication data.\"\n    },\n    {\n      \"action_name\": \"auto-pack_auth_unix\",\n      \"description\": \"打包 UNIX 风格的认证信息。\",\n      \"description_en\": \"Pack UNIX-style authentication data.\"\n    },\n    {\n      \"action_name\": \"auto-pack_callheader\",\n      \"description\": \"打包远程过程调用请求头。\",\n      \"description_en\": \"Pack the RPC call header.\"\n    },\n    {\n      \"action_name\": \"auto-pack_replyheader\",\n      \"description\": \"打包远程过程调用回复头。\",\n      \"description_en\": \"Pack the RPC reply header.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_auth\",\n      \"description\": \"解包远程过程调用认证信息。\",\n      \"description_en\": \"Unpack RPC authentication data.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_callheader\",\n      \"description\": \"解包远程过程调用请求头。\",\n      \"description_en\": \"Unpack the RPC call header.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_replyheader\",\n      \"description\": \"解包远程过程调用回复头。\",\n      \"description_en\": \"Unpack the RPC reply header.\"\n    },\n    {\n      \"action_name\": \"auto-start_call\",\n      \"description\": \"开始构建一次远程过程调用消息。\",\n      \"description_en\": \"Begin constructing an RPC call message.\"\n    },\n    {\n      \"action_name\": \"auto-do_call\",\n      \"description\": \"执行底层远程过程调用事务。\",\n      \"description_en\": \"Execute the low-level RPC transaction.\"\n    },\n    {\n      \"action_name\": \"auto-mkcred\",\n      \"description\": \"创建远程过程调用凭据。\",\n      \"description_en\": \"Create RPC credentials.\"\n    },\n    {\n      \"action_name\": \"auto-mkverf\",\n      \"description\": \"创建远程过程调用校验信息。\",\n      \"description_en\": \"Create an RPC verifier.\"\n    },\n    {\n      \"action_name\": \"auto-call_0\",\n      \"description\": \"调用空过程以测试服务可达性。\",\n      \"description_en\": \"Invoke the null procedure to test service reachability.\"\n    },\n    {\n      \"action_name\": \"auto-pack_mapping\",\n      \"description\": \"打包端口映射条目。\",\n      \"description_en\": \"Pack a port-mapper mapping entry.\"\n    },\n    {\n      \"action_name\": \"auto-pack_pmaplist\",\n      \"description\": \"打包端口映射列表。\",\n      \"description_en\": \"Pack a port-mapper mapping list.\"\n    },\n    {\n      \"action_name\": \"auto-pack_call_args\",\n      \"description\": \"打包远程调用参数。\",\n      \"description_en\": \"Pack remote call arguments.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_mapping\",\n      \"description\": \"解包端口映射条目。\",\n      \"description_en\": \"Unpack a port-mapper mapping entry.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_pmaplist\",\n      \"description\": \"解包端口映射列表。\",\n      \"description_en\": \"Unpack a port-mapper mapping list.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_call_result\",\n      \"description\": \"解包远程调用结果。\",\n      \"description_en\": \"Unpack the remote call result.\"\n    },\n    {\n      \"action_name\": \"auto-set\",\n      \"description\": \"在端口映射服务中注册一个映射。\",\n      \"description_en\": \"Register a mapping in the port-mapper service.\"\n    },\n    {\n      \"action_name\": \"auto-unset\",\n      \"description\": \"从端口映射服务中移除一个映射。\",\n      \"description_en\": \"Remove a mapping from the port-mapper service.\"\n    },\n    {\n      \"action_name\": \"auto-get_port\",\n      \"description\": \"查询服务对应的端口号。\",\n      \"description_en\": \"Query the port number for a service.\"\n    },\n    {\n      \"action_name\": \"auto-dump\",\n      \"description\": \"列出端口映射服务中的注册项。\",\n      \"description_en\": \"List registrations in the port-mapper service.\"\n    },\n    {\n      \"action_name\": \"auto-callit\",\n      \"description\": \"通过端口映射服务请求间接远程调用。\",\n      \"description_en\": \"Request an indirect remote call through the port-mapper service.\"\n    },\n    {\n      \"action_name\": \"auto-my_reply_handler\",\n      \"description\": \"处理广播端口映射调用的回复。\",\n      \"description_en\": \"Handle replies from broadcast port-mapper calls.\"\n    },\n    {\n      \"action_name\": \"auto-register\",\n      \"description\": \"注册一个可处理请求的服务。\",\n      \"description_en\": \"Register a service that can handle requests.\"\n    },\n    {\n      \"action_name\": \"auto-unregister\",\n      \"description\": \"注销一个已注册的服务。\",\n      \"description_en\": \"Unregister a previously registered service.\"\n    },\n    {\n      \"action_name\": \"auto-handle\",\n      \"description\": \"处理一次收到的远程过程调用请求。\",\n      \"description_en\": \"Handle an incoming RPC request.\"\n    },\n    {\n      \"action_name\": \"auto-turn_around\",\n      \"description\": \"将请求转换为对应的回复消息。\",\n      \"description_en\": \"Turn a request into the corresponding reply message.\"\n    },\n    {\n      \"action_name\": \"auto-handle_0\",\n      \"description\": \"处理空过程请求。\",\n      \"description_en\": \"Handle a null procedure request.\"\n    },\n    {\n      \"action_name\": \"auto-addpackers\",\n      \"description\": \"添加消息打包与解包器。\",\n      \"description_en\": \"Add message packers and unpackers.\"\n    },\n    {\n      \"action_name\": \"auto-loop\",\n      \"description\": \"运行服务处理循环。\",\n      \"description_en\": \"Run the service processing loop.\"\n    },\n    {\n      \"action_name\": \"auto-session\",\n      \"description\": \"处理一次服务会话。\",\n      \"description_en\": \"Process a service session.\"\n    },\n    {\n      \"action_name\": \"auto-forkingloop\",\n      \"description\": \"以分叉方式运行服务循环。\",\n      \"description_en\": \"Run the service loop using process forking.\"\n    },\n    {\n      \"action_name\": \"auto-forksession\",\n      \"description\": \"在子进程中处理一次服务会话。\",\n      \"description_en\": \"Handle a service session in a child process.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"UDP broadcast RPC\",\n    \"ONC RPC/XDR\",\n    \"port mapper\",\n    \"network service discovery\",\n    \"distributed lab control\",\n    \"reply handling\",\n    \"timeout management\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1896,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2843,
+      "output_tokens_details": {
+        "reasoning_tokens": 980
+      },
+      "total_tokens": 4739
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1896,
+      "output_token_count": 2843,
+      "predict_time": 44.556494663
+    }
+  },
+  "output_text": "{\n  \"name\": \"原始广播 UDP 远程过程调用客户端\",\n  \"name_en\": \"Raw Broadcast UDP RPC Client\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件通信组件，通过 UDP 广播向指定端口发送基于 XDR 的远程过程调用请求，并处理认证、消息打包解包、超时和回复回调。它适合用于实验系统中的网络服务发现、端口映射查询以及分布式控制服务通信，不直接对应具体实验仪器。\",\n  \"description_en\": \"This is a non-physical software communication component that sends XDR-based remote procedure calls over UDP broadcast to a specific port and handles authentication, message packing/unpacking, timeouts, and reply callbacks. It is suitable for network service discovery, port-mapper queries, and communication with distributed control services in lab systems, and does not directly correspond to a specific physical instrument.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"建立或初始化广播 UDP 通信连接。\",\n      \"description_en\": \"Establish or initialize the broadcast UDP communication connection.\"\n    },\n    {\n      \"action_name\": \"auto-make_call\",\n      \"description\": \"发送一次远程过程调用并接收回复。\",\n      \"description_en\": \"Send a remote procedure call and receive replies.\"\n    },\n    {\n      \"action_name\": \"auto-set_reply_handler\",\n      \"description\": \"设置用于处理广播回复的回调函数。\",\n      \"description_en\": \"Set the callback used to handle broadcast replies.\"\n    },\n    {\n      \"action_name\": \"auto-set_timeout\",\n      \"description\": \"设置网络调用的超时时间。\",\n      \"description_en\": \"Set the timeout for network calls.\"\n    },\n    {\n      \"action_name\": \"auto-pack_auth\",\n      \"description\": \"打包远程过程调用认证信息。\",\n      \"description_en\": \"Pack RPC authentication data.\"\n    },\n    {\n      \"action_name\": \"auto-pack_auth_unix\",\n      \"description\": \"打包 UNIX 风格的认证信息。\",\n      \"description_en\": \"Pack UNIX-style authentication data.\"\n    },\n    {\n      \"action_name\": \"auto-pack_callheader\",\n      \"description\": \"打包远程过程调用请求头。\",\n      \"description_en\": \"Pack the RPC call header.\"\n    },\n    {\n      \"action_name\": \"auto-pack_replyheader\",\n      \"description\": \"打包远程过程调用回复头。\",\n      \"description_en\": \"Pack the RPC reply header.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_auth\",\n      \"description\": \"解包远程过程调用认证信息。\",\n      \"description_en\": \"Unpack RPC authentication data.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_callheader\",\n      \"description\": \"解包远程过程调用请求头。\",\n      \"description_en\": \"Unpack the RPC call header.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_replyheader\",\n      \"description\": \"解包远程过程调用回复头。\",\n      \"description_en\": \"Unpack the RPC reply header.\"\n    },\n    {\n      \"action_name\": \"auto-start_call\",\n      \"description\": \"开始构建一次远程过程调用消息。\",\n      \"description_en\": \"Begin constructing an RPC call message.\"\n    },\n    {\n      \"action_name\": \"auto-do_call\",\n      \"description\": \"执行底层远程过程调用事务。\",\n      \"description_en\": \"Execute the low-level RPC transaction.\"\n    },\n    {\n      \"action_name\": \"auto-mkcred\",\n      \"description\": \"创建远程过程调用凭据。\",\n      \"description_en\": \"Create RPC credentials.\"\n    },\n    {\n      \"action_name\": \"auto-mkverf\",\n      \"description\": \"创建远程过程调用校验信息。\",\n      \"description_en\": \"Create an RPC verifier.\"\n    },\n    {\n      \"action_name\": \"auto-call_0\",\n      \"description\": \"调用空过程以测试服务可达性。\",\n      \"description_en\": \"Invoke the null procedure to test service reachability.\"\n    },\n    {\n      \"action_name\": \"auto-pack_mapping\",\n      \"description\": \"打包端口映射条目。\",\n      \"description_en\": \"Pack a port-mapper mapping entry.\"\n    },\n    {\n      \"action_name\": \"auto-pack_pmaplist\",\n      \"description\": \"打包端口映射列表。\",\n      \"description_en\": \"Pack a port-mapper mapping list.\"\n    },\n    {\n      \"action_name\": \"auto-pack_call_args\",\n      \"description\": \"打包远程调用参数。\",\n      \"description_en\": \"Pack remote call arguments.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_mapping\",\n      \"description\": \"解包端口映射条目。\",\n      \"description_en\": \"Unpack a port-mapper mapping entry.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_pmaplist\",\n      \"description\": \"解包端口映射列表。\",\n      \"description_en\": \"Unpack a port-mapper mapping list.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_call_result\",\n      \"description\": \"解包远程调用结果。\",\n      \"description_en\": \"Unpack the remote call result.\"\n    },\n    {\n      \"action_name\": \"auto-set\",\n      \"description\": \"在端口映射服务中注册一个映射。\",\n      \"description_en\": \"Register a mapping in the port-mapper service.\"\n    },\n    {\n      \"action_name\": \"auto-unset\",\n      \"description\": \"从端口映射服务中移除一个映射。\",\n      \"description_en\": \"Remove a mapping from the port-mapper service.\"\n    },\n    {\n      \"action_name\": \"auto-get_port\",\n      \"description\": \"查询服务对应的端口号。\",\n      \"description_en\": \"Query the port number for a service.\"\n    },\n    {\n      \"action_name\": \"auto-dump\",\n      \"description\": \"列出端口映射服务中的注册项。\",\n      \"description_en\": \"List registrations in the port-mapper service.\"\n    },\n    {\n      \"action_name\": \"auto-callit\",\n      \"description\": \"通过端口映射服务请求间接远程调用。\",\n      \"description_en\": \"Request an indirect remote call through the port-mapper service.\"\n    },\n    {\n      \"action_name\": \"auto-my_reply_handler\",\n      \"description\": \"处理广播端口映射调用的回复。\",\n      \"description_en\": \"Handle replies from broadcast port-mapper calls.\"\n    },\n    {\n      \"action_name\": \"auto-register\",\n      \"description\": \"注册一个可处理请求的服务。\",\n      \"description_en\": \"Register a service that can handle requests.\"\n    },\n    {\n      \"action_name\": \"auto-unregister\",\n      \"description\": \"注销一个已注册的服务。\",\n      \"description_en\": \"Unregister a previously registered service.\"\n    },\n    {\n      \"action_name\": \"auto-handle\",\n      \"description\": \"处理一次收到的远程过程调用请求。\",\n      \"description_en\": \"Handle an incoming RPC request.\"\n    },\n    {\n      \"action_name\": \"auto-turn_around\",\n      \"description\": \"将请求转换为对应的回复消息。\",\n      \"description_en\": \"Turn a request into the corresponding reply message.\"\n    },\n    {\n      \"action_name\": \"auto-handle_0\",\n      \"description\": \"处理空过程请求。\",\n      \"description_en\": \"Handle a null procedure request.\"\n    },\n    {\n      \"action_name\": \"auto-addpackers\",\n      \"description\": \"添加消息打包与解包器。\",\n      \"description_en\": \"Add message packers and unpackers.\"\n    },\n    {\n      \"action_name\": \"auto-loop\",\n      \"description\": \"运行服务处理循环。\",\n      \"description_en\": \"Run the service processing loop.\"\n    },\n    {\n      \"action_name\": \"auto-session\",\n      \"description\": \"处理一次服务会话。\",\n      \"description_en\": \"Process a service session.\"\n    },\n    {\n      \"action_name\": \"auto-forkingloop\",\n      \"description\": \"以分叉方式运行服务循环。\",\n      \"description_en\": \"Run the service loop using process forking.\"\n    },\n    {\n      \"action_name\": \"auto-forksession\",\n      \"description\": \"在子进程中处理一次服务会话。\",\n      \"description_en\": \"Handle a service session in a child process.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"UDP broadcast RPC\",\n    \"ONC RPC/XDR\",\n    \"port mapper\",\n    \"network service discovery\",\n    \"distributed lab control\",\n    \"reply handling\",\n    \"timeout management\"\n  ]\n}"
+}

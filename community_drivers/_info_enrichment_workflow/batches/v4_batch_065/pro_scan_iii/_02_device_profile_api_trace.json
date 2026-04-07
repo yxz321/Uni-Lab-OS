@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: pro_scan_iii\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: microscope/controllers/prior.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.pro_scan_iii:ProScanIII\n\nClass: _ProScanIIIConnection \n  Bases: []\n  Docstring: Connection to a Prior ProScanIII and wrapper to its commands.\n\nDevices that are controlled by the same controller should share\nthe same connection instance to ensure correct synchronization of\ncommunications from different threads.  This ensures that commands\nfor different devices, or replies from different devices, don't\nget entangled.\n\nThis class also implements the logic to parse and validate\ncommands so it can be shared between multiple devices.\n\nClass: ProScanIII (focal)\n  Bases: ['microscope.abc.Controller']\n  Docstring: Prior ProScanIII controller.\n\nThe controlled devices have the following labels:\n\n`filter 1`\n  Filter wheel connected to connector labelled \"FILTER 1\".\n`filter 2`\n  Filter wheel connected to connector labelled \"FILTER 1\".\n`filter 3`\n  Filter wheel connected to connector labelled \"A AXIS\".\n\n.. note::\n\n   The Prior ProScanIII can control up to three filter wheels.\n   However, a filter position may have a different number\n   dependening on which connector it is.  For example, using an 8\n   position filter wheel, what is position 1 on the \"filter 1\" and\n   \"filter 2\" connectors, is position 4 when on the \"A axis\" (or\n   \"filter 3\") connector.\n\nClass: _ProScanIIIFilterWheel \n  Bases: ['microscope.abc.FilterWheel']\n\nFocal class methods:\n  [command] devices(self)\n\nRegistry actions:\n  auto-devices (from devices())\n\nRequired output action ids:\n  auto-devices"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0496471924095d160069d54bfe788081948ee406083fd300b4",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2696,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3318,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0496471924095d160069d54bff45d48194ae391fb07bf08af8",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0496471924095d160069d54c0789848194b460056d7111a0f7",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Prior ProScan III 显微镜附件控制器\",\n  \"name_en\": \"Prior ProScan III Microscope Accessory Controller\",\n  \"manufacturer\": \"Prior\",\n  \"description\": \"用于显微镜系统的物理控制器，可管理连接到 ProScan III 的附件设备；从当前证据看，主要包括最多三个滤轮接口。它用于在实验中统一协调已连接滤轮等附件的通信与设备发现。\",\n  \"description_en\": \"A physical controller for microscope systems that manages accessories connected to the ProScan III; based on the available evidence, this mainly includes up to three filter wheel connections. It is used in laboratory microscopy setups to coordinate communication with attached accessories and to discover managed devices.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-devices\",\n      \"description\": \"自动发现并列出该控制器当前管理的已连接设备，例如滤轮。\",\n      \"description_en\": \"Automatically discover and list the devices currently managed by the controller, such as attached filter wheels.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"microscope accessory controller\",\n    \"filter wheel control\",\n    \"microscope automation\",\n    \"Prior ProScan III\",\n    \"multi-device controller\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1069,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 719,
+      "output_tokens_details": {
+        "reasoning_tokens": 446
+      },
+      "total_tokens": 1788
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1069,
+      "output_token_count": 719,
+      "predict_time": 14.486935014
+    }
+  },
+  "output_text": "{\n  \"name\": \"Prior ProScan III 显微镜附件控制器\",\n  \"name_en\": \"Prior ProScan III Microscope Accessory Controller\",\n  \"manufacturer\": \"Prior\",\n  \"description\": \"用于显微镜系统的物理控制器，可管理连接到 ProScan III 的附件设备；从当前证据看，主要包括最多三个滤轮接口。它用于在实验中统一协调已连接滤轮等附件的通信与设备发现。\",\n  \"description_en\": \"A physical controller for microscope systems that manages accessories connected to the ProScan III; based on the available evidence, this mainly includes up to three filter wheel connections. It is used in laboratory microscopy setups to coordinate communication with attached accessories and to discover managed devices.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-devices\",\n      \"description\": \"自动发现并列出该控制器当前管理的已连接设备，例如滤轮。\",\n      \"description_en\": \"Automatically discover and list the devices currently managed by the controller, such as attached filter wheels.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"microscope accessory controller\",\n    \"filter wheel control\",\n    \"microscope automation\",\n    \"Prior ProScan III\",\n    \"multi-device controller\"\n  ]\n}"
+}

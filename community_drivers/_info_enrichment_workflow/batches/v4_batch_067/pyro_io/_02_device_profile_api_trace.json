@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: pyro_io\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/Logger-PyroScience_FireSting-O2/libs/FireSting3.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.oxygen.pyroscience.pyro_io:PyroIO\n\nClass: PyroIO (focal)\n  Bases: []\n\nClass: FireChannel \n  Bases: []\n\nClass: FireSting \n  Bases: []\n\nFocal class methods:\n  [command] connect(self, baud=None)\n    comment: \n    comment: Connect / Disconnect Functions\n    comment: \n    comment: if a baudrate is passed try it first\n    comment: try all baudrates till a connection is established\n    comment: increase connection timeout\n  [command] disconnect(self)\n  [status_getter] connected(self)\n  [command] send(self, msg, repeat_on_fail=True)\n    comment: \n    comment: Primitive IO Functions\n    comment: \n    comment: check the echo\n    comment: Send a command to the device and receive (and check the result).\n\n        The echo and if available the crc checksum are controlled. If the transmission fails the command is\n        repeated by defaul...\n  [command] write(self, msg)\n    comment: write a command to the device\n\n        Users should usually use the more high-level \"send\" function\n\n        :param msg: command to send\n  [command] read(self)\n    comment: receive the response of the device\n\n        Users should usually use the more high-level \"send\" function\n\n        :return: response of the device without any processing and checking\n  [status_getter] get_device_information(self)\n    comment: \n    comment: Device-wide functions (not channel specific)\n    comment: \n    comment: parse sensor types\n    comment: parse id\n    comment: Collect information of the device (nof channels, firmware, etc) and return it\n\n        This function is called during the connecting of the device and finds out what type of device it is\n        and w...\n  [command] read_unique_id(self)\n    comment: Read the unique id number of the device\n  [command] blink(self)\n    comment: Flash the logo of the device\n  [command] calibrate_zero(self, channel, temperature, save=True)\n    comment: \n    comment: Calibration Functions\n    comment: \n    comment: measure 16 times and take average and store\n    comment: Calibrate zero command.\n\n        Calibration can be performed in nitrogen or in deoxigenated water (e.g. sulfite). Sensor must be equilibrated\n        with the calibration standard before this command...\n  [command] calibrate_air(self, channel, temperature, pressure, humidity, save=True)\n    comment: Calibrate air command\n\n        Calibration can be performed in air or in air saturated water (100%RH). Sensor must be equilibrated with the\n        calibration standard before this command is called. ...\n  [command] trigger_oxygen_measurement(self, channel)\n    comment: \n    comment: Measure Functions\n    comment: \n    comment: Triggers an optical measurement. Results are stored in device registers\n  [command] trigger_temperature_measurement(self, channel)\n    comment: Triggers a temperature measurement. Results are stored in device registers\n  [command] trigger_pressure_measurement(self, channel)\n    comment: Triggers a environment pressure measurement. Results are stored in device registers\n  [command] trigger_humidity_measurement(self, channel)\n    comment: Triggers a humidity measurement. Results are stored in device registers\n  [status_getter] get_version_info(self)\n    comment: get information about the device\n  [command] clear_background(self, channel, save=True)\n    comment: Clear the background registers\n\n        :param channel: Channel to clear\n        :param save: save to permanent flash storage\n  [command] measure_background(self, channel, save=True)\n    comment: measure current amplitude and phase\n    comment: calculate mean\n    comment: Measure the current phase shift and amplitude and store it in the background registers.\n\n        All following measurements are corrected by these background values.\n        Note: the registers expect...\n  [command] read_register(self, channel, reg_type, addr)\n    comment: \n    comment: basic read/write register\n    comment: \n    comment: read a single register\n\n        :param channel: channel to read from\n        :param reg_type: register type (0: settings, 1: calibration, 3: results)\n        :param addr: address in the register\n  [command] read_multiple_registers(self, channel, reg_type, addr, number)\n    comment: read multiple registers. Results are separated with whitespace.\n\n        :param channel: channel to read from\n        :param reg_type: register type (0: settings, 1: calibration, 3: results)\n        :...\n  [command] write_register(self, channel, reg_type, addr, value)\n    comment: write a single register\n\n        :param channel: channel to write to\n        :param reg_type: register type (0: settings, 1: calibration, 3: results)\n        :param addr: address in the register\n     ...\n  [command] save_to_flash(self, channel=1)\n    comment: saves the current settings etc. to the permanent flash storage\n  [command] load_from_flash(self, channel=1)\n    comment: loads the settings, etc. from the flash storage\n\n        all non-saved changes are lost\n  [command] read_all_settings_registers(self, channel)\n    comment: \n    comment: read settings registers\n    comment: \n    comment: parsing\n    comment: parse coded values\n    comment: frequency was stored in calibration prior to 3.20. Collect data for compatibility\n    comment: Read all settings registers of the channel and returns the parsed results as a dict\n\n        The contents of the returned dict depend on the firmware version of the device, but the following entries c...\n  [command] read_calibration_register(self, channel, addr)\n    comment: \n    comment: read calibration data\n    comment: \n    comment: read a single calibration register\n  [command] read_cal_register_by_name(self, channel, name)\n  [command] read_bkgd_amp(self, channel)\n  [command] read_bkgd_dphi(self, channel)\n  [command] read_all_cal_registers(self, channel)\n    comment: get the analyte\n    comment: Read all calibration registers and return the parsed result as a dict\n\n            entries of the dict:\n                name        unit        description\n                dphi0       [°]         phas...\n  [command] read_result_register(self, channel, addr)\n    comment: \n    comment: read results\n    comment: \n    comment: read a single result register\n\n        :param channel: channel to read from\n        :param addr: address of the register\n  [command] read_result_register_by_name(self, channel, name)\n    comment: read a single results register identified by name\n        \n        :param channel: channel to read from \n        :param name: name of the register. Available registers: see RESULT_REGISTERS\n  [command] read_status(self, channel)\n    comment: read the status of the last measurement.\n\n        :param channel: channel to read from\n        status messages are encoded. Use function PyroIO.decode_status() to get human readable messages\n  [command] read_dphi(self, channel)\n    comment: read dphi of the last measurement. Unit: °\n\n        :param channel: channel to read from\n  [command] read_sample_temperature(self, channel)\n    comment: read sample temperature of the last measurement. Unit °C\n\n        :param channel: channel to read from\n  [command] read_pressure(self, channel)\n    comment: read ambient pressure during the last measurement. Unit: mbar\n\n        :param channel: channel to read from\n  [command] read_signal_intensity(self, channel)\n    comment: read signal intensity during the last measurement. Unit: mV\n\n        :param channel: channel to read from\n  [command] read_ambient_light(self, channel)\n    comment: read ambient light during the last measurement. Unit: mV\n\n        :param channel: channel to read from\n  [command] read_all_result_registers(self, channel)\n    comment: Get all values in the result registers\n\n        No measurement is triggered. The results from the last measurement are returned.\n        the values are returned in a dict and parsed into useful types....\n  [command] parse_result_registers(result)\n    comment: Parse the result string (the full results register of a channel\n\n        returned units: °, µmol/L, mbar, %air sat, °C, mV, %RH, Ohm, %O2\n\n        :param result: result register 0-13 separated by spac...\n  [command] write_temperature_setting(self, channel, value)\n    comment: change the temperature setting of the channel.\n\n        The set temperature is used for temperature compensation of the sensor and to calculate temperature dependent\n        derived units (umolar, %ai...\n  [command] write_pressure_setting(self, channel, value)\n    comment: change the ambient pressure setting of the channel.\n\n        The set ambient pressure is used to calculate pressure dependent derived units (umolar, percentO2)\n\n        If the pressure is set to -1 th...\n  [command] write_salinity_setting(self, channel, value)\n    comment: change the salinity setting of the channel in g/L.\n\n        The set salinity is used to calculate salinity dependent derived units (umolar)\n\n        :param channel: channel to change the pressure sett...\n  [command] write_measure_time_setting(self, channel, value)\n    comment: change the measure time of the channel.\n\n        Valid values:\n            FireSting: 1-200; unit ms\n            all other devices: 1, 2, 4, 8, 16, 32, 64, 128; unit: ms\n\n        A longer measure time...\n  [command] write_intensity_setting(self, channel, value)\n    comment: change the led intensity setting of the channel.\n\n        Valid values:\n            10, 15, 20, 30, 40, 60, 80, 100\n\n        A larger LED intensity increases the signal intensity. A signal intensity >...\n  [command] write_amplification_setting(self, channel, value)\n    comment: change the amplification setting of the channel.\n\n        Valid values:\n            1, 4, 20, 40, 80, 200, 400, 800\n        It is strongly recommended to use only: 80, 200 or 400\n\n        A larger amp...\n  [command] write_frequency_setting(self, channel, value, save=False)\n    comment: change the frequency setting of the channel.\n\n        Valid values:\n            100-20000 (default: 4000)\n\n        :param channel: channel to change the measure time\n        :param value: new modulati...\n  [command] write_fiber_type_setting(self, channel, fiber_type)\n    comment: Changes the type of connected sensor fiber\n\n        0: 200µm fiber (orange)\n        1: 400µm fiber (brown)\n        2: 1mm fiber (black)\n\n        :param channel: channel\n        :param fiber_type: One ...\n  [command] write_calibration_register_by_name(self, channel, name, value, save=True)\n    comment: write to a calibration register by its name\n\n        available are:\n            dphi0, dphi100, temp0, temp100, pressure, humidity, f, m, calFreq, tt, kt, bkgdAmpl, bkgdDphi, useKsv, ksv,\n            ...\n  [command] write_bkgd_amp(self, channel, value, save=True)\n    comment: manually write the background amplitude\n\n        It is usually better to use the \"measure_background\" or \"clear_background\" functions.\n\n        :param channel: channel to write to\n        :param value...\n  [command] write_bkgd_dphi(self, channel, value, save=True)\n    comment: manually write the background phase angle\n\n        It is usually better to use the \"measure_background\" or \"clear_background\" functions.\n\n        :param channel: channel to write to\n        :param val...\n\nRegistry actions:\n  auto-connect (from connect())\n  auto-disconnect (from disconnect())\n  auto-send (from send())\n  auto-write (from write())\n  auto-read (from read())\n  auto-read_unique_id (from read_unique_id())\n  auto-blink (from blink())\n  auto-calibrate_zero (from calibrate_zero())\n  auto-calibrate_air (from calibrate_air())\n  auto-trigger_oxygen_measurement (from trigger_oxygen_measurement())\n  auto-trigger_temperature_measurement (from trigger_temperature_measurement())\n  auto-trigger_pressure_measurement (from trigger_pressure_measurement())\n  auto-trigger_humidity_measurement (from trigger_humidity_measurement())\n  auto-clear_background (from clear_background())\n  auto-measure_background (from measure_background())\n  auto-read_register (from read_register())\n  auto-read_multiple_registers (from read_multiple_registers())\n  auto-write_register (from write_register())\n  auto-save_to_flash (from save_to_flash())\n  auto-load_from_flash (from load_from_flash())\n  auto-read_all_settings_registers (from read_all_settings_registers())\n  auto-read_calibration_register (from read_calibration_register())\n  auto-read_cal_register_by_name (from read_cal_register_by_name())\n  auto-read_bkgd_amp (from read_bkgd_amp())\n  auto-read_bkgd_dphi (from read_bkgd_dphi())\n  auto-read_all_cal_registers (from read_all_cal_registers())\n  auto-read_result_register (from read_result_register())\n  auto-read_result_register_by_name (from read_result_register_by_name())\n  auto-read_status (from read_status())\n  auto-read_dphi (from read_dphi())\n  auto-read_sample_temperature (from read_sample_temperature())\n  auto-read_pressure (from read_pressure())\n  auto-read_signal_intensity (from read_signal_intensity())\n  auto-read_ambient_light (from read_ambient_light())\n  auto-read_all_result_registers (from read_all_result_registers())\n  auto-write_temperature_setting (from write_temperature_setting())\n  auto-write_pressure_setting (from write_pressure_setting())\n  auto-write_salinity_setting (from write_salinity_setting())\n  auto-write_measure_time_setting (from write_measure_time_setting())\n  auto-write_intensity_setting (from write_intensity_setting())\n  auto-write_amplification_setting (from write_amplification_setting())\n  auto-write_frequency_setting (from write_frequency_setting())\n  auto-write_fiber_type_setting (from write_fiber_type_setting())\n  auto-write_calibration_register_by_name (from write_calibration_register_by_name())\n  auto-write_bkgd_amp (from write_bkgd_amp())\n  auto-write_bkgd_dphi (from write_bkgd_dphi())\n\nRequired output action ids:\n  auto-connect\n  auto-disconnect\n  auto-send\n  auto-write\n  auto-read\n  auto-read_unique_id\n  auto-blink\n  auto-calibrate_zero\n  auto-calibrate_air\n  auto-trigger_oxygen_measurement\n  auto-trigger_temperature_measurement\n  auto-trigger_pressure_measurement\n  auto-trigger_humidity_measurement\n  auto-clear_background\n  auto-measure_background\n  auto-read_register\n  auto-read_multiple_registers\n  auto-write_register\n  auto-save_to_flash\n  auto-load_from_flash\n  auto-read_all_settings_registers\n  auto-read_calibration_register\n  auto-read_cal_register_by_name\n  auto-read_bkgd_amp\n  auto-read_bkgd_dphi\n  auto-read_all_cal_registers\n  auto-read_result_register\n  auto-read_result_register_by_name\n  auto-read_status\n  auto-read_dphi\n  auto-read_sample_temperature\n  auto-read_pressure\n  auto-read_signal_intensity\n  auto-read_ambient_light\n  auto-read_all_result_registers\n  auto-write_temperature_setting\n  auto-write_pressure_setting\n  auto-write_salinity_setting\n  auto-write_measure_time_setting\n  auto-write_intensity_setting\n  auto-write_amplification_setting\n  auto-write_frequency_setting\n  auto-write_fiber_type_setting\n  auto-write_calibration_register_by_name\n  auto-write_bkgd_amp\n  auto-write_bkgd_dphi"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0c603a3831a97d8b0069d54e4ed70c8195aef70234f35a92dd",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1802,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 13848,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0c603a3831a97d8b0069d54e50889c8195af0f36a37c6b250d",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0c603a3831a97d8b0069d54e645b2c8195960730d15fd10f1d",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"FireSting光学氧测量仪\",\n  \"name_en\": \"FireSting optical oxygen meter\",\n  \"manufacturer\": \"PyroScience\",\n  \"description\": \"PyroScience FireSting 系列光学氧测量仪，用于连接光纤或探针式氧传感器，执行氧测量、零点/空气校准、背景校正，并读取温度、压力、湿度及测量结果寄存器，适用于溶解氧或气相氧实验监测。\",\n  \"description_en\": \"A PyroScience FireSting series optical oxygen meter for fiber-optic or probe-based oxygen sensors. It performs oxygen measurements, zero/air calibration, background correction, and reads temperature, pressure, humidity, and result registers for dissolved-oxygen or gas-phase oxygen experiments.\",\n  \"tag_hints\": [\n    \"optical oxygen sensing\",\n    \"fiber-optic oxygen meter\",\n    \"oxygen calibration\",\n    \"dissolved oxygen measurement\",\n    \"phase-shift oxygen sensor\",\n    \"temperature compensation\",\n    \"multi-channel sensor\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"连接到 FireSting 设备，必要时自动尝试不同波特率。\",\n      \"description_en\": \"Connect to the FireSting device, optionally trying different baud rates automatically.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开与设备的连接。\",\n      \"description_en\": \"Disconnect from the device.\"\n    },\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"向设备发送命令并校验回显与响应，失败时可重试。\",\n      \"description_en\": \"Send a command to the device and validate the echo and response, with optional retry on failure.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向设备底层串口写入原始命令。\",\n      \"description_en\": \"Write a raw command to the device serial interface.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"从设备底层接口读取原始响应。\",\n      \"description_en\": \"Read a raw response from the device interface.\"\n    },\n    {\n      \"action_name\": \"auto-read_unique_id\",\n      \"description\": \"读取设备唯一标识号。\",\n      \"description_en\": \"Read the device unique identifier.\"\n    },\n    {\n      \"action_name\": \"auto-blink\",\n      \"description\": \"使设备标志灯闪烁，以便识别设备。\",\n      \"description_en\": \"Blink the device logo or indicator for physical identification.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_zero\",\n      \"description\": \"对指定通道执行零氧校准。\",\n      \"description_en\": \"Perform zero-oxygen calibration on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_air\",\n      \"description\": \"对指定通道执行空气点校准。\",\n      \"description_en\": \"Perform air-point calibration on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_oxygen_measurement\",\n      \"description\": \"触发指定通道的氧测量。\",\n      \"description_en\": \"Trigger an oxygen measurement on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_temperature_measurement\",\n      \"description\": \"触发指定通道的温度测量。\",\n      \"description_en\": \"Trigger a temperature measurement on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_pressure_measurement\",\n      \"description\": \"触发指定通道的环境压力测量。\",\n      \"description_en\": \"Trigger an ambient pressure measurement on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_humidity_measurement\",\n      \"description\": \"触发指定通道的湿度测量。\",\n      \"description_en\": \"Trigger a humidity measurement on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-clear_background\",\n      \"description\": \"清除指定通道的背景校正寄存器。\",\n      \"description_en\": \"Clear the background correction registers for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-measure_background\",\n      \"description\": \"测量并存储指定通道的背景相位与幅度。\",\n      \"description_en\": \"Measure and store background phase and amplitude for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_register\",\n      \"description\": \"读取指定通道的单个寄存器。\",\n      \"description_en\": \"Read a single register from the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_multiple_registers\",\n      \"description\": \"读取指定通道的多个连续寄存器。\",\n      \"description_en\": \"Read multiple consecutive registers from the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_register\",\n      \"description\": \"向指定通道的单个寄存器写入值。\",\n      \"description_en\": \"Write a value to a single register on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-save_to_flash\",\n      \"description\": \"将当前设置和校准数据保存到设备闪存。\",\n      \"description_en\": \"Save current settings and calibration data to device flash memory.\"\n    },\n    {\n      \"action_name\": \"auto-load_from_flash\",\n      \"description\": \"从设备闪存加载设置和校准数据。\",\n      \"description_en\": \"Load settings and calibration data from device flash memory.\"\n    },\n    {\n      \"action_name\": \"auto-read_all_settings_registers\",\n      \"description\": \"读取并解析指定通道的全部设置寄存器。\",\n      \"description_en\": \"Read and parse all settings registers for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_calibration_register\",\n      \"description\": \"读取指定通道的单个校准寄存器。\",\n      \"description_en\": \"Read a single calibration register from the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_cal_register_by_name\",\n      \"description\": \"按名称读取指定通道的校准寄存器。\",\n      \"description_en\": \"Read a calibration register by name from the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_bkgd_amp\",\n      \"description\": \"读取指定通道的背景幅度值。\",\n      \"description_en\": \"Read the background amplitude value for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_bkgd_dphi\",\n      \"description\": \"读取指定通道的背景相位角值。\",\n      \"description_en\": \"Read the background phase-angle value for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_all_cal_registers\",\n      \"description\": \"读取并解析指定通道的全部校准寄存器。\",\n      \"description_en\": \"Read and parse all calibration registers for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_result_register\",\n      \"description\": \"读取指定通道的单个结果寄存器。\",\n      \"description_en\": \"Read a single result register from the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_result_register_by_name\",\n      \"description\": \"按名称读取指定通道的结果寄存器。\",\n      \"description_en\": \"Read a result register by name from the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_status\",\n      \"description\": \"读取指定通道上一次测量的状态信息。\",\n      \"description_en\": \"Read the status of the last measurement for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_dphi\",\n      \"description\": \"读取指定通道上一次测量的相位偏移 dphi。\",\n      \"description_en\": \"Read the last measured phase shift dphi for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_sample_temperature\",\n      \"description\": \"读取指定通道上一次测量的样品温度。\",\n      \"description_en\": \"Read the last measured sample temperature for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_pressure\",\n      \"description\": \"读取指定通道上一次测量时的环境压力。\",\n      \"description_en\": \"Read the ambient pressure recorded during the last measurement for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_signal_intensity\",\n      \"description\": \"读取指定通道上一次测量的信号强度。\",\n      \"description_en\": \"Read the signal intensity from the last measurement for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_ambient_light\",\n      \"description\": \"读取指定通道上一次测量的环境光强。\",\n      \"description_en\": \"Read the ambient light level from the last measurement for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_all_result_registers\",\n      \"description\": \"读取并解析指定通道全部结果寄存器中的最近一次测量结果。\",\n      \"description_en\": \"Read and parse all result registers containing the most recent measurement for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_temperature_setting\",\n      \"description\": \"设置指定通道的温度补偿值。\",\n      \"description_en\": \"Set the temperature compensation value for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_pressure_setting\",\n      \"description\": \"设置指定通道的环境压力补偿值。\",\n      \"description_en\": \"Set the ambient pressure compensation value for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_salinity_setting\",\n      \"description\": \"设置指定通道的盐度补偿值。\",\n      \"description_en\": \"Set the salinity compensation value for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_measure_time_setting\",\n      \"description\": \"设置指定通道的测量时间。\",\n      \"description_en\": \"Set the measurement time for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_intensity_setting\",\n      \"description\": \"设置指定通道的 LED 激发强度。\",\n      \"description_en\": \"Set the LED excitation intensity for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_amplification_setting\",\n      \"description\": \"设置指定通道的信号放大倍数。\",\n      \"description_en\": \"Set the signal amplification factor for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_frequency_setting\",\n      \"description\": \"设置指定通道的调制频率。\",\n      \"description_en\": \"Set the modulation frequency for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_fiber_type_setting\",\n      \"description\": \"设置指定通道连接的传感器光纤类型。\",\n      \"description_en\": \"Set the connected sensor fiber type for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_calibration_register_by_name\",\n      \"description\": \"按名称写入指定通道的校准寄存器。\",\n      \"description_en\": \"Write a calibration register by name for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_bkgd_amp\",\n      \"description\": \"手动写入指定通道的背景幅度值。\",\n      \"description_en\": \"Manually write the background amplitude value for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_bkgd_dphi\",\n      \"description\": \"手动写入指定通道的背景相位角值。\",\n      \"description_en\": \"Manually write the background phase-angle value for the specified channel.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 4170,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3522,
+      "output_tokens_details": {
+        "reasoning_tokens": 986
+      },
+      "total_tokens": 7692
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 4170,
+      "output_token_count": 3522,
+      "predict_time": 56.163953682
+    }
+  },
+  "output_text": "{\n  \"name\": \"FireSting光学氧测量仪\",\n  \"name_en\": \"FireSting optical oxygen meter\",\n  \"manufacturer\": \"PyroScience\",\n  \"description\": \"PyroScience FireSting 系列光学氧测量仪，用于连接光纤或探针式氧传感器，执行氧测量、零点/空气校准、背景校正，并读取温度、压力、湿度及测量结果寄存器，适用于溶解氧或气相氧实验监测。\",\n  \"description_en\": \"A PyroScience FireSting series optical oxygen meter for fiber-optic or probe-based oxygen sensors. It performs oxygen measurements, zero/air calibration, background correction, and reads temperature, pressure, humidity, and result registers for dissolved-oxygen or gas-phase oxygen experiments.\",\n  \"tag_hints\": [\n    \"optical oxygen sensing\",\n    \"fiber-optic oxygen meter\",\n    \"oxygen calibration\",\n    \"dissolved oxygen measurement\",\n    \"phase-shift oxygen sensor\",\n    \"temperature compensation\",\n    \"multi-channel sensor\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"连接到 FireSting 设备，必要时自动尝试不同波特率。\",\n      \"description_en\": \"Connect to the FireSting device, optionally trying different baud rates automatically.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开与设备的连接。\",\n      \"description_en\": \"Disconnect from the device.\"\n    },\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"向设备发送命令并校验回显与响应，失败时可重试。\",\n      \"description_en\": \"Send a command to the device and validate the echo and response, with optional retry on failure.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向设备底层串口写入原始命令。\",\n      \"description_en\": \"Write a raw command to the device serial interface.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"从设备底层接口读取原始响应。\",\n      \"description_en\": \"Read a raw response from the device interface.\"\n    },\n    {\n      \"action_name\": \"auto-read_unique_id\",\n      \"description\": \"读取设备唯一标识号。\",\n      \"description_en\": \"Read the device unique identifier.\"\n    },\n    {\n      \"action_name\": \"auto-blink\",\n      \"description\": \"使设备标志灯闪烁，以便识别设备。\",\n      \"description_en\": \"Blink the device logo or indicator for physical identification.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_zero\",\n      \"description\": \"对指定通道执行零氧校准。\",\n      \"description_en\": \"Perform zero-oxygen calibration on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_air\",\n      \"description\": \"对指定通道执行空气点校准。\",\n      \"description_en\": \"Perform air-point calibration on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_oxygen_measurement\",\n      \"description\": \"触发指定通道的氧测量。\",\n      \"description_en\": \"Trigger an oxygen measurement on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_temperature_measurement\",\n      \"description\": \"触发指定通道的温度测量。\",\n      \"description_en\": \"Trigger a temperature measurement on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_pressure_measurement\",\n      \"description\": \"触发指定通道的环境压力测量。\",\n      \"description_en\": \"Trigger an ambient pressure measurement on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_humidity_measurement\",\n      \"description\": \"触发指定通道的湿度测量。\",\n      \"description_en\": \"Trigger a humidity measurement on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-clear_background\",\n      \"description\": \"清除指定通道的背景校正寄存器。\",\n      \"description_en\": \"Clear the background correction registers for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-measure_background\",\n      \"description\": \"测量并存储指定通道的背景相位与幅度。\",\n      \"description_en\": \"Measure and store background phase and amplitude for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_register\",\n      \"description\": \"读取指定通道的单个寄存器。\",\n      \"description_en\": \"Read a single register from the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_multiple_registers\",\n      \"description\": \"读取指定通道的多个连续寄存器。\",\n      \"description_en\": \"Read multiple consecutive registers from the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_register\",\n      \"description\": \"向指定通道的单个寄存器写入值。\",\n      \"description_en\": \"Write a value to a single register on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-save_to_flash\",\n      \"description\": \"将当前设置和校准数据保存到设备闪存。\",\n      \"description_en\": \"Save current settings and calibration data to device flash memory.\"\n    },\n    {\n      \"action_name\": \"auto-load_from_flash\",\n      \"description\": \"从设备闪存加载设置和校准数据。\",\n      \"description_en\": \"Load settings and calibration data from device flash memory.\"\n    },\n    {\n      \"action_name\": \"auto-read_all_settings_registers\",\n      \"description\": \"读取并解析指定通道的全部设置寄存器。\",\n      \"description_en\": \"Read and parse all settings registers for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_calibration_register\",\n      \"description\": \"读取指定通道的单个校准寄存器。\",\n      \"description_en\": \"Read a single calibration register from the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_cal_register_by_name\",\n      \"description\": \"按名称读取指定通道的校准寄存器。\",\n      \"description_en\": \"Read a calibration register by name from the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_bkgd_amp\",\n      \"description\": \"读取指定通道的背景幅度值。\",\n      \"description_en\": \"Read the background amplitude value for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_bkgd_dphi\",\n      \"description\": \"读取指定通道的背景相位角值。\",\n      \"description_en\": \"Read the background phase-angle value for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_all_cal_registers\",\n      \"description\": \"读取并解析指定通道的全部校准寄存器。\",\n      \"description_en\": \"Read and parse all calibration registers for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_result_register\",\n      \"description\": \"读取指定通道的单个结果寄存器。\",\n      \"description_en\": \"Read a single result register from the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_result_register_by_name\",\n      \"description\": \"按名称读取指定通道的结果寄存器。\",\n      \"description_en\": \"Read a result register by name from the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_status\",\n      \"description\": \"读取指定通道上一次测量的状态信息。\",\n      \"description_en\": \"Read the status of the last measurement for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_dphi\",\n      \"description\": \"读取指定通道上一次测量的相位偏移 dphi。\",\n      \"description_en\": \"Read the last measured phase shift dphi for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_sample_temperature\",\n      \"description\": \"读取指定通道上一次测量的样品温度。\",\n      \"description_en\": \"Read the last measured sample temperature for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_pressure\",\n      \"description\": \"读取指定通道上一次测量时的环境压力。\",\n      \"description_en\": \"Read the ambient pressure recorded during the last measurement for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_signal_intensity\",\n      \"description\": \"读取指定通道上一次测量的信号强度。\",\n      \"description_en\": \"Read the signal intensity from the last measurement for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_ambient_light\",\n      \"description\": \"读取指定通道上一次测量的环境光强。\",\n      \"description_en\": \"Read the ambient light level from the last measurement for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-read_all_result_registers\",\n      \"description\": \"读取并解析指定通道全部结果寄存器中的最近一次测量结果。\",\n      \"description_en\": \"Read and parse all result registers containing the most recent measurement for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_temperature_setting\",\n      \"description\": \"设置指定通道的温度补偿值。\",\n      \"description_en\": \"Set the temperature compensation value for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_pressure_setting\",\n      \"description\": \"设置指定通道的环境压力补偿值。\",\n      \"description_en\": \"Set the ambient pressure compensation value for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_salinity_setting\",\n      \"description\": \"设置指定通道的盐度补偿值。\",\n      \"description_en\": \"Set the salinity compensation value for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_measure_time_setting\",\n      \"description\": \"设置指定通道的测量时间。\",\n      \"description_en\": \"Set the measurement time for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_intensity_setting\",\n      \"description\": \"设置指定通道的 LED 激发强度。\",\n      \"description_en\": \"Set the LED excitation intensity for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_amplification_setting\",\n      \"description\": \"设置指定通道的信号放大倍数。\",\n      \"description_en\": \"Set the signal amplification factor for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_frequency_setting\",\n      \"description\": \"设置指定通道的调制频率。\",\n      \"description_en\": \"Set the modulation frequency for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_fiber_type_setting\",\n      \"description\": \"设置指定通道连接的传感器光纤类型。\",\n      \"description_en\": \"Set the connected sensor fiber type for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_calibration_register_by_name\",\n      \"description\": \"按名称写入指定通道的校准寄存器。\",\n      \"description_en\": \"Write a calibration register by name for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_bkgd_amp\",\n      \"description\": \"手动写入指定通道的背景幅度值。\",\n      \"description_en\": \"Manually write the background amplitude value for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-write_bkgd_dphi\",\n      \"description\": \"手动写入指定通道的背景相位角值。\",\n      \"description_en\": \"Manually write the background phase-angle value for the specified channel.\"\n    }\n  ]\n}"
+}

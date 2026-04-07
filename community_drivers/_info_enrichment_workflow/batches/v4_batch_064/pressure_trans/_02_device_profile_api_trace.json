@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: pressure_trans\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: equipment.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.pressure_transducer:pressure_trans\n\nClass: MFC \n  Bases: []\n  Docstring: A class for the mass flow controllers in the system.  Includes methods \nfor controlling them.\n\n...\n\nAttributes\n----------\naddress: int\n    the address used for serial comms\nser: serial.Serial object\n    the serial object set up with the parameters for communication with the \n    MFCs\n\nPublic Methods\n--------------\nSetFlow(set_point)\nChangeAddress(new_address)\nQueryFlow()\nQueryOpMode()\n\nClass: furnace \n  Bases: []\n  Docstring: A class for the tube furnace in the system.  Includes methods for control.\n\n...\n\nAttributes\n----------\naddress: str\n    the address used for serial comms over MODBUS as a two digit hex byte\nser: serial.Serial object\n    the serial object set up with the parameters for communication with the \n    furnace\n\nPublic Methods\n--------------\nSetTemp(setpoint)\nQueryTemp()\nChangeAddress()\nReportStatus()\n\nClass: pressure_trans (focal)\n  Bases: []\n  Docstring: A class for pressure transducers.\n\n...\n\nAttributes\n----------\naddress: str\n    the address used for serial comms\nser: serial.Serial object\n    the serial object set up with the parameters for communication with the \n    Omega PX409-485 pressure transducer\n\nPublic Methods\n--------------\nQueryPressure()\nReportStatus()\n\nFocal class methods:\n  [command] QueryPressure(self)\n    comment: Query the current pressure from the pressure transducer.\n\n            Parameters:\n                None\n            Returns:\n                pressure (float): the pressure value in whatever units the\n ...\n  [command] ReportStatus(self)\n    comment: Check to see if the pressure transducer is online.\n\n            Parameters:\n                None\n            Returns:\n                status (bool)\n\nRegistry actions:\n  auto-QueryPressure (from QueryPressure())\n  auto-ReportStatus (from ReportStatus())\n\nRequired output action ids:\n  auto-QueryPressure\n  auto-ReportStatus"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_051ee02dfa7aa0510069d54bfcfec0819082dbe029afc2cd88",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3143,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2398,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_051ee02dfa7aa0510069d54bfd861c8190bd427b43bb54bc9c",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_051ee02dfa7aa0510069d54c04402481908c704801aa1f0b56",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"压力变送器\",\n  \"name_en\": \"Pressure Transducer\",\n  \"manufacturer\": \"Omega\",\n  \"description\": \"用于实验系统中压力测量的压力变送器，可通过串口查询当前压力，并检查设备是否在线。证据指向 Omega PX409-485 压力变送器。\",\n  \"description_en\": \"A pressure transducer used for pressure measurement in a laboratory system. It supports serial querying of the current pressure and checking whether the device is online. The evidence points to an Omega PX409-485 pressure transducer.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-QueryPressure\",\n      \"description\": \"读取当前压力值\",\n      \"description_en\": \"Read the current pressure value.\"\n    },\n    {\n      \"action_name\": \"auto-ReportStatus\",\n      \"description\": \"检查压力变送器是否在线\",\n      \"description_en\": \"Check whether the pressure transducer is online.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"pressure measurement\",\n    \"pressure transducer\",\n    \"serial communication\",\n    \"RS-485\",\n    \"Omega PX409-485\",\n    \"process monitoring\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1122,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 603,
+      "output_tokens_details": {
+        "reasoning_tokens": 342
+      },
+      "total_tokens": 1725
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1122,
+      "output_token_count": 603,
+      "predict_time": 11.528658998000001
+    }
+  },
+  "output_text": "{\n  \"name\": \"压力变送器\",\n  \"name_en\": \"Pressure Transducer\",\n  \"manufacturer\": \"Omega\",\n  \"description\": \"用于实验系统中压力测量的压力变送器，可通过串口查询当前压力，并检查设备是否在线。证据指向 Omega PX409-485 压力变送器。\",\n  \"description_en\": \"A pressure transducer used for pressure measurement in a laboratory system. It supports serial querying of the current pressure and checking whether the device is online. The evidence points to an Omega PX409-485 pressure transducer.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-QueryPressure\",\n      \"description\": \"读取当前压力值\",\n      \"description_en\": \"Read the current pressure value.\"\n    },\n    {\n      \"action_name\": \"auto-ReportStatus\",\n      \"description\": \"检查压力变送器是否在线\",\n      \"description_en\": \"Check whether the pressure transducer is online.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"pressure measurement\",\n    \"pressure transducer\",\n    \"serial communication\",\n    \"RS-485\",\n    \"Omega PX409-485\",\n    \"process monitoring\"\n  ]\n}"
+}

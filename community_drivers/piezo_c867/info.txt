@@ -1,69 +1,138 @@
-Device: piezo_c867
-Registry Key: piezo_c867
-Short Description: c867
-
-Categories:
-- devices
-- piezo
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (15):
-- auto-GetChannelObject -> GetChannelObject [UniLabJsonCommand] goal_params: none
-- auto-GetChannelPhase -> GetChannelPhase [UniLabJsonCommand] goal_params: none
-- auto-GetControlReady -> GetControlReady [UniLabJsonCommand] goal_params: none
-- auto-GetFirmwareVersion -> GetFirmwareVersion [UniLabJsonCommand] goal_params: none
-- auto-GetMax -> GetMax [UniLabJsonCommand] goal_params: iChan
-- auto-GetMin -> GetMin [UniLabJsonCommand] goal_params: iChan
-- auto-GetPos -> GetPos [UniLabJsonCommand] goal_params: iChannel
-- auto-GetPosXY -> GetPosXY [UniLabJsonCommand] goal_params: none
-- auto-GetVelocity -> GetVelocity [UniLabJsonCommand] goal_params: chan
-- auto-MoveRel -> MoveRel [UniLabJsonCommand] goal_params: bTimeOut, iChannel, incr
-- auto-MoveTo -> MoveTo [UniLabJsonCommand] goal_params: bTimeOut, fPos, iChannel
-- auto-MoveToXY -> MoveToXY [UniLabJsonCommand] goal_params: bTimeOut, xPos, yPos
-- auto-ReInit -> ReInit [UniLabJsonCommand] goal_params: reference
-- auto-SetServo -> SetServo [UniLabJsonCommand] goal_params: state
-- auto-SetVelocity -> SetVelocity [UniLabJsonCommand] goal_params: chan, vel
-
-Driver Functions (40):
-- piezo_c867.__init__(self, portname, maxtravel, hasTrigger, reference) (line 114)
-- piezo_c867.SetServo(self, state) (line 134)
-- piezo_c867.ReInit(self, reference) (line 139)
-- piezo_c867.SetVelocity(self, chan, vel) (line 151)
-- piezo_c867.GetVelocity(self, chan) (line 156)
-- piezo_c867.MoveTo(self, iChannel, fPos, bTimeOut) (line 169)
-- piezo_c867.MoveRel(self, iChannel, incr, bTimeOut) (line 182)
-- piezo_c867.MoveToXY(self, xPos, yPos, bTimeOut) (line 187)
-- piezo_c867.GetPos(self, iChannel) (line 197)
-- piezo_c867.GetPosXY(self) (line 209)
-- piezo_c867.GetControlReady(self) (line 224)
-- piezo_c867.GetChannelObject(self) (line 227)
-- piezo_c867.GetChannelPhase(self) (line 230)
-- piezo_c867.GetMin(self, iChan) (line 233)
-- piezo_c867.GetMax(self, iChan) (line 236)
-- piezo_c867.GetFirmwareVersion(self) (line 240)
-- piezo_c867T.__init__(self, portname, maxtravel, hasTrigger, reference, maxvelocity, validRegion) (line 257)
-- piezo_c867T._log_error(self, errCode) (line 311)
-- piezo_c867T._Loop(self) (line 318)
-- piezo_c867T.close(self) (line 427)
-- piezo_c867T.SetServo(self, state) (line 438)
-- piezo_c867T.ReInit(self, reference) (line 452)
-- piezo_c867T.SetVelocity(self, chan, vel) (line 474)
-- piezo_c867T.GetVelocity(self, chan) (line 480)
-- piezo_c867T.MoveTo(self, iChannel, fPos, bTimeOut, vel) (line 484)
-- piezo_c867T.MoveToXY(self, xPos, yPos, bTimeOut, vel) (line 497)
-- piezo_c867T.GetPos(self, iChannel) (line 507)
-- piezo_c867T.GetPosXY(self) (line 519)
-- piezo_c867T.MoveInDir(self, dx, dy, th) (line 523)
-- piezo_c867T.StopMove(self) (line 546)
-- piezo_c867T.GetControlReady(self) (line 550)
-- piezo_c867T.GetChannelObject(self) (line 553)
-- piezo_c867T.GetChannelPhase(self) (line 556)
-- piezo_c867T.GetMin(self, iChan) (line 559)
-- piezo_c867T.GetMax(self, iChan) (line 562)
-- piezo_c867T.OnTarget(self) (line 566)
-- piezo_c867T.GetFirmwareVersion(self) (line 570)
-- c867Joystick.__init__(self, stepper) (line 581)
-- c867Joystick.Enable(self, enabled) (line 584)
-- c867Joystick.IsEnabled(self) (line 588)
+piezo_c867:
+  name: PI C-867双轴压电定位台
+  name_en: PI C-867 Two-Axis Piezo Positioning Stage
+  manufacturer: Physik Instrumente (PI)
+  category:
+  - 压电定位器
+  tags:
+  - 表征设备
+  - 精密定位与运动控制
+  - 智慧表征与检测中心
+  - 显微成像与光学显微实验
+  - 样品/探针定位与运动控制
+  - 压电定位器
+  description: 用于控制PI C-867相关的双轴压电/纳米定位平台，可进行XY位置读取、绝对与相对移动、速度设置、伺服开关和参考初始化，常用于显微成像中的精密扫描、样品对准和纳米级定位。
+  description_en: A PI C-867-based two-axis piezo/nanopositioning stage used for XY
+    position readout, absolute and relative motion, velocity setting, servo control,
+    and reference initialization. It is typically used for precision scanning, sample
+    alignment, and nanometer-scale positioning in microscopy.
+  class:
+    action_value_mappings:
+      auto-SetServo:
+        schema:
+          description: 启用或关闭定位台的伺服闭环控制。
+          description_en: Enable or disable the stage's closed-loop servo control.
+      auto-ReInit:
+        schema:
+          description: 重新初始化控制器，并可选择执行参考点/参考开关校准。
+          description_en: Reinitialize the controller and optionally perform reference-point/reference-switch
+            calibration.
+      auto-SetVelocity:
+        schema:
+          description: 设置指定通道的移动速度。
+          description_en: Set the motion velocity for the specified channel.
+      auto-GetVelocity:
+        schema:
+          description: 查询指定通道的移动速度。
+          description_en: Query the motion velocity of the specified channel.
+      auto-MoveTo:
+        schema:
+          description: 将指定通道移动到绝对目标位置。
+          description_en: Move the specified channel to an absolute target position.
+      auto-MoveRel:
+        schema:
+          description: 使指定通道按给定增量做相对移动。
+          description_en: Move the specified channel by a relative increment.
+      auto-MoveToXY:
+        schema:
+          description: 同时将X、Y两个通道移动到目标位置。
+          description_en: Move the X and Y channels to their target positions together.
+      auto-GetPos:
+        schema:
+          description: 读取指定通道的当前位置。
+          description_en: Read the current position of the specified channel.
+      auto-GetPosXY:
+        schema:
+          description: 读取X、Y两个通道的当前位置。
+          description_en: Read the current positions of the X and Y channels.
+      auto-GetControlReady:
+        schema:
+          description: 查询控制器是否已准备好接受运动控制命令。
+          description_en: Query whether the controller is ready to accept motion-control
+            commands.
+      auto-GetChannelObject:
+        schema:
+          description: 查询指定通道的对象/通道信息。
+          description_en: Query the object or channel information associated with
+            the specified channel.
+      auto-GetChannelPhase:
+        schema:
+          description: 查询指定通道的相位或阶段状态信息。
+          description_en: Query phase or stage-status information for the specified
+            channel.
+      auto-GetMin:
+        schema:
+          description: 查询指定通道允许的最小位置。
+          description_en: Query the minimum allowed position for the specified channel.
+      auto-GetMax:
+        schema:
+          description: 查询指定通道允许的最大位置。
+          description_en: Query the maximum allowed position for the specified channel.
+      auto-GetFirmwareVersion:
+        schema:
+          description: 查询控制器固件版本。
+          description_en: Query the controller firmware version.
+auto_annotation_metadata:
+  registry_key: piezo_c867
+  annotation_workflow_version: v4
+  tag_hints:
+  - piezo nanopositioning
+  - XY stage control
+  - closed-loop servo
+  - microscope scanning
+  - absolute and relative motion
+  - serial motion controller
+  - precision sample alignment
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该设备用于显微成像中的精密扫描、样品对准和纳米定位，属于表征实验配套设备。
+  - id: P-1009
+    name: 精密定位与运动控制
+    name_en: Precision Positioning & Motion Control
+    type: experimental_domain
+    rationale: 设备核心能力是双轴XY压电/纳米级定位与运动控制。
+  - id: '4325'
+    name: 智慧表征与检测中心
+    name_en: Intelligent Characterization & Testing Center
+    type: experimental_domain
+    rationale: 常用于显微成像和精密测试中的位置扫描与对准。
+  - id: P-0006
+    name: 显微成像与光学显微实验
+    name_en: Microscopy Imaging & Optical Microscopy Experiments
+    type: experimental_scene
+    rationale: 描述明确指出其常用于显微成像中的精密扫描。
+  - id: P-0038
+    name: 样品/探针定位与运动控制
+    name_en: Sample / Probe Positioning & Motion Control
+    type: experimental_scene
+    rationale: 支持XY位置读取、绝对/相对移动和样品精密对准。
+  proposed_new_tags:
+  - id: P-200101
+    name: 压电定位器
+    name_en: Piezo Positioner
+    type: device_template_tag
+    rationale: 该设备是双轴压电纳米定位平台，用于XY精密位移与扫描。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: qu_tech_awg__module\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pycqed/instrument_drivers/physical_instruments/QuTech_AWG_Module.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.awg.qutech_qwg:QuTech_AWG_Module\n\nClass: HandshakeParameter \n  Bases: ['Parameter']\n  Docstring: If a string is specified as a set command it will append '*OPC?' and use\ninstrument.ask instead of instrument.write\n\nClass: QuTech_AWG_Module (focal)\n  Bases: ['SCPI']\n\nClass: QWGMultiDevices \n  Bases: []\n  Docstring: QWG helper class to execute parameters/functions on multiple devices. E.g.: DIO calibration\nUsually all methods are static\n\nClass: Mock_QWG \n  Bases: ['QuTech_AWG_Module']\n  Docstring: Mock QWG instrument designed to mock QWG interface for testing purposes.\n\nFocal class methods:\n  [command] add_parameters(self)\n    comment: QWG specific\n    comment: Channel pair parameters\n    comment: NB: sideband frequency has a resolution of ~0.23 Hz:\n    comment: NB range is not a hardware limit\n    comment: Triggers parameter\n    comment: individual trigger level per trigger input:\n    comment: FIXME: Remove when QCodes PR #1653 is merged, see PycQED_py3 issue #566\n    comment: NB: setting mode \"CON\" (valid SCPI abbreviation) reads back as \"CONt\"\n    comment: Channel parameters #\n    comment: Set channel first to ensure sensible sorting of pars\n    comment: Compatibility: 5014, QWG\n    comment: parameter_class=HandshakeParameter,\n    comment: Trigger parameters\n    comment: string because a uint32 is more\n    comment: useful when other logic is needed\n    comment: Single parameters\n    comment: Parameter for codeword per channel\n    comment: Codeword 0 corresponds to bitcode 0\n    comment: FIXME: Remove when QCodes PR #1653 is merged, see PycQED_py3 issue #566\n    comment: Waveform parameters\n    comment: TODO: Remove when QCodes PR #1653 is merged, see PycQED_py3 issue #566\n    comment: TODO: Remove when QCodes PR #1653 is merged, see PycQED_py3 issue #566\n  [command] stop(self)\n    comment: Shutsdown output on channels. When stopped will check for errors or overflow\n  [command] start(self)\n    comment: Activates output on channels with the current settings. When started this function will check for\n        possible warnings\n  [command] detect_underdrive(self, status)\n    comment: Will raise an warning if on a channel underflow is detected\n  [command] getErrors(self)\n    comment: The SCPI protocol by default does not return errors. Therefore the user needs\n        to ask for errors. This function retrieves all errors and will raise them.\n  [command] JSON_parser(self, msg)\n    comment: SCPI/visa adds additional quotes\n    comment: Converts the result of a SCPI message to a JSON.\n\n        msg: SCPI message where the body is a JSON\n        return: JSON object with the data of the SCPI message\n  [command] dio_calibrate(self, target_index='')\n    comment: Calibrate the DIO input signals.\n\n\n        Will analyze the input signals for each DIO\n        inputs (used to transfer codeword bits), secondly,\n        the most preferable index (active index) is se...\n  [command] dio_calibration_rapport(self, extended=False)\n    comment: Return a string containing the latest DIO calibration rapport (successful and failed calibrations). Includes:\n        selected index, dio mode, valid indexes, calibrated DIO bits and the DIO bitDiff t...\n  [command] setSeqLength(self, length)\n    comment: \n    comment: AWG5014 functions: SEQUENCE\n    comment: \n    comment: Args:\n            length (int): 0..max. Allocates new, or trims existing sequence\n  [command] setSeqElemLoopInfiniteOn(self, element)\n    comment: Args:\n            element(int): 1..length\n  [command] deleteWaveform(self, name)\n    comment: Args:\n            name (string):  waveform name excluding double quotes, e.g.\n            'test'\n  [command] getWaveformType(self, name)\n    comment: Args:\n            name (string):  waveform name excluding double quotes, e.g.\n            '*Sine100'\n\n        Returns:\n            'INT' or 'REAL'\n  [command] getWaveformLength(self, name)\n    comment: Args:\n            name (string):  waveform name excluding double quotes, e.g.\n            '*Sine100'\n  [command] newWaveformReal(self, name, len)\n    comment: Args:\n            name (string):  waveform name excluding double quotes, e.g.\n            '*Sine100'\n\n        NB: seems to do nothing (on Tek5014) if waveform already exists\n  [command] getWaveformDataFloat(self, name)\n    comment: extract waveform\n    comment: Args:\n            name (string):  waveform name excluding double quotes, e.g.\n            '*Sine100'\n\n        Returns:\n            waveform  (np.array of float): waveform data\n\n        Compatibility: ...\n  [command] sendWaveformDataReal(self, name, waveform)\n    comment: generate the binblock\n    comment: write binblock\n    comment: send waveform and markers directly to AWG memory, i.e. not to a file\n        on the AWG disk.\n        NB: uses real data normalized to the range from -1 to 1 (independent\n        of number of DAC bits...\n  [command] createWaveformReal(self, name, waveform)\n    comment: Convenience function to create a waveform in the AWG and then send\n        data to it\n\n        Args:\n            name(string): name of waveform for internal use by the AWG\n\n            waveform (float...\n  [command] snapshot_base(self, update=False, params_to_skip_update=None, params_to_exclude=None)\n    comment: FIXME: Enable when QCodes PR #1653 is merged, see PycQED_py3 issue #566\n    comment: snap = super().snapshot_base(update=update,\n    comment: params_to_skip_update=params_to_skip_update)\n    comment: return snap\n    comment: FIXME: Workaround, remove when QCodes PR #1653 is merged, see PycQED_py3 issue #566\n    comment: really log this twice. Once verbose for the UI and once\n    comment: at lower level with more info for file based loggers\n    comment: State of the instrument as a JSON-compatible dict.\n\n        Args:\n            update: If True, update the state by querying the\n                instrument. If False, just use the latest values in memo...\n  [command] loadWaveformOrSequence(self, awgFileName)\n    comment: Tek_AWG functions: menu Setup|Waveform/Sequence\n    comment: awgFileName:        name referring to AWG file system\n\nRegistry actions:\n  auto-JSON_parser (from JSON_parser())\n  auto-add_parameters (from add_parameters())\n  auto-createWaveformReal (from createWaveformReal())\n  auto-deleteWaveform (from deleteWaveform())\n  auto-detect_underdrive (from detect_underdrive())\n  auto-dio_calibrate (from dio_calibrate())\n  auto-dio_calibration_rapport (from dio_calibration_rapport())\n  auto-getErrors (from getErrors())\n  auto-getWaveformDataFloat (from getWaveformDataFloat())\n  auto-getWaveformLength (from getWaveformLength())\n  auto-getWaveformType (from getWaveformType())\n  auto-loadWaveformOrSequence (from loadWaveformOrSequence())\n  auto-newWaveformReal (from newWaveformReal())\n  auto-sendWaveformDataReal (from sendWaveformDataReal())\n  auto-setSeqElemLoopInfiniteOn (from setSeqElemLoopInfiniteOn())\n  auto-setSeqLength (from setSeqLength())\n  auto-snapshot_base (from snapshot_base())\n  auto-start (from start())\n  auto-stop (from stop())\n  auto-dio_calibration (from dio_calibration())\n  auto-calibrate_dio_protocol (from calibrate_dio_protocol())\n  auto-add_parameter (from add_parameter())\n\nRequired output action ids:\n  auto-JSON_parser\n  auto-add_parameters\n  auto-createWaveformReal\n  auto-deleteWaveform\n  auto-detect_underdrive\n  auto-dio_calibrate\n  auto-dio_calibration_rapport\n  auto-getErrors\n  auto-getWaveformDataFloat\n  auto-getWaveformLength\n  auto-getWaveformType\n  auto-loadWaveformOrSequence\n  auto-newWaveformReal\n  auto-sendWaveformDataReal\n  auto-setSeqElemLoopInfiniteOn\n  auto-setSeqLength\n  auto-snapshot_base\n  auto-start\n  auto-stop\n  auto-dio_calibration\n  auto-calibrate_dio_protocol\n  auto-add_parameter"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_05ad969ad61561ed0069d54e6d3518819790a57dce74a6b0f2",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 9089,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 9386,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_05ad969ad61561ed0069d54e6ea86c8197ae81875622e90d88",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_05ad969ad61561ed0069d54e87065c8197954fdc9e2be6eda6",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"QuTech QWG任意波形发生器模块\",\n  \"name_en\": \"QuTech QWG Arbitrary Waveform Generator Module\",\n  \"manufacturer\": \"QuTech\",\n  \"description\": \"QuTech QWG 是一款面向量子实验的任意波形发生器模块，可输出多通道控制波形、管理波形与序列、支持基于 DIO 的 codeword 触发与校准，常用于量子比特控制和读出实验。\",\n  \"description_en\": \"The QuTech QWG is an arbitrary waveform generator module for quantum experiments. It outputs multi-channel control waveforms, manages waveform and sequence memory, supports DIO codeword triggering and calibration, and is commonly used for qubit control and readout setups.\",\n  \"tag_hints\": [\n    \"arbitrary waveform generation\",\n    \"quantum control pulses\",\n    \"DIO codeword triggering\",\n    \"sequence programming\",\n    \"waveform memory\",\n    \"SCPI instrument control\",\n    \"qubit control\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-JSON_parser\",\n      \"description\": \"解析 SCPI 返回的 JSON 字符串为 JSON 对象。\",\n      \"description_en\": \"Parse a JSON string returned by SCPI into a JSON object.\"\n    },\n    {\n      \"action_name\": \"auto-add_parameters\",\n      \"description\": \"定义并注册 QWG 的控制参数。\",\n      \"description_en\": \"Define and register QWG control parameters.\"\n    },\n    {\n      \"action_name\": \"auto-createWaveformReal\",\n      \"description\": \"创建实数波形并将数据写入 AWG 波形存储。\",\n      \"description_en\": \"Create a real waveform and write its data to AWG waveform memory.\"\n    },\n    {\n      \"action_name\": \"auto-deleteWaveform\",\n      \"description\": \"删除指定名称的波形。\",\n      \"description_en\": \"Delete a waveform by name.\"\n    },\n    {\n      \"action_name\": \"auto-detect_underdrive\",\n      \"description\": \"检测通道欠驱动或下溢状态并发出警告。\",\n      \"description_en\": \"Check channel underdrive or underflow status and issue a warning.\"\n    },\n    {\n      \"action_name\": \"auto-dio_calibrate\",\n      \"description\": \"校准 DIO 输入信号，用于 codeword 位传输。\",\n      \"description_en\": \"Calibrate DIO input signals used for codeword bit transfer.\"\n    },\n    {\n      \"action_name\": \"auto-dio_calibration_rapport\",\n      \"description\": \"获取最近一次 DIO 校准报告。\",\n      \"description_en\": \"Get the latest DIO calibration report.\"\n    },\n    {\n      \"action_name\": \"auto-getErrors\",\n      \"description\": \"读取并报告仪器错误信息。\",\n      \"description_en\": \"Retrieve and report instrument error messages.\"\n    },\n    {\n      \"action_name\": \"auto-getWaveformDataFloat\",\n      \"description\": \"读取指定波形的浮点数据。\",\n      \"description_en\": \"Read floating-point data of a specified waveform.\"\n    },\n    {\n      \"action_name\": \"auto-getWaveformLength\",\n      \"description\": \"获取指定波形的长度。\",\n      \"description_en\": \"Get the length of a specified waveform.\"\n    },\n    {\n      \"action_name\": \"auto-getWaveformType\",\n      \"description\": \"获取指定波形的类型。\",\n      \"description_en\": \"Get the type of a specified waveform.\"\n    },\n    {\n      \"action_name\": \"auto-loadWaveformOrSequence\",\n      \"description\": \"从 AWG 文件系统加载波形或序列。\",\n      \"description_en\": \"Load a waveform or sequence from the AWG file system.\"\n    },\n    {\n      \"action_name\": \"auto-newWaveformReal\",\n      \"description\": \"在 AWG 中新建实数波形条目。\",\n      \"description_en\": \"Create a new real-valued waveform entry in the AWG.\"\n    },\n    {\n      \"action_name\": \"auto-sendWaveformDataReal\",\n      \"description\": \"将归一化实数波形数据上传到 AWG 存储器。\",\n      \"description_en\": \"Upload normalized real-valued waveform data to AWG memory.\"\n    },\n    {\n      \"action_name\": \"auto-setSeqElemLoopInfiniteOn\",\n      \"description\": \"将指定序列元素设置为无限循环。\",\n      \"description_en\": \"Set a specified sequence element to loop infinitely.\"\n    },\n    {\n      \"action_name\": \"auto-setSeqLength\",\n      \"description\": \"设置序列长度。\",\n      \"description_en\": \"Set the sequence length.\"\n    },\n    {\n      \"action_name\": \"auto-snapshot_base\",\n      \"description\": \"生成设备当前状态的 JSON 兼容快照。\",\n      \"description_en\": \"Generate a JSON-compatible snapshot of the current device state.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动输出并按当前设置使能通道。\",\n      \"description_en\": \"Start output and enable channels using the current settings.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止通道输出并检查错误或溢出。\",\n      \"description_en\": \"Stop channel output and check for errors or overflow.\"\n    },\n    {\n      \"action_name\": \"auto-dio_calibration\",\n      \"description\": \"执行 DIO 校准流程。\",\n      \"description_en\": \"Run the DIO calibration procedure.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_dio_protocol\",\n      \"description\": \"校准 DIO 协议相关设置。\",\n      \"description_en\": \"Calibrate DIO protocol-related settings.\"\n    },\n    {\n      \"action_name\": \"auto-add_parameter\",\n      \"description\": \"添加单个设备参数定义。\",\n      \"description_en\": \"Add a single device parameter definition.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2625,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2367,
+      "output_tokens_details": {
+        "reasoning_tokens": 1097
+      },
+      "total_tokens": 4992
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2625,
+      "output_token_count": 2367,
+      "predict_time": 48.210433557
+    }
+  },
+  "output_text": "{\n  \"name\": \"QuTech QWG任意波形发生器模块\",\n  \"name_en\": \"QuTech QWG Arbitrary Waveform Generator Module\",\n  \"manufacturer\": \"QuTech\",\n  \"description\": \"QuTech QWG 是一款面向量子实验的任意波形发生器模块，可输出多通道控制波形、管理波形与序列、支持基于 DIO 的 codeword 触发与校准，常用于量子比特控制和读出实验。\",\n  \"description_en\": \"The QuTech QWG is an arbitrary waveform generator module for quantum experiments. It outputs multi-channel control waveforms, manages waveform and sequence memory, supports DIO codeword triggering and calibration, and is commonly used for qubit control and readout setups.\",\n  \"tag_hints\": [\n    \"arbitrary waveform generation\",\n    \"quantum control pulses\",\n    \"DIO codeword triggering\",\n    \"sequence programming\",\n    \"waveform memory\",\n    \"SCPI instrument control\",\n    \"qubit control\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-JSON_parser\",\n      \"description\": \"解析 SCPI 返回的 JSON 字符串为 JSON 对象。\",\n      \"description_en\": \"Parse a JSON string returned by SCPI into a JSON object.\"\n    },\n    {\n      \"action_name\": \"auto-add_parameters\",\n      \"description\": \"定义并注册 QWG 的控制参数。\",\n      \"description_en\": \"Define and register QWG control parameters.\"\n    },\n    {\n      \"action_name\": \"auto-createWaveformReal\",\n      \"description\": \"创建实数波形并将数据写入 AWG 波形存储。\",\n      \"description_en\": \"Create a real waveform and write its data to AWG waveform memory.\"\n    },\n    {\n      \"action_name\": \"auto-deleteWaveform\",\n      \"description\": \"删除指定名称的波形。\",\n      \"description_en\": \"Delete a waveform by name.\"\n    },\n    {\n      \"action_name\": \"auto-detect_underdrive\",\n      \"description\": \"检测通道欠驱动或下溢状态并发出警告。\",\n      \"description_en\": \"Check channel underdrive or underflow status and issue a warning.\"\n    },\n    {\n      \"action_name\": \"auto-dio_calibrate\",\n      \"description\": \"校准 DIO 输入信号，用于 codeword 位传输。\",\n      \"description_en\": \"Calibrate DIO input signals used for codeword bit transfer.\"\n    },\n    {\n      \"action_name\": \"auto-dio_calibration_rapport\",\n      \"description\": \"获取最近一次 DIO 校准报告。\",\n      \"description_en\": \"Get the latest DIO calibration report.\"\n    },\n    {\n      \"action_name\": \"auto-getErrors\",\n      \"description\": \"读取并报告仪器错误信息。\",\n      \"description_en\": \"Retrieve and report instrument error messages.\"\n    },\n    {\n      \"action_name\": \"auto-getWaveformDataFloat\",\n      \"description\": \"读取指定波形的浮点数据。\",\n      \"description_en\": \"Read floating-point data of a specified waveform.\"\n    },\n    {\n      \"action_name\": \"auto-getWaveformLength\",\n      \"description\": \"获取指定波形的长度。\",\n      \"description_en\": \"Get the length of a specified waveform.\"\n    },\n    {\n      \"action_name\": \"auto-getWaveformType\",\n      \"description\": \"获取指定波形的类型。\",\n      \"description_en\": \"Get the type of a specified waveform.\"\n    },\n    {\n      \"action_name\": \"auto-loadWaveformOrSequence\",\n      \"description\": \"从 AWG 文件系统加载波形或序列。\",\n      \"description_en\": \"Load a waveform or sequence from the AWG file system.\"\n    },\n    {\n      \"action_name\": \"auto-newWaveformReal\",\n      \"description\": \"在 AWG 中新建实数波形条目。\",\n      \"description_en\": \"Create a new real-valued waveform entry in the AWG.\"\n    },\n    {\n      \"action_name\": \"auto-sendWaveformDataReal\",\n      \"description\": \"将归一化实数波形数据上传到 AWG 存储器。\",\n      \"description_en\": \"Upload normalized real-valued waveform data to AWG memory.\"\n    },\n    {\n      \"action_name\": \"auto-setSeqElemLoopInfiniteOn\",\n      \"description\": \"将指定序列元素设置为无限循环。\",\n      \"description_en\": \"Set a specified sequence element to loop infinitely.\"\n    },\n    {\n      \"action_name\": \"auto-setSeqLength\",\n      \"description\": \"设置序列长度。\",\n      \"description_en\": \"Set the sequence length.\"\n    },\n    {\n      \"action_name\": \"auto-snapshot_base\",\n      \"description\": \"生成设备当前状态的 JSON 兼容快照。\",\n      \"description_en\": \"Generate a JSON-compatible snapshot of the current device state.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动输出并按当前设置使能通道。\",\n      \"description_en\": \"Start output and enable channels using the current settings.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止通道输出并检查错误或溢出。\",\n      \"description_en\": \"Stop channel output and check for errors or overflow.\"\n    },\n    {\n      \"action_name\": \"auto-dio_calibration\",\n      \"description\": \"执行 DIO 校准流程。\",\n      \"description_en\": \"Run the DIO calibration procedure.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_dio_protocol\",\n      \"description\": \"校准 DIO 协议相关设置。\",\n      \"description_en\": \"Calibrate DIO protocol-related settings.\"\n    },\n    {\n      \"action_name\": \"auto-add_parameter\",\n      \"description\": \"添加单个设备参数定义。\",\n      \"description_en\": \"Add a single device parameter definition.\"\n    }\n  ]\n}"
+}

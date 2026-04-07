@@ -1,65 +1,124 @@
-Device: polled_internal_device
-Registry Key: polled_internal_device
-Short Description: Polled Internal Device是一款实验执行&合成设备，主要功能包括关闭、加载、启动。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (14):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-closed -> closed [UniLabJsonCommand] goal_params: none
-- auto-end_time -> end_time [UniLabJsonCommand] goal_params: none
-- auto-event_delay -> event_delay [UniLabJsonCommand] goal_params: value
-- auto-host -> host [UniLabJsonCommand] goal_params: none
-- auto-is_active -> is_active [UniLabJsonCommand] goal_params: none
-- auto-load_average -> load_average [UniLabJsonCommand] goal_params: none
-- auto-start_time -> start_time [UniLabJsonCommand] goal_params: none
-- auto-temperature -> temperature [UniLabJsonCommand] goal_params: none
-- auto-usage -> usage [UniLabJsonCommand] goal_params: none
-- auto-utc -> utc [UniLabJsonCommand] goal_params: none
-- auto-value -> value [UniLabJsonCommand] goal_params: none
-- auto-wait_for_active -> wait_for_active [UniLabJsonCommand] goal_params: timeout
-- auto-wait_for_inactive -> wait_for_inactive [UniLabJsonCommand] goal_params: timeout
-
-Driver Functions (38):
-- InternalDevice.__init__(self, *, pin_factory) (line 99)
-- InternalDevice.close(self) (line 103)
-- InternalDevice.closed(self) (line 108)
-- InternalDevice.__repr__(self) (line 111)
-- PolledInternalDevice.__init__(self, *, event_delay, pin_factory) (line 125)
-- PolledInternalDevice.close(self) (line 131)
-- PolledInternalDevice.event_delay(self) (line 140)
-- PolledInternalDevice.event_delay(self, value) (line 156)
-- PolledInternalDevice.wait_for_active(self, timeout) (line 160)
-- PolledInternalDevice.wait_for_inactive(self, timeout) (line 169)
-- PolledInternalDevice._watch_value(self) (line 178)
-- PolledInternalDevice._start_stop_events(self, enabled) (line 183)
-- PingServer.__init__(self, host, *, event_delay, pin_factory) (line 223)
-- PingServer.__repr__(self) (line 228)
-- PingServer.host(self) (line 236)
-- PingServer.value(self) (line 243)
-- CPUTemperature.__init__(self, sensor_file, *, min_temp, max_temp, threshold, event_delay, pin_factory) (line 339)
-- CPUTemperature.__repr__(self) (line 358)
-- CPUTemperature.temperature(self) (line 368)
-- CPUTemperature.value(self) (line 376)
-- CPUTemperature.is_active(self) (line 387)
-- LoadAverage.__init__(self, load_average_file, *, min_load_average, max_load_average, threshold, minutes, event_delay, pin_factory) (line 472)
-- LoadAverage.__repr__(self) (line 496)
-- LoadAverage.load_average(self) (line 506)
-- LoadAverage.value(self) (line 515)
-- LoadAverage.is_active(self) (line 525)
-- TimeOfDay.__init__(self, start_time, end_time, *, utc, event_delay, pin_factory) (line 605)
-- TimeOfDay.__repr__(self) (line 622)
-- TimeOfDay._validate_time(self, value) (line 632)
-- TimeOfDay.start_time(self) (line 641)
-- TimeOfDay.end_time(self) (line 648)
-- TimeOfDay.utc(self) (line 655)
-- TimeOfDay.value(self) (line 663)
-- DiskUsage.__init__(self, filesystem, *, threshold, event_delay, pin_factory) (line 742)
-- DiskUsage.__repr__(self) (line 754)
-- DiskUsage.usage(self) (line 764)
-- DiskUsage.value(self) (line 771)
-- DiskUsage.is_active(self) (line 787)
+polled_internal_device:
+  name: 轮询式内部伪设备
+  name_en: Polled Internal Pseudo-Device
+  manufacturer: ''
+  category:
+  - 系统状态监测伪设备
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验流程状态指示与告警
+  - 系统状态监测伪设备
+  description: 这是一个非物理的软件组件，用于以后台轮询方式监测操作系统或主机内部状态，并将结果表现为可触发激活/失活事件的“伪设备”。它适合在实验自动化中把网络连通性、CPU
+    温度、系统负载、时间窗口或磁盘占用等内部条件，作为控制其他真实实验设备或流程逻辑的触发信号。
+  description_en: This is a non-physical software component that polls operating-system
+    or host-internal state in the background and exposes it as a pseudo-device with
+    active/inactive events. It is useful in lab automation for turning internal conditions
+    such as network reachability, CPU temperature, system load, time windows, or disk
+    usage into triggers for controlling real instruments or experimental workflows.
+  class:
+    action_value_mappings:
+      auto-close:
+        schema:
+          description: 关闭该轮询式内部组件并停止后台监测。
+          description_en: Close the polled internal component and stop background
+            monitoring.
+      auto-event_delay:
+        schema:
+          description: 获取或设置用于事件检测的轮询时间间隔。
+          description_en: Get or set the polling interval used for event detection.
+      auto-wait_for_active:
+        schema:
+          description: 等待组件进入激活状态，可设置超时。
+          description_en: Wait for the component to become active, with an optional
+            timeout.
+      auto-wait_for_inactive:
+        schema:
+          description: 等待组件进入未激活状态，可设置超时。
+          description_en: Wait for the component to become inactive, with an optional
+            timeout.
+      auto-closed:
+        schema:
+          description: 获取组件是否已关闭。
+          description_en: Get whether the component is closed.
+      auto-host:
+        schema:
+          description: 获取用于连通性检测的主机名或 IP 地址。
+          description_en: Get the hostname or IP address used for reachability monitoring.
+      auto-value:
+        schema:
+          description: 获取当前规范化数值输出。
+          description_en: Get the current normalized value output.
+      auto-temperature:
+        schema:
+          description: 获取当前 CPU 温度。
+          description_en: Get the current CPU temperature.
+      auto-is_active:
+        schema:
+          description: 获取当前是否处于激活状态。
+          description_en: Get whether the component is currently active.
+      auto-load_average:
+        schema:
+          description: 获取当前 CPU 负载平均值。
+          description_en: Get the current CPU load average.
+      auto-start_time:
+        schema:
+          description: 获取激活时间窗口的开始时间。
+          description_en: Get the start time of the active time window.
+      auto-end_time:
+        schema:
+          description: 获取激活时间窗口的结束时间。
+          description_en: Get the end time of the active time window.
+      auto-utc:
+        schema:
+          description: 获取或定义是否使用 UTC 时间进行比较。
+          description_en: Get or define whether UTC time is used for comparison.
+      auto-usage:
+        schema:
+          description: 获取当前磁盘使用率。
+          description_en: Get the current disk usage percentage.
+auto_annotation_metadata:
+  registry_key: polled_internal_device
+  annotation_workflow_version: v4
+  tag_hints:
+  - software pseudo-device
+  - polling events
+  - OS service monitoring
+  - network reachability ping
+  - CPU temperature monitoring
+  - load average monitoring
+  - disk usage monitoring
+  - time-based activation
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该伪设备在自动化流程中充当触发与控制条件源，直接参与实验执行逻辑。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 组件把主机内部状态转换为自动化流程触发信号，明显属于实验室自动化集成。
+  - id: P-8106
+    name: 实验流程状态指示与告警
+    name_en: Laboratory Workflow Status Indication & Alerting
+    type: experimental_scene
+    rationale: 设备根据网络、CPU、磁盘或时间窗口状态触发活跃/非活跃事件，适合流程状态与告警场景。
+  - id: P-50001
+    name: 系统状态监测伪设备
+    name_en: System State Monitoring Pseudo-Device
+    type: device_template_tag
+    rationale: 其本质就是后台轮询系统状态并暴露为可用事件的伪设备。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

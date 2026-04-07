@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: piezo_e709\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: PYME/Acquire/Hardware/Piezos/piezo_e709.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.devices.generic.piezo_e709:piezo_e709\n\nClass: piezo_e709 (focal)\n  Bases: ['PiezoBase']\n\nClass: piezo_e709T \n  Bases: ['PiezoBase']\n\nFocal class methods:\n  [command] ReInit(self)\n    comment: self.ser_port.write(b'WTO A0\\n')\n  [command] SetServo(self, val=1)\n  [command] MoveTo(self, iChannel, fPos, bTimeOut=True)\n  [command] MoveRel(self, iChannel, incr, bTimeOut=True)\n  [command] GetPos(self, iChannel=0)\n    comment: print res\n  [command] GetControlReady(self)\n    comment: def PopulateWaveTable(self,iChannel, data):\n    comment: \"\"\"Load wavetable data to piezo controller - data should be a sequence/array of positions\n    comment: (in um)and should have at most 64 items\"\"\"\n    comment: if len(data) > self.MAXWAVEPOINTS:\n    comment: #wave table too big\n    comment: raise RuntimeError('piezo_e816 - wave table must not have more than %d entries' % self.MAXWAVEPOINTS)\n    comment: \n    comment: self.waveData = data\n    comment: self.numWavePoints = len(data)\n    comment: \n    comment: self.ser_port.flush()\n    comment: time.sleep(0.05)\n    comment: \n    comment: for i, v in zip(range(self.numWavePoints), data):\n    comment: self.ser_port.write(b'SWT A%d %3.4f\\n' % (i, v))\n    comment: self.ser_port.flushOutput()\n    comment: time.sleep(0.01)\n    comment: res = self.ser_port.readline()\n    comment: #print res\n    comment: \n    comment: def GetWaveTable(self):\n    comment: \"\"\"Read wavetable back from contoller\"\"\"\n    comment: \n    comment: data = []\n    comment: \n    comment: self.ser_port.flush()\n    comment: time.sleep(0.05)\n    comment: \n    comment: for i in range(64):\n    comment: self.ser_port.write(b'SWT? A%d\\n' %i)\n    comment: self.ser_port.flushOutput()\n    comment: time.sleep(0.05)\n    comment: res = self.ser_port.readline()\n    comment: data.append(float(res))\n    comment: \n    comment: return data\n    comment: \n    comment: def StartWaveOutput(self,iChannel=0, dwellTime=None):\n    comment: \"\"\"Start wavetable output. dwellTime should be the desired dwell time in\n    comment: microseconds, or None (default). If dwellTime is None then the external\n    comment: wavetable trigger input (pin 9 on io connector) will be used.\"\"\"\n    comment: \n    comment: if self.numWavePoints < 1:\n    comment: raise RuntimeError('piezo_e816 - no wave table defined')\n    comment: \n    comment: if dwellTime == None:\n    comment: #triggered\n    comment: self.ser_port.write(b'WTO A%d\\n' % self.numWavePoints)\n    comment: else:\n    comment: self.ser_port.write(b'WTO A%d %3.4f\\n' % (self.numWavePoints, dwellTime))\n    comment: \n    comment: self.ser_port.flushOutput()\n    comment: \n    comment: def StopWaveOutput(self, iChannel=0):\n    comment: self.ser_port.write(b'WTO A0\\n')\n    comment: self.ser_port.flushOutput()\n  [command] GetChannelObject(self)\n  [command] GetChannelPhase(self)\n  [command] GetMin(self, iChan=1)\n  [command] GetMax(self, iChan=1)\n  [command] GetFirmwareVersion(self)\n\nRegistry actions:\n  auto-ReInit (from ReInit())\n  auto-SetServo (from SetServo())\n  auto-MoveTo (from MoveTo())\n  auto-MoveRel (from MoveRel())\n  auto-GetPos (from GetPos())\n  auto-GetControlReady (from GetControlReady())\n  auto-GetChannelObject (from GetChannelObject())\n  auto-GetChannelPhase (from GetChannelPhase())\n  auto-GetMin (from GetMin())\n  auto-GetMax (from GetMax())\n  auto-GetFirmwareVersion (from GetFirmwareVersion())\n\nRequired output action ids:\n  auto-ReInit\n  auto-SetServo\n  auto-MoveTo\n  auto-MoveRel\n  auto-GetPos\n  auto-GetControlReady\n  auto-GetChannelObject\n  auto-GetChannelPhase\n  auto-GetMin\n  auto-GetMax\n  auto-GetFirmwareVersion"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0e744563e0cfbc360069d5477de8e8819796adbe1d63715419",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4869,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4888,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0e744563e0cfbc360069d5477e4a28819782c8a63e859e7892",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0e744563e0cfbc360069d547890c4c8197ab1a9873e5c6b9a2",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"PI E-709 压电纳米定位控制器\",\n  \"name_en\": \"PI E-709 Piezo Nanopositioning Controller\",\n  \"manufacturer\": \"Physik Instrumente (PI)\",\n  \"description\": \"用于驱动压电纳米定位器的运动控制器，可进行绝对/相对位移、伺服开关、位置读取以及控制状态与固件信息查询，常用于显微镜精密调焦与高分辨定位实验。\",\n  \"description_en\": \"A motion controller for piezo nanopositioners, supporting absolute/relative moves, servo enable control, position readback, and queries of control status and firmware information. It is commonly used for precision microscope focusing and high-resolution positioning experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-ReInit\",\n      \"description\": \"重新初始化压电控制器并停止波形输出。\",\n      \"description_en\": \"Reinitialize the piezo controller and stop waveform output.\"\n    },\n    {\n      \"action_name\": \"auto-SetServo\",\n      \"description\": \"设置压电控制器的伺服开关状态。\",\n      \"description_en\": \"Set the servo on/off state of the piezo controller.\"\n    },\n    {\n      \"action_name\": \"auto-MoveTo\",\n      \"description\": \"将指定通道移动到目标位置。\",\n      \"description_en\": \"Move the specified channel to a target position.\"\n    },\n    {\n      \"action_name\": \"auto-MoveRel\",\n      \"description\": \"使指定通道相对当前位置移动一定增量。\",\n      \"description_en\": \"Move the specified channel by a relative increment from its current position.\"\n    },\n    {\n      \"action_name\": \"auto-GetPos\",\n      \"description\": \"读取指定通道的当前位置。\",\n      \"description_en\": \"Read the current position of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-GetControlReady\",\n      \"description\": \"查询控制器是否处于就绪状态。\",\n      \"description_en\": \"Query whether the controller is in a ready state.\"\n    },\n    {\n      \"action_name\": \"auto-GetChannelObject\",\n      \"description\": \"查询通道对象参数。\",\n      \"description_en\": \"Query the channel object parameter.\"\n    },\n    {\n      \"action_name\": \"auto-GetChannelPhase\",\n      \"description\": \"查询通道相位参数。\",\n      \"description_en\": \"Query the channel phase parameter.\"\n    },\n    {\n      \"action_name\": \"auto-GetMin\",\n      \"description\": \"查询指定通道的最小位置范围。\",\n      \"description_en\": \"Query the minimum position range of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-GetMax\",\n      \"description\": \"查询指定通道的最大位置范围。\",\n      \"description_en\": \"Query the maximum position range of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-GetFirmwareVersion\",\n      \"description\": \"查询控制器固件版本。\",\n      \"description_en\": \"Query the controller firmware version.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"piezo positioning\",\n    \"nanopositioning\",\n    \"closed-loop servo\",\n    \"serial motion control\",\n    \"microscope focus control\",\n    \"waveform output\",\n    \"precision stage control\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1746,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1239,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2985
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1746,
+      "output_token_count": 1239,
+      "predict_time": 23.258312907
+    }
+  },
+  "output_text": "{\n  \"name\": \"PI E-709 压电纳米定位控制器\",\n  \"name_en\": \"PI E-709 Piezo Nanopositioning Controller\",\n  \"manufacturer\": \"Physik Instrumente (PI)\",\n  \"description\": \"用于驱动压电纳米定位器的运动控制器，可进行绝对/相对位移、伺服开关、位置读取以及控制状态与固件信息查询，常用于显微镜精密调焦与高分辨定位实验。\",\n  \"description_en\": \"A motion controller for piezo nanopositioners, supporting absolute/relative moves, servo enable control, position readback, and queries of control status and firmware information. It is commonly used for precision microscope focusing and high-resolution positioning experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-ReInit\",\n      \"description\": \"重新初始化压电控制器并停止波形输出。\",\n      \"description_en\": \"Reinitialize the piezo controller and stop waveform output.\"\n    },\n    {\n      \"action_name\": \"auto-SetServo\",\n      \"description\": \"设置压电控制器的伺服开关状态。\",\n      \"description_en\": \"Set the servo on/off state of the piezo controller.\"\n    },\n    {\n      \"action_name\": \"auto-MoveTo\",\n      \"description\": \"将指定通道移动到目标位置。\",\n      \"description_en\": \"Move the specified channel to a target position.\"\n    },\n    {\n      \"action_name\": \"auto-MoveRel\",\n      \"description\": \"使指定通道相对当前位置移动一定增量。\",\n      \"description_en\": \"Move the specified channel by a relative increment from its current position.\"\n    },\n    {\n      \"action_name\": \"auto-GetPos\",\n      \"description\": \"读取指定通道的当前位置。\",\n      \"description_en\": \"Read the current position of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-GetControlReady\",\n      \"description\": \"查询控制器是否处于就绪状态。\",\n      \"description_en\": \"Query whether the controller is in a ready state.\"\n    },\n    {\n      \"action_name\": \"auto-GetChannelObject\",\n      \"description\": \"查询通道对象参数。\",\n      \"description_en\": \"Query the channel object parameter.\"\n    },\n    {\n      \"action_name\": \"auto-GetChannelPhase\",\n      \"description\": \"查询通道相位参数。\",\n      \"description_en\": \"Query the channel phase parameter.\"\n    },\n    {\n      \"action_name\": \"auto-GetMin\",\n      \"description\": \"查询指定通道的最小位置范围。\",\n      \"description_en\": \"Query the minimum position range of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-GetMax\",\n      \"description\": \"查询指定通道的最大位置范围。\",\n      \"description_en\": \"Query the maximum position range of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-GetFirmwareVersion\",\n      \"description\": \"查询控制器固件版本。\",\n      \"description_en\": \"Query the controller firmware version.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"piezo positioning\",\n    \"nanopositioning\",\n    \"closed-loop servo\",\n    \"serial motion control\",\n    \"microscope focus control\",\n    \"waveform output\",\n    \"precision stage control\"\n  ]\n}"
+}

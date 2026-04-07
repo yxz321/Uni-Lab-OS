@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: reader\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: keyboard_alike/reader.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.reader:Reader\n\nClass: DeviceException \n  Bases: ['Exception']\n\nClass: ReadException \n  Bases: ['Exception']\n\nClass: Reader (focal)\n  Bases: ['object']\n\nFocal class methods:\n  [command] initialize(self)\n  [command] read(self)\n  [command] decode_raw_data(self, raw_data)\n  [command] extract_meaningful_data_from_chunk(self, raw_data)\n  [command] get_chunked_data(self, raw_data)\n  [command] raw_data_to_keys(extracted_data)\n  [command] disconnect(self)\n\nRegistry actions:\n  auto-initialize (from initialize())\n  auto-read (from read())\n  auto-decode_raw_data (from decode_raw_data())\n  auto-extract_meaningful_data_from_chunk (from extract_meaningful_data_from_chunk())\n  auto-get_chunked_data (from get_chunked_data())\n  auto-raw_data_to_keys (from raw_data_to_keys())\n\nRequired output action ids:\n  auto-initialize\n  auto-read\n  auto-decode_raw_data\n  auto-extract_meaningful_data_from_chunk\n  auto-get_chunked_data\n  auto-raw_data_to_keys"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_074f577e2a7538ce0069d5504f30e881949e198b6ebd0b0504",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2122,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2839,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_074f577e2a7538ce0069d5504fae98819490727a42273e89fb",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_074f577e2a7538ce0069d55053c4088194a7aaf33576c05bf1",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"键盘仿真读取器\",\n  \"name_en\": \"Keyboard-like Reader\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件读取组件，用于与键盘仿真式输入源配合，读取原始数据、按块解析内容，并将输入转换为有意义的按键或文本数据。可用于实验中接收扫码器、读码器或其他以键盘输入方式输出的数据流。\",\n  \"description_en\": \"A non-physical software reading component for use with keyboard-emulating input sources. It reads raw data, parses chunked content, and converts the input into meaningful key or text data. It can be used in laboratory workflows to receive data streams from scanners, code readers, or other devices that output as keyboard input.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"初始化读取组件，准备接收键盘仿真输入数据。\",\n      \"description_en\": \"Initialize the reader component and prepare it to receive keyboard-emulated input data.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取一次原始输入数据。\",\n      \"description_en\": \"Read one set of raw input data.\"\n    },\n    {\n      \"action_name\": \"auto-decode_raw_data\",\n      \"description\": \"解码原始数据内容。\",\n      \"description_en\": \"Decode the raw data content.\"\n    },\n    {\n      \"action_name\": \"auto-extract_meaningful_data_from_chunk\",\n      \"description\": \"从数据块中提取有意义的数据。\",\n      \"description_en\": \"Extract meaningful data from a chunk of input data.\"\n    },\n    {\n      \"action_name\": \"auto-get_chunked_data\",\n      \"description\": \"将原始数据拆分为数据块。\",\n      \"description_en\": \"Split raw data into chunks.\"\n    },\n    {\n      \"action_name\": \"auto-raw_data_to_keys\",\n      \"description\": \"将原始数据转换为按键或字符序列。\",\n      \"description_en\": \"Convert raw data into key or character sequences.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"keyboard emulation\",\n    \"input decoding\",\n    \"scanner data parsing\",\n    \"raw data parsing\",\n    \"HID-like input\",\n    \"text extraction\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 964,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 742,
+      "output_tokens_details": {
+        "reasoning_tokens": 236
+      },
+      "total_tokens": 1706
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 964,
+      "output_token_count": 742,
+      "predict_time": 14.820444304
+    }
+  },
+  "output_text": "{\n  \"name\": \"键盘仿真读取器\",\n  \"name_en\": \"Keyboard-like Reader\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件读取组件，用于与键盘仿真式输入源配合，读取原始数据、按块解析内容，并将输入转换为有意义的按键或文本数据。可用于实验中接收扫码器、读码器或其他以键盘输入方式输出的数据流。\",\n  \"description_en\": \"A non-physical software reading component for use with keyboard-emulating input sources. It reads raw data, parses chunked content, and converts the input into meaningful key or text data. It can be used in laboratory workflows to receive data streams from scanners, code readers, or other devices that output as keyboard input.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"初始化读取组件，准备接收键盘仿真输入数据。\",\n      \"description_en\": \"Initialize the reader component and prepare it to receive keyboard-emulated input data.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取一次原始输入数据。\",\n      \"description_en\": \"Read one set of raw input data.\"\n    },\n    {\n      \"action_name\": \"auto-decode_raw_data\",\n      \"description\": \"解码原始数据内容。\",\n      \"description_en\": \"Decode the raw data content.\"\n    },\n    {\n      \"action_name\": \"auto-extract_meaningful_data_from_chunk\",\n      \"description\": \"从数据块中提取有意义的数据。\",\n      \"description_en\": \"Extract meaningful data from a chunk of input data.\"\n    },\n    {\n      \"action_name\": \"auto-get_chunked_data\",\n      \"description\": \"将原始数据拆分为数据块。\",\n      \"description_en\": \"Split raw data into chunks.\"\n    },\n    {\n      \"action_name\": \"auto-raw_data_to_keys\",\n      \"description\": \"将原始数据转换为按键或字符序列。\",\n      \"description_en\": \"Convert raw data into key or character sequences.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"keyboard emulation\",\n    \"input decoding\",\n    \"scanner data parsing\",\n    \"raw data parsing\",\n    \"HID-like input\",\n    \"text extraction\"\n  ]\n}"
+}

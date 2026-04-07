@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: proplc\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pcdsdevices/pump.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.plc_roughing_pump.proplc:PROPLC\n\nClass: TurboPump \n  Bases: ['BaseInterface', 'Device']\n  Docstring: Turbo Vacuum Pump.\n\nClass: EbaraPump \n  Bases: ['BaseInterface', 'Device']\n  Docstring: Ebara Turbo Pump.\n\nClass: GammaController \n  Bases: ['BaseInterface', 'Device']\n  Docstring: Ion Pump Gamma controller.\n\nClass: IonPumpBase \n  Bases: ['BaseInterface', 'Device']\n  Docstring: %s\n    \n\nClass: IonPumpWithController \n  Bases: ['IonPumpBase']\n  Docstring: %s\n\n    prefix_controller : str\n        Ion Pump Controller base PV.\n    \n\nClass: PIPPLC \n  Bases: ['Device']\n  Docstring: Class for PLC-controlled Ion Pumps.\n\nNewer class. This and below are still missing some functionality.\nStill need to work out replacement of old classes.\n\nClass: PTMPLC \n  Bases: ['Device']\n  Docstring: Class for PLC-controlled Turbo Pump.\n\nClass: PROPLC (focal)\n  Bases: ['Device']\n  Docstring: Class for PLC-controlled Roughing Pump.\n\nClass: Ebara_EV_A03_1 \n  Bases: ['PROPLC']\n  Docstring: Class for the Ebara EV-A03-1 model of roughing pump.\n\nClass: AgilentSerial \n  Bases: ['Device']\n  Docstring: Class for Agilent Turbo Pump controlled via serial.\n\nClass: Navigator \n  Bases: ['AgilentSerial']\n  Docstring: Class for Navigator Pump controlled via serial.\n\nClass: GammaPCT \n  Bases: ['Device']\n  Docstring: Class for Gamma Pump Controller accessed via serial.\n\nClass: QPCPCT \n  Bases: ['GammaPCT']\n  Docstring: Class for Quad Pump Controller accessed via ethernet.\n\nClass: PIPSerial \n  Bases: ['Device']\n  Docstring: Class for Positive Ion Pump controlled via serial.\n\nRegistry actions:\n  auto-on (from on())\n  auto-off (from off())\n  auto-info (from info())\n  auto-pressure (from pressure())\n  auto-egu (from egu())\n\nRequired output action ids:\n  auto-on\n  auto-off\n  auto-info\n  auto-pressure\n  auto-egu"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_03632324d2b8a1cb0069d54bff37188196b7a9d35ce2608f3a",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3004,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3477,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_03632324d2b8a1cb0069d54bff9e108196849a4b497f1168c5",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_03632324d2b8a1cb0069d54c0930e4819691b46fb17445079c",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"PLC控制粗抽真空泵\",\n  \"name_en\": \"PLC-Controlled Roughing Pump\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于真空系统前级抽气的粗抽真空泵，通过PLC接口进行启停控制，并提供状态信息和压力读回。常用于在高真空泵投入运行前，先将腔体抽至低真空范围。\",\n  \"description_en\": \"A roughing pump for the foreline stage of a vacuum system, controlled through a PLC interface with start/stop control and status and pressure readback. It is typically used to bring a chamber down to the low-vacuum range before high-vacuum pumps are brought online.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-on\",\n      \"description\": \"开启粗抽真空泵。\",\n      \"description_en\": \"Turn on the roughing pump.\"\n    },\n    {\n      \"action_name\": \"auto-off\",\n      \"description\": \"关闭粗抽真空泵。\",\n      \"description_en\": \"Turn off the roughing pump.\"\n    },\n    {\n      \"action_name\": \"auto-info\",\n      \"description\": \"获取粗抽真空泵的信息或状态摘要。\",\n      \"description_en\": \"Get roughing pump information or a status summary.\"\n    },\n    {\n      \"action_name\": \"auto-pressure\",\n      \"description\": \"获取压力读数。\",\n      \"description_en\": \"Get the pressure reading.\"\n    },\n    {\n      \"action_name\": \"auto-egu\",\n      \"description\": \"获取压力读数的工程单位。\",\n      \"description_en\": \"Get the engineering units for the pressure reading.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"roughing pump\",\n    \"vacuum pumping\",\n    \"PLC control\",\n    \"foreline vacuum\",\n    \"pressure readback\",\n    \"pump start stop\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1195,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 930,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2125
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1195,
+      "output_token_count": 930,
+      "predict_time": 17.465722278
+    }
+  },
+  "output_text": "{\n  \"name\": \"PLC控制粗抽真空泵\",\n  \"name_en\": \"PLC-Controlled Roughing Pump\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于真空系统前级抽气的粗抽真空泵，通过PLC接口进行启停控制，并提供状态信息和压力读回。常用于在高真空泵投入运行前，先将腔体抽至低真空范围。\",\n  \"description_en\": \"A roughing pump for the foreline stage of a vacuum system, controlled through a PLC interface with start/stop control and status and pressure readback. It is typically used to bring a chamber down to the low-vacuum range before high-vacuum pumps are brought online.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-on\",\n      \"description\": \"开启粗抽真空泵。\",\n      \"description_en\": \"Turn on the roughing pump.\"\n    },\n    {\n      \"action_name\": \"auto-off\",\n      \"description\": \"关闭粗抽真空泵。\",\n      \"description_en\": \"Turn off the roughing pump.\"\n    },\n    {\n      \"action_name\": \"auto-info\",\n      \"description\": \"获取粗抽真空泵的信息或状态摘要。\",\n      \"description_en\": \"Get roughing pump information or a status summary.\"\n    },\n    {\n      \"action_name\": \"auto-pressure\",\n      \"description\": \"获取压力读数。\",\n      \"description_en\": \"Get the pressure reading.\"\n    },\n    {\n      \"action_name\": \"auto-egu\",\n      \"description\": \"获取压力读数的工程单位。\",\n      \"description_en\": \"Get the engineering units for the pressure reading.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"roughing pump\",\n    \"vacuum pumping\",\n    \"PLC control\",\n    \"foreline vacuum\",\n    \"pressure readback\",\n    \"pump start stop\"\n  ]\n}"
+}

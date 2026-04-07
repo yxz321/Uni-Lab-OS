@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: qu_tech__control_box_v3\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: deprecated/pycqed/instrument_drivers/physical_instruments/QuTech_ControlBox_v3.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.qu_tech.control_box_v3.control_box_v3:QuTech_ControlBox_v3\n\nClass: QuTech_ControlBox_v3 (focal)\n  Bases: ['qcb.QuTech_ControlBox']\n\nFocal class methods:\n  [command] add_params(self)\n    comment: hardcoded memory limit, depends on firmware of the CBox\n  [command] init_params(self)\n  [command] run_test_suite(self)\n    comment: pass the CBox to the module so it can be used in the tests\n  [command] start(self)\n  [command] stop(self)\n  [command] get_master_controller_params(self)\n    comment: Decoding the message\n    comment: version number, first 3 bytes\n    comment: self._offset_calc_delay = (v_list[33] << 4) + v_list[34]\n  [command] load_instructions(self, asm_filename, PrintHex=False)\n    comment: Check the instruction list length\n    comment: @param instructions : the instructions, an array of 32-bit instructions\n        @return stat : 0 if the upload succeeded and 1 if the upload failed.\n\n        Additionally it starts by setting the core...\n\nRegistry actions:\n  auto-add_params (from add_params())\n  auto-init_params (from init_params())\n  auto-run_test_suite (from run_test_suite())\n  auto-get_master_controller_params (from get_master_controller_params())\n  auto-load_instructions (from load_instructions())\n\nRequired output action ids:\n  auto-add_params\n  auto-init_params\n  auto-run_test_suite\n  auto-get_master_controller_params\n  auto-load_instructions"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_04a50f24bfd34f610069d54e57e10081909747eb161a4b8e6f",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2625,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4664,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_04a50f24bfd34f610069d54e585e9c8190bb3592794eb6792d",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_04a50f24bfd34f610069d54e66a43881909f44983f41ba9a9d",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"QuTech 控制箱 v3\",\n  \"name_en\": \"QuTech Control Box v3\",\n  \"manufacturer\": \"QuTech\",\n  \"description\": \"QuTech 控制箱 v3 是一台可编程实验控制电子设备，用于向内部控制核心下发指令、读取主控制器参数，并支持设备参数初始化与功能测试，适合需要确定性时序与固件级控制的实验场景。\",\n  \"description_en\": \"The QuTech Control Box v3 is a programmable experimental control instrument used to load instructions into its internal control core, read master-controller parameters, and support parameter initialization and functional testing. It is suited for experiments requiring deterministic timing and firmware-level control.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-add_params\",\n      \"description\": \"定义控制箱中使用的参数项。\",\n      \"description_en\": \"Define the parameter set used by the control box.\"\n    },\n    {\n      \"action_name\": \"auto-init_params\",\n      \"description\": \"初始化控制箱参数。\",\n      \"description_en\": \"Initialize the control box parameters.\"\n    },\n    {\n      \"action_name\": \"auto-run_test_suite\",\n      \"description\": \"运行控制箱测试套件以检查功能。\",\n      \"description_en\": \"Run the control box test suite to verify functionality.\"\n    },\n    {\n      \"action_name\": \"auto-get_master_controller_params\",\n      \"description\": \"读取并解码主控制器参数。\",\n      \"description_en\": \"Read and decode the master controller parameters.\"\n    },\n    {\n      \"action_name\": \"auto-load_instructions\",\n      \"description\": \"向控制箱加载指令序列或汇编程序。\",\n      \"description_en\": \"Load an instruction sequence or assembly program into the control box.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"programmable control electronics\",\n    \"instruction upload\",\n    \"master controller parameters\",\n    \"firmware-controlled sequencing\",\n    \"FPGA/control core\",\n    \"quantum experiment control\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1079,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1104,
+      "output_tokens_details": {
+        "reasoning_tokens": 667
+      },
+      "total_tokens": 2183
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1079,
+      "output_token_count": 1104,
+      "predict_time": 21.556066511
+    }
+  },
+  "output_text": "{\n  \"name\": \"QuTech 控制箱 v3\",\n  \"name_en\": \"QuTech Control Box v3\",\n  \"manufacturer\": \"QuTech\",\n  \"description\": \"QuTech 控制箱 v3 是一台可编程实验控制电子设备，用于向内部控制核心下发指令、读取主控制器参数，并支持设备参数初始化与功能测试，适合需要确定性时序与固件级控制的实验场景。\",\n  \"description_en\": \"The QuTech Control Box v3 is a programmable experimental control instrument used to load instructions into its internal control core, read master-controller parameters, and support parameter initialization and functional testing. It is suited for experiments requiring deterministic timing and firmware-level control.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-add_params\",\n      \"description\": \"定义控制箱中使用的参数项。\",\n      \"description_en\": \"Define the parameter set used by the control box.\"\n    },\n    {\n      \"action_name\": \"auto-init_params\",\n      \"description\": \"初始化控制箱参数。\",\n      \"description_en\": \"Initialize the control box parameters.\"\n    },\n    {\n      \"action_name\": \"auto-run_test_suite\",\n      \"description\": \"运行控制箱测试套件以检查功能。\",\n      \"description_en\": \"Run the control box test suite to verify functionality.\"\n    },\n    {\n      \"action_name\": \"auto-get_master_controller_params\",\n      \"description\": \"读取并解码主控制器参数。\",\n      \"description_en\": \"Read and decode the master controller parameters.\"\n    },\n    {\n      \"action_name\": \"auto-load_instructions\",\n      \"description\": \"向控制箱加载指令序列或汇编程序。\",\n      \"description_en\": \"Load an instruction sequence or assembly program into the control box.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"programmable control electronics\",\n    \"instruction upload\",\n    \"master controller parameters\",\n    \"firmware-controlled sequencing\",\n    \"FPGA/control core\",\n    \"quantum experiment control\"\n  ]\n}"
+}

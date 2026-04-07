@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: qcc\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: deprecated/pycqed/instrument_drivers/physical_instruments/QuTech_QCC.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.qcc.qcc:QCC\n\nClass: QCC (focal)\n  Bases: ['SCPI', 'DIO.CalInterface']\n  Docstring: This is class is used to serve as the driver between the user and the\nQCC hardware. The class starts by querying the hardware via the\nSCPI interface. The hardware then responds by providing the available\nstandard qcodes parameters. This class then uses qcodes to automatically\ngenerate the functions necessary for the user to control the hardware.\n\nClass: dummy_QCC \n  Bases: ['QCC']\n  Docstring: Dummy QCC all paramaters are manual and all other methods include pass\nstatements\n\nFocal class methods:\n  [command] stop(self, getOperationComplete=True)\n    comment: Introduced to work around AWG8 triggering issue\n  [command] start(self, getOperationComplete=True)\n    comment: Introduced to work around AWG8 triggering issue\n  [command] add_standard_parameters(self)\n    comment: The QECDataType assumes a long array of ints in which groups of 6 datapoints are returned.\n    comment: In this datatype every row corresponds to a timeslot\n    comment: every column corresponds to a qubit index.\n    comment: Function to automatically generate the QCC specific functions\n        from the qcodes parameters. The function uses the add_parameter\n        function internally.\n  [command] add_additional_parameters(self)\n    comment: Certain hardware specific parameters cannot be generated\n        automatically. This function generates the functions to upload\n        instructions for the user. They are special because\n        thes...\n  [command] get_idn(self)\n  [command] print_readable_idn(self)\n  [command] print_qisa_opcodes(self)\n  [command] print_control_store(self)\n  [command] print_qisa_with_control_store(self)\n    comment: put every instruction with its opcode into a dict\n    comment: convert the opcode into an integer\n  [command] output_dio_calibration_data(self, dio_mode, port=0)\n    comment: \n    comment: overrides for CalInterface interface\n    comment: \n    comment: FIXME: incomplete port assumptions\n  [command] calibrate_dio_protocol(self, dio_mask, expected_sequence, port=0)\n\nRegistry actions:\n  auto-add_standard_parameters (from add_standard_parameters())\n  auto-add_additional_parameters (from add_additional_parameters())\n  auto-get_idn (from get_idn())\n  auto-print_readable_idn (from print_readable_idn())\n  auto-print_qisa_opcodes (from print_qisa_opcodes())\n  auto-print_control_store (from print_control_store())\n  auto-print_qisa_with_control_store (from print_qisa_with_control_store())\n  auto-output_dio_calibration_data (from output_dio_calibration_data())\n  auto-calibrate_dio_protocol (from calibrate_dio_protocol())\n  auto-getOperationComplete (from getOperationComplete())\n  auto-get_operation_complete (from get_operation_complete())\n\nRequired output action ids:\n  auto-add_standard_parameters\n  auto-add_additional_parameters\n  auto-get_idn\n  auto-print_readable_idn\n  auto-print_qisa_opcodes\n  auto-print_control_store\n  auto-print_qisa_with_control_store\n  auto-output_dio_calibration_data\n  auto-calibrate_dio_protocol\n  auto-getOperationComplete\n  auto-get_operation_complete"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0d6ecb53c87336340069d54e4290848197be8264c9c7f13f9f",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4355,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4867,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0d6ecb53c87336340069d54e4300a48197b13e3ec9d9044d95",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0d6ecb53c87336340069d54e4b09b481978ab3e09699da2144",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"量子中央控制器\",\n  \"name_en\": \"Quantum Central Controller (QCC)\",\n  \"manufacturer\": \"QuTech\",\n  \"description\": \"用于量子比特实验控制的硬件控制器。该设备通过 SCPI 接口与上位机通信，可管理控制参数、处理 QISA 指令与控制存储内容，并支持数字 I/O 协议校准，用于协调量子实验中的时序与触发。\",\n  \"description_en\": \"A hardware controller for qubit experiment control. It communicates with host software through SCPI, manages control parameters, handles QISA instructions and control-store contents, and supports digital I/O protocol calibration for coordinating timing and triggering in quantum experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-add_standard_parameters\",\n      \"description\": \"自动添加设备的标准控制参数。\",\n      \"description_en\": \"Automatically add the device's standard control parameters.\"\n    },\n    {\n      \"action_name\": \"auto-add_additional_parameters\",\n      \"description\": \"添加设备的附加专用参数，并生成用于上传指令的控制接口。\",\n      \"description_en\": \"Add additional device-specific parameters and create control interfaces for uploading instructions.\"\n    },\n    {\n      \"action_name\": \"auto-get_idn\",\n      \"description\": \"读取设备身份信息。\",\n      \"description_en\": \"Read the device identification information.\"\n    },\n    {\n      \"action_name\": \"auto-print_readable_idn\",\n      \"description\": \"以易读格式输出设备身份信息。\",\n      \"description_en\": \"Print the device identification information in a human-readable format.\"\n    },\n    {\n      \"action_name\": \"auto-print_qisa_opcodes\",\n      \"description\": \"输出设备支持的 QISA 操作码列表。\",\n      \"description_en\": \"Print the list of QISA opcodes supported by the device.\"\n    },\n    {\n      \"action_name\": \"auto-print_control_store\",\n      \"description\": \"输出设备当前的控制存储内容。\",\n      \"description_en\": \"Print the current control-store contents of the device.\"\n    },\n    {\n      \"action_name\": \"auto-print_qisa_with_control_store\",\n      \"description\": \"输出带有控制存储映射信息的 QISA 指令内容。\",\n      \"description_en\": \"Print QISA instructions together with their control-store mapping information.\"\n    },\n    {\n      \"action_name\": \"auto-output_dio_calibration_data\",\n      \"description\": \"输出用于数字 I/O 协议校准的数据。\",\n      \"description_en\": \"Output data used for digital I/O protocol calibration.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_dio_protocol\",\n      \"description\": \"校准设备的数字 I/O 协议时序与序列匹配。\",\n      \"description_en\": \"Calibrate the device's digital I/O protocol timing and sequence matching.\"\n    },\n    {\n      \"action_name\": \"auto-getOperationComplete\",\n      \"description\": \"获取操作完成状态。\",\n      \"description_en\": \"Get operation complete status.\"\n    },\n    {\n      \"action_name\": \"auto-get_operation_complete\",\n      \"description\": \"获取操作完成状态。\",\n      \"description_en\": \"Get operation complete status.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"quantum control\",\n    \"QCC\",\n    \"SCPI instrument\",\n    \"QISA instruction control\",\n    \"DIO calibration\",\n    \"qubit experiment timing\",\n    \"trigger coordination\",\n    \"FPGA-based controller\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1441,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1141,
+      "output_tokens_details": {
+        "reasoning_tokens": 392
+      },
+      "total_tokens": 2582
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1441,
+      "output_token_count": 1141,
+      "predict_time": 21.754141499
+    }
+  },
+  "output_text": "{\n  \"name\": \"量子中央控制器\",\n  \"name_en\": \"Quantum Central Controller (QCC)\",\n  \"manufacturer\": \"QuTech\",\n  \"description\": \"用于量子比特实验控制的硬件控制器。该设备通过 SCPI 接口与上位机通信，可管理控制参数、处理 QISA 指令与控制存储内容，并支持数字 I/O 协议校准，用于协调量子实验中的时序与触发。\",\n  \"description_en\": \"A hardware controller for qubit experiment control. It communicates with host software through SCPI, manages control parameters, handles QISA instructions and control-store contents, and supports digital I/O protocol calibration for coordinating timing and triggering in quantum experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-add_standard_parameters\",\n      \"description\": \"自动添加设备的标准控制参数。\",\n      \"description_en\": \"Automatically add the device's standard control parameters.\"\n    },\n    {\n      \"action_name\": \"auto-add_additional_parameters\",\n      \"description\": \"添加设备的附加专用参数，并生成用于上传指令的控制接口。\",\n      \"description_en\": \"Add additional device-specific parameters and create control interfaces for uploading instructions.\"\n    },\n    {\n      \"action_name\": \"auto-get_idn\",\n      \"description\": \"读取设备身份信息。\",\n      \"description_en\": \"Read the device identification information.\"\n    },\n    {\n      \"action_name\": \"auto-print_readable_idn\",\n      \"description\": \"以易读格式输出设备身份信息。\",\n      \"description_en\": \"Print the device identification information in a human-readable format.\"\n    },\n    {\n      \"action_name\": \"auto-print_qisa_opcodes\",\n      \"description\": \"输出设备支持的 QISA 操作码列表。\",\n      \"description_en\": \"Print the list of QISA opcodes supported by the device.\"\n    },\n    {\n      \"action_name\": \"auto-print_control_store\",\n      \"description\": \"输出设备当前的控制存储内容。\",\n      \"description_en\": \"Print the current control-store contents of the device.\"\n    },\n    {\n      \"action_name\": \"auto-print_qisa_with_control_store\",\n      \"description\": \"输出带有控制存储映射信息的 QISA 指令内容。\",\n      \"description_en\": \"Print QISA instructions together with their control-store mapping information.\"\n    },\n    {\n      \"action_name\": \"auto-output_dio_calibration_data\",\n      \"description\": \"输出用于数字 I/O 协议校准的数据。\",\n      \"description_en\": \"Output data used for digital I/O protocol calibration.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_dio_protocol\",\n      \"description\": \"校准设备的数字 I/O 协议时序与序列匹配。\",\n      \"description_en\": \"Calibrate the device's digital I/O protocol timing and sequence matching.\"\n    },\n    {\n      \"action_name\": \"auto-getOperationComplete\",\n      \"description\": \"获取操作完成状态。\",\n      \"description_en\": \"Get operation complete status.\"\n    },\n    {\n      \"action_name\": \"auto-get_operation_complete\",\n      \"description\": \"获取操作完成状态。\",\n      \"description_en\": \"Get operation complete status.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"quantum control\",\n    \"QCC\",\n    \"SCPI instrument\",\n    \"QISA instruction control\",\n    \"DIO calibration\",\n    \"qubit experiment timing\",\n    \"trigger coordination\",\n    \"FPGA-based controller\"\n  ]\n}"
+}

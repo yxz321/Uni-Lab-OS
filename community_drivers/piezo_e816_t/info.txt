@@ -1,62 +1,149 @@
-Device: piezo_e816_t
-Registry Key: piezo_e816_t
-Short Description: e816
-
-Categories:
-- generic
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (16):
-- auto-GetChannelObject -> GetChannelObject [UniLabJsonCommand] goal_params: none
-- auto-GetChannelPhase -> GetChannelPhase [UniLabJsonCommand] goal_params: none
-- auto-GetControlReady -> GetControlReady [UniLabJsonCommand] goal_params: none
-- auto-GetFirmwareVersion -> GetFirmwareVersion [UniLabJsonCommand] goal_params: none
-- auto-GetMax -> GetMax [UniLabJsonCommand] goal_params: iChan
-- auto-GetMin -> GetMin [UniLabJsonCommand] goal_params: iChan
-- auto-GetPos -> GetPos [UniLabJsonCommand] goal_params: iChannel
-- auto-GetPosXY -> GetPosXY [UniLabJsonCommand] goal_params: none
-- auto-GetTargetPos -> GetTargetPos [UniLabJsonCommand] goal_params: iChannel
-- auto-MoveInDir -> MoveInDir [UniLabJsonCommand] goal_params: dx, dy, th
-- auto-MoveRel -> MoveRel [UniLabJsonCommand] goal_params: bTimeOut, iChannel, incr
-- auto-MoveTo -> MoveTo [UniLabJsonCommand] goal_params: bTimeOut, fPos, iChannel, vel
-- auto-OnTarget -> OnTarget [UniLabJsonCommand] goal_params: none
-- auto-ReInit -> ReInit [UniLabJsonCommand] goal_params: none
-- auto-SetDriftCompensation -> SetDriftCompensation [UniLabJsonCommand] goal_params: dc
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-
-Driver Functions (33):
-- piezo_e816.__init__(self, portname, maxtravel, Osen, hasTrigger) (line 101)
-- piezo_e816.ReInit(self) (line 128)
-- piezo_e816.MoveTo(self, iChannel, fPos, bTimeOut) (line 133)
-- piezo_e816.GetPos(self, iChannel) (line 146)
-- piezo_e816.SetDriftCompensation(self, dc) (line 156)
-- piezo_e816.PopulateWaveTable(self, iChannel, data) (line 167)
-- piezo_e816.GetWaveTable(self) (line 187)
-- piezo_e816.StopWaveOutput(self, iChannel) (line 222)
-- piezo_e816.GetControlReady(self) (line 226)
-- piezo_e816.GetChannelObject(self) (line 228)
-- piezo_e816.GetChannelPhase(self) (line 230)
-- piezo_e816.GetMin(self, iChan) (line 232)
-- piezo_e816.GetMax(self, iChan) (line 234)
-- piezo_e816.GetFirmwareVersion(self) (line 237)
-- piezo_e816.GetTargetPos(self, iChannel) (line 246)
-- piezo_e816T.__init__(self, portname, maxtravel, Osen, hasTrigger, targetTolerance) (line 251)
-- piezo_e816T._Loop(self) (line 301)
-- piezo_e816T.close(self) (line 372)
-- piezo_e816T.ReInit(self) (line 380)
-- piezo_e816T.OnTarget(self) (line 388)
-- piezo_e816T.GetPos(self, iChannel) (line 392)
-- piezo_e816T.GetPosXY(self) (line 404)
-- piezo_e816T.GetTargetPos(self, iChannel) (line 408)
-- piezo_e816T.MoveTo(self, iChannel, fPos, bTimeOut, vel) (line 412)
-- piezo_e816T.MoveRel(self, iChannel, incr, bTimeOut) (line 421)
-- piezo_e816T.MoveInDir(self, dx, dy, th) (line 426)
-- piezo_e816T.SetDriftCompensation(self, dc) (line 440)
-- piezo_e816T.GetControlReady(self) (line 509)
-- piezo_e816T.GetChannelObject(self) (line 513)
-- piezo_e816T.GetChannelPhase(self) (line 517)
-- piezo_e816T.GetMin(self, iChan) (line 521)
-- piezo_e816T.GetMax(self, iChan) (line 525)
-- piezo_e816T.GetFirmwareVersion(self) (line 529)
+piezo_e816_t:
+  name: PI E-816压电定位控制器
+  name_en: PI E-816 Piezo Positioning Controller
+  manufacturer: Physik Instrumente (PI)
+  category:
+  - 位置控制器
+  - 压电定位控制器
+  tags:
+  - 表征设备
+  - 精密定位与运动控制
+  - 智慧表征与检测中心
+  - 显微成像与光学显微实验
+  - 样品/探针定位与运动控制
+  - 位置控制器
+  - 压电定位控制器
+  description: 用于驱动压电定位平台或压电执行器的精密运动控制器。该设备通过串口进行位置查询与运动控制，支持单通道或XY通道的位置读取、绝对/相对移动、到位状态检查、漂移补偿、行程范围查询和固件版本读取，常用于显微镜纳米定位、对焦或样品精密扫描。
+  description_en: A precision motion controller for driving a piezo positioning stage
+    or piezo actuator. It communicates over a serial interface and supports position
+    readback, absolute and relative moves, XY motion, on-target status checks, drift
+    compensation, travel range queries, and firmware version retrieval. It is commonly
+    used for microscope nanopositioning, focus control, and fine sample scanning.
+  class:
+    action_value_mappings:
+      auto-close:
+        schema:
+          description: 关闭与压电控制器的连接。
+          description_en: Close the connection to the piezo controller.
+      auto-ReInit:
+        schema:
+          description: 重新初始化压电控制器连接。
+          description_en: Reinitialize the piezo controller connection.
+      auto-OnTarget:
+        schema:
+          description: 查询设备是否已到达目标位置。
+          description_en: Query whether the device has reached its target position.
+      auto-GetPos:
+        schema:
+          description: 获取指定通道的当前位置。
+          description_en: Get the current position of the specified channel.
+      auto-GetPosXY:
+        schema:
+          description: 获取XY通道的当前位置。
+          description_en: Get the current positions of the X and Y channels.
+      auto-GetTargetPos:
+        schema:
+          description: 获取指定通道的目标位置。
+          description_en: Get the target position of the specified channel.
+      auto-MoveTo:
+        schema:
+          description: 将指定通道移动到绝对目标位置，可设置速度。
+          description_en: Move the specified channel to an absolute target position,
+            optionally with a set velocity.
+      auto-MoveRel:
+        schema:
+          description: 使指定通道相对当前位置移动指定增量。
+          description_en: Move the specified channel by a relative increment from
+            its current position.
+      auto-MoveInDir:
+        schema:
+          description: 按给定的dx和dy执行XY方向移动。
+          description_en: Perform XY motion using the given dx and dy values.
+      auto-SetDriftCompensation:
+        schema:
+          description: 启用或禁用漂移补偿。
+          description_en: Enable or disable drift compensation.
+      auto-GetControlReady:
+        schema:
+          description: 查询控制器是否处于就绪状态。
+          description_en: Query whether the controller is in a ready state.
+      auto-GetChannelObject:
+        schema:
+          description: 获取通道对象。
+          description_en: Get the channel object.
+      auto-GetChannelPhase:
+        schema:
+          description: 获取通道相位信息。
+          description_en: Get channel phase information.
+      auto-GetMin:
+        schema:
+          description: 获取指定通道的最小位置限制。
+          description_en: Get the minimum position limit of the specified channel.
+      auto-GetMax:
+        schema:
+          description: 获取指定通道的最大位置限制。
+          description_en: Get the maximum position limit of the specified channel.
+      auto-GetFirmwareVersion:
+        schema:
+          description: 获取控制器固件版本。
+          description_en: Get the controller firmware version.
+auto_annotation_metadata:
+  registry_key: piezo_e816_t
+  annotation_workflow_version: v4
+  tag_hints:
+  - piezo nanopositioning
+  - microscope focus control
+  - XY stage motion
+  - serial motion controller
+  - drift compensation
+  - on-target status
+  - travel range limits
+  - firmware query
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该控制器用于显微镜纳米定位、对焦和样品精密扫描，属于表征配套设备。
+  - id: P-1009
+    name: 精密定位与运动控制
+    name_en: Precision Positioning & Motion Control
+    type: experimental_domain
+    rationale: 支持单通道或XY通道的位置读回、绝对/相对移动和漂移补偿。
+  - id: '4325'
+    name: 智慧表征与检测中心
+    name_en: Intelligent Characterization & Testing Center
+    type: experimental_domain
+    rationale: 常接入显微成像和精密测试实验进行纳米级扫描控制。
+  - id: P-0006
+    name: 显微成像与光学显微实验
+    name_en: Microscopy Imaging & Optical Microscopy Experiments
+    type: experimental_scene
+    rationale: 描述明确写明用于显微镜纳米定位、对焦和样品扫描。
+  - id: P-0038
+    name: 样品/探针定位与运动控制
+    name_en: Sample / Probe Positioning & Motion Control
+    type: experimental_scene
+    rationale: 支持XY运动、到位检查、目标位置读取和漂移补偿。
+  - id: P-0027
+    name: 位置控制器
+    name_en: Positioner Controller
+    type: device_template_tag
+    rationale: 该设备是驱动压电定位平台或执行器的精密运动控制器。
+  proposed_new_tags:
+  - id: P-200103
+    name: 压电定位控制器
+    name_en: Piezo Positioning Controller
+    type: device_template_tag
+    rationale: E-816控制器专门面向压电平台提供串口精密位移与状态控制。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: recipe\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: recipe.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.recipe_driver:recipe\n\nClass: recipe (focal)\n  Bases: []\n  Docstring: A class for the recipes that will be used for the tube furnace CVD system.\n\n...\n\nAttributes\n----------\nsteps: list\n    nested list of all the recipe steps\nfurnace: furnace object\n    instance of the furnace class\nMFCs: dict\n    dictionary of the instances of the MFC class, done so that the MFCs may\n    be dynamically created based on the recipe\npress_trans: pressure transducer object\n    instance of the pressure_trans class\ntimes: list\n    sequential list of recipe step times\ntemps: list\n    sequential list of recipe furnace temperatures\nflow: dict\n    dictionary of lists\nlog_initialize: bool\n    tracks whether the log file has been written to yet\n_lock: threading.Lock() object\n    used for threading the logging and recipe execution\nlogging_state: bool\n    used to start and stop logging when a recipe is run\n\nPublic Methods\n--------------\nrun(log_freq)\ninitialize()\n\nFocal class methods:\n  [command] run(self)\n    comment: Set the temperature and flow rates.\n    comment: Check to see if we have a furnace.\n    comment: Check to see if we have MFCs.\n    comment: Wait for the temperature to rise/fall to a value\n    comment: close to the setpoint.\n    comment: print('Temperature difference: ' + str(temp_diff))\n    comment: Wait the recipe step time.\n    comment: Runs the recipe from start to finish\n\n            Parameters:\n                None\n            Returns:\n                None\n  [command] initialize(self)\n    comment: Verifies the status of the devices required by the recipe.\n\n            Parameters:\n                self\n            Returns:\n                success (bool): whether communication was established with...\n  [command] logging(self, freq, filename)\n    comment: for i in range(50):\n    comment: Logs the operating parameters at a given frequency.\n\n            Parameters:\n                freq (float): logging frequency in Hz\n                filename (str): filename including the file extension...\n  [command] poll(self)\n    comment: Check to see if we have a furnace.\n    comment: Check to see if we have MFCs.\n    comment: Assume we always have the pressure transducer.\n    comment: Polls all devices to query current operating parameters.\n\n            Parameters:\n                None\n            Returns:\n                current_params (dict): a dictionary of all the current opera...\n\nRegistry actions:\n  auto-run (from run())\n  auto-initialize (from initialize())\n  auto-logging (from logging())\n  auto-poll (from poll())\n\nRequired output action ids:\n  auto-run\n  auto-initialize\n  auto-logging\n  auto-poll"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_02aa07be930827660069d5505e081881958990546d5b69d444",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1804,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3871,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_02aa07be930827660069d5505e6a54819595d97ccbfe2b357b",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_02aa07be930827660069d5506ac66c81958942e4f3a15ad7cc",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"管式炉CVD配方控制组件\",\n  \"name_en\": \"Tube Furnace CVD Recipe Controller\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于管式炉CVD系统的非物理配方执行软件组件。它根据预定义步骤协调炉温、质量流量控制器和压力相关参数，支持设备初始化、过程执行、参数轮询与运行日志记录，适合自动化工艺流程管理。\",\n  \"description_en\": \"A non-physical recipe execution software component for a tube furnace CVD system. It coordinates furnace temperature, mass flow controller settings, and pressure-related parameters according to predefined steps, and supports device initialization, process execution, parameter polling, and run logging for automated process management.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"执行整套工艺配方，按步骤设置炉温和气体流量，并在各步骤中等待温度接近设定值及保持规定时间。\",\n      \"description_en\": \"Run the full process recipe by stepwise setting furnace temperature and gas flow rates, then waiting for temperature to approach the setpoint and holding each step for the specified time.\"\n    },\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"初始化并验证配方所需设备的通信与可用状态。\",\n      \"description_en\": \"Initialize the recipe and verify communication and availability of the required devices.\"\n    },\n    {\n      \"action_name\": \"auto-logging\",\n      \"description\": \"按设定频率记录运行参数并写入日志文件。\",\n      \"description_en\": \"Log operating parameters at a specified frequency and write them to a log file.\"\n    },\n    {\n      \"action_name\": \"auto-poll\",\n      \"description\": \"轮询相关设备，读取当前运行参数并汇总返回。\",\n      \"description_en\": \"Poll the associated devices to read current operating parameters and return them in a combined result.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"tube furnace CVD\",\n    \"recipe execution\",\n    \"process sequencing\",\n    \"temperature and gas-flow coordination\",\n    \"MFC integration\",\n    \"process logging\",\n    \"device polling\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1286,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 996,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2282
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1286,
+      "output_token_count": 996,
+      "predict_time": 19.401961721
+    }
+  },
+  "output_text": "{\n  \"name\": \"管式炉CVD配方控制组件\",\n  \"name_en\": \"Tube Furnace CVD Recipe Controller\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于管式炉CVD系统的非物理配方执行软件组件。它根据预定义步骤协调炉温、质量流量控制器和压力相关参数，支持设备初始化、过程执行、参数轮询与运行日志记录，适合自动化工艺流程管理。\",\n  \"description_en\": \"A non-physical recipe execution software component for a tube furnace CVD system. It coordinates furnace temperature, mass flow controller settings, and pressure-related parameters according to predefined steps, and supports device initialization, process execution, parameter polling, and run logging for automated process management.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"执行整套工艺配方，按步骤设置炉温和气体流量，并在各步骤中等待温度接近设定值及保持规定时间。\",\n      \"description_en\": \"Run the full process recipe by stepwise setting furnace temperature and gas flow rates, then waiting for temperature to approach the setpoint and holding each step for the specified time.\"\n    },\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"初始化并验证配方所需设备的通信与可用状态。\",\n      \"description_en\": \"Initialize the recipe and verify communication and availability of the required devices.\"\n    },\n    {\n      \"action_name\": \"auto-logging\",\n      \"description\": \"按设定频率记录运行参数并写入日志文件。\",\n      \"description_en\": \"Log operating parameters at a specified frequency and write them to a log file.\"\n    },\n    {\n      \"action_name\": \"auto-poll\",\n      \"description\": \"轮询相关设备，读取当前运行参数并汇总返回。\",\n      \"description_en\": \"Poll the associated devices to read current operating parameters and return them in a combined result.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"tube furnace CVD\",\n    \"recipe execution\",\n    \"process sequencing\",\n    \"temperature and gas-flow coordination\",\n    \"MFC integration\",\n    \"process logging\",\n    \"device polling\"\n  ]\n}"
+}

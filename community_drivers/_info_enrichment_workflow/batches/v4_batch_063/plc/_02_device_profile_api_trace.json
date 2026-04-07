@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: plc\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pylogix/eip.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.plc.plc:PLC\n\nClass: PLC (focal)\n  Bases: ['object']\n\nFocal class methods:\n  [status_getter] ConnectionSize(self)\n    comment: Set the ConnectionSize before initiating the first call requiring conn.connect().  The\n        default behavior is to attempt a Large followed by a Small Forward Open.  If an Explicit\n        (Unconne...\n  [status_setter] ConnectionSize(self, connection_size)\n  [command] Read(self, tag, count=1, datatype=None)\n    comment: We have two options for reading depending on\n        the arguments, read a single tag, or read an array\n\n        returns Response class (.TagName, .Value, .Status)\n  [command] Write(self, tag, value=None, datatype=None)\n    comment: We have two options for writing depending on\n        the arguments, write a single tag, or write an array\n\n        returns Response class (.TagName, .Value, .Status)\n  [command] GetPLCTime(self, raw=False)\n    comment: Get the controller clock time, return as human-readable (default) or raw if raw=True\n\n        returns Response class (.TagName, .Value, .Status)\n  [command] SetPLCTime(self, dst=None)\n    comment: Sets the controller clock time\n\n        returns Response class (.TagName, .Value, .Status)\n  [command] GetTagList(self, allTags=True)\n    comment: Retrieves the tag list from the PLC\n        Optional parameter allTags set to True\n        If is set to False, it will return only controller\n        otherwise controller tags and program tags.\n\n     ...\n  [command] GetProgramTagList(self, programName)\n    comment: If ProgramNames is empty then _getTagList hasn't been called\n    comment: Get single program tags if programName exists\n    comment: Getting status from program_tags Response object\n    comment: _getUDT returns a list of tags might need rework in the future\n    comment: Retrieves a program tag list from the PLC\n        programName = \"Program:ExampleProgram\"\n\n        returns Response class (.TagName, .Value, .Status)\n  [command] GetProgramsList(self)\n    comment: Retrieves a program names list from the PLC\n        Sanity check: checks if programNames is empty\n        and runs _getTagList\n\n        returns Response class (.TagName, .Value, .Status)\n  [command] Discover(self)\n    comment: limited implementation of lwip_socket_setsockopt()\n    comment: https://github.com/micropython/micropython/issues/2691\n    comment: Query all the EIP devices on the network\n\n        returns Response class (.TagName, .Value, .Status)\n  [command] GetModuleProperties(self, slot)\n    comment: Get the properties of module in specified slot\n\n        returns Response class (.TagName, .Value, .Status)\n  [command] GetDeviceProperties(self)\n    comment: Get the device properties of a device at the\n        specified IP address\n\n        returns Response class (.TagName, .Value, .Status)\n  [command] Message(self, cip_service, cip_class, cip_instance, cip_attribute=None, data=b'')\n    comment: User can send a custom message by providing service/class/instance\n        data should already be packed in bytes\n\n        returns Response class (.TagName, .Value, .Status)\n  [command] ReceiveMessage(self, ip_address, callback, port=44818)\n  [command] Close(self)\n    comment: Close the connection to the PLC\n\nRegistry actions:\n  auto-ConnectionSize (from ConnectionSize())\n  auto-Read (from Read())\n  auto-Write (from Write())\n  auto-GetPLCTime (from GetPLCTime())\n  auto-SetPLCTime (from SetPLCTime())\n  auto-GetTagList (from GetTagList())\n  auto-GetProgramTagList (from GetProgramTagList())\n  auto-GetProgramsList (from GetProgramsList())\n  auto-Discover (from Discover())\n  auto-GetModuleProperties (from GetModuleProperties())\n  auto-GetDeviceProperties (from GetDeviceProperties())\n  auto-Message (from Message())\n  auto-ReceiveMessage (from ReceiveMessage())\n  auto-Close (from Close())\n\nRequired output action ids:\n  auto-ConnectionSize\n  auto-Read\n  auto-Write\n  auto-GetPLCTime\n  auto-SetPLCTime\n  auto-GetTagList\n  auto-GetProgramTagList\n  auto-GetProgramsList\n  auto-Discover\n  auto-GetModuleProperties\n  auto-GetDeviceProperties\n  auto-Message\n  auto-ReceiveMessage\n  auto-Close"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_06a87b32e04626130069d549c3c4d48196995f09b226538ad9",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5323,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7384,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_06a87b32e04626130069d549c509948196bb7a7eadf9d4d2ff",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_06a87b32e04626130069d549d87784819685b1343d5ea4efef",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"可编程逻辑控制器（PLC）\",\n  \"name_en\": \"Programmable Logic Controller (PLC)\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验室自动化、联锁和设备集成的可编程逻辑控制器，可通过 EtherNet/IP 读取和写入标签、同步控制器时钟、查询程序与模块信息，并发送自定义 CIP 消息。\",\n  \"description_en\": \"A programmable logic controller used for laboratory automation, interlocks, and equipment integration. It is accessed over EtherNet/IP to read and write tags, synchronize the controller clock, query program and module information, and send custom CIP messages.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-ConnectionSize\",\n      \"description\": \"获取/设置连接大小\",\n      \"description_en\": \"get/set connection size\"\n    },\n    {\n      \"action_name\": \"auto-Read\",\n      \"description\": \"读取PLC标签值或数组\",\n      \"description_en\": \"Read a PLC tag value or array.\"\n    },\n    {\n      \"action_name\": \"auto-Write\",\n      \"description\": \"写入PLC标签值或数组\",\n      \"description_en\": \"Write a PLC tag value or array.\"\n    },\n    {\n      \"action_name\": \"auto-GetPLCTime\",\n      \"description\": \"读取PLC控制器时钟\",\n      \"description_en\": \"Read the PLC controller clock time.\"\n    },\n    {\n      \"action_name\": \"auto-SetPLCTime\",\n      \"description\": \"设置PLC控制器时钟\",\n      \"description_en\": \"Set the PLC controller clock time.\"\n    },\n    {\n      \"action_name\": \"auto-GetTagList\",\n      \"description\": \"获取PLC标签列表\",\n      \"description_en\": \"Retrieve the PLC tag list.\"\n    },\n    {\n      \"action_name\": \"auto-GetProgramTagList\",\n      \"description\": \"获取指定程序的标签列表\",\n      \"description_en\": \"Retrieve the tag list for a specified program.\"\n    },\n    {\n      \"action_name\": \"auto-GetProgramsList\",\n      \"description\": \"获取PLC程序名称列表\",\n      \"description_en\": \"Retrieve the PLC program name list.\"\n    },\n    {\n      \"action_name\": \"auto-Discover\",\n      \"description\": \"发现网络中的EtherNet/IP设备\",\n      \"description_en\": \"Discover EtherNet/IP devices on the network.\"\n    },\n    {\n      \"action_name\": \"auto-GetModuleProperties\",\n      \"description\": \"获取指定槽位模块属性\",\n      \"description_en\": \"Get properties of the module in a specified slot.\"\n    },\n    {\n      \"action_name\": \"auto-GetDeviceProperties\",\n      \"description\": \"获取目标设备属性\",\n      \"description_en\": \"Get properties of the target device.\"\n    },\n    {\n      \"action_name\": \"auto-Message\",\n      \"description\": \"发送自定义CIP消息\",\n      \"description_en\": \"Send a custom CIP message.\"\n    },\n    {\n      \"action_name\": \"auto-ReceiveMessage\",\n      \"description\": \"监听并接收EtherNet/IP消息\",\n      \"description_en\": \"Listen for and receive EtherNet/IP messages.\"\n    },\n    {\n      \"action_name\": \"auto-Close\",\n      \"description\": \"关闭与PLC的连接\",\n      \"description_en\": \"Close the connection to the PLC.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"PLC automation\",\n    \"EtherNet/IP\",\n    \"CIP messaging\",\n    \"tag read/write\",\n    \"controller clock sync\",\n    \"module properties\",\n    \"industrial control\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1720,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1887,
+      "output_tokens_details": {
+        "reasoning_tokens": 1113
+      },
+      "total_tokens": 3607
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1720,
+      "output_token_count": 1887,
+      "predict_time": 31.649344312
+    }
+  },
+  "output_text": "{\n  \"name\": \"可编程逻辑控制器（PLC）\",\n  \"name_en\": \"Programmable Logic Controller (PLC)\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验室自动化、联锁和设备集成的可编程逻辑控制器，可通过 EtherNet/IP 读取和写入标签、同步控制器时钟、查询程序与模块信息，并发送自定义 CIP 消息。\",\n  \"description_en\": \"A programmable logic controller used for laboratory automation, interlocks, and equipment integration. It is accessed over EtherNet/IP to read and write tags, synchronize the controller clock, query program and module information, and send custom CIP messages.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-ConnectionSize\",\n      \"description\": \"获取/设置连接大小\",\n      \"description_en\": \"get/set connection size\"\n    },\n    {\n      \"action_name\": \"auto-Read\",\n      \"description\": \"读取PLC标签值或数组\",\n      \"description_en\": \"Read a PLC tag value or array.\"\n    },\n    {\n      \"action_name\": \"auto-Write\",\n      \"description\": \"写入PLC标签值或数组\",\n      \"description_en\": \"Write a PLC tag value or array.\"\n    },\n    {\n      \"action_name\": \"auto-GetPLCTime\",\n      \"description\": \"读取PLC控制器时钟\",\n      \"description_en\": \"Read the PLC controller clock time.\"\n    },\n    {\n      \"action_name\": \"auto-SetPLCTime\",\n      \"description\": \"设置PLC控制器时钟\",\n      \"description_en\": \"Set the PLC controller clock time.\"\n    },\n    {\n      \"action_name\": \"auto-GetTagList\",\n      \"description\": \"获取PLC标签列表\",\n      \"description_en\": \"Retrieve the PLC tag list.\"\n    },\n    {\n      \"action_name\": \"auto-GetProgramTagList\",\n      \"description\": \"获取指定程序的标签列表\",\n      \"description_en\": \"Retrieve the tag list for a specified program.\"\n    },\n    {\n      \"action_name\": \"auto-GetProgramsList\",\n      \"description\": \"获取PLC程序名称列表\",\n      \"description_en\": \"Retrieve the PLC program name list.\"\n    },\n    {\n      \"action_name\": \"auto-Discover\",\n      \"description\": \"发现网络中的EtherNet/IP设备\",\n      \"description_en\": \"Discover EtherNet/IP devices on the network.\"\n    },\n    {\n      \"action_name\": \"auto-GetModuleProperties\",\n      \"description\": \"获取指定槽位模块属性\",\n      \"description_en\": \"Get properties of the module in a specified slot.\"\n    },\n    {\n      \"action_name\": \"auto-GetDeviceProperties\",\n      \"description\": \"获取目标设备属性\",\n      \"description_en\": \"Get properties of the target device.\"\n    },\n    {\n      \"action_name\": \"auto-Message\",\n      \"description\": \"发送自定义CIP消息\",\n      \"description_en\": \"Send a custom CIP message.\"\n    },\n    {\n      \"action_name\": \"auto-ReceiveMessage\",\n      \"description\": \"监听并接收EtherNet/IP消息\",\n      \"description_en\": \"Listen for and receive EtherNet/IP messages.\"\n    },\n    {\n      \"action_name\": \"auto-Close\",\n      \"description\": \"关闭与PLC的连接\",\n      \"description_en\": \"Close the connection to the PLC.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"PLC automation\",\n    \"EtherNet/IP\",\n    \"CIP messaging\",\n    \"tag read/write\",\n    \"controller clock sync\",\n    \"module properties\",\n    \"industrial control\"\n  ]\n}"
+}

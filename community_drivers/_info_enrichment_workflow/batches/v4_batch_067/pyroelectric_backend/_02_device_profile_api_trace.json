@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: pyroelectric_backend\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pica/keithley/k6517b/Pyroelectricity/Pyroelectric_K6517B_L350_GUI.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.instruments.pyroelectric.pyroelectric_backend:PyroelectricBackend\n\nClass: PyroelectricBackend (focal)\n  Bases: []\n  Docstring: Handles all backend instrument communication.\nIntegrates advanced ramp control with pyroelectric current measurement.\n\nClass: PyroelectricAppGUI \n  Bases: []\n  Docstring: The main GUI application class (Front End).\n\nFocal class methods:\n  [command] initialize_instruments(self, parameters)\n    comment: --- Connect and Configure Lakeshore 350 ---\n    comment: HTRSET <output>,<resistance>,<max current>,<max user current>,<display>\n    comment: resistance=1 (25Ω), max_current=2 (1A)\n    comment: --- Connect and Configure Keithley 6517B ---\n    comment: Connects, resets, and performs initial configuration of instruments.\n  [command] start_stabilization(self)\n    comment: Use 'medium' range for stabilization\n    comment: Begins moving to the start temperature for stabilization.\n  [command] start_ramp(self)\n    comment: RAMP <output>,<on/off>,<rate>\n    comment: Ensure heater range is sufficient for ramp\n    comment: Configures and starts the temperature ramp.\n  [status_getter] get_measurement(self)\n    comment: Reads temperature and current from the instruments.\n  [command] close_instruments(self)\n    comment: Safely shuts down and disconnects from all instruments.\n\nRegistry actions:\n  auto-close_instruments (from close_instruments())\n  auto-initialize_instruments (from initialize_instruments())\n  auto-start_ramp (from start_ramp())\n  auto-start_stabilization (from start_stabilization())\n  auto-get_measurement (from get_measurement())\n  auto-setup_styles (from setup_styles())\n  auto-create_widgets (from create_widgets())\n  auto-create_header (from create_header())\n  auto-create_info_frame (from create_info_frame())\n  auto-create_input_frame (from create_input_frame())\n  auto-create_console_frame (from create_console_frame())\n  auto-create_graph_frame (from create_graph_frame())\n  auto-log (from log())\n  auto-start_measurement (from start_measurement())\n  auto-stop_measurement (from stop_measurement())\n\nRequired output action ids:\n  auto-close_instruments\n  auto-initialize_instruments\n  auto-start_ramp\n  auto-start_stabilization\n  auto-get_measurement\n  auto-setup_styles\n  auto-create_widgets\n  auto-create_header\n  auto-create_info_frame\n  auto-create_input_frame\n  auto-create_console_frame\n  auto-create_graph_frame\n  auto-log\n  auto-start_measurement\n  auto-stop_measurement"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0ea1062662834fb00069d54e57e2148197a0ed5a6b0cc069c0",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3704,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6678,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0ea1062662834fb00069d54e586c088197ae39e8f568005441",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0ea1062662834fb00069d54e6664648197aa5dae794a72f7c8",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"热释电测量后端\",\n  \"name_en\": \"Pyroelectric Measurement Backend\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于热释电实验的非物理软件组件，负责协调 Lake Shore 350 温度控制器与 Keithley 6517B 的连接和初始配置，执行起始温度稳定、温度斜坡控制，并读取温度与电流测量数据，同时为图形界面提供日志、输入区和曲线显示等支持。\",\n  \"description_en\": \"A non-physical software component for pyroelectric experiments. It coordinates connection and initial configuration of a Lake Shore 350 temperature controller and a Keithley 6517B, performs start-temperature stabilization and temperature ramp control, acquires temperature and current readings, and supports GUI functions such as logging, input panels, and graph display.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-close_instruments\",\n      \"description\": \"安全关闭并断开已连接仪器。\",\n      \"description_en\": \"Safely shut down and disconnect the connected instruments.\"\n    },\n    {\n      \"action_name\": \"auto-initialize_instruments\",\n      \"description\": \"初始化并配置 Lake Shore 350 与 Keithley 6517B 的通信和测量设置。\",\n      \"description_en\": \"Initialize and configure communication and measurement settings for the Lake Shore 350 and Keithley 6517B.\"\n    },\n    {\n      \"action_name\": \"auto-start_ramp\",\n      \"description\": \"启动温度斜坡并设置升降温速率。\",\n      \"description_en\": \"Start the temperature ramp and set the ramp rate.\"\n    },\n    {\n      \"action_name\": \"auto-start_stabilization\",\n      \"description\": \"启动到起始温度的稳定过程。\",\n      \"description_en\": \"Start the stabilization process toward the initial temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_measurement\",\n      \"description\": \"获取当前温度与电流测量值。\",\n      \"description_en\": \"Get the current temperature and current measurements.\"\n    },\n    {\n      \"action_name\": \"auto-setup_styles\",\n      \"description\": \"配置图形界面的显示样式。\",\n      \"description_en\": \"Set up the visual styles of the graphical interface.\"\n    },\n    {\n      \"action_name\": \"auto-create_widgets\",\n      \"description\": \"创建主界面控件。\",\n      \"description_en\": \"Create the main user interface widgets.\"\n    },\n    {\n      \"action_name\": \"auto-create_header\",\n      \"description\": \"创建界面标题区域。\",\n      \"description_en\": \"Create the header section of the interface.\"\n    },\n    {\n      \"action_name\": \"auto-create_info_frame\",\n      \"description\": \"创建设备或实验信息显示区域。\",\n      \"description_en\": \"Create the device or experiment information display panel.\"\n    },\n    {\n      \"action_name\": \"auto-create_input_frame\",\n      \"description\": \"创建实验参数输入区域。\",\n      \"description_en\": \"Create the input panel for experiment parameters.\"\n    },\n    {\n      \"action_name\": \"auto-create_console_frame\",\n      \"description\": \"创建控制台日志显示区域。\",\n      \"description_en\": \"Create the console log display panel.\"\n    },\n    {\n      \"action_name\": \"auto-create_graph_frame\",\n      \"description\": \"创建测量曲线图显示区域。\",\n      \"description_en\": \"Create the measurement graph display panel.\"\n    },\n    {\n      \"action_name\": \"auto-log\",\n      \"description\": \"记录运行日志信息。\",\n      \"description_en\": \"Record runtime log messages.\"\n    },\n    {\n      \"action_name\": \"auto-start_measurement\",\n      \"description\": \"启动热释电测量流程。\",\n      \"description_en\": \"Start the pyroelectric measurement process.\"\n    },\n    {\n      \"action_name\": \"auto-stop_measurement\",\n      \"description\": \"停止热释电测量流程。\",\n      \"description_en\": \"Stop the pyroelectric measurement process.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"pyroelectric measurement\",\n    \"temperature ramp control\",\n    \"start-temperature stabilization\",\n    \"Keithley 6517B\",\n    \"Lake Shore 350\",\n    \"current and temperature acquisition\",\n    \"experiment GUI\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1301,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1696,
+      "output_tokens_details": {
+        "reasoning_tokens": 778
+      },
+      "total_tokens": 2997
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1301,
+      "output_token_count": 1696,
+      "predict_time": 27.629959864
+    }
+  },
+  "output_text": "{\n  \"name\": \"热释电测量后端\",\n  \"name_en\": \"Pyroelectric Measurement Backend\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于热释电实验的非物理软件组件，负责协调 Lake Shore 350 温度控制器与 Keithley 6517B 的连接和初始配置，执行起始温度稳定、温度斜坡控制，并读取温度与电流测量数据，同时为图形界面提供日志、输入区和曲线显示等支持。\",\n  \"description_en\": \"A non-physical software component for pyroelectric experiments. It coordinates connection and initial configuration of a Lake Shore 350 temperature controller and a Keithley 6517B, performs start-temperature stabilization and temperature ramp control, acquires temperature and current readings, and supports GUI functions such as logging, input panels, and graph display.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-close_instruments\",\n      \"description\": \"安全关闭并断开已连接仪器。\",\n      \"description_en\": \"Safely shut down and disconnect the connected instruments.\"\n    },\n    {\n      \"action_name\": \"auto-initialize_instruments\",\n      \"description\": \"初始化并配置 Lake Shore 350 与 Keithley 6517B 的通信和测量设置。\",\n      \"description_en\": \"Initialize and configure communication and measurement settings for the Lake Shore 350 and Keithley 6517B.\"\n    },\n    {\n      \"action_name\": \"auto-start_ramp\",\n      \"description\": \"启动温度斜坡并设置升降温速率。\",\n      \"description_en\": \"Start the temperature ramp and set the ramp rate.\"\n    },\n    {\n      \"action_name\": \"auto-start_stabilization\",\n      \"description\": \"启动到起始温度的稳定过程。\",\n      \"description_en\": \"Start the stabilization process toward the initial temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_measurement\",\n      \"description\": \"获取当前温度与电流测量值。\",\n      \"description_en\": \"Get the current temperature and current measurements.\"\n    },\n    {\n      \"action_name\": \"auto-setup_styles\",\n      \"description\": \"配置图形界面的显示样式。\",\n      \"description_en\": \"Set up the visual styles of the graphical interface.\"\n    },\n    {\n      \"action_name\": \"auto-create_widgets\",\n      \"description\": \"创建主界面控件。\",\n      \"description_en\": \"Create the main user interface widgets.\"\n    },\n    {\n      \"action_name\": \"auto-create_header\",\n      \"description\": \"创建界面标题区域。\",\n      \"description_en\": \"Create the header section of the interface.\"\n    },\n    {\n      \"action_name\": \"auto-create_info_frame\",\n      \"description\": \"创建设备或实验信息显示区域。\",\n      \"description_en\": \"Create the device or experiment information display panel.\"\n    },\n    {\n      \"action_name\": \"auto-create_input_frame\",\n      \"description\": \"创建实验参数输入区域。\",\n      \"description_en\": \"Create the input panel for experiment parameters.\"\n    },\n    {\n      \"action_name\": \"auto-create_console_frame\",\n      \"description\": \"创建控制台日志显示区域。\",\n      \"description_en\": \"Create the console log display panel.\"\n    },\n    {\n      \"action_name\": \"auto-create_graph_frame\",\n      \"description\": \"创建测量曲线图显示区域。\",\n      \"description_en\": \"Create the measurement graph display panel.\"\n    },\n    {\n      \"action_name\": \"auto-log\",\n      \"description\": \"记录运行日志信息。\",\n      \"description_en\": \"Record runtime log messages.\"\n    },\n    {\n      \"action_name\": \"auto-start_measurement\",\n      \"description\": \"启动热释电测量流程。\",\n      \"description_en\": \"Start the pyroelectric measurement process.\"\n    },\n    {\n      \"action_name\": \"auto-stop_measurement\",\n      \"description\": \"停止热释电测量流程。\",\n      \"description_en\": \"Stop the pyroelectric measurement process.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"pyroelectric measurement\",\n    \"temperature ramp control\",\n    \"start-temperature stabilization\",\n    \"Keithley 6517B\",\n    \"Lake Shore 350\",\n    \"current and temperature acquisition\",\n    \"experiment GUI\"\n  ]\n}"
+}

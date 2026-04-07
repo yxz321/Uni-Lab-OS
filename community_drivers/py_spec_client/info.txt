@@ -1,35 +1,110 @@
-Device: py_spec_client
-Registry Key: py_spec_client
-Short Description: PY Spec Client是一款实验执行&合成设备，主要功能包括设备连接、读取数据、运行。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (9):
-- auto-block_for_count -> block_for_count [UniLabJsonCommand] goal_params: timeout
-- auto-block_for_ready -> block_for_ready [UniLabJsonCommand] goal_params: timeout
-- auto-cd -> cd [UniLabJsonCommand] goal_params: path
-- auto-count -> count [UniLabJsonCommand] goal_params: name, time, wait_on_time
-- auto-get_counter -> get_counter [UniLabJsonCommand] goal_params: name
-- auto-get_motor -> get_motor [UniLabJsonCommand] goal_params: name
-- auto-get_variable -> get_variable [UniLabJsonCommand] goal_params: name
-- auto-mkdir -> mkdir [UniLabJsonCommand] goal_params: path
-- auto-run_cmd -> run_cmd [UniLabJsonCommand] goal_params: block, cmd, timeout
-
-Driver Functions (13):
-- PySpecClient.__init__(self, address, port) (line 79)
-- PySpecClient._update_output(self, value, channel) (line 98)
-- PySpecClient._update_channel(self, value, channel) (line 105)
-- PySpecClient.connect(self) (line 110)
-- PySpecClient.run_cmd(self, cmd, block, timeout) (line 139)
-- PySpecClient.cd(self, path) (line 146)
-- PySpecClient.mkdir(self, path) (line 153)
-- PySpecClient.get_variable(self, name) (line 158)
-- PySpecClient.get_motor(self, name) (line 162)
-- PySpecClient.get_counter(self, name) (line 166)
-- PySpecClient.block_for_ready(self, timeout) (line 170)
-- PySpecClient.block_for_count(self, timeout) (line 179)
-- PySpecClient.count(self, name, time, wait_on_time) (line 184)
+py_spec_client:
+  name: SPEC服务器客户端
+  name_en: SPEC Server Client
+  manufacturer: ''
+  category:
+  - 远程实验控制客户端
+  tags:
+  - 表征设备
+  - 实验室自动化与仪器集成
+  - 实验仪器数据采集与联机控制
+  - 实验仪器通信与驱动集成
+  - 同步计数与探测器通道监测
+  - 远程实验控制客户端
+  description: 用于连接实验站 SPEC 服务器的非实体软件组件。它可向远程 SPEC 会话发送命令、切换和创建目录、访问变量/电机/计数器对象，并等待系统就绪或计数完成，常用于束线或实验控制流程中的自动化脚本协调。
+  description_en: A non-physical software component for connecting to a beamline SPEC
+    server. It sends commands to a remote SPEC session, changes or creates directories,
+    accesses variables, motors, and counters, and waits for readiness or counting
+    to complete. It is typically used to coordinate experiment automation workflows.
+  class:
+    action_value_mappings:
+      auto-run_cmd:
+        schema:
+          description: 在远程 SPEC 服务器上执行命令。
+          description_en: Execute a command on the remote SPEC server.
+      auto-cd:
+        schema:
+          description: 切换 SPEC 侧的工作目录。
+          description_en: Change the working directory on the SPEC side.
+      auto-mkdir:
+        schema:
+          description: 在 SPEC 侧创建目录。
+          description_en: Create a directory on the SPEC side.
+      auto-get_variable:
+        schema:
+          description: 获取指定名称的 SPEC 变量。
+          description_en: Get a SPEC variable by name.
+      auto-get_motor:
+        schema:
+          description: 获取指定名称的 SPEC 电机对象。
+          description_en: Get a SPEC motor object by name.
+      auto-get_counter:
+        schema:
+          description: 获取指定名称的 SPEC 计数器对象。
+          description_en: Get a SPEC counter object by name.
+      auto-block_for_ready:
+        schema:
+          description: 等待 SPEC 服务器进入就绪状态。
+          description_en: Wait for the SPEC server to become ready.
+      auto-block_for_count:
+        schema:
+          description: 等待计数操作完成。
+          description_en: Wait for a counting operation to finish.
+      auto-count:
+        schema:
+          description: 启动一次指定时间或监视计数的计数操作。
+          description_en: Start a count for a specified time or monitor count.
+auto_annotation_metadata:
+  registry_key: py_spec_client
+  annotation_workflow_version: v4
+  tag_hints:
+  - SPEC server
+  - beamline control
+  - experiment automation
+  - remote command execution
+  - motor and counter access
+  - count synchronization
+  - scientific data acquisition
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该组件面向实验站/束线SPEC会话，协调电机、计数器与计数完成等待，明显服务于表征实验执行。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 该客户端用于在自动化脚本中统一连接远程SPEC服务器并编排实验流程，属于实验自动化集成范畴。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 它可远程发命令、等待ready/count完成，并访问电机与计数器对象，符合联机控制场景。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 该软件本质上是SPEC服务器通信客户端，核心能力是会话通信与控制接口封装。
+  - id: P-12006
+    name: 同步计数与探测器通道监测
+    name_en: Synchronized Counting & Detector Channel Monitoring
+    type: experimental_scene
+    rationale: 其提供block_for_count与count等动作，直接体现计数同步与计数流程协调。
+  proposed_new_tags:
+  - id: P-990201
+    name: 远程实验控制客户端
+    name_en: Remote Experiment Control Client
+    type: device_template_tag
+    rationale: 该组件作为非实体客户端连接远程SPEC会话，发送命令并操作电机/计数器对象，适合作为远程实验控制客户端模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

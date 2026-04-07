@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: qwg_core\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pycqed/instrument_drivers/physical_instruments/QuTech/QWGCore.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.custom.qwg_core:QWGCore\n\nClass: QWGCore (focal)\n  Bases: ['SCPIBase', 'DIO.CalInterface']\n\nFocal class methods:\n  [command] start(self, block=True)\n    comment: \n    comment: AWG control functions (AWG5014 compatible)\n    comment: \n  [command] stop(self, block=True)\n  [status_setter] set_run_mode(self, run_mode)\n    comment: Set run mode, one of: 'NONE', 'CONt', 'SEQ', 'CODeword'\n  [status_getter] get_run_mode(self)\n  [status_setter] set_output_state(self, ch, state)\n    comment: \n    comment: Output functions (AWG5014 compatible)\n    comment: \n  [status_getter] get_output_state(self, ch)\n  [status_setter] set_amplitude(self, ch, amp)\n    comment: \n    comment: Source functions (AWG5014 compatible)\n    comment: \n  [status_getter] get_amplitude(self, ch)\n  [status_setter] set_offset(self, ch, offset)\n  [status_getter] get_offset(self, ch)\n  [status_setter] set_waveform(self, ch, waveform)\n  [status_getter] get_waveform(self, ch)\n  [status_getter] get_wlist_size(self)\n    comment: \n    comment: WLIST (Waveform list) functions (AWG5014 compatible)\n    comment: \n  [status_getter] get_wlist_name(self, idx)\n    comment: Args:\n            idx(int): 0..size-1\n  [status_getter] get_wlist(self)\n  [command] delete_waveform(self, name)\n    comment: Args:\n            name (string):  waveform name excluding double quotes, e.g.\n            'test'\n  [command] delete_waveform_all(self)\n  [status_getter] get_waveform_type(self, name)\n    comment: Args:\n            name (string):  waveform name excluding double quotes, e.g.\n            '*Sine100'\n\n        Returns:\n            'INT' or 'REAL'\n  [status_getter] get_waveform_length(self, name)\n    comment: Args:\n            name (string):  waveform name excluding double quotes, e.g.\n            '*Sine100'\n  [command] new_waveform_real(self, name, length)\n    comment: Args:\n            name (string):  waveform name excluding double quotes, e.g.\n            '*Sine100'\n\n        NB: seems to do nothing (on Tek5014) if waveform already exists\n  [status_getter] get_waveform_data_float(self, name)\n    comment: Args:\n            name (string):  waveform name excluding double quotes, e.g.\n            '*Sine100'\n\n        Returns:\n            waveform  (np.array of float): waveform data\n\n        Compatibility: ...\n  [command] send_waveform_data_real(self, name, waveform)\n    comment: generate the binblock\n    comment: write binblock\n    comment: send waveform and markers directly to AWG memory, i.e. not to a file\n        on the AWG disk.\n        NB: uses real data normalized to the range from -1 to 1 (independent\n        of number of DAC bits...\n  [command] create_waveform_real(self, name, waveform)\n    comment: FIXME: disabled check\n    comment: wv_val = vals.Arrays(min_value=-1, max_value=1)\n    comment: wv_val.validate(waveform)\n    comment: check length, because excessive lengths can overrun QWG SCPI buffer\n    comment: Convenience function to create a waveform in the AWG and then send\n        data to it\n\n        Args:\n            name(string): name of waveform for internal use by the AWG\n\n            waveform (float...\n  [status_setter] set_sideband_frequency(self, ch_pair, freq)\n    comment: \n    comment: QWG specific\n    comment: \n  [status_getter] get_sideband_frequency(self, ch_pair)\n  [status_setter] set_sideband_phase(self, ch_pair, phase)\n  [status_getter] get_sideband_phase(self, ch_pair)\n  [command] sync_sideband_generators(self)\n    comment: Synchronize both sideband generators, i.e. restart them with initial phase\n  [status_setter] dio_calibrate(self, target_index='')\n    comment: \n    comment: DIO support\n    comment: \n    comment: FIXME: cleanup docstring\n    comment: Calibrate the DIO input signals.\n\n        The QWG will analyze the input signals for each DIO input (used to transfer codeword bits), secondly,\n        the most preferable index (active index) is set....\n  [status_getter] get_dio_calibrate(self)\n    comment: FIXME: define relation with mode and #codewords in use\n    comment: FIXME: provide high level function that performs the calibration\n  [status_getter] get_dio_active_index(self)\n  [status_setter] set_dio_active_index(self, idx)\n  [status_getter] get_dio_mode(self)\n    comment: returns \"MASter\" or \"SLAve\"\n        FIXME: abstract protocol details\n  [status_setter] set_dio_mode(self, mode)\n  [status_getter] get_dio_suitable_indexes(self)\n    comment: Get DIO all suitable indexes. The array is ordered by most preferable index first\n  [status_getter] get_dio_calibrated_inputs(self)\n    comment: Get all DIO inputs which are calibrated\n  [status_getter] get_dio_lvds(self)\n    comment: Get the DIO LVDS connection status. Result:\n             True: Cable detected\n             No cable detected\n  [status_getter] get_dio_interboard(self)\n    comment: Get the DIO interboard status. Result:\n             True:  To master interboard connection detected\n             False: No interboard connection detected\n  [command] dio_calibration_report(self, extended=False)\n    comment: Return a string containing the latest DIO calibration report (successful and failed calibrations). Includes:\n        selected index, dio mode, valid indexes, calibrated DIO bits and the DIO bitDiff ta...\n  [status_getter] get_max_codeword_bits(self)\n    comment: Reads the maximum number of codeword bits for all channels\n  [status_getter] get_codewords_select(self)\n  [status_getter] get_triggers_logic_input(self, ch)\n    comment: Reads the current input values on the all the trigger inputs for a channel, after the bitSelect.\n        Return:\n            uint32 where trigger 1 (T1) is on the Least significant bit (LSB),\n        ...\n  [status_getter] get_bitmap(self, ch)\n    comment: FIXME: use QWG.py::_set_bit_map\n    comment: def set_bitmap(self, ch: int) -> None:\n    comment: \"\"\"\n    comment: Codeword bit map for a channel, 14 bits available of which 10 are selectable.\n    comment: The codeword bit map specifies which bits of the codeword (coming from a\n    comment: central controller) are used for the codeword of a channel. This allows to\n    comment: split up the codeword into sections for each channel\n    comment: FIXME: rewrite\n    comment: \"\"\"\n    comment: self._transport.write(f'DAC{ch}:BITmap')\n  [command] output_dio_calibration_data(self, dio_mode, port=0)\n    comment: \n    comment: overrides for CalInterface interface\n    comment: \n  [command] calibrate_dio_protocol(self, dio_mask, expected_sequence, port=0)\n  [status_getter] get_iofront_temperature(self)\n    comment: \n    comment: DAC calibration support\n    comment: \n    comment: Reads the temperature of the IOFront board in Centigrade.\n        Temperature measurement interval is ~10 seconds\n  [status_getter] get_fpga_temperature(self)\n    comment: Reads the temperature of the FPGA in Centigrade.\n        Temperature measurement interval is ~10 seconds\n  [status_getter] get_dac_temperature(self, ch)\n    comment: Reads the temperature of a DAC in Centigrade.\n        Temperature measurement interval is ~10 seconds\n\n        Args:\n            ch: channel number [0..3]\n  [status_getter] get_channel_output_voltage(self, ch)\n    comment: Returns the output voltage measurement of a channel in [V].\n        Only valid if the channel is disabled, i.e. .chX_state(False)\n\n        :param ch: channel number [0..3]\n        :return:\n  [status_setter] set_channel_gain_adjust(self, ch, ga)\n    comment: Set gain adjust for the DAC of a channel.\n        Used for calibration of the DAC. Do not use to set the gain of a channel\n\n        :param ch: channel number [0..3]\n        :param ga: gain setting fro...\n  [status_getter] get_channel_gain_adjust(self, ch)\n    comment: Get gain adjust for the DAC of a channel.\n\n        :param ch: channel number [0..3]\n        :return gain setting from 0 to 4095 (0 V to 3.3V)\n  [command] set_dac_digital_value(self, ch, val)\n    comment: FOR DEVELOPMENT ONLY: Set a digital value directly into the DAC\n        Notes:\n        - This command will also set the internal correction matrix (Phase and amplitude) of the\n        channel pair to ...\n\nRegistry actions:\n  auto-calibrate_dio_protocol (from calibrate_dio_protocol())\n  auto-create_waveform_real (from create_waveform_real())\n  auto-delete_waveform (from delete_waveform())\n  auto-delete_waveform_all (from delete_waveform_all())\n  auto-dio_calibrate (from dio_calibrate())\n  auto-dio_calibration_report (from dio_calibration_report())\n  auto-new_waveform_real (from new_waveform_real())\n  auto-output_dio_calibration_data (from output_dio_calibration_data())\n  auto-send_waveform_data_real (from send_waveform_data_real())\n  auto-set_amplitude (from set_amplitude())\n  auto-set_channel_gain_adjust (from set_channel_gain_adjust())\n  auto-set_dac_digital_value (from set_dac_digital_value())\n  auto-set_dio_active_index (from set_dio_active_index())\n  auto-set_dio_mode (from set_dio_mode())\n  auto-set_offset (from set_offset())\n  auto-set_output_state (from set_output_state())\n  auto-set_run_mode (from set_run_mode())\n  auto-set_sideband_frequency (from set_sideband_frequency())\n  auto-set_sideband_phase (from set_sideband_phase())\n  auto-set_waveform (from set_waveform())\n  auto-start (from start())\n  auto-stop (from stop())\n  auto-sync_sideband_generators (from sync_sideband_generators())\n  auto-get_run_mode (from get_run_mode())\n  auto-get_output_state (from get_output_state())\n  auto-get_amplitude (from get_amplitude())\n  auto-get_offset (from get_offset())\n  auto-get_waveform (from get_waveform())\n  auto-get_wlist_size (from get_wlist_size())\n  auto-get_wlist_name (from get_wlist_name())\n  auto-get_wlist (from get_wlist())\n  auto-get_waveform_type (from get_waveform_type())\n  auto-get_waveform_length (from get_waveform_length())\n  auto-get_waveform_data_float (from get_waveform_data_float())\n  auto-get_sideband_frequency (from get_sideband_frequency())\n  auto-get_sideband_phase (from get_sideband_phase())\n  auto-get_dio_calibrate (from get_dio_calibrate())\n  auto-get_dio_active_index (from get_dio_active_index())\n  auto-get_dio_mode (from get_dio_mode())\n  auto-get_dio_suitable_indexes (from get_dio_suitable_indexes())\n  auto-get_dio_calibrated_inputs (from get_dio_calibrated_inputs())\n  auto-get_dio_lvds (from get_dio_lvds())\n  auto-get_dio_interboard (from get_dio_interboard())\n  auto-get_max_codeword_bits (from get_max_codeword_bits())\n  auto-get_codewords_select (from get_codewords_select())\n  auto-get_triggers_logic_input (from get_triggers_logic_input())\n  auto-get_bitmap (from get_bitmap())\n  auto-get_iofront_temperature (from get_iofront_temperature())\n  auto-get_fpga_temperature (from get_fpga_temperature())\n  auto-get_dac_temperature (from get_dac_temperature())\n  auto-get_channel_output_voltage (from get_channel_output_voltage())\n  auto-get_channel_gain_adjust (from get_channel_gain_adjust())\n\nRequired output action ids:\n  auto-calibrate_dio_protocol\n  auto-create_waveform_real\n  auto-delete_waveform\n  auto-delete_waveform_all\n  auto-dio_calibrate\n  auto-dio_calibration_report\n  auto-new_waveform_real\n  auto-output_dio_calibration_data\n  auto-send_waveform_data_real\n  auto-set_amplitude\n  auto-set_channel_gain_adjust\n  auto-set_dac_digital_value\n  auto-set_dio_active_index\n  auto-set_dio_mode\n  auto-set_offset\n  auto-set_output_state\n  auto-set_run_mode\n  auto-set_sideband_frequency\n  auto-set_sideband_phase\n  auto-set_waveform\n  auto-start\n  auto-stop\n  auto-sync_sideband_generators\n  auto-get_run_mode\n  auto-get_output_state\n  auto-get_amplitude\n  auto-get_offset\n  auto-get_waveform\n  auto-get_wlist_size\n  auto-get_wlist_name\n  auto-get_wlist\n  auto-get_waveform_type\n  auto-get_waveform_length\n  auto-get_waveform_data_float\n  auto-get_sideband_frequency\n  auto-get_sideband_phase\n  auto-get_dio_calibrate\n  auto-get_dio_active_index\n  auto-get_dio_mode\n  auto-get_dio_suitable_indexes\n  auto-get_dio_calibrated_inputs\n  auto-get_dio_lvds\n  auto-get_dio_interboard\n  auto-get_max_codeword_bits\n  auto-get_codewords_select\n  auto-get_triggers_logic_input\n  auto-get_bitmap\n  auto-get_iofront_temperature\n  auto-get_fpga_temperature\n  auto-get_dac_temperature\n  auto-get_channel_output_voltage\n  auto-get_channel_gain_adjust"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0c4717fb4d52d6b20069d54e42205c8195bff45c3e886f1889",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 13665,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 10853,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0c4717fb4d52d6b20069d54e4505f08195a867e633231d3e43",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0c4717fb4d52d6b20069d54e4c0bfc8195b27dcd286d438f2e",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"QuTech量子波形发生器（QWG）\",\n  \"name_en\": \"QuTech Quantum Waveform Generator (QWG)\",\n  \"manufacturer\": \"QuTech\",\n  \"description\": \"一款面向量子实验的多通道任意波形发生器，可输出模拟波形、进行边带参数设置，并支持基于DIO码字的触发与校准，同时提供DAC相关温度、电压和校准读写功能。\",\n  \"description_en\": \"A multi-channel arbitrary waveform generator for quantum experiments. It outputs analog waveforms, configures sideband parameters, supports DIO codeword triggering and calibration, and provides DAC-related temperature, voltage, and calibration access.\",\n  \"tag_hints\": [\n    \"arbitrary waveform generator\",\n    \"quantum control pulses\",\n    \"codeword triggering\",\n    \"DIO calibration\",\n    \"sideband generation\",\n    \"DAC calibration\",\n    \"SCPI instrument\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-calibrate_dio_protocol\",\n      \"description\": \"校准DIO协议序列。\",\n      \"description_en\": \"Calibrate the DIO protocol sequence.\"\n    },\n    {\n      \"action_name\": \"auto-create_waveform_real\",\n      \"description\": \"创建实数波形并写入波形数据。\",\n      \"description_en\": \"Create a real waveform and write waveform data to it.\"\n    },\n    {\n      \"action_name\": \"auto-delete_waveform\",\n      \"description\": \"删除指定波形。\",\n      \"description_en\": \"Delete the specified waveform.\"\n    },\n    {\n      \"action_name\": \"auto-delete_waveform_all\",\n      \"description\": \"删除全部波形。\",\n      \"description_en\": \"Delete all waveforms.\"\n    },\n    {\n      \"action_name\": \"auto-dio_calibrate\",\n      \"description\": \"执行DIO输入校准。\",\n      \"description_en\": \"Perform DIO input calibration.\"\n    },\n    {\n      \"action_name\": \"auto-dio_calibration_report\",\n      \"description\": \"返回最近一次DIO校准报告。\",\n      \"description_en\": \"Return the latest DIO calibration report.\"\n    },\n    {\n      \"action_name\": \"auto-new_waveform_real\",\n      \"description\": \"新建指定长度的实数波形。\",\n      \"description_en\": \"Create a new real waveform with the specified length.\"\n    },\n    {\n      \"action_name\": \"auto-output_dio_calibration_data\",\n      \"description\": \"输出用于DIO校准的数据。\",\n      \"description_en\": \"Output data used for DIO calibration.\"\n    },\n    {\n      \"action_name\": \"auto-send_waveform_data_real\",\n      \"description\": \"发送实数波形数据到AWG内存。\",\n      \"description_en\": \"Send real waveform data to AWG memory.\"\n    },\n    {\n      \"action_name\": \"auto-set_amplitude\",\n      \"description\": \"设置通道幅度。\",\n      \"description_en\": \"Set channel amplitude.\"\n    },\n    {\n      \"action_name\": \"auto-set_channel_gain_adjust\",\n      \"description\": \"设置通道DAC增益校准值。\",\n      \"description_en\": \"Set the channel DAC gain adjustment value.\"\n    },\n    {\n      \"action_name\": \"auto-set_dac_digital_value\",\n      \"description\": \"直接设置DAC数字值。\",\n      \"description_en\": \"Set the DAC digital value directly.\"\n    },\n    {\n      \"action_name\": \"auto-set_dio_active_index\",\n      \"description\": \"设置DIO活动索引。\",\n      \"description_en\": \"Set the DIO active index.\"\n    },\n    {\n      \"action_name\": \"auto-set_dio_mode\",\n      \"description\": \"设置DIO模式。\",\n      \"description_en\": \"Set the DIO mode.\"\n    },\n    {\n      \"action_name\": \"auto-set_offset\",\n      \"description\": \"设置通道偏置。\",\n      \"description_en\": \"Set channel offset.\"\n    },\n    {\n      \"action_name\": \"auto-set_output_state\",\n      \"description\": \"设置通道输出状态。\",\n      \"description_en\": \"Set channel output state.\"\n    },\n    {\n      \"action_name\": \"auto-set_run_mode\",\n      \"description\": \"设置运行模式。\",\n      \"description_en\": \"Set the run mode.\"\n    },\n    {\n      \"action_name\": \"auto-set_sideband_frequency\",\n      \"description\": \"设置边带频率。\",\n      \"description_en\": \"Set the sideband frequency.\"\n    },\n    {\n      \"action_name\": \"auto-set_sideband_phase\",\n      \"description\": \"设置边带相位。\",\n      \"description_en\": \"Set the sideband phase.\"\n    },\n    {\n      \"action_name\": \"auto-set_waveform\",\n      \"description\": \"设置通道波形。\",\n      \"description_en\": \"Set the channel waveform.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动波形发生输出。\",\n      \"description_en\": \"Start waveform generation output.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止波形发生输出。\",\n      \"description_en\": \"Stop waveform generation output.\"\n    },\n    {\n      \"action_name\": \"auto-sync_sideband_generators\",\n      \"description\": \"同步边带发生器。\",\n      \"description_en\": \"Synchronize the sideband generators.\"\n    },\n    {\n      \"action_name\": \"auto-get_run_mode\",\n      \"description\": \"获取运行模式。\",\n      \"description_en\": \"Get the run mode.\"\n    },\n    {\n      \"action_name\": \"auto-get_output_state\",\n      \"description\": \"获取通道输出状态。\",\n      \"description_en\": \"Get channel output state.\"\n    },\n    {\n      \"action_name\": \"auto-get_amplitude\",\n      \"description\": \"获取通道幅度。\",\n      \"description_en\": \"Get channel amplitude.\"\n    },\n    {\n      \"action_name\": \"auto-get_offset\",\n      \"description\": \"获取通道偏置。\",\n      \"description_en\": \"Get channel offset.\"\n    },\n    {\n      \"action_name\": \"auto-get_waveform\",\n      \"description\": \"获取通道波形。\",\n      \"description_en\": \"Get the channel waveform.\"\n    },\n    {\n      \"action_name\": \"auto-get_wlist_size\",\n      \"description\": \"获取波形列表大小。\",\n      \"description_en\": \"Get the waveform list size.\"\n    },\n    {\n      \"action_name\": \"auto-get_wlist_name\",\n      \"description\": \"获取波形列表名称。\",\n      \"description_en\": \"Get a waveform list name.\"\n    },\n    {\n      \"action_name\": \"auto-get_wlist\",\n      \"description\": \"获取波形列表。\",\n      \"description_en\": \"Get the waveform list.\"\n    },\n    {\n      \"action_name\": \"auto-get_waveform_type\",\n      \"description\": \"获取波形类型。\",\n      \"description_en\": \"Get the waveform type.\"\n    },\n    {\n      \"action_name\": \"auto-get_waveform_length\",\n      \"description\": \"获取波形长度。\",\n      \"description_en\": \"Get the waveform length.\"\n    },\n    {\n      \"action_name\": \"auto-get_waveform_data_float\",\n      \"description\": \"获取浮点波形数据。\",\n      \"description_en\": \"Get floating-point waveform data.\"\n    },\n    {\n      \"action_name\": \"auto-get_sideband_frequency\",\n      \"description\": \"获取边带频率。\",\n      \"description_en\": \"Get the sideband frequency.\"\n    },\n    {\n      \"action_name\": \"auto-get_sideband_phase\",\n      \"description\": \"获取边带相位。\",\n      \"description_en\": \"Get the sideband phase.\"\n    },\n    {\n      \"action_name\": \"auto-get_dio_calibrate\",\n      \"description\": \"获取DIO校准状态。\",\n      \"description_en\": \"Get the DIO calibration state.\"\n    },\n    {\n      \"action_name\": \"auto-get_dio_active_index\",\n      \"description\": \"获取DIO活动索引。\",\n      \"description_en\": \"Get the DIO active index.\"\n    },\n    {\n      \"action_name\": \"auto-get_dio_mode\",\n      \"description\": \"获取DIO模式。\",\n      \"description_en\": \"Get the DIO mode.\"\n    },\n    {\n      \"action_name\": \"auto-get_dio_suitable_indexes\",\n      \"description\": \"获取DIO可用索引列表。\",\n      \"description_en\": \"Get the suitable DIO indexes.\"\n    },\n    {\n      \"action_name\": \"auto-get_dio_calibrated_inputs\",\n      \"description\": \"获取已校准的DIO输入。\",\n      \"description_en\": \"Get the calibrated DIO inputs.\"\n    },\n    {\n      \"action_name\": \"auto-get_dio_lvds\",\n      \"description\": \"获取DIO LVDS连接状态。\",\n      \"description_en\": \"Get the DIO LVDS connection status.\"\n    },\n    {\n      \"action_name\": \"auto-get_dio_interboard\",\n      \"description\": \"获取DIO板间连接状态。\",\n      \"description_en\": \"Get the DIO interboard connection status.\"\n    },\n    {\n      \"action_name\": \"auto-get_max_codeword_bits\",\n      \"description\": \"获取最大码字位数。\",\n      \"description_en\": \"Get the maximum number of codeword bits.\"\n    },\n    {\n      \"action_name\": \"auto-get_codewords_select\",\n      \"description\": \"获取码字选择设置。\",\n      \"description_en\": \"Get the codeword selection setting.\"\n    },\n    {\n      \"action_name\": \"auto-get_triggers_logic_input\",\n      \"description\": \"获取触发逻辑输入值。\",\n      \"description_en\": \"Get the trigger logic input values.\"\n    },\n    {\n      \"action_name\": \"auto-get_bitmap\",\n      \"description\": \"获取通道码字位图。\",\n      \"description_en\": \"Get the channel codeword bitmap.\"\n    },\n    {\n      \"action_name\": \"auto-get_iofront_temperature\",\n      \"description\": \"获取IO前端板温度。\",\n      \"description_en\": \"Get the IO front-board temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_fpga_temperature\",\n      \"description\": \"获取FPGA温度。\",\n      \"description_en\": \"Get the FPGA temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_dac_temperature\",\n      \"description\": \"获取DAC温度。\",\n      \"description_en\": \"Get the DAC temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_channel_output_voltage\",\n      \"description\": \"获取通道输出电压。\",\n      \"description_en\": \"Get the channel output voltage.\"\n    },\n    {\n      \"action_name\": \"auto-get_channel_gain_adjust\",\n      \"description\": \"获取通道DAC增益校准值。\",\n      \"description_en\": \"Get the channel DAC gain adjustment value.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 3802,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2824,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 6626
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 3802,
+      "output_token_count": 2824,
+      "predict_time": 42.154571608
+    }
+  },
+  "output_text": "{\n  \"name\": \"QuTech量子波形发生器（QWG）\",\n  \"name_en\": \"QuTech Quantum Waveform Generator (QWG)\",\n  \"manufacturer\": \"QuTech\",\n  \"description\": \"一款面向量子实验的多通道任意波形发生器，可输出模拟波形、进行边带参数设置，并支持基于DIO码字的触发与校准，同时提供DAC相关温度、电压和校准读写功能。\",\n  \"description_en\": \"A multi-channel arbitrary waveform generator for quantum experiments. It outputs analog waveforms, configures sideband parameters, supports DIO codeword triggering and calibration, and provides DAC-related temperature, voltage, and calibration access.\",\n  \"tag_hints\": [\n    \"arbitrary waveform generator\",\n    \"quantum control pulses\",\n    \"codeword triggering\",\n    \"DIO calibration\",\n    \"sideband generation\",\n    \"DAC calibration\",\n    \"SCPI instrument\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-calibrate_dio_protocol\",\n      \"description\": \"校准DIO协议序列。\",\n      \"description_en\": \"Calibrate the DIO protocol sequence.\"\n    },\n    {\n      \"action_name\": \"auto-create_waveform_real\",\n      \"description\": \"创建实数波形并写入波形数据。\",\n      \"description_en\": \"Create a real waveform and write waveform data to it.\"\n    },\n    {\n      \"action_name\": \"auto-delete_waveform\",\n      \"description\": \"删除指定波形。\",\n      \"description_en\": \"Delete the specified waveform.\"\n    },\n    {\n      \"action_name\": \"auto-delete_waveform_all\",\n      \"description\": \"删除全部波形。\",\n      \"description_en\": \"Delete all waveforms.\"\n    },\n    {\n      \"action_name\": \"auto-dio_calibrate\",\n      \"description\": \"执行DIO输入校准。\",\n      \"description_en\": \"Perform DIO input calibration.\"\n    },\n    {\n      \"action_name\": \"auto-dio_calibration_report\",\n      \"description\": \"返回最近一次DIO校准报告。\",\n      \"description_en\": \"Return the latest DIO calibration report.\"\n    },\n    {\n      \"action_name\": \"auto-new_waveform_real\",\n      \"description\": \"新建指定长度的实数波形。\",\n      \"description_en\": \"Create a new real waveform with the specified length.\"\n    },\n    {\n      \"action_name\": \"auto-output_dio_calibration_data\",\n      \"description\": \"输出用于DIO校准的数据。\",\n      \"description_en\": \"Output data used for DIO calibration.\"\n    },\n    {\n      \"action_name\": \"auto-send_waveform_data_real\",\n      \"description\": \"发送实数波形数据到AWG内存。\",\n      \"description_en\": \"Send real waveform data to AWG memory.\"\n    },\n    {\n      \"action_name\": \"auto-set_amplitude\",\n      \"description\": \"设置通道幅度。\",\n      \"description_en\": \"Set channel amplitude.\"\n    },\n    {\n      \"action_name\": \"auto-set_channel_gain_adjust\",\n      \"description\": \"设置通道DAC增益校准值。\",\n      \"description_en\": \"Set the channel DAC gain adjustment value.\"\n    },\n    {\n      \"action_name\": \"auto-set_dac_digital_value\",\n      \"description\": \"直接设置DAC数字值。\",\n      \"description_en\": \"Set the DAC digital value directly.\"\n    },\n    {\n      \"action_name\": \"auto-set_dio_active_index\",\n      \"description\": \"设置DIO活动索引。\",\n      \"description_en\": \"Set the DIO active index.\"\n    },\n    {\n      \"action_name\": \"auto-set_dio_mode\",\n      \"description\": \"设置DIO模式。\",\n      \"description_en\": \"Set the DIO mode.\"\n    },\n    {\n      \"action_name\": \"auto-set_offset\",\n      \"description\": \"设置通道偏置。\",\n      \"description_en\": \"Set channel offset.\"\n    },\n    {\n      \"action_name\": \"auto-set_output_state\",\n      \"description\": \"设置通道输出状态。\",\n      \"description_en\": \"Set channel output state.\"\n    },\n    {\n      \"action_name\": \"auto-set_run_mode\",\n      \"description\": \"设置运行模式。\",\n      \"description_en\": \"Set the run mode.\"\n    },\n    {\n      \"action_name\": \"auto-set_sideband_frequency\",\n      \"description\": \"设置边带频率。\",\n      \"description_en\": \"Set the sideband frequency.\"\n    },\n    {\n      \"action_name\": \"auto-set_sideband_phase\",\n      \"description\": \"设置边带相位。\",\n      \"description_en\": \"Set the sideband phase.\"\n    },\n    {\n      \"action_name\": \"auto-set_waveform\",\n      \"description\": \"设置通道波形。\",\n      \"description_en\": \"Set the channel waveform.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动波形发生输出。\",\n      \"description_en\": \"Start waveform generation output.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止波形发生输出。\",\n      \"description_en\": \"Stop waveform generation output.\"\n    },\n    {\n      \"action_name\": \"auto-sync_sideband_generators\",\n      \"description\": \"同步边带发生器。\",\n      \"description_en\": \"Synchronize the sideband generators.\"\n    },\n    {\n      \"action_name\": \"auto-get_run_mode\",\n      \"description\": \"获取运行模式。\",\n      \"description_en\": \"Get the run mode.\"\n    },\n    {\n      \"action_name\": \"auto-get_output_state\",\n      \"description\": \"获取通道输出状态。\",\n      \"description_en\": \"Get channel output state.\"\n    },\n    {\n      \"action_name\": \"auto-get_amplitude\",\n      \"description\": \"获取通道幅度。\",\n      \"description_en\": \"Get channel amplitude.\"\n    },\n    {\n      \"action_name\": \"auto-get_offset\",\n      \"description\": \"获取通道偏置。\",\n      \"description_en\": \"Get channel offset.\"\n    },\n    {\n      \"action_name\": \"auto-get_waveform\",\n      \"description\": \"获取通道波形。\",\n      \"description_en\": \"Get the channel waveform.\"\n    },\n    {\n      \"action_name\": \"auto-get_wlist_size\",\n      \"description\": \"获取波形列表大小。\",\n      \"description_en\": \"Get the waveform list size.\"\n    },\n    {\n      \"action_name\": \"auto-get_wlist_name\",\n      \"description\": \"获取波形列表名称。\",\n      \"description_en\": \"Get a waveform list name.\"\n    },\n    {\n      \"action_name\": \"auto-get_wlist\",\n      \"description\": \"获取波形列表。\",\n      \"description_en\": \"Get the waveform list.\"\n    },\n    {\n      \"action_name\": \"auto-get_waveform_type\",\n      \"description\": \"获取波形类型。\",\n      \"description_en\": \"Get the waveform type.\"\n    },\n    {\n      \"action_name\": \"auto-get_waveform_length\",\n      \"description\": \"获取波形长度。\",\n      \"description_en\": \"Get the waveform length.\"\n    },\n    {\n      \"action_name\": \"auto-get_waveform_data_float\",\n      \"description\": \"获取浮点波形数据。\",\n      \"description_en\": \"Get floating-point waveform data.\"\n    },\n    {\n      \"action_name\": \"auto-get_sideband_frequency\",\n      \"description\": \"获取边带频率。\",\n      \"description_en\": \"Get the sideband frequency.\"\n    },\n    {\n      \"action_name\": \"auto-get_sideband_phase\",\n      \"description\": \"获取边带相位。\",\n      \"description_en\": \"Get the sideband phase.\"\n    },\n    {\n      \"action_name\": \"auto-get_dio_calibrate\",\n      \"description\": \"获取DIO校准状态。\",\n      \"description_en\": \"Get the DIO calibration state.\"\n    },\n    {\n      \"action_name\": \"auto-get_dio_active_index\",\n      \"description\": \"获取DIO活动索引。\",\n      \"description_en\": \"Get the DIO active index.\"\n    },\n    {\n      \"action_name\": \"auto-get_dio_mode\",\n      \"description\": \"获取DIO模式。\",\n      \"description_en\": \"Get the DIO mode.\"\n    },\n    {\n      \"action_name\": \"auto-get_dio_suitable_indexes\",\n      \"description\": \"获取DIO可用索引列表。\",\n      \"description_en\": \"Get the suitable DIO indexes.\"\n    },\n    {\n      \"action_name\": \"auto-get_dio_calibrated_inputs\",\n      \"description\": \"获取已校准的DIO输入。\",\n      \"description_en\": \"Get the calibrated DIO inputs.\"\n    },\n    {\n      \"action_name\": \"auto-get_dio_lvds\",\n      \"description\": \"获取DIO LVDS连接状态。\",\n      \"description_en\": \"Get the DIO LVDS connection status.\"\n    },\n    {\n      \"action_name\": \"auto-get_dio_interboard\",\n      \"description\": \"获取DIO板间连接状态。\",\n      \"description_en\": \"Get the DIO interboard connection status.\"\n    },\n    {\n      \"action_name\": \"auto-get_max_codeword_bits\",\n      \"description\": \"获取最大码字位数。\",\n      \"description_en\": \"Get the maximum number of codeword bits.\"\n    },\n    {\n      \"action_name\": \"auto-get_codewords_select\",\n      \"description\": \"获取码字选择设置。\",\n      \"description_en\": \"Get the codeword selection setting.\"\n    },\n    {\n      \"action_name\": \"auto-get_triggers_logic_input\",\n      \"description\": \"获取触发逻辑输入值。\",\n      \"description_en\": \"Get the trigger logic input values.\"\n    },\n    {\n      \"action_name\": \"auto-get_bitmap\",\n      \"description\": \"获取通道码字位图。\",\n      \"description_en\": \"Get the channel codeword bitmap.\"\n    },\n    {\n      \"action_name\": \"auto-get_iofront_temperature\",\n      \"description\": \"获取IO前端板温度。\",\n      \"description_en\": \"Get the IO front-board temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_fpga_temperature\",\n      \"description\": \"获取FPGA温度。\",\n      \"description_en\": \"Get the FPGA temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_dac_temperature\",\n      \"description\": \"获取DAC温度。\",\n      \"description_en\": \"Get the DAC temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_channel_output_voltage\",\n      \"description\": \"获取通道输出电压。\",\n      \"description_en\": \"Get the channel output voltage.\"\n    },\n    {\n      \"action_name\": \"auto-get_channel_gain_adjust\",\n      \"description\": \"获取通道DAC增益校准值。\",\n      \"description_en\": \"Get the channel DAC gain adjustment value.\"\n    }\n  ]\n}"
+}

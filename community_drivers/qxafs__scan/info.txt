@@ -1,36 +1,107 @@
-Device: qxafs__scan
-Registry Key: qxafs__scan
-Short Description: Quick XAFS Scan Controller是EPICS / Synchrotron提供的设备驱动。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (8):
-- auto-add_region -> add_region [UniLabJsonCommand] goal_params: dtime, dtime_final, dtime_wt, e0, min_estep, npts, relative, start, step, stop, use_k
-- auto-connect_qxafs -> connect_qxafs [UniLabJsonCommand] goal_params: none
-- auto-finish_qscan -> finish_qscan [UniLabJsonCommand] goal_params: none
-- auto-gathering2energy -> gathering2energy [UniLabJsonCommand] goal_params: text
-- auto-make_trajectory -> make_trajectory [UniLabJsonCommand] goal_params: reverse, theta_accel, width_accel
-- auto-post_scan -> post_scan [UniLabJsonCommand] goal_params: filename, row
-- auto-run -> run [UniLabJsonCommand] goal_params: comments, debug, filename, reverse, use_full
-- auto-set_energy_pv -> set_energy_pv [UniLabJsonCommand] goal_params: energy_pv, extra_pvs, read_pv
-
-Driver Functions (15):
-- etok(energy) (line 99)
-- ktoe(k) (line 102)
-- energy2angle(energy, dspace) (line 105)
-- create_xps_abort(xpsconf) (line 109)
-- ScanRegion.__init__(self, start, stop, npts, relative, e0, use_k, dtime, dtime_final, dtime_wt) (line 118)
-- XAFS_Scan.__init__(self, label, energy_pv, read_pv, extra_pvs, e0, elem, edge, scandb, **kws) (line 131)
-- XAFS_Scan.set_energy_pv(self, energy_pv, read_pv, extra_pvs) (line 148)
-- XAFS_Scan.add_region(self, start, stop, step, npts, relative, use_k, e0, dtime, dtime_final, dtime_wt, min_estep) (line 159)
-- QXAFS_Scan.__init__(self, label, energy_pv, read_pv, extra_pvs, e0, elem, edge, scandb, **kws) (line 214)
-- QXAFS_Scan.connect_qxafs(self) (line 234)
-- QXAFS_Scan.make_trajectory(self, reverse, theta_accel, width_accel, **kws) (line 283)
-- QXAFS_Scan.finish_qscan(self) (line 374)
-- QXAFS_Scan.gathering2energy(self, text) (line 379)
-- QXAFS_Scan.run(self, filename, comments, debug, reverse, use_full) (line 406)
-- QXAFS_Scan.post_scan(self, row, filename, **kws) (line 791)
+qxafs__scan:
+  name: 快速XAFS扫描控制组件
+  name_en: Quick XAFS Scan Controller
+  manufacturer: ''
+  category:
+  - 扫描采集控制模块
+  tags:
+  - 表征设备
+  - 智慧表征与检测中心
+  - X射线成像与束线探测
+  - X射线与辐射能谱测量
+  - 扫描采集控制模块
+  description: 用于配置和执行快速X射线吸收精细结构扫描的非实体软件组件。它负责连接扫描相关控制点、生成基于能量与停留时间的运动轨迹、启动扫描采集、将聚集数据换算为能量信息，并在扫描结束后整理与保存数据。
+  description_en: A non-physical software component for configuring and executing
+    quick X-ray absorption fine structure scans. It connects scan-related control
+    points, generates motion trajectories from energy and dwell settings, starts scan
+    acquisition, converts gathered data into energy-related results, and performs
+    post-scan data handling and saving.
+  class:
+    action_value_mappings:
+      auto-connect_qxafs:
+        schema:
+          description: 连接并初始化QXAFS扫描所需的控制点和相关配置。
+          description_en: Connect and initialize the control points and related configuration
+            required for a QXAFS scan.
+      auto-finish_qscan:
+        schema:
+          description: 完成QXAFS扫描的收尾与结束处理。
+          description_en: Finalize and complete the end-of-scan handling for a QXAFS
+            scan.
+      auto-gathering2energy:
+        schema:
+          description: 读取聚集数据文本，并换算得到能量与高度结果。
+          description_en: Read gathered data text and convert it into energy and height
+            results.
+      auto-make_trajectory:
+        schema:
+          description: 根据目标能量点和停留时间生成QXAFS扫描运动轨迹。
+          description_en: Generate the QXAFS scan motion trajectory from target energy
+            points and dwell times.
+      auto-post_scan:
+        schema:
+          description: 执行扫描结束后的数据整理、计时显示或保存等后处理步骤。
+          description_en: Perform post-scan processing such as data organization,
+            timing display, or saving.
+      auto-run:
+        schema:
+          description: 运行一次完整的QXAFS扫描流程，包括准备、采集、读取和整理数据。
+          description_en: Run a complete QXAFS scan workflow, including preparation,
+            acquisition, data reading, and data organization.
+      auto-set_energy_pv:
+        schema:
+          description: 设置用于能量控制的过程变量。
+          description_en: Set the process variable used for energy control.
+      auto-add_region:
+        schema:
+          description: 添加一个扫描区域定义。
+          description_en: Add a scan region definition.
+auto_annotation_metadata:
+  registry_key: qxafs__scan
+  annotation_workflow_version: v4
+  tag_hints:
+  - QXAFS
+  - XAFS scan control
+  - EPICS PV
+  - trajectory generation
+  - synchrotron beamline
+  - data acquisition orchestration
+  - Newport XPS
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该组件用于执行XAFS扫描与数据整理，服务于表征测试流程。
+  - id: '4325'
+    name: 智慧表征与检测中心
+    name_en: Intelligent Characterization & Testing Center
+    type: experimental_domain
+    rationale: XAFS属于典型表征测试手段，该扫描控制组件直接面向表征检测。
+  - id: P-0029
+    name: X射线成像与束线探测
+    name_en: X-Ray Imaging & Beamline Detection
+    type: experimental_scene
+    rationale: 描述中提到QXAFS、控制点连接和束线相关扫描，明显对应X射线束线实验场景。
+  - id: P-2009
+    name: X射线与辐射能谱测量
+    name_en: X-Ray & Radiation Spectroscopy
+    type: experimental_scene
+    rationale: XAFS本质上是X射线吸收谱相关扫描，与X射线能谱测量场景密切相关。
+  - id: P-9906
+    name: 扫描采集控制模块
+    name_en: Scan Acquisition Control Module
+    type: device_template_tag
+    rationale: 该软件组件核心职责是生成轨迹、启动扫描采集并完成后处理，符合扫描采集控制模块。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

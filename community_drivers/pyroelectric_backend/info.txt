@@ -1,64 +1,155 @@
-Device: pyroelectric_backend
-Registry Key: pyroelectric_backend
-Short Description: Pyroelectric Measurement Backend是一款表征设备，主要功能包括关闭、初始化、启动、扫描、日志记录、测量。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (15):
-- auto-close_instruments -> close_instruments [UniLabJsonCommand] goal_params: none
-- auto-create_console_frame -> create_console_frame [UniLabJsonCommand] goal_params: parent
-- auto-create_graph_frame -> create_graph_frame [UniLabJsonCommand] goal_params: parent
-- auto-create_header -> create_header [UniLabJsonCommand] goal_params: none
-- auto-create_info_frame -> create_info_frame [UniLabJsonCommand] goal_params: parent
-- auto-create_input_frame -> create_input_frame [UniLabJsonCommand] goal_params: parent
-- auto-create_widgets -> create_widgets [UniLabJsonCommand] goal_params: none
-- auto-get_measurement -> get_measurement [UniLabJsonCommand] goal_params: none
-- auto-initialize_instruments -> initialize_instruments [UniLabJsonCommand] goal_params: parameters
-- auto-log -> log [UniLabJsonCommand] goal_params: message
-- auto-setup_styles -> setup_styles [UniLabJsonCommand] goal_params: none
-- auto-start_measurement -> start_measurement [UniLabJsonCommand] goal_params: none
-- auto-start_ramp -> start_ramp [UniLabJsonCommand] goal_params: none
-- auto-start_stabilization -> start_stabilization [UniLabJsonCommand] goal_params: none
-- auto-stop_measurement -> stop_measurement [UniLabJsonCommand] goal_params: reason
-
-Driver Functions (36):
-- run_script_process(script_path) (line 107)
-- launch_plotter_utility() (line 121)
-- launch_gpib_scanner() (line 137)
-- PyroelectricBackend.__init__(self) (line 159)
-- PyroelectricBackend.initialize_instruments(self, parameters) (line 174)
-- PyroelectricBackend.start_stabilization(self) (line 215)
-- PyroelectricBackend.start_ramp(self) (line 224)
-- PyroelectricBackend.get_measurement(self) (line 236)
-- PyroelectricBackend.close_instruments(self) (line 249)
-- PyroelectricAppGUI.__init__(self, root) (line 290)
-- PyroelectricAppGUI.setup_styles(self) (line 310)
-- PyroelectricAppGUI.create_widgets(self) (line 374)
-- PyroelectricAppGUI.create_header(self) (line 413)
-- PyroelectricAppGUI.create_info_frame(self, parent) (line 453)
-- PyroelectricAppGUI.create_input_frame(self, parent) (line 542)
-- PyroelectricAppGUI.create_console_frame(self, parent) (line 694)
-- PyroelectricAppGUI.create_graph_frame(self, parent) (line 718)
-- PyroelectricAppGUI._process_logo_image(self, input_path, size) (line 772)
-- PyroelectricAppGUI.log(self, message) (line 785)
-- PyroelectricAppGUI._handle_worker_thread_completion(self) (line 792)
-- PyroelectricAppGUI._handle_worker_thread_error(self, exception) (line 797)
-- PyroelectricAppGUI._process_stabilizing_state(self, current_temp, params) (line 802)
-- PyroelectricAppGUI._process_ramping_state(self, current_temp, current_val, params) (line 811)
-- PyroelectricAppGUI._log_and_save_ramping_data(self, elapsed_time, current_temp, current_val) (line 817)
-- PyroelectricAppGUI._update_data_storage_and_plots(self, elapsed_time, current_temp, current_val) (line 828)
-- PyroelectricAppGUI._check_ramping_completion_conditions(self, current_temp, params) (line 855)
-- PyroelectricAppGUI.start_measurement(self) (line 865)
-- PyroelectricAppGUI.stop_measurement(self, reason) (line 945)
-- PyroelectricAppGUI._measurement_worker(self) (line 961)
-- PyroelectricAppGUI._process_data_queue(self) (line 974)
-- PyroelectricAppGUI._scan_for_visa_instruments(self) (line 1000)
-- PyroelectricAppGUI._browse_file_location(self) (line 1016)
-- PyroelectricAppGUI._on_closing(self) (line 1022)
-- PyroelectricAppGUI._check_visa_prerequisites(self) (line 1031)
-- PyroelectricAppGUI._assign_instruments_to_comboboxes(self, resources) (line 1040)
-- PyroelectricAppGUI._set_default_combobox_values(self, resources) (line 1049)
+pyroelectric_backend:
+  name: 热释电测量后端
+  name_en: Pyroelectric Measurement Backend
+  manufacturer: ''
+  category:
+  - 静电计
+  - 温度控制器
+  tags:
+  - 表征设备
+  - 实验执行&合成设备
+  - 电子与电气测试
+  - 实验室自动化与仪器集成
+  - 微弱电流与漏电流测量
+  - 外接设备恒温控制
+  - 实验仪器数据采集与联机控制
+  - 静电计
+  - 温度控制器
+  description: 用于热释电实验的非物理软件组件，负责协调 Lake Shore 350 温度控制器与 Keithley 6517B 的连接和初始配置，执行起始温度稳定、温度斜坡控制，并读取温度与电流测量数据，同时为图形界面提供日志、输入区和曲线显示等支持。
+  description_en: A non-physical software component for pyroelectric experiments.
+    It coordinates connection and initial configuration of a Lake Shore 350 temperature
+    controller and a Keithley 6517B, performs start-temperature stabilization and
+    temperature ramp control, acquires temperature and current readings, and supports
+    GUI functions such as logging, input panels, and graph display.
+  class:
+    action_value_mappings:
+      auto-close_instruments:
+        schema:
+          description: 安全关闭并断开已连接仪器。
+          description_en: Safely shut down and disconnect the connected instruments.
+      auto-initialize_instruments:
+        schema:
+          description: 初始化并配置 Lake Shore 350 与 Keithley 6517B 的通信和测量设置。
+          description_en: Initialize and configure communication and measurement settings
+            for the Lake Shore 350 and Keithley 6517B.
+      auto-start_ramp:
+        schema:
+          description: 启动温度斜坡并设置升降温速率。
+          description_en: Start the temperature ramp and set the ramp rate.
+      auto-start_stabilization:
+        schema:
+          description: 启动到起始温度的稳定过程。
+          description_en: Start the stabilization process toward the initial temperature.
+      auto-get_measurement:
+        schema:
+          description: 获取当前温度与电流测量值。
+          description_en: Get the current temperature and current measurements.
+      auto-setup_styles:
+        schema:
+          description: 配置图形界面的显示样式。
+          description_en: Set up the visual styles of the graphical interface.
+      auto-create_widgets:
+        schema:
+          description: 创建主界面控件。
+          description_en: Create the main user interface widgets.
+      auto-create_header:
+        schema:
+          description: 创建界面标题区域。
+          description_en: Create the header section of the interface.
+      auto-create_info_frame:
+        schema:
+          description: 创建设备或实验信息显示区域。
+          description_en: Create the device or experiment information display panel.
+      auto-create_input_frame:
+        schema:
+          description: 创建实验参数输入区域。
+          description_en: Create the input panel for experiment parameters.
+      auto-create_console_frame:
+        schema:
+          description: 创建控制台日志显示区域。
+          description_en: Create the console log display panel.
+      auto-create_graph_frame:
+        schema:
+          description: 创建测量曲线图显示区域。
+          description_en: Create the measurement graph display panel.
+      auto-log:
+        schema:
+          description: 记录运行日志信息。
+          description_en: Record runtime log messages.
+      auto-start_measurement:
+        schema:
+          description: 启动热释电测量流程。
+          description_en: Start the pyroelectric measurement process.
+      auto-stop_measurement:
+        schema:
+          description: 停止热释电测量流程。
+          description_en: Stop the pyroelectric measurement process.
+auto_annotation_metadata:
+  registry_key: pyroelectric_backend
+  annotation_workflow_version: v4
+  tag_hints:
+  - pyroelectric measurement
+  - temperature ramp control
+  - start-temperature stabilization
+  - Keithley 6517B
+  - Lake Shore 350
+  - current and temperature acquisition
+  - experiment GUI
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该后端采集温度与电流数据并进行曲线显示，直接服务热释电表征。
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 它还负责起始温度稳定、温度斜坡和测量流程控制，属于实验执行控制。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: 热释电实验本质上测量温变条件下的微弱电流响应，属于电子电气测试范畴。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 该软件统一协调Lake Shore 350与Keithley 6517B，并向GUI提供控制支持，体现多仪器集成。
+  - id: P-100001
+    name: 微弱电流与漏电流测量
+    name_en: Low-Current & Leakage Current Measurement
+    type: experimental_scene
+    rationale: 热释电测量核心数据之一是Keithley 6517B读出的微弱电流。
+  - id: P-6002
+    name: 外接设备恒温控制
+    name_en: External Equipment Thermostating
+    type: experimental_scene
+    rationale: 后端控制Lake Shore 350进行起始温度稳定和斜坡升温，符合外接温控场景。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 软件负责联机初始化仪器、执行测量并实时获取温度与电流读数。
+  - id: P-100008
+    name: 静电计
+    name_en: Electrometer
+    type: device_template_tag
+    rationale: 证据中明确涉及Keithley 6517B这类高灵敏电流/电荷测量仪器，适配静电计模板。
+  - id: P-90001
+    name: 温度控制器
+    name_en: Temperature Controller
+    type: device_template_tag
+    rationale: 证据中明确协调Lake Shore 350温度控制器完成稳定与斜坡控制。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

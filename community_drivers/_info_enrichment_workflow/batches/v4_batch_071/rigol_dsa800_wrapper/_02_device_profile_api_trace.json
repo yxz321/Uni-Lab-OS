@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: rigol_dsa800_wrapper\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: EGGS_labrad/servers/spectrum_analyzers/RigolDSA800.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.spectrum_analyzer.rigol_dsa800:RigolDSA800Wrapper\n\nClass: RigolDSA800Wrapper (focal)\n  Bases: ['GPIBDeviceWrapper']\n\nFocal class methods:\n  [command] reset(self)\n  [command] clear_buffers(self)\n  [command] autoset(self)\n  [command] operationComplete(self)\n  [command] preamplifier(self, status)\n  [command] attenuation(self, att)\n  [command] frequencyStart(self, freq)\n  [command] frequencyStop(self, freq)\n  [command] frequencyCenter(self, freq)\n  [command] frequencySpan(self, span)\n  [command] amplitudeReference(self, ampl)\n  [command] amplitudeOffset(self, ampl)\n  [command] amplitudeScale(self, factor)\n  [command] markerToggle(self, channel, status)\n  [command] markerTrace(self, channel, trace)\n  [command] markerMode(self, channel, mode)\n  [command] markerReadoutMode(self, channel, mode)\n  [command] markerTrack(self, channel, status)\n  [command] markerAmplitude(self, channel)\n  [command] markerFrequency(self, channel, freq)\n  [command] peakSearch(self, status)\n  [command] peakSet(self, channel)\n  [command] peakNext(self, channel)\n  [command] peakThreshold(self, c, threshold)\n    comment: PEAKS ONLY\n  [command] peakExcursion(self, c, excursion)\n  [command] peakTable(self, c)\n    comment: parse response\n    comment: separate amplitude and frequency\n  [command] bandwidthSweepTime(self, time)\n  [command] bandwidthResolution(self, bw)\n  [command] bandwidthVideo(self, bw)\n  [command] getTrace(self, channel)\n    comment: set data format\n    comment: get data\n    comment: create x-axis\n\nRegistry actions:\n  auto-reset (from reset())\n  auto-clear_buffers (from clear_buffers())\n  auto-autoset (from autoset())\n  auto-operationComplete (from operationComplete())\n  auto-preamplifier (from preamplifier())\n  auto-attenuation (from attenuation())\n  auto-frequencyStart (from frequencyStart())\n  auto-frequencyStop (from frequencyStop())\n  auto-frequencyCenter (from frequencyCenter())\n  auto-frequencySpan (from frequencySpan())\n  auto-amplitudeReference (from amplitudeReference())\n  auto-amplitudeOffset (from amplitudeOffset())\n  auto-amplitudeScale (from amplitudeScale())\n  auto-markerToggle (from markerToggle())\n  auto-markerTrace (from markerTrace())\n  auto-markerMode (from markerMode())\n  auto-markerReadoutMode (from markerReadoutMode())\n  auto-markerTrack (from markerTrack())\n  auto-markerAmplitude (from markerAmplitude())\n  auto-markerFrequency (from markerFrequency())\n  auto-peakSearch (from peakSearch())\n  auto-peakSet (from peakSet())\n  auto-peakNext (from peakNext())\n  auto-peakThreshold (from peakThreshold())\n  auto-peakExcursion (from peakExcursion())\n  auto-peakTable (from peakTable())\n  auto-bandwidthSweepTime (from bandwidthSweepTime())\n  auto-bandwidthResolution (from bandwidthResolution())\n  auto-bandwidthVideo (from bandwidthVideo())\n  auto-getTrace (from getTrace())\n\nRequired output action ids:\n  auto-reset\n  auto-clear_buffers\n  auto-autoset\n  auto-operationComplete\n  auto-preamplifier\n  auto-attenuation\n  auto-frequencyStart\n  auto-frequencyStop\n  auto-frequencyCenter\n  auto-frequencySpan\n  auto-amplitudeReference\n  auto-amplitudeOffset\n  auto-amplitudeScale\n  auto-markerToggle\n  auto-markerTrace\n  auto-markerMode\n  auto-markerReadoutMode\n  auto-markerTrack\n  auto-markerAmplitude\n  auto-markerFrequency\n  auto-peakSearch\n  auto-peakSet\n  auto-peakNext\n  auto-peakThreshold\n  auto-peakExcursion\n  auto-peakTable\n  auto-bandwidthSweepTime\n  auto-bandwidthResolution\n  auto-bandwidthVideo\n  auto-getTrace"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_00603a0de3a9c8910069d5508d739c819486e96daebf03b13f",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1800,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 8814,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_00603a0de3a9c8910069d5508de80481948df945cc252ff87e",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_00603a0de3a9c8910069d5509c9bc0819490668c77d063e6a2",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"RIGOL DSA800 频谱分析仪\",\n  \"name_en\": \"Rigol DSA800 Spectrum Analyzer\",\n  \"manufacturer\": \"Rigol\",\n  \"description\": \"RIGOL DSA800 系列台式频谱分析仪，用于扫描和测量射频信号频谱。该设备支持设置起止频率、中心频率与扫宽、参考电平与幅度刻度、输入衰减、前置放大器、标记与峰值搜索、分辨率带宽/视频带宽，并可读取迹线数据用于实验分析。\",\n  \"description_en\": \"The Rigol DSA800 is a benchtop spectrum analyzer for scanning and measuring RF signal spectra. It supports start/stop/center/span frequency settings, reference level and amplitude scaling, input attenuation, preamplifier control, markers and peak search, resolution/video bandwidth configuration, and trace acquisition for laboratory analysis.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"复位频谱分析仪到默认状态。\",\n      \"description_en\": \"Reset the spectrum analyzer to its default state.\"\n    },\n    {\n      \"action_name\": \"auto-clear_buffers\",\n      \"description\": \"清除设备通信或状态缓冲区。\",\n      \"description_en\": \"Clear the instrument communication or status buffers.\"\n    },\n    {\n      \"action_name\": \"auto-autoset\",\n      \"description\": \"自动设置测量参数以适配当前输入信号。\",\n      \"description_en\": \"Automatically configure measurement settings for the current input signal.\"\n    },\n    {\n      \"action_name\": \"auto-operationComplete\",\n      \"description\": \"查询或等待当前设备操作完成。\",\n      \"description_en\": \"Query or wait for the current instrument operation to complete.\"\n    },\n    {\n      \"action_name\": \"auto-preamplifier\",\n      \"description\": \"开启或关闭前置放大器。\",\n      \"description_en\": \"Enable or disable the preamplifier.\"\n    },\n    {\n      \"action_name\": \"auto-attenuation\",\n      \"description\": \"设置输入衰减。\",\n      \"description_en\": \"Set the input attenuation.\"\n    },\n    {\n      \"action_name\": \"auto-frequencyStart\",\n      \"description\": \"设置扫描起始频率。\",\n      \"description_en\": \"Set the sweep start frequency.\"\n    },\n    {\n      \"action_name\": \"auto-frequencyStop\",\n      \"description\": \"设置扫描终止频率。\",\n      \"description_en\": \"Set the sweep stop frequency.\"\n    },\n    {\n      \"action_name\": \"auto-frequencyCenter\",\n      \"description\": \"设置中心频率。\",\n      \"description_en\": \"Set the center frequency.\"\n    },\n    {\n      \"action_name\": \"auto-frequencySpan\",\n      \"description\": \"设置频率扫宽。\",\n      \"description_en\": \"Set the frequency span.\"\n    },\n    {\n      \"action_name\": \"auto-amplitudeReference\",\n      \"description\": \"设置参考电平。\",\n      \"description_en\": \"Set the reference level.\"\n    },\n    {\n      \"action_name\": \"auto-amplitudeOffset\",\n      \"description\": \"设置幅度偏移。\",\n      \"description_en\": \"Set the amplitude offset.\"\n    },\n    {\n      \"action_name\": \"auto-amplitudeScale\",\n      \"description\": \"设置幅度刻度。\",\n      \"description_en\": \"Set the amplitude scale.\"\n    },\n    {\n      \"action_name\": \"auto-markerToggle\",\n      \"description\": \"开启或关闭指定标记。\",\n      \"description_en\": \"Enable or disable the specified marker.\"\n    },\n    {\n      \"action_name\": \"auto-markerTrace\",\n      \"description\": \"将指定标记关联到某条迹线。\",\n      \"description_en\": \"Assign the specified marker to a trace.\"\n    },\n    {\n      \"action_name\": \"auto-markerMode\",\n      \"description\": \"设置指定标记的工作模式。\",\n      \"description_en\": \"Set the operating mode of the specified marker.\"\n    },\n    {\n      \"action_name\": \"auto-markerReadoutMode\",\n      \"description\": \"设置指定标记的读出模式。\",\n      \"description_en\": \"Set the readout mode of the specified marker.\"\n    },\n    {\n      \"action_name\": \"auto-markerTrack\",\n      \"description\": \"开启或关闭指定标记的跟踪功能。\",\n      \"description_en\": \"Enable or disable tracking for the specified marker.\"\n    },\n    {\n      \"action_name\": \"auto-markerAmplitude\",\n      \"description\": \"读取指定标记处的幅度。\",\n      \"description_en\": \"Read the amplitude at the specified marker.\"\n    },\n    {\n      \"action_name\": \"auto-markerFrequency\",\n      \"description\": \"设置指定标记的频率位置。\",\n      \"description_en\": \"Set the frequency position of the specified marker.\"\n    },\n    {\n      \"action_name\": \"auto-peakSearch\",\n      \"description\": \"开启、关闭或触发峰值搜索功能。\",\n      \"description_en\": \"Enable, disable, or trigger the peak search function.\"\n    },\n    {\n      \"action_name\": \"auto-peakSet\",\n      \"description\": \"将指定通道的标记设到峰值位置。\",\n      \"description_en\": \"Set the marker on the specified channel to a peak position.\"\n    },\n    {\n      \"action_name\": \"auto-peakNext\",\n      \"description\": \"将指定通道的标记移动到下一个峰值。\",\n      \"description_en\": \"Move the marker on the specified channel to the next peak.\"\n    },\n    {\n      \"action_name\": \"auto-peakThreshold\",\n      \"description\": \"设置峰值搜索门限。\",\n      \"description_en\": \"Set the peak search threshold.\"\n    },\n    {\n      \"action_name\": \"auto-peakExcursion\",\n      \"description\": \"设置峰值搜索的最小峰间起伏条件。\",\n      \"description_en\": \"Set the minimum excursion used for peak search.\"\n    },\n    {\n      \"action_name\": \"auto-peakTable\",\n      \"description\": \"读取峰值表，返回峰值频率和幅度信息。\",\n      \"description_en\": \"Read the peak table and return peak frequency and amplitude information.\"\n    },\n    {\n      \"action_name\": \"auto-bandwidthSweepTime\",\n      \"description\": \"设置扫描时间。\",\n      \"description_en\": \"Set the sweep time.\"\n    },\n    {\n      \"action_name\": \"auto-bandwidthResolution\",\n      \"description\": \"设置分辨率带宽。\",\n      \"description_en\": \"Set the resolution bandwidth.\"\n    },\n    {\n      \"action_name\": \"auto-bandwidthVideo\",\n      \"description\": \"设置视频带宽。\",\n      \"description_en\": \"Set the video bandwidth.\"\n    },\n    {\n      \"action_name\": \"auto-getTrace\",\n      \"description\": \"读取指定通道的频谱迹线数据。\",\n      \"description_en\": \"Acquire the spectrum trace data from the specified channel.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"spectrum analysis\",\n    \"RF measurement\",\n    \"trace acquisition\",\n    \"marker measurements\",\n    \"peak search\",\n    \"RBW/VBW control\",\n    \"GPIB instrument\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1606,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2244,
+      "output_tokens_details": {
+        "reasoning_tokens": 709
+      },
+      "total_tokens": 3850
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1606,
+      "output_token_count": 2244,
+      "predict_time": 33.368506843
+    }
+  },
+  "output_text": "{\n  \"name\": \"RIGOL DSA800 频谱分析仪\",\n  \"name_en\": \"Rigol DSA800 Spectrum Analyzer\",\n  \"manufacturer\": \"Rigol\",\n  \"description\": \"RIGOL DSA800 系列台式频谱分析仪，用于扫描和测量射频信号频谱。该设备支持设置起止频率、中心频率与扫宽、参考电平与幅度刻度、输入衰减、前置放大器、标记与峰值搜索、分辨率带宽/视频带宽，并可读取迹线数据用于实验分析。\",\n  \"description_en\": \"The Rigol DSA800 is a benchtop spectrum analyzer for scanning and measuring RF signal spectra. It supports start/stop/center/span frequency settings, reference level and amplitude scaling, input attenuation, preamplifier control, markers and peak search, resolution/video bandwidth configuration, and trace acquisition for laboratory analysis.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"复位频谱分析仪到默认状态。\",\n      \"description_en\": \"Reset the spectrum analyzer to its default state.\"\n    },\n    {\n      \"action_name\": \"auto-clear_buffers\",\n      \"description\": \"清除设备通信或状态缓冲区。\",\n      \"description_en\": \"Clear the instrument communication or status buffers.\"\n    },\n    {\n      \"action_name\": \"auto-autoset\",\n      \"description\": \"自动设置测量参数以适配当前输入信号。\",\n      \"description_en\": \"Automatically configure measurement settings for the current input signal.\"\n    },\n    {\n      \"action_name\": \"auto-operationComplete\",\n      \"description\": \"查询或等待当前设备操作完成。\",\n      \"description_en\": \"Query or wait for the current instrument operation to complete.\"\n    },\n    {\n      \"action_name\": \"auto-preamplifier\",\n      \"description\": \"开启或关闭前置放大器。\",\n      \"description_en\": \"Enable or disable the preamplifier.\"\n    },\n    {\n      \"action_name\": \"auto-attenuation\",\n      \"description\": \"设置输入衰减。\",\n      \"description_en\": \"Set the input attenuation.\"\n    },\n    {\n      \"action_name\": \"auto-frequencyStart\",\n      \"description\": \"设置扫描起始频率。\",\n      \"description_en\": \"Set the sweep start frequency.\"\n    },\n    {\n      \"action_name\": \"auto-frequencyStop\",\n      \"description\": \"设置扫描终止频率。\",\n      \"description_en\": \"Set the sweep stop frequency.\"\n    },\n    {\n      \"action_name\": \"auto-frequencyCenter\",\n      \"description\": \"设置中心频率。\",\n      \"description_en\": \"Set the center frequency.\"\n    },\n    {\n      \"action_name\": \"auto-frequencySpan\",\n      \"description\": \"设置频率扫宽。\",\n      \"description_en\": \"Set the frequency span.\"\n    },\n    {\n      \"action_name\": \"auto-amplitudeReference\",\n      \"description\": \"设置参考电平。\",\n      \"description_en\": \"Set the reference level.\"\n    },\n    {\n      \"action_name\": \"auto-amplitudeOffset\",\n      \"description\": \"设置幅度偏移。\",\n      \"description_en\": \"Set the amplitude offset.\"\n    },\n    {\n      \"action_name\": \"auto-amplitudeScale\",\n      \"description\": \"设置幅度刻度。\",\n      \"description_en\": \"Set the amplitude scale.\"\n    },\n    {\n      \"action_name\": \"auto-markerToggle\",\n      \"description\": \"开启或关闭指定标记。\",\n      \"description_en\": \"Enable or disable the specified marker.\"\n    },\n    {\n      \"action_name\": \"auto-markerTrace\",\n      \"description\": \"将指定标记关联到某条迹线。\",\n      \"description_en\": \"Assign the specified marker to a trace.\"\n    },\n    {\n      \"action_name\": \"auto-markerMode\",\n      \"description\": \"设置指定标记的工作模式。\",\n      \"description_en\": \"Set the operating mode of the specified marker.\"\n    },\n    {\n      \"action_name\": \"auto-markerReadoutMode\",\n      \"description\": \"设置指定标记的读出模式。\",\n      \"description_en\": \"Set the readout mode of the specified marker.\"\n    },\n    {\n      \"action_name\": \"auto-markerTrack\",\n      \"description\": \"开启或关闭指定标记的跟踪功能。\",\n      \"description_en\": \"Enable or disable tracking for the specified marker.\"\n    },\n    {\n      \"action_name\": \"auto-markerAmplitude\",\n      \"description\": \"读取指定标记处的幅度。\",\n      \"description_en\": \"Read the amplitude at the specified marker.\"\n    },\n    {\n      \"action_name\": \"auto-markerFrequency\",\n      \"description\": \"设置指定标记的频率位置。\",\n      \"description_en\": \"Set the frequency position of the specified marker.\"\n    },\n    {\n      \"action_name\": \"auto-peakSearch\",\n      \"description\": \"开启、关闭或触发峰值搜索功能。\",\n      \"description_en\": \"Enable, disable, or trigger the peak search function.\"\n    },\n    {\n      \"action_name\": \"auto-peakSet\",\n      \"description\": \"将指定通道的标记设到峰值位置。\",\n      \"description_en\": \"Set the marker on the specified channel to a peak position.\"\n    },\n    {\n      \"action_name\": \"auto-peakNext\",\n      \"description\": \"将指定通道的标记移动到下一个峰值。\",\n      \"description_en\": \"Move the marker on the specified channel to the next peak.\"\n    },\n    {\n      \"action_name\": \"auto-peakThreshold\",\n      \"description\": \"设置峰值搜索门限。\",\n      \"description_en\": \"Set the peak search threshold.\"\n    },\n    {\n      \"action_name\": \"auto-peakExcursion\",\n      \"description\": \"设置峰值搜索的最小峰间起伏条件。\",\n      \"description_en\": \"Set the minimum excursion used for peak search.\"\n    },\n    {\n      \"action_name\": \"auto-peakTable\",\n      \"description\": \"读取峰值表，返回峰值频率和幅度信息。\",\n      \"description_en\": \"Read the peak table and return peak frequency and amplitude information.\"\n    },\n    {\n      \"action_name\": \"auto-bandwidthSweepTime\",\n      \"description\": \"设置扫描时间。\",\n      \"description_en\": \"Set the sweep time.\"\n    },\n    {\n      \"action_name\": \"auto-bandwidthResolution\",\n      \"description\": \"设置分辨率带宽。\",\n      \"description_en\": \"Set the resolution bandwidth.\"\n    },\n    {\n      \"action_name\": \"auto-bandwidthVideo\",\n      \"description\": \"设置视频带宽。\",\n      \"description_en\": \"Set the video bandwidth.\"\n    },\n    {\n      \"action_name\": \"auto-getTrace\",\n      \"description\": \"读取指定通道的频谱迹线数据。\",\n      \"description_en\": \"Acquire the spectrum trace data from the specified channel.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"spectrum analysis\",\n    \"RF measurement\",\n    \"trace acquisition\",\n    \"marker measurements\",\n    \"peak search\",\n    \"RBW/VBW control\",\n    \"GPIB instrument\"\n  ]\n}"
+}

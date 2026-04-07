@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: pseudoclock\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: labscript/core.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.timing.pseudoclock:Pseudoclock\n\nClass: IntermediateDevice \n  Bases: ['Device']\n  Docstring: Base class for all devices that are to be clocked by a pseudoclock.\n\nClass: ClockLine \n  Bases: ['Device']\n\nClass: Pseudoclock (focal)\n  Bases: ['Device']\n  Docstring: Parent class of all pseudoclocks.\n\nYou won't usually interact with this class directly, unless you are implementing a\nnew PsedoclockDevice in labscript-devices. It provides common functionality for\ngenerating pseudoclock instructions..\n\nClass: TriggerableDevice \n  Bases: ['Device']\n  Docstring: A triggerable version of :obj:`Device`.\n\nThis class is for devices that do not require a \npseudoclock, but do require a trigger. This enables\nthem to have a Trigger device as a parent.\n\nClass: PseudoclockDevice \n  Bases: ['TriggerableDevice']\n  Docstring: Device that implements a pseudoclock.\n\nFocal class methods:\n  [command] add_device(self, device)\n  [command] collect_change_times(self, all_outputs, outputs_by_clockline)\n    comment: TODO: Maybe verify here that device.connection (the ClockLine connection) is a valid connection of the parent PseudoClockDevice\n    comment: Also see the same comment in ClockLine.__init__\n    comment: if device.connection not in self.clock_lines:\n    comment: self.clock_lines[\n    comment: print 'output name: %s'%output.name\n    comment: print output_change_times\n    comment: Change to a set and back to get rid of duplicates:\n    comment: include trigger times in change_times, so that pseudoclocks always\n    comment: have an instruction immediately following a wait:\n    comment: Find out whether any other clockline has a change time during a ramp #\n    comment: on another clockline. If it does, we need to let the ramping         #\n    comment: clockline know it needs to break it's loop at that time              #\n    comment: convert all_change_times to a numpy array\n    comment: quantise the all change times to the pseudoclock clock resolution\n    comment: Loop through each clockline\n    comment: for each clockline, loop through the ramps on that clockline\n    comment: for each ramp, check to see if there is a change time in\n    comment: all_change_times which intersects with the ramp. If there is,\n    comment: add a change time into this clockline at that point\n    comment: Get rid of duplicates:\n    comment: Check that the pseudoclock can handle updates this fast\n    comment: For each clockline, make sure we have a change time for triggers,    #\n    comment: stop_time, t=0 and check that no change times are too close together #\n    comment: include trigger times in change_times, so that pseudoclocks always\n    comment: have an instruction immediately following a wait:\n    comment: If the device has no children, we still need it to have a\n    comment: single instruction. So we'll add 0 as a change time:\n    comment: quantise the all change times to the pseudoclock clock resolution\n    comment: Get rid of duplicates if trigger times were already in the list:\n    comment: Also add the stop time as as change time. First check that it\n    comment: isn't too close to the time of the last instruction:\n    comment: Sort change times so self.stop_time will be in the middle\n    comment: somewhere if it is prior to the last actual instruction.\n    comment: Whilst this means the user has set stop_time in error, not\n    comment: catching the error here allows it to be caught later by the\n    comment: specific device that has more instructions after\n    comment: self.stop_time. Thus we provide the user with sligtly more\n    comment: detailed error info.\n    comment: index to keep track of in all_change_times\n    comment: Check that no two instructions are too close together:\n    comment: increment j until we reach the current time\n    comment: j should now index all_change_times at \"t\"\n    comment: Check that the next all change_time is not too close (and thus\n    comment: would force this clock tick to be faster than the minimum\n    comment: clock high time)\n    comment: because we made the list into a set and back to a list, it is now\n    comment: a different object so modifying it won't update the list in the\n    comment: dictionary. So store the updated list in the dictionary\n    comment: Asks all connected outputs for a list of times that they\n        change state. \n\n        Takes the union of all of these times. Note\n        that at this point, a change from holding-a-constant-value\n...\n  [command] expand_change_times(self, all_change_times, change_times, outputs_by_clockline)\n    comment: iterate over all change times\n    comment: A wait instruction:\n    comment: list of enabled clocks\n    comment: update clock_line indices\n    comment: Fix the index to the last one\n    comment: print a warning\n    comment: Let's work out which clock_lines are enabled for this instruction\n    comment: what's the fastest clock rate?\n    comment: Check if output is sweeping and has highest clock rate\n    comment: so far. If so, store its clock rate to max_rate:\n    comment: It does have the highest clock rate? Then store that rate\n    comment: to max_rate:\n    comment: only check this for ramping clock_lines\n    comment: non-ramping clock-lines have already had the clock_limit\n    comment: checked within collect_change_times()\n    comment: round to the nearest clock rate that the pseudoclock can actually support:\n    comment: If there was ramping at this timestep, how many clock ticks fit before the next instruction?\n    comment: Can we squeeze the final clock cycle in at the end?\n    comment: Yes we can. Clock speed will be as\n    comment: requested. Otherwise the final clock cycle will\n    comment: be too long, by the fraction 'remainder'.\n    comment: If n_ticks is only one, then this step doesn't do\n    comment: anything, it has reps=0. So we should only include\n    comment: it if n_ticks > 1.\n    comment: If there is more than one clock tick here, then we split the\n    comment: ramp into an initial clock tick, during which the slow clock\n    comment: ticks, and the rest of the ramping time, during which the slow\n    comment: clock does not tick.\n    comment: The last clock tick has a different duration depending on the next step.\n    comment: If there was no ramping, here is a single clock tick:\n    comment: There is no next instruction. Hold the last clock\n    comment: tick until self.parent_device.stop_time.\n    comment: Error if self.parent_device.stop_time has been set to less\n    comment: than the time of the last instruction:\n    comment: If self.parent_device.stop_time is the same as the time of the last\n    comment: instruction, then we'll get the last instruction\n    comment: out still, so that the total number of clock\n    comment: ticks matches the number of data points in the\n    comment: Output.raw_output arrays. We'll make this last\n    comment: cycle be at ten times the minimum step duration.\n    comment: Find the slowest clock_limit\n    comment: The Pseudoclock clock limit\n    comment: Update with clock line limits\n    comment: For each time interval delimited by change_times, constructs\n        an array of times at which the clock for this device needs to\n        tick. If the interval has all outputs having constant values,...\n  [status_getter] get_outputs_by_clockline(self)\n    comment: TODO: Make this a bit more robust (can we assume things always have this\n    comment: hierarchy?)\n    comment: Obtain all outputs by clockline.\n\n        Returns:\n            tuple: Tuple containing:\n            \n            - **all_outputs** (list): List of all outputs, obtained from :meth:`get_all_outputs`.\n ...\n  [command] generate_clock(self)\n    comment: Get change_times for all outputs, and also grouped by clockline\n    comment: for each clock line\n    comment: and for each output on the clockline\n    comment: call make_timeseries to expand the list of instructions for each change_time on this clock line\n    comment: now generate the clock meta data for the Pseudoclock\n    comment: also generate everytime point each clock line will tick (expand ramps)\n    comment: Flatten the clock line times for use by the child devices for writing instruction tables\n    comment: for each clockline\n    comment: and for each output\n    comment: evaluate the output at each time point the clock line will tick at\n    comment: Generate the pseudoclock and configure outputs for each tick\n        of the clock.\n  [command] generate_code(self, hdf5_file)\n\nRegistry actions:\n  auto-add_device (from add_device())\n  auto-collect_change_times (from collect_change_times())\n  auto-expand_change_times (from expand_change_times())\n  auto-generate_clock (from generate_clock())\n  auto-generate_code (from generate_code())\n  auto-get_outputs_by_clockline (from get_outputs_by_clockline())\n  auto-minimum_clock_high_time (from minimum_clock_high_time())\n  auto-clock_limit (from clock_limit())\n  auto-trigger (from trigger())\n  auto-do_checks (from do_checks())\n  auto-is_master_pseudoclock (from is_master_pseudoclock())\n  auto-set_initial_trigger_time (from set_initial_trigger_time())\n  auto-offset_instructions_from_trigger (from offset_instructions_from_trigger())\n\nRequired output action ids:\n  auto-add_device\n  auto-collect_change_times\n  auto-expand_change_times\n  auto-generate_clock\n  auto-generate_code\n  auto-get_outputs_by_clockline\n  auto-minimum_clock_high_time\n  auto-clock_limit\n  auto-trigger\n  auto-do_checks\n  auto-is_master_pseudoclock\n  auto-set_initial_trigger_time\n  auto-offset_instructions_from_trigger"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_01d17fe6504005ce0069d54c0dd6108195826736ddea0e3a6f",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 10849,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7698,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_01d17fe6504005ce0069d54c0e57c88195b437a61378861478",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_01d17fe6504005ce0069d54c1fe1f88195b03077bc6945d8e7",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"伪时钟时序调度组件\",\n  \"name_en\": \"Pseudoclock Timing Scheduler\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验时序编排的非物理软件组件。它负责汇总各时钟线输出的变化时刻，展开伪时钟节拍，处理触发与停止时间约束，并生成供下游实验设备使用的时序数据与代码。\",\n  \"description_en\": \"A non-physical software component for experiment timing orchestration. It collects output change times across clock lines, expands pseudoclock ticks, handles trigger and stop-time constraints, and generates timing data and code for downstream lab devices.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-add_device\",\n      \"description\": \"添加由该伪时钟管理的子设备。\",\n      \"description_en\": \"Add a child device managed by this pseudoclock.\"\n    },\n    {\n      \"action_name\": \"auto-collect_change_times\",\n      \"description\": \"收集各输出及各时钟线的变化时刻。\",\n      \"description_en\": \"Collect change times from outputs and clock lines.\"\n    },\n    {\n      \"action_name\": \"auto-expand_change_times\",\n      \"description\": \"将变化时刻区间展开为具体的时钟节拍序列。\",\n      \"description_en\": \"Expand change-time intervals into concrete clock tick sequences.\"\n    },\n    {\n      \"action_name\": \"auto-generate_clock\",\n      \"description\": \"生成伪时钟节拍表及对应输出时序。\",\n      \"description_en\": \"Generate the pseudoclock tick schedule and corresponding output timing.\"\n    },\n    {\n      \"action_name\": \"auto-generate_code\",\n      \"description\": \"生成并写出伪时钟时序代码或指令数据。\",\n      \"description_en\": \"Generate and write pseudoclock timing code or instruction data.\"\n    },\n    {\n      \"action_name\": \"auto-get_outputs_by_clockline\",\n      \"description\": \"获取按时钟线分组的输出。\",\n      \"description_en\": \"Get outputs grouped by clock line.\"\n    },\n    {\n      \"action_name\": \"auto-minimum_clock_high_time\",\n      \"description\": \"获取最小时钟高电平时间。\",\n      \"description_en\": \"Get the minimum clock high time.\"\n    },\n    {\n      \"action_name\": \"auto-clock_limit\",\n      \"description\": \"获取时钟速率限制。\",\n      \"description_en\": \"Get the clock rate limit.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"处理或发出该伪时钟设备的触发事件。\",\n      \"description_en\": \"Handle or issue the trigger event for this pseudoclock device.\"\n    },\n    {\n      \"action_name\": \"auto-do_checks\",\n      \"description\": \"执行时序与配置一致性检查。\",\n      \"description_en\": \"Run timing and configuration consistency checks.\"\n    },\n    {\n      \"action_name\": \"auto-is_master_pseudoclock\",\n      \"description\": \"获取是否为主伪时钟。\",\n      \"description_en\": \"Get whether this is the master pseudoclock.\"\n    },\n    {\n      \"action_name\": \"auto-set_initial_trigger_time\",\n      \"description\": \"设置初始触发时间。\",\n      \"description_en\": \"Set the initial trigger time.\"\n    },\n    {\n      \"action_name\": \"auto-offset_instructions_from_trigger\",\n      \"description\": \"按触发时间偏移指令时序。\",\n      \"description_en\": \"Offset instruction timing relative to the trigger time.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"pseudoclock timing\",\n    \"experiment sequencing\",\n    \"clock line scheduling\",\n    \"trigger timing\",\n    \"instruction generation\",\n    \"labscript timing core\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2868,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1854,
+      "output_tokens_details": {
+        "reasoning_tokens": 1034
+      },
+      "total_tokens": 4722
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2868,
+      "output_token_count": 1854,
+      "predict_time": 30.066473395
+    }
+  },
+  "output_text": "{\n  \"name\": \"伪时钟时序调度组件\",\n  \"name_en\": \"Pseudoclock Timing Scheduler\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验时序编排的非物理软件组件。它负责汇总各时钟线输出的变化时刻，展开伪时钟节拍，处理触发与停止时间约束，并生成供下游实验设备使用的时序数据与代码。\",\n  \"description_en\": \"A non-physical software component for experiment timing orchestration. It collects output change times across clock lines, expands pseudoclock ticks, handles trigger and stop-time constraints, and generates timing data and code for downstream lab devices.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-add_device\",\n      \"description\": \"添加由该伪时钟管理的子设备。\",\n      \"description_en\": \"Add a child device managed by this pseudoclock.\"\n    },\n    {\n      \"action_name\": \"auto-collect_change_times\",\n      \"description\": \"收集各输出及各时钟线的变化时刻。\",\n      \"description_en\": \"Collect change times from outputs and clock lines.\"\n    },\n    {\n      \"action_name\": \"auto-expand_change_times\",\n      \"description\": \"将变化时刻区间展开为具体的时钟节拍序列。\",\n      \"description_en\": \"Expand change-time intervals into concrete clock tick sequences.\"\n    },\n    {\n      \"action_name\": \"auto-generate_clock\",\n      \"description\": \"生成伪时钟节拍表及对应输出时序。\",\n      \"description_en\": \"Generate the pseudoclock tick schedule and corresponding output timing.\"\n    },\n    {\n      \"action_name\": \"auto-generate_code\",\n      \"description\": \"生成并写出伪时钟时序代码或指令数据。\",\n      \"description_en\": \"Generate and write pseudoclock timing code or instruction data.\"\n    },\n    {\n      \"action_name\": \"auto-get_outputs_by_clockline\",\n      \"description\": \"获取按时钟线分组的输出。\",\n      \"description_en\": \"Get outputs grouped by clock line.\"\n    },\n    {\n      \"action_name\": \"auto-minimum_clock_high_time\",\n      \"description\": \"获取最小时钟高电平时间。\",\n      \"description_en\": \"Get the minimum clock high time.\"\n    },\n    {\n      \"action_name\": \"auto-clock_limit\",\n      \"description\": \"获取时钟速率限制。\",\n      \"description_en\": \"Get the clock rate limit.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"处理或发出该伪时钟设备的触发事件。\",\n      \"description_en\": \"Handle or issue the trigger event for this pseudoclock device.\"\n    },\n    {\n      \"action_name\": \"auto-do_checks\",\n      \"description\": \"执行时序与配置一致性检查。\",\n      \"description_en\": \"Run timing and configuration consistency checks.\"\n    },\n    {\n      \"action_name\": \"auto-is_master_pseudoclock\",\n      \"description\": \"获取是否为主伪时钟。\",\n      \"description_en\": \"Get whether this is the master pseudoclock.\"\n    },\n    {\n      \"action_name\": \"auto-set_initial_trigger_time\",\n      \"description\": \"设置初始触发时间。\",\n      \"description_en\": \"Set the initial trigger time.\"\n    },\n    {\n      \"action_name\": \"auto-offset_instructions_from_trigger\",\n      \"description\": \"按触发时间偏移指令时序。\",\n      \"description_en\": \"Offset instruction timing relative to the trigger time.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"pseudoclock timing\",\n    \"experiment sequencing\",\n    \"clock line scheduling\",\n    \"trigger timing\",\n    \"instruction generation\",\n    \"labscript timing core\"\n  ]\n}"
+}

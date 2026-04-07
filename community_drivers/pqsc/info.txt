@@ -1,31 +1,104 @@
-Device: pqsc
-Registry Key: pqsc
-Short Description: Zurich Instruments PQSC 量子系统控制器是由Zurich Instruments生产的专业实验设备。
-
-Categories:
-- 透射电子显微镜
-
-Related Tags (from tag 标签列表.csv):
-- [4456] 透射电子显微镜 / Transmission Electron Microscope (device_template_tag)
-
-Atom Actions (8):
-- auto-arm -> arm [UniLabJsonCommand] goal_params: deep, holdoff, repetitions
-- auto-arm_and_run -> arm_and_run [UniLabJsonCommand] goal_params: holdoff, repetitions
-- auto-check_ref_clock -> check_ref_clock [UniLabJsonCommand] goal_params: sleep_time, timeout
-- auto-check_zsync_connection -> check_zsync_connection [UniLabJsonCommand] goal_params: ports, sleep_time, timeout
-- auto-find_zsync_worker_port -> find_zsync_worker_port [UniLabJsonCommand] goal_params: device
-- auto-run -> run [UniLabJsonCommand] goal_params: deep
-- auto-stop -> stop [UniLabJsonCommand] goal_params: deep
-- auto-wait_done -> wait_done [UniLabJsonCommand] goal_params: sleep_time, timeout
-
-Driver Functions (10):
-- PQSC.__init__(self, *args, **kwargs) (line 77)
-- PQSC._init_additional_nodes(self) (line 80)
-- PQSC.arm(self, *, deep, repetitions, holdoff) (line 84)
-- PQSC.run(self, *, deep) (line 113)
-- PQSC.arm_and_run(self, *, repetitions, holdoff) (line 128)
-- PQSC.stop(self, *, deep) (line 147)
-- PQSC.wait_done(self, *, timeout, sleep_time) (line 159)
-- PQSC.check_ref_clock(self, *, timeout, sleep_time) (line 175)
-- PQSC.check_zsync_connection(self, ports, *, timeout, sleep_time) (line 191)
-- PQSC.find_zsync_worker_port(self, device) (line 220)
+pqsc:
+  name: PQSC量子系统控制器
+  name_en: PQSC Programmable Quantum System Controller
+  manufacturer: Zurich Instruments
+  category:
+  - 量子实验控制器
+  tags:
+  - 实验执行&合成设备
+  - 低温与量子测量
+  - 量子比特脉冲控制与读出
+  - 脉冲激励与时序控制
+  - 量子实验控制器
+  description: 苏黎世仪器的PQSC是一种量子系统控制器，用于在量子测控实验中统一产生和分发触发信号，通过ZSync协调多台已连接仪器，并检查参考时钟锁定与端口连接状态。
+  description_en: The Zurich Instruments PQSC is a quantum system controller used
+    in quantum measurement and control setups to generate and distribute triggers,
+    coordinate multiple connected instruments over ZSync, and verify reference clock
+    lock and port connectivity.
+  class:
+    action_value_mappings:
+      auto-arm:
+        schema:
+          description: 预置PQSC以进行触发，配置执行引擎并清空寄存器，可选设置触发次数和保持时间。
+          description_en: Arm the PQSC for triggering by configuring the execution
+            engine and clearing registers, with optional trigger count and holdoff
+            settings.
+      auto-arm_and_run:
+        schema:
+          description: 预置PQSC并立即开始发送触发信号。
+          description_en: Arm the PQSC and immediately start sending trigger signals.
+      auto-check_ref_clock:
+        schema:
+          description: 检查参考时钟是否已成功锁定。
+          description_en: Check whether the reference clock has locked successfully.
+      auto-check_zsync_connection:
+        schema:
+          description: 检查指定ZSync端口上的连接是否已经建立。
+          description_en: Check whether the ZSync connection on the specified port
+            or ports has been established.
+      auto-find_zsync_worker_port:
+        schema:
+          description: 查找与指定设备相连的PQSC ZSync端口编号。
+          description_en: Find the PQSC ZSync port ID connected to a specified device.
+      auto-run:
+        schema:
+          description: 开始通过ZSync向所有已连接仪器发送触发信号。
+          description_en: Start sending trigger signals to all connected instruments
+            over ZSync.
+      auto-stop:
+        schema:
+          description: 停止触发信号的生成与输出。
+          description_en: Stop trigger generation and output.
+      auto-wait_done:
+        schema:
+          description: 等待触发生成和反馈处理完成。
+          description_en: Wait until trigger generation and feedback processing are
+            complete.
+auto_annotation_metadata:
+  registry_key: pqsc
+  annotation_workflow_version: v4
+  tag_hints:
+  - quantum control
+  - trigger generation
+  - ZSync synchronization
+  - multi-instrument coordination
+  - reference clock lock
+  - Zurich Instruments
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: PQSC负责统一触发和协调量子实验执行流程，直接参与实验运行。
+  - id: P-2003
+    name: 低温与量子测量
+    name_en: Cryogenic & Quantum Measurements
+    type: experimental_domain
+    rationale: 设备名称和功能都明确属于量子测控体系。
+  - id: P-3006
+    name: 量子比特脉冲控制与读出
+    name_en: Qubit Pulse Control & Readout
+    type: experimental_scene
+    rationale: PQSC通过统一触发与协调多仪器，服务于量子比特控制与读出实验。
+  - id: P-7008
+    name: 脉冲激励与时序控制
+    name_en: Pulse Excitation & Timing Control
+    type: experimental_scene
+    rationale: 其核心能力是产生、分发触发信号并设置触发计数与保持时间。
+  - id: P-3007
+    name: 量子实验控制器
+    name_en: Quantum Experiment Controller
+    type: device_template_tag
+    rationale: PQSC本质上是量子实验中的系统级控制器与同步枢纽。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

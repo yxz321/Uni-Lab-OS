@@ -1,24 +1,72 @@
-Device: raw2_disk
-Registry Key: raw2_disk
-Short Description: Raw2 Disk是一款后处理设备，主要功能包括关闭、写入数据、打开。
-
-Categories:
-- 后处理设备
-
-Related Tags (from tag 标签列表.csv):
-- [4314] 后处理设备 / Post-processing Equipment (experimental_step)
-
-Atom Actions (3):
-- auto-close -> close [UniLabJsonCommand] goal_params: socket
-- auto-open_file -> open_file [UniLabJsonCommand] goal_params: filename, socket
-- auto-write -> write [UniLabJsonCommand] goal_params: data
-
-Driver Functions (8):
-- Raw2Disk.__init__(self, context) (line 108)
-- Raw2Disk._run_filewriter_thr(self, sock_addr, context) (line 133)
-- Raw2Disk.open_file(self, socket, filename) (line 237)
-- Raw2Disk.close(self, socket) (line 258)
-- Raw2Disk.write(self, data) (line 276)
-- Raw2Disk.__del__(self) (line 292)
-- main_process() (line 307)
-- main() (line 398)
+raw2_disk:
+  name: 原始数据写盘组件
+  name_en: Raw-to-Disk Writer
+  manufacturer: ''
+  category:
+  - 实验扫描数据写入器
+  tags:
+  - 实验执行&合成设备
+  - 实验数据管理与记录
+  - 追加式实验记录与索引访问
+  - 实验扫描数据写入器
+  description: 非物理软件组件，用于在实验采集过程中异步将原始数据流写入磁盘文件，以尽量降低对 UDP 接收可靠性的影响。
+  description_en: A non-physical software component for asynchronously writing raw
+    data streams to disk files during experimental acquisition, helping minimize impact
+    on UDP reception reliability.
+  class:
+    action_value_mappings:
+      auto-open_file:
+        schema:
+          description: 创建并打开指定路径和文件名的原始数据文件，用于后续写入。
+          description_en: Create and open a raw data file at the specified path and
+            filename for subsequent writing.
+      auto-close:
+        schema:
+          description: 关闭当前正在写入的文件。
+          description_en: Close the file currently being written.
+      auto-write:
+        schema:
+          description: 将提供的缓冲区原始数据写入当前文件。
+          description_en: Write the provided raw buffer data to the current file.
+auto_annotation_metadata:
+  registry_key: raw2_disk
+  annotation_workflow_version: v4
+  tag_hints:
+  - raw data logging
+  - disk streaming
+  - asynchronous file writing
+  - UDP data acquisition
+  - experiment data capture
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件在实验采集进行中实时写盘，属于执行链路中的数据落盘支撑模块。
+  - id: P-9103
+    name: 实验数据管理与记录
+    name_en: Experimental Data Management & Logging
+    type: experimental_domain
+    rationale: 组件专门用于原始实验数据流的记录与保存。
+  - id: P-9104
+    name: 追加式实验记录与索引访问
+    name_en: Append-Only Experimental Logging & Indexed Access
+    type: experimental_scene
+    rationale: 其工作方式是对采集中的原始数据进行持续追加写入，符合实验日志记录场景。
+  - id: P-30003
+    name: 实验扫描数据写入器
+    name_en: Experimental Scan Data Writer
+    type: device_template_tag
+    rationale: 该组件本质上承担实验采集原始数据的异步写文件职责。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

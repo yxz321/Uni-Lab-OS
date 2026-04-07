@@ -1,62 +1,175 @@
-Device: r_py_lidar
-Registry Key: r_py_lidar
-Short Description: RPLiDAR Laser Range Scanner是由Slamtec生产的专业实验设备。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (24):
-- auto-add_checksum -> add_checksum [UniLabJsonCommand] goal_params: the_bytes
-- auto-calcAndAddPoints -> calcAndAddPoints [UniLabJsonCommand] goal_params: delta1, delta2, dist1, dist2, previousAngle, refAngle, txtOutput
-- auto-calcDelta -> calcDelta [UniLabJsonCommand] goal_params: deltaP1, deltaP2, deltaSign
-- auto-calcDist -> calcDist [UniLabJsonCommand] goal_params: distP1, distP2
-- auto-connect -> connect [UniLabJsonCommand] goal_params: none
-- auto-disconnect -> disconnect [UniLabJsonCommand] goal_params: none
-- auto-drawPoints -> drawPoints [UniLabJsonCommand] goal_params: none
-- auto-getControlInputs -> getControlInputs [UniLabJsonCommand] goal_params: stopper
-- auto-get_device_health -> get_device_health [UniLabJsonCommand] goal_params: none
-- auto-get_device_info -> get_device_info [UniLabJsonCommand] goal_params: none
-- auto-get_sample_rate -> get_sample_rate [UniLabJsonCommand] goal_params: none
-- auto-readCabin1or3 -> readCabin1or3 [UniLabJsonCommand] goal_params: data
-- auto-readCabin2or4 -> readCabin2or4 [UniLabJsonCommand] goal_params: data
-- auto-readCabin5 -> readCabin5 [UniLabJsonCommand] goal_params: data
-- auto-reset -> reset [UniLabJsonCommand] goal_params: none
-- auto-start_express_scan -> start_express_scan [UniLabJsonCommand] goal_params: none
-- auto-start_motor_14 -> start_motor_14 [UniLabJsonCommand] goal_params: none
-- auto-start_motor_34 -> start_motor_34 [UniLabJsonCommand] goal_params: none
-- auto-start_motor_half -> start_motor_half [UniLabJsonCommand] goal_params: none
-- auto-start_motor_max -> start_motor_max [UniLabJsonCommand] goal_params: none
-- auto-start_motor_slow -> start_motor_slow [UniLabJsonCommand] goal_params: none
-- auto-start_standard_scan -> start_standard_scan [UniLabJsonCommand] goal_params: none
-- auto-stop_motor -> stop_motor [UniLabJsonCommand] goal_params: none
-- auto-stop_scan -> stop_scan [UniLabJsonCommand] goal_params: none
-
-Driver Functions (25):
-- RPyLIDAR.__init__(self, port, baudrate, timeout, screenSize, drawRaysDefault, DEBUG) (line 118)
-- RPyLIDAR.connect(self) (line 167)
-- RPyLIDAR.disconnect(self) (line 195)
-- RPyLIDAR.add_checksum(self, the_bytes) (line 201)
-- RPyLIDAR.drawPoints(self) (line 222)
-- RPyLIDAR.getControlInputs(self, stopper) (line 350)
-- RPyLIDAR.get_device_info(self) (line 473)
-- RPyLIDAR.get_device_health(self) (line 506)
-- RPyLIDAR.get_sample_rate(self) (line 533)
-- RPyLIDAR.start_standard_scan(self) (line 568)
-- RPyLIDAR.calcAndAddPoints(self, dist1, dist2, delta1, delta2, previousAngle, refAngle, txtOutput) (line 670)
-- RPyLIDAR.readCabin1or3(self, data) (line 705)
-- RPyLIDAR.readCabin2or4(self, data) (line 714)
-- RPyLIDAR.readCabin5(self, data) (line 719)
-- RPyLIDAR.calcDist(self, distP1, distP2) (line 725)
-- RPyLIDAR.calcDelta(self, deltaP1, deltaP2, deltaSign) (line 729)
-- RPyLIDAR.start_express_scan(self) (line 734)
-- RPyLIDAR.start_motor_max(self) (line 1156)
-- RPyLIDAR.start_motor_34(self) (line 1167)
-- RPyLIDAR.start_motor_half(self) (line 1177)
-- RPyLIDAR.start_motor_14(self) (line 1187)
-- RPyLIDAR.start_motor_slow(self) (line 1197)
-- RPyLIDAR.stop_motor(self) (line 1207)
-- RPyLIDAR.stop_scan(self) (line 1216)
-- RPyLIDAR.reset(self) (line 1225)
+r_py_lidar:
+  name: RPLIDAR激光雷达
+  name_en: RPLIDAR LiDAR
+  manufacturer: ''
+  category:
+  - 二维激光雷达
+  tags:
+  - 表征设备
+  - 传感测量与环境感知
+  - 机器人与移动平台
+  - 移动机器人与自动驾驶实验
+  - 距离测量与接近感知
+  - 二维激光雷达
+  description: 一款通过串口连接的二维旋转式激光雷达，可控制电机转速并启动标准扫描或快速扫描，采集距离点数据并进行实时可视化，适用于环境感知、定位建图和障碍检测等实验。
+  description_en: A serial-connected 2D rotating LiDAR that can control motor speed
+    and run standard or express scans to collect distance points with real-time visualization,
+    suitable for experiments in environment sensing, localization and mapping, and
+    obstacle detection.
+  class:
+    action_value_mappings:
+      auto-connect:
+        schema:
+          description: 连接激光雷达串口并初始化显示环境。
+          description_en: Connect to the LiDAR serial port and initialize the display
+            environment.
+      auto-disconnect:
+        schema:
+          description: 断开激光雷达与计算机的连接。
+          description_en: Disconnect the LiDAR from the computer.
+      auto-add_checksum:
+        schema:
+          description: 为发送给设备的命令字节串计算并附加校验和。
+          description_en: Calculate and append a checksum to a command byte string
+            sent to the device.
+      auto-drawPoints:
+        schema:
+          description: 在可视化窗口中绘制最新扫描点、坐标轴和状态信息。
+          description_en: Draw the latest scan points, coordinate axes, and status
+            information in the visualization window.
+      auto-getControlInputs:
+        schema:
+          description: 读取并处理扫描显示界面的用户控制输入。
+          description_en: Read and process user control inputs for the scan display
+            interface.
+      auto-start_standard_scan:
+        schema:
+          description: 启动标准扫描并记录采集到的点数据。
+          description_en: Start a standard scan and record the collected point data.
+      auto-calcAndAddPoints:
+        schema:
+          description: 根据原始距离和角度增量计算点坐标并加入扫描结果。
+          description_en: Calculate point coordinates from raw distances and angular
+            increments and add them to the scan result.
+      auto-readCabin1or3:
+        schema:
+          description: 解析快速扫描数据中的cabin 1或3数据段。
+          description_en: Parse cabin 1 or 3 data segments from express scan data.
+      auto-readCabin2or4:
+        schema:
+          description: 解析快速扫描数据中的cabin 2或4数据段。
+          description_en: Parse cabin 2 or 4 data segments from express scan data.
+      auto-readCabin5:
+        schema:
+          description: 解析快速扫描数据中的cabin 5数据段。
+          description_en: Parse cabin 5 data segments from express scan data.
+      auto-calcDist:
+        schema:
+          description: 根据原始快速扫描参数计算距离值。
+          description_en: Calculate a distance value from raw express scan parameters.
+      auto-calcDelta:
+        schema:
+          description: 根据原始快速扫描参数计算角度增量。
+          description_en: Calculate an angular increment from raw express scan parameters.
+      auto-start_express_scan:
+        schema:
+          description: 启动快速扫描并解析采集到的数据。
+          description_en: Start an express scan and parse the acquired data.
+      auto-start_motor_max:
+        schema:
+          description: 将电机设置为最高转速。
+          description_en: Set the motor to its maximum rotation speed.
+      auto-start_motor_34:
+        schema:
+          description: 将电机设置为约75%转速。
+          description_en: Set the motor to about 75% rotation speed.
+      auto-start_motor_half:
+        schema:
+          description: 将电机设置为约50%转速。
+          description_en: Set the motor to about 50% rotation speed.
+      auto-start_motor_14:
+        schema:
+          description: 将电机设置为约25%转速。
+          description_en: Set the motor to about 25% rotation speed.
+      auto-start_motor_slow:
+        schema:
+          description: 将电机设置为最低可用转速。
+          description_en: Set the motor to the minimum usable rotation speed.
+      auto-stop_motor:
+        schema:
+          description: 停止电机转动。
+          description_en: Stop the motor rotation.
+      auto-stop_scan:
+        schema:
+          description: 停止扫描数据传输。
+          description_en: Stop scan data transmission.
+      auto-reset:
+        schema:
+          description: 重置设备。
+          description_en: Reset the device.
+      auto-get_device_health:
+        schema:
+          description: 获取设备健康状态。
+          description_en: get device health status
+      auto-get_device_info:
+        schema:
+          description: 获取设备信息。
+          description_en: get device information
+      auto-get_sample_rate:
+        schema:
+          description: 获取默认采样率。
+          description_en: get default sample rate
+auto_annotation_metadata:
+  registry_key: r_py_lidar
+  annotation_workflow_version: v4
+  tag_hints:
+  - 2D lidar
+  - serial communication
+  - rotating scan
+  - distance point cloud
+  - motor speed control
+  - environment mapping
+  - real-time scan visualization
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该雷达用于获取距离点数据和环境信息，属于测量与感知类设备。
+  - id: P-1108
+    name: 传感测量与环境感知
+    name_en: Sensing Measurement & Environmental Perception
+    type: experimental_domain
+    rationale: 设备直接用于环境感知、障碍检测和距离测量。
+  - id: P-0020
+    name: 机器人与移动平台
+    name_en: Robotics & Mobile Platforms
+    type: experimental_domain
+    rationale: 描述中明确提到定位建图和障碍检测，常见于移动机器人实验。
+  - id: P-0021
+    name: 移动机器人与自动驾驶实验
+    name_en: Mobile Robotics & Autonomous Vehicle Experiments
+    type: experimental_scene
+    rationale: 环境感知、定位建图与障碍检测是移动机器人和自动驾驶实验中的典型应用。
+  - id: P-1109
+    name: 距离测量与接近感知
+    name_en: Distance Measurement & Proximity Sensing
+    type: experimental_scene
+    rationale: 该设备通过旋转扫描获取距离点，直接对应距离与接近感知场景。
+  proposed_new_tags:
+  - id: P-910001
+    name: 二维激光雷达
+    name_en: 2D LiDAR
+    type: device_template_tag
+    rationale: 该设备是通过旋转扫描获取平面距离点的串口激光雷达，现有模板中缺少2D LiDAR这一更准确类别。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

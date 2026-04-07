@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: pwm_output_device\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: gpiozero/output_devices.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.output.generic_output_device:PWMOutputDevice\n\nClass: OutputDevice \n  Bases: ['SourceMixin', 'GPIODevice']\n  Docstring: Represents a generic GPIO output device.\n\nThis class extends :class:`GPIODevice` to add facilities common to GPIO\noutput devices: an :meth:`on` method to switch the device on, a\ncorresponding :meth:`off` method, and a :meth:`toggle` method.\n\n:type pin: int or str\n:param pin:\n    The GPIO pin that the device is connected to. See :ref:`pin-numbering`\n    for valid pin numbers. If this is :data:`None` a :exc:`GPIODeviceError`\n    will be raised.\n\n:param bool active_high:\n    If :data:`True` (the default), the :meth:`on` method will set the GPIO\n    to HIGH. If :data:`False`, the :meth:`on` method will set the GPIO to\n    LOW (the :meth:`off` method always does the opposite).\n\n:type initial_value: bool or None\n:param initial_value:\n    If :data:`False` (the default), the device will be off initially.  If\n    :data:`None`, the device will be left in whatever state the pin is\n    found in when configured for output (warning: this can be on).  If\n    :data:`True`, the device will be switched on initially.\n\n:type pin_factory: Factory or None\n:param pin_factory:\n    See :doc:`api_pins` for more information (this is an advanced feature\n    which most users can ignore).\n\nClass: DigitalOutputDevice \n  Bases: ['OutputDevice']\n  Docstring: Represents a generic output device with typical on/off behaviour.\n\nThis class extends :class:`OutputDevice` with a :meth:`blink` method which\nuses an optional background thread to handle toggling the device state\nwithout further interaction.\n\n:type pin: int or str\n:param pin:\n    The GPIO pin that the device is connected to. See :ref:`pin-numbering`\n    for valid pin numbers. If this is :data:`None` a :exc:`GPIODeviceError`\n    will be raised.\n\n:param bool active_high:\n    If :data:`True` (the default), the :meth:`on` method will set the GPIO\n    to HIGH. If :data:`False`, the :meth:`on` method will set the GPIO to\n    LOW (the :meth:`off` method always does the opposite).\n\n:type initial_value: bool or None\n:param initial_value:\n    If :data:`False` (the default), the device will be off initially.  If\n    :data:`None`, the device will be left in whatever state the pin is\n    found in when configured for output (warning: this can be on).  If\n    :data:`True`, the device will be switched on initially.\n\n:type pin_factory: Factory or None\n:param pin_factory:\n    See :doc:`api_pins` for more information (this is an advanced feature\n    which most users can ignore).\n\nClass: LED \n  Bases: ['DigitalOutputDevice']\n  Docstring: Extends :class:`DigitalOutputDevice` and represents a light emitting diode\n(LED).\n\nConnect the cathode (short leg, flat side) of the LED to a ground pin;\nconnect the anode (longer leg) to a limiting resistor; connect the other\nside of the limiting resistor to a GPIO pin (the limiting resistor can be\nplaced either side of the LED).\n\nThe following example will light the LED::\n\n    from gpiozero import LED\n\n    led = LED(17)\n    led.on()\n\n:type pin: int or str\n:param pin:\n    The GPIO pin which the LED is connected to. See :ref:`pin-numbering`\n    for valid pin numbers. If this is :data:`None` a :exc:`GPIODeviceError`\n    will be raised.\n\n:param bool active_high:\n    If :data:`True` (the default), the LED will operate normally with the\n    circuit described above. If :data:`False` you should wire the cathode\n    to the GPIO pin, and the anode to a 3V3 pin (via a limiting resistor).\n\n:type initial_value: bool or None\n:param initial_value:\n    If :data:`False` (the default), the LED will be off initially.  If\n    :data:`None`, the LED will be left in whatever state the pin is found\n    in when configured for output (warning: this can be on).  If\n    :data:`True`, the LED will be switched on initially.\n\n:type pin_factory: Factory or None\n:param pin_factory:\n    See :doc:`api_pins` for more information (this is an advanced feature\n    which most users can ignore).\n\nClass: Buzzer \n  Bases: ['DigitalOutputDevice']\n  Docstring: Extends :class:`DigitalOutputDevice` and represents a digital buzzer\ncomponent.\n\n.. note::\n\n    This interface is only capable of simple on/off commands, and is not\n    capable of playing a variety of tones (see :class:`TonalBuzzer`).\n\nConnect the cathode (negative pin) of the buzzer to a ground pin; connect\nthe other side to any GPIO pin.\n\nThe following example will sound the buzzer::\n\n    from gpiozero import Buzzer\n\n    bz = Buzzer(3)\n    bz.on()\n\n:type pin: int or str\n:param pin:\n    The GPIO pin which the buzzer is connected to. See :ref:`pin-numbering`\n    for valid pin numbers. If this is :data:`None` a :exc:`GPIODeviceError`\n    will be raised.\n\n:param bool active_high:\n    If :data:`True` (the default), the buzzer will operate normally with\n    the circuit described above. If :data:`False` you should wire the\n    cathode to the GPIO pin, and the anode to a 3V3 pin.\n\n:type initial_value: bool or None\n:param initial_value:\n    If :data:`False` (the default), the buzzer will be silent initially. If\n    :data:`None`, the buzzer will be left in whatever state the pin is\n    found in when configured for output (warning: this can be on). If\n    :data:`True`, the buzzer will be switched on initially.\n\n:type pin_factory: Factory or None\n:param pin_factory:\n    See :doc:`api_pins` for more information (this is an advanced feature\n    which most users can ignore).\n\nClass: PWMOutputDevice (focal)\n  Bases: ['OutputDevice']\n  Docstring: Generic output device configured for pulse-width modulation (PWM).\n\n:type pin: int or str\n:param pin:\n    The GPIO pin that the device is connected to. See :ref:`pin-numbering`\n    for valid pin numbers. If this is :data:`None` a :exc:`GPIODeviceError`\n    will be raised.\n\n:param bool active_high:\n    If :data:`True` (the default), the :meth:`on` method will set the GPIO\n    to HIGH. If :data:`False`, the :meth:`on` method will set the GPIO to\n    LOW (the :meth:`off` method always does the opposite).\n\n:param float initial_value:\n    If 0 (the default), the device's duty cycle will be 0 initially.\n    Other values between 0 and 1 can be specified as an initial duty cycle.\n    Note that :data:`None` cannot be specified (unlike the parent class) as\n    there is no way to tell PWM not to alter the state of the pin.\n\n:param int frequency:\n    The frequency (in Hz) of pulses emitted to drive the device. Defaults\n    to 100Hz.\n\n:type pin_factory: Factory or None\n:param pin_factory:\n    See :doc:`api_pins` for more information (this is an advanced feature\n    which most users can ignore).\n\nClass: TonalBuzzer \n  Bases: ['SourceMixin', 'CompositeDevice']\n  Docstring: Extends :class:`CompositeDevice` and represents a tonal buzzer.\n\n:type pin: int or str\n:param pin:\n    The GPIO pin which the buzzer is connected to. See :ref:`pin-numbering`\n    for valid pin numbers. If this is :data:`None` a :exc:`GPIODeviceError`\n    will be raised.\n\n:param float initial_value:\n    If :data:`None` (the default), the buzzer will be off initially. Values\n    between -1 and 1 can be specified as an initial value for the buzzer.\n\n:type mid_tone: int or str\n:param mid_tone:\n    The tone which is represented the device's middle value (0). The\n    default is \"A4\" (MIDI note 69).\n\n:param int octaves:\n    The number of octaves to allow away from the base note. The default is\n    1, meaning a value of -1 goes one octave below the base note, and one\n    above, i.e. from A3 to A5 with the default base note of A4.\n\n:type pin_factory: Factory or None\n:param pin_factory:\n    See :doc:`api_pins` for more information (this is an advanced feature\n    which most users can ignore).\n\n.. note::\n\n    Note that this class does not currently work with\n    :class:`~gpiozero.pins.pigpio.PiGPIOFactory`.\n\nClass: PWMLED \n  Bases: ['PWMOutputDevice']\n  Docstring: Extends :class:`PWMOutputDevice` and represents a light emitting diode\n(LED) with variable brightness.\n\nA typical configuration of such a device is to connect a GPIO pin to the\nanode (long leg) of the LED, and the cathode (short leg) to ground, with\nan optional resistor to prevent the LED from burning out.\n\n:type pin: int or str\n:param pin:\n    The GPIO pin which the LED is connected to. See :ref:`pin-numbering`\n    for valid pin numbers. If this is :data:`None` a :exc:`GPIODeviceError`\n    will be raised.\n\n:param bool active_high:\n    If :data:`True` (the default), the :meth:`on` method will set the GPIO\n    to HIGH. If :data:`False`, the :meth:`on` method will set the GPIO to\n    LOW (the :meth:`off` method always does the opposite).\n\n:param float initial_value:\n    If ``0`` (the default), the LED will be off initially. Other values\n    between 0 and 1 can be specified as an initial brightness for the LED.\n    Note that :data:`None` cannot be specified (unlike the parent class) as\n    there is no way to tell PWM not to alter the state of the pin.\n\n:param int frequency:\n    The frequency (in Hz) of pulses emitted to drive the LED. Defaults\n    to 100Hz.\n\n:type pin_factory: Factory or None\n:param pin_factory:\n    See :doc:`api_pins` for more information (this is an advanced feature\n    which most users can ignore).\n\nClass: RGBLED \n  Bases: ['SourceMixin', 'Device']\n  Docstring: Extends :class:`Device` and represents a full color LED component (composed\nof red, green, and blue LEDs).\n\nConnect the common cathode (longest leg) to a ground pin; connect each of\nthe other legs (representing the red, green, and blue anodes) to any GPIO\npins.  You should use three limiting resistors (one per anode).\n\nThe following code will make the LED yellow::\n\n    from gpiozero import RGBLED\n\n    led = RGBLED(2, 3, 4)\n    led.color = (1, 1, 0)\n\nThe `colorzero`_ library is also supported::\n\n    from gpiozero import RGBLED\n    from colorzero import Color\n\n    led = RGBLED(2, 3, 4)\n    led.color = Color('yellow')\n\n:type red: int or str\n:param red:\n    The GPIO pin that controls the red component of the RGB LED. See\n    :ref:`pin-numbering` for valid pin numbers. If this is :data:`None` a\n    :exc:`GPIODeviceError` will be raised.\n\n:type green: int or str\n:param green:\n    The GPIO pin that controls the green component of the RGB LED.\n\n:type blue: int or str\n:param blue:\n    The GPIO pin that controls the blue component of the RGB LED.\n\n:param bool active_high:\n    Set to :data:`True` (the default) for common cathode RGB LEDs. If you\n    are using a common anode RGB LED, set this to :data:`False`.\n\n:type initial_value: ~colorzero.Color or tuple\n:param initial_value:\n    The initial color for the RGB LED. Defaults to black ``(0, 0, 0)``.\n\n:param bool pwm:\n    If :data:`True` (the default), construct :class:`PWMLED` instances for\n    each component of the RGBLED. If :data:`False`, construct regular\n    :class:`LED` instances, which prevents smooth color graduations.\n\n:type pin_factory: Factory or None\n:param pin_factory:\n    See :doc:`api_pins` for more information (this is an advanced feature\n    which most users can ignore).\n\n.. _colorzero: https://colorzero.readthedocs.io/\n\nClass: Motor \n  Bases: ['SourceMixin', 'CompositeDevice']\n  Docstring: Extends :class:`CompositeDevice` and represents a generic motor\nconnected to a bi-directional motor driver circuit (i.e. an `H-bridge`_).\n\nAttach an `H-bridge`_ motor controller to your Pi; connect a power source\n(e.g. a battery pack or the 5V pin) to the controller; connect the outputs\nof the controller board to the two terminals of the motor; connect the\ninputs of the controller board to two GPIO pins.\n\n.. _H-bridge: https://en.wikipedia.org/wiki/H_bridge\n\nThe following code will make the motor turn \"forwards\"::\n\n    from gpiozero import Motor\n\n    motor = Motor(17, 18)\n    motor.forward()\n\n:type forward: int or str\n:param forward:\n    The GPIO pin that the forward input of the motor driver chip is\n    connected to. See :ref:`pin-numbering` for valid pin numbers. If this\n    is :data:`None` a :exc:`GPIODeviceError` will be raised.\n\n:type backward: int or str\n:param backward:\n    The GPIO pin that the backward input of the motor driver chip is\n    connected to. See :ref:`pin-numbering` for valid pin numbers. If this\n    is :data:`None` a :exc:`GPIODeviceError` will be raised.\n\n:type enable: int or str or None\n:param enable:\n    The GPIO pin that enables the motor. Required for *some* motor\n    controller boards. See :ref:`pin-numbering` for valid pin numbers.\n\n:param bool pwm:\n    If :data:`True` (the default), construct :class:`PWMOutputDevice`\n    instances for the motor controller pins, allowing both direction and\n    variable speed control. If :data:`False`, construct\n    :class:`DigitalOutputDevice` instances, allowing only direction\n    control.\n\n:type pin_factory: Factory or None\n:param pin_factory:\n    See :doc:`api_pins` for more information (this is an advanced feature\n    which most users can ignore).\n\nClass: PhaseEnableMotor \n  Bases: ['SourceMixin', 'CompositeDevice']\n  Docstring: Extends :class:`CompositeDevice` and represents a generic motor connected\nto a Phase/Enable motor driver circuit; the phase of the driver controls\nwhether the motor turns forwards or backwards, while enable controls the\nspeed with PWM.\n\nThe following code will make the motor turn \"forwards\"::\n\n    from gpiozero import PhaseEnableMotor\n    motor = PhaseEnableMotor(12, 5)\n    motor.forward()\n\n:type phase: int or str\n:param phase:\n    The GPIO pin that the phase (direction) input of the motor driver chip\n    is connected to. See :ref:`pin-numbering` for valid pin numbers. If\n    this is :data:`None` a :exc:`GPIODeviceError` will be raised.\n\n:type enable: int or str\n:param enable:\n    The GPIO pin that the enable (speed) input of the motor driver chip\n    is connected to. See :ref:`pin-numbering` for valid pin numbers. If\n    this is :data:`None` a :exc:`GPIODeviceError` will be raised.\n\n:param bool pwm:\n    If :data:`True` (the default), construct :class:`PWMOutputDevice`\n    instances for the motor controller pins, allowing both direction and\n    variable speed control. If :data:`False`, construct\n    :class:`DigitalOutputDevice` instances, allowing only direction\n    control.\n\n:type pin_factory: Factory or None\n:param pin_factory:\n    See :doc:`api_pins` for more information (this is an advanced feature\n    which most users can ignore).\n\nClass: Servo \n  Bases: ['SourceMixin', 'CompositeDevice']\n  Docstring: Extends :class:`CompositeDevice` and represents a PWM-controlled servo\nmotor connected to a GPIO pin.\n\nConnect a power source (e.g. a battery pack or the 5V pin) to the power\ncable of the servo (this is typically colored red); connect the ground\ncable of the servo (typically colored black or brown) to the negative of\nyour battery pack, or a GND pin; connect the final cable (typically colored\nwhite or orange) to the GPIO pin you wish to use for controlling the servo.\n\nThe following code will make the servo move between its minimum, maximum,\nand mid-point positions with a pause between each::\n\n    from gpiozero import Servo\n    from time import sleep\n\n    servo = Servo(17)\n\n    while True:\n        servo.min()\n        sleep(1)\n        servo.mid()\n        sleep(1)\n        servo.max()\n        sleep(1)\n\nYou can also use the :attr:`value` property to move the servo to a\nparticular position, on a scale from -1 (min) to 1 (max) where 0 is the\nmid-point::\n\n    from gpiozero import Servo\n\n    servo = Servo(17)\n\n    servo.value = 0.5\n\n.. note::\n\n    To reduce servo jitter, use the pigpio pin driver rather than the default\n    RPi.GPIO driver (pigpio uses DMA sampling for much more precise edge\n    timing). See :ref:`changing-pin-factory` for further information.\n\n:type pin: int or str\n:param pin:\n    The GPIO pin that the servo is connected to. See :ref:`pin-numbering`\n    for valid pin numbers. If this is :data:`None` a :exc:`GPIODeviceError`\n    will be raised.\n\n:param float initial_value:\n    If ``0`` (the default), the device's mid-point will be set initially.\n    Other values between -1 and +1 can be specified as an initial position.\n    :data:`None` means to start the servo un-controlled (see\n    :attr:`value`).\n\n:param float min_pulse_width:\n    The pulse width corresponding to the servo's minimum position. This\n    defaults to 1ms.\n\n:param float max_pulse_width:\n    The pulse width corresponding to the servo's maximum position. This\n    defaults to 2ms.\n\n:param float frame_width:\n    The length of time between servo control pulses measured in seconds.\n    This defaults to 20ms which is a common value for servos.\n\n:type pin_factory: Factory or None\n:param pin_factory:\n    See :doc:`api_pins` for more information (this is an advanced feature\n    which most users can ignore).\n\nClass: AngularServo \n  Bases: ['Servo']\n  Docstring: Extends :class:`Servo` and represents a rotational PWM-controlled servo\nmotor which can be set to particular angles (assuming valid minimum and\nmaximum angles are provided to the constructor).\n\nConnect a power source (e.g. a battery pack or the 5V pin) to the power\ncable of the servo (this is typically colored red); connect the ground\ncable of the servo (typically colored black or brown) to the negative of\nyour battery pack, or a GND pin; connect the final cable (typically colored\nwhite or orange) to the GPIO pin you wish to use for controlling the servo.\n\nNext, calibrate the angles that the servo can rotate to. In an interactive\nPython session, construct a :class:`Servo` instance. The servo should move\nto its mid-point by default. Set the servo to its minimum value, and\nmeasure the angle from the mid-point. Set the servo to its maximum value,\nand again measure the angle::\n\n    >>> from gpiozero import Servo\n    >>> s = Servo(17)\n    >>> s.min() # measure the angle\n    >>> s.max() # measure the angle\n\nYou should now be able to construct an :class:`AngularServo` instance\nwith the correct bounds::\n\n    >>> from gpiozero import AngularServo\n    >>> s = AngularServo(17, min_angle=-42, max_angle=44)\n    >>> s.angle = 0.0\n    >>> s.angle\n    0.0\n    >>> s.angle = 15\n    >>> s.angle\n    15.0\n\n.. note::\n\n    You can set *min_angle* greater than *max_angle* if you wish to reverse\n    the sense of the angles (e.g. ``min_angle=45, max_angle=-45``). This\n    can be useful with servos that rotate in the opposite direction to your\n    expectations of minimum and maximum.\n\n:type pin: int or str\n:param pin:\n    The GPIO pin that the servo is connected to. See :ref:`pin-numbering`\n    for valid pin numbers. If this is :data:`None` a :exc:`GPIODeviceError`\n    will be raised.\n\n:param float initial_angle:\n    Sets the servo's initial angle to the specified value. The default is\n    0. The value specified must be between *min_angle* and *max_angle*\n    inclusive. :data:`None` means to start the servo un-controlled (see\n    :attr:`value`).\n\n:param float min_angle:\n    Sets the minimum angle that the servo can rotate to. This defaults to\n    -90, but should be set to whatever you measure from your servo during\n    calibration.\n\n:param float max_angle:\n    Sets the maximum angle that the servo can rotate to. This defaults to\n    90, but should be set to whatever you measure from your servo during\n    calibration.\n\n:param float min_pulse_width:\n    The pulse width corresponding to the servo's minimum position. This\n    defaults to 1ms.\n\n:param float max_pulse_width:\n    The pulse width corresponding to the servo's maximum position. This\n    defaults to 2ms.\n\n:param float frame_width:\n    The length of time between servo control pulses measured in seconds.\n    This defaults to 20ms which is a common value for servos.\n\n:type pin_factory: Factory or None\n:param pin_factory:\n    See :doc:`api_pins` for more information (this is an advanced feature\n    which most users can ignore).\n\nFocal class methods:\n  [command] close(self)\n    comment: If the pin's already None, ignore the exception\n  [status_getter] value(self)\n    comment: The duty cycle of the PWM device. 0.0 is off, 1.0 is fully on. Values\n        in between may be specified for varying levels of power in the device.\n  [status_setter] value(self, value)\n  [command] on(self)\n  [command] off(self)\n  [command] toggle(self)\n    comment: Toggle the state of the device. If the device is currently off\n        (:attr:`value` is 0.0), this changes it to \"fully\" on (:attr:`value` is\n        1.0).  If the device has a duty cycle (:attr:`val...\n  [status_getter] is_active(self)\n    comment: Returns :data:`True` if the device is currently active (:attr:`value`\n        is non-zero) and :data:`False` otherwise.\n  [status_getter] frequency(self)\n    comment: The frequency of the pulses used with the PWM device, in Hz. The\n        default is 100Hz.\n  [status_setter] frequency(self, value)\n  [command] blink(self, on_time=1, off_time=1, fade_in_time=0, fade_out_time=0, n=None, background=True)\n    comment: Make the device turn on and off repeatedly.\n\n        :param float on_time:\n            Number of seconds on. Defaults to 1 second.\n\n        :param float off_time:\n            Number of seconds off. De...\n  [command] pulse(self, fade_in_time=1, fade_out_time=1, n=None, background=True)\n    comment: Make the device fade in and out repeatedly.\n\n        :param float fade_in_time:\n            Number of seconds to spend fading in. Defaults to 1.\n\n        :param float fade_out_time:\n            Number...\n\nRegistry actions:\n  auto-blink (from blink())\n  auto-close (from close())\n  auto-frequency (from frequency())\n  auto-off (from off())\n  auto-on (from on())\n  auto-pulse (from pulse())\n  auto-toggle (from toggle())\n  auto-value (from value())\n  auto-is_active (from is_active())\n  auto-active_high (from active_high())\n  auto-play (from play())\n  auto-tone (from tone())\n  auto-octaves (from octaves())\n  auto-min_tone (from min_tone())\n  auto-mid_tone (from mid_tone())\n  auto-max_tone (from max_tone())\n  auto-closed (from closed())\n  auto-color (from color())\n  auto-red (from red())\n  auto-green (from green())\n  auto-blue (from blue())\n  auto-forward (from forward())\n  auto-backward (from backward())\n  auto-reverse (from reverse())\n  auto-frame_width (from frame_width())\n  auto-min_pulse_width (from min_pulse_width())\n  auto-max_pulse_width (from max_pulse_width())\n  auto-pulse_width (from pulse_width())\n  auto-min (from min())\n  auto-mid (from mid())\n  auto-max (from max())\n  auto-detach (from detach())\n  auto-min_angle (from min_angle())\n  auto-max_angle (from max_angle())\n  auto-angle (from angle())\n\nRequired output action ids:\n  auto-blink\n  auto-close\n  auto-frequency\n  auto-off\n  auto-on\n  auto-pulse\n  auto-toggle\n  auto-value\n  auto-is_active\n  auto-active_high\n  auto-play\n  auto-tone\n  auto-octaves\n  auto-min_tone\n  auto-mid_tone\n  auto-max_tone\n  auto-closed\n  auto-color\n  auto-red\n  auto-green\n  auto-blue\n  auto-forward\n  auto-backward\n  auto-reverse\n  auto-frame_width\n  auto-min_pulse_width\n  auto-max_pulse_width\n  auto-pulse_width\n  auto-min\n  auto-mid\n  auto-max\n  auto-detach\n  auto-min_angle\n  auto-max_angle\n  auto-angle"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0ba769f90ad0008c0069d54e562108819489d45c974ef95167",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1799,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 11679,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0ba769f90ad0008c0069d54e57d1008194bd3e90f5ec813a66",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0ba769f90ad0008c0069d54e7cd47c81948d3c57aa38fa528c",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"PWM GPIO输出设备\",\n  \"name_en\": \"PWM GPIO Output Device\",\n  \"manufacturer\": \"\",\n  \"description\": \"一种通过GPIO引脚输出脉宽调制信号的通用硬件输出设备，可调节占空比与频率。在实验中常用于驱动LED亮度、蜂鸣器输出或经适当驱动电路控制电机等简单致动负载。\",\n  \"description_en\": \"A generic hardware output device that emits pulse-width modulated signals through a GPIO pin, with adjustable duty cycle and frequency. In laboratory setups it is commonly used to drive simple actuators such as LED brightness, buzzer output, or motor power through suitable interface circuitry.\",\n  \"tag_hints\": [\n    \"GPIO output\",\n    \"PWM control\",\n    \"duty cycle control\",\n    \"Raspberry Pi GPIO\",\n    \"LED dimming\",\n    \"motor speed control\",\n    \"simple actuator driving\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-blink\",\n      \"description\": \"让输出按设定的开关时间与淡入淡出参数重复闪烁。\",\n      \"description_en\": \"make the output blink repeatedly with configurable on/off timing and fade parameters\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭设备并释放GPIO资源。\",\n      \"description_en\": \"close the device and release GPIO resources\"\n    },\n    {\n      \"action_name\": \"auto-frequency\",\n      \"description\": \"获取/设置PWM脉冲频率。\",\n      \"description_en\": \"get/set PWM pulse frequency\"\n    },\n    {\n      \"action_name\": \"auto-off\",\n      \"description\": \"关闭输出，将占空比设为0。\",\n      \"description_en\": \"turn the output off by setting duty cycle to 0\"\n    },\n    {\n      \"action_name\": \"auto-on\",\n      \"description\": \"开启输出，将占空比设为100%。\",\n      \"description_en\": \"turn the output fully on by setting duty cycle to 100%\"\n    },\n    {\n      \"action_name\": \"auto-pulse\",\n      \"description\": \"让输出持续进行淡入淡出的脉冲变化。\",\n      \"description_en\": \"make the output pulse repeatedly with fade in and fade out\"\n    },\n    {\n      \"action_name\": \"auto-toggle\",\n      \"description\": \"切换输出状态。\",\n      \"description_en\": \"toggle the output state\"\n    },\n    {\n      \"action_name\": \"auto-value\",\n      \"description\": \"获取/设置PWM占空比。\",\n      \"description_en\": \"get/set PWM duty cycle\"\n    },\n    {\n      \"action_name\": \"auto-is_active\",\n      \"description\": \"获取设备是否处于活动状态。\",\n      \"description_en\": \"get whether the device is active\"\n    },\n    {\n      \"action_name\": \"auto-active_high\",\n      \"description\": \"获取/设置高电平有效输出极性。\",\n      \"description_en\": \"get/set active-high output polarity\"\n    },\n    {\n      \"action_name\": \"auto-closed\",\n      \"description\": \"获取设备是否已关闭。\",\n      \"description_en\": \"get whether the device is closed\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 6544,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2731,
+      "output_tokens_details": {
+        "reasoning_tokens": 2038
+      },
+      "total_tokens": 9275
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 6544,
+      "output_token_count": 2731,
+      "predict_time": 50.129536358
+    }
+  },
+  "output_text": "{\n  \"name\": \"PWM GPIO输出设备\",\n  \"name_en\": \"PWM GPIO Output Device\",\n  \"manufacturer\": \"\",\n  \"description\": \"一种通过GPIO引脚输出脉宽调制信号的通用硬件输出设备，可调节占空比与频率。在实验中常用于驱动LED亮度、蜂鸣器输出或经适当驱动电路控制电机等简单致动负载。\",\n  \"description_en\": \"A generic hardware output device that emits pulse-width modulated signals through a GPIO pin, with adjustable duty cycle and frequency. In laboratory setups it is commonly used to drive simple actuators such as LED brightness, buzzer output, or motor power through suitable interface circuitry.\",\n  \"tag_hints\": [\n    \"GPIO output\",\n    \"PWM control\",\n    \"duty cycle control\",\n    \"Raspberry Pi GPIO\",\n    \"LED dimming\",\n    \"motor speed control\",\n    \"simple actuator driving\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-blink\",\n      \"description\": \"让输出按设定的开关时间与淡入淡出参数重复闪烁。\",\n      \"description_en\": \"make the output blink repeatedly with configurable on/off timing and fade parameters\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭设备并释放GPIO资源。\",\n      \"description_en\": \"close the device and release GPIO resources\"\n    },\n    {\n      \"action_name\": \"auto-frequency\",\n      \"description\": \"获取/设置PWM脉冲频率。\",\n      \"description_en\": \"get/set PWM pulse frequency\"\n    },\n    {\n      \"action_name\": \"auto-off\",\n      \"description\": \"关闭输出，将占空比设为0。\",\n      \"description_en\": \"turn the output off by setting duty cycle to 0\"\n    },\n    {\n      \"action_name\": \"auto-on\",\n      \"description\": \"开启输出，将占空比设为100%。\",\n      \"description_en\": \"turn the output fully on by setting duty cycle to 100%\"\n    },\n    {\n      \"action_name\": \"auto-pulse\",\n      \"description\": \"让输出持续进行淡入淡出的脉冲变化。\",\n      \"description_en\": \"make the output pulse repeatedly with fade in and fade out\"\n    },\n    {\n      \"action_name\": \"auto-toggle\",\n      \"description\": \"切换输出状态。\",\n      \"description_en\": \"toggle the output state\"\n    },\n    {\n      \"action_name\": \"auto-value\",\n      \"description\": \"获取/设置PWM占空比。\",\n      \"description_en\": \"get/set PWM duty cycle\"\n    },\n    {\n      \"action_name\": \"auto-is_active\",\n      \"description\": \"获取设备是否处于活动状态。\",\n      \"description_en\": \"get whether the device is active\"\n    },\n    {\n      \"action_name\": \"auto-active_high\",\n      \"description\": \"获取/设置高电平有效输出极性。\",\n      \"description_en\": \"get/set active-high output polarity\"\n    },\n    {\n      \"action_name\": \"auto-closed\",\n      \"description\": \"获取设备是否已关闭。\",\n      \"description_en\": \"get whether the device is closed\"\n    }\n  ]\n}"
+}

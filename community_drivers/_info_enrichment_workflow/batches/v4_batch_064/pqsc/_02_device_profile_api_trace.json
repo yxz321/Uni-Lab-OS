@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: pqsc\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/zhinst/qcodes/driver/devices/pqsc.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.quantum_instrumentation_controller.pqsc_controller:PQSC\n\nClass: PQSC (focal)\n  Bases: ['ZIBaseInstrument']\n  Docstring: QCoDeS driver for the Zurich Instruments PQSC.\n\nFocal class methods:\n  [command] arm(self, deep=True, repetitions=None, holdoff=None)\n    comment: Prepare PQSC for triggering the instruments.\n\n        This method configures the execution engine of the PQSC and\n        clears the register bank. Optionally, the *number of triggers*\n        and *ho...\n  [command] run(self, deep=True)\n    comment: Start sending out triggers.\n\n        This method activates the trigger generation to trigger all\n        connected instruments over ZSync ports.\n\n        Args:\n            deep: A flag that specifies ...\n  [command] arm_and_run(self, repetitions=None, holdoff=None)\n    comment: Arm the PQSC and start sending out triggers.\n\n        Simply combines the methods arm and run. A synchronization\n        is performed between the device and the data server after\n        arming and ru...\n  [command] stop(self, deep=True)\n    comment: Stop the trigger generation.\n\n        Args:\n            deep: A flag that specifies if a synchronization\n                should be performed between the device and the data\n                server afte...\n  [command] wait_done(self, timeout=10, sleep_time=0.005)\n    comment: Wait until trigger generation and feedback processing is done.\n\n        Args:\n            timeout: The maximum waiting time in seconds for the\n                PQSC (default: 10).\n            sleep_tim...\n  [command] check_ref_clock(self, timeout=30, sleep_time=1)\n    comment: Check if reference clock is locked successfully.\n\n        Args:\n            timeout: Maximum time in seconds the program waits\n                (default: 30).\n            sleep_time: Time in seconds to...\n  [command] check_zsync_connection(self, ports=0, timeout=30, sleep_time=1)\n    comment: Check if the ZSync connection on the given port(s) is established.\n\n        This function checks the current status of the instrument connected to\n        the given ports.\n\n        Args:\n            p...\n  [command] find_zsync_worker_port(self, device)\n    comment: Find the ID of the PQSC ZSync port connected to a given device.\n\n        Args:\n            pqsc: PQSC device over whose ports the research shall be done.\n            device: device for which the conne...\n\nRegistry actions:\n  auto-arm (from arm())\n  auto-arm_and_run (from arm_and_run())\n  auto-check_ref_clock (from check_ref_clock())\n  auto-check_zsync_connection (from check_zsync_connection())\n  auto-find_zsync_worker_port (from find_zsync_worker_port())\n  auto-run (from run())\n  auto-stop (from stop())\n  auto-wait_done (from wait_done())\n\nRequired output action ids:\n  auto-arm\n  auto-arm_and_run\n  auto-check_ref_clock\n  auto-check_zsync_connection\n  auto-find_zsync_worker_port\n  auto-run\n  auto-stop\n  auto-wait_done"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0b9a76fc4399b4920069d54bfbdcd881949b5efb6df6a323f4",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4120,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4184,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0b9a76fc4399b4920069d54bfc6bb88194b3c9230722db7696",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0b9a76fc4399b4920069d54c06d21c8194b17b5d59b839c893",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"PQSC量子系统控制器\",\n  \"name_en\": \"PQSC Programmable Quantum System Controller\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"苏黎世仪器的PQSC是一种量子系统控制器，用于在量子测控实验中统一产生和分发触发信号，通过ZSync协调多台已连接仪器，并检查参考时钟锁定与端口连接状态。\",\n  \"description_en\": \"The Zurich Instruments PQSC is a quantum system controller used in quantum measurement and control setups to generate and distribute triggers, coordinate multiple connected instruments over ZSync, and verify reference clock lock and port connectivity.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-arm\",\n      \"description\": \"预置PQSC以进行触发，配置执行引擎并清空寄存器，可选设置触发次数和保持时间。\",\n      \"description_en\": \"Arm the PQSC for triggering by configuring the execution engine and clearing registers, with optional trigger count and holdoff settings.\"\n    },\n    {\n      \"action_name\": \"auto-arm_and_run\",\n      \"description\": \"预置PQSC并立即开始发送触发信号。\",\n      \"description_en\": \"Arm the PQSC and immediately start sending trigger signals.\"\n    },\n    {\n      \"action_name\": \"auto-check_ref_clock\",\n      \"description\": \"检查参考时钟是否已成功锁定。\",\n      \"description_en\": \"Check whether the reference clock has locked successfully.\"\n    },\n    {\n      \"action_name\": \"auto-check_zsync_connection\",\n      \"description\": \"检查指定ZSync端口上的连接是否已经建立。\",\n      \"description_en\": \"Check whether the ZSync connection on the specified port or ports has been established.\"\n    },\n    {\n      \"action_name\": \"auto-find_zsync_worker_port\",\n      \"description\": \"查找与指定设备相连的PQSC ZSync端口编号。\",\n      \"description_en\": \"Find the PQSC ZSync port ID connected to a specified device.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"开始通过ZSync向所有已连接仪器发送触发信号。\",\n      \"description_en\": \"Start sending trigger signals to all connected instruments over ZSync.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止触发信号的生成与输出。\",\n      \"description_en\": \"Stop trigger generation and output.\"\n    },\n    {\n      \"action_name\": \"auto-wait_done\",\n      \"description\": \"等待触发生成和反馈处理完成。\",\n      \"description_en\": \"Wait until trigger generation and feedback processing are complete.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"quantum control\",\n    \"trigger generation\",\n    \"ZSync synchronization\",\n    \"multi-instrument coordination\",\n    \"reference clock lock\",\n    \"Zurich Instruments\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1377,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1142,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2519
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1377,
+      "output_token_count": 1142,
+      "predict_time": 20.134379189
+    }
+  },
+  "output_text": "{\n  \"name\": \"PQSC量子系统控制器\",\n  \"name_en\": \"PQSC Programmable Quantum System Controller\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"苏黎世仪器的PQSC是一种量子系统控制器，用于在量子测控实验中统一产生和分发触发信号，通过ZSync协调多台已连接仪器，并检查参考时钟锁定与端口连接状态。\",\n  \"description_en\": \"The Zurich Instruments PQSC is a quantum system controller used in quantum measurement and control setups to generate and distribute triggers, coordinate multiple connected instruments over ZSync, and verify reference clock lock and port connectivity.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-arm\",\n      \"description\": \"预置PQSC以进行触发，配置执行引擎并清空寄存器，可选设置触发次数和保持时间。\",\n      \"description_en\": \"Arm the PQSC for triggering by configuring the execution engine and clearing registers, with optional trigger count and holdoff settings.\"\n    },\n    {\n      \"action_name\": \"auto-arm_and_run\",\n      \"description\": \"预置PQSC并立即开始发送触发信号。\",\n      \"description_en\": \"Arm the PQSC and immediately start sending trigger signals.\"\n    },\n    {\n      \"action_name\": \"auto-check_ref_clock\",\n      \"description\": \"检查参考时钟是否已成功锁定。\",\n      \"description_en\": \"Check whether the reference clock has locked successfully.\"\n    },\n    {\n      \"action_name\": \"auto-check_zsync_connection\",\n      \"description\": \"检查指定ZSync端口上的连接是否已经建立。\",\n      \"description_en\": \"Check whether the ZSync connection on the specified port or ports has been established.\"\n    },\n    {\n      \"action_name\": \"auto-find_zsync_worker_port\",\n      \"description\": \"查找与指定设备相连的PQSC ZSync端口编号。\",\n      \"description_en\": \"Find the PQSC ZSync port ID connected to a specified device.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"开始通过ZSync向所有已连接仪器发送触发信号。\",\n      \"description_en\": \"Start sending trigger signals to all connected instruments over ZSync.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止触发信号的生成与输出。\",\n      \"description_en\": \"Stop trigger generation and output.\"\n    },\n    {\n      \"action_name\": \"auto-wait_done\",\n      \"description\": \"等待触发生成和反馈处理完成。\",\n      \"description_en\": \"Wait until trigger generation and feedback processing are complete.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"quantum control\",\n    \"trigger generation\",\n    \"ZSync synchronization\",\n    \"multi-instrument coordination\",\n    \"reference clock lock\",\n    \"Zurich Instruments\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: pymepix_connection\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pymepix/pymepix_connection.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.pymepix_connection:PymepixConnection\n\nClass: PollBufferEmpty \n  Bases: ['Exception']\n\nClass: PymepixConnection (focal)\n  Bases: ['Logger']\n  Docstring: High level class to work with timepix and perform acquistion\n\nThis class performs connection to SPIDR, initilization of timepix and handling of acquisition.\nEach individual timepix device can be accessed using the square bracket operator.\n\n\nParameters\n----------\nspidr_address : :obj:`tuple` of :obj:`str` and :obj:`int`\n    socket style tuple of SPIDR ip address and port\nsrc_ip_port : :obj:`tuple` of :obj:`str` and :obj:`int`, optional\n    socket style tuple of the IP address and port of the interface that is connecting to SPIDR\n\nExamples\n--------\n\nStartup device\n\n>>> timepix = PymepixConnection(('192.168.1.10',50000))\n\nFind how many Timepix are connected\n\n>>> len(timepix)\n1\n\nSet the Bias voltage\n>>> timepix.biasVoltage = 50\n\nAccess a specific Timepix device:\n\n>>> timepix[0].deviceName\nW0026_K06\n\nLoad a config file into timepix\n\n>>> timepix[0].loadSophyConfig('W0026_K06_50V.spx')\n\nFocal class methods:\n  [command] data_thread(self)\n  [command] biasVoltage(self)\n    comment: Bias voltage in volts\n  [command] biasVoltage(self, value)\n  [command] poll(self, block=False)\n    comment: If polling is used, returns data stored in data buffer.\n\n\n        the buffer is in the form of a ring and will overwrite older\n        values if it becomes full\n\n\n        Returns\n        --------\n    ...\n  [command] pollBufferLength(self)\n    comment: Get/Set polling buffer length\n\n        Clears buffer on set\n  [command] pollBufferLength(self, value)\n  [command] dataCallback(self)\n    comment: Function to call when data is received from a timepix device\n\n        This has the effect of disabling polling.\n  [command] dataCallback(self, value)\n  [command] enablePolling(self, maxlen=100)\n    comment: Enables polling mode\n\n        This clears any user defined callbacks and the polling buffer\n  [command] start_recording(self, path)\n  [command] stop_recording(self)\n  [command] start(self)\n    comment: Starts acquisition\n  [command] stop(self)\n    comment: Stops acquisition\n  [command] isAcquiring(self)\n  [command] numDevices(self)\n  [command] chanAddress(self)\n  [command] chanAddress(self, value)\n  [command] getDevice(self, num)\n\nRegistry actions:\n  auto-data_thread (from data_thread())\n  auto-biasVoltage (from biasVoltage())\n  auto-poll (from poll())\n  auto-pollBufferLength (from pollBufferLength())\n  auto-dataCallback (from dataCallback())\n  auto-enablePolling (from enablePolling())\n  auto-start_recording (from start_recording())\n  auto-stop_recording (from stop_recording())\n  auto-start (from start())\n  auto-stop (from stop())\n  auto-isAcquiring (from isAcquiring())\n  auto-numDevices (from numDevices())\n  auto-chanAddress (from chanAddress())\n  auto-getDevice (from getDevice())\n\nRequired output action ids:\n  auto-data_thread\n  auto-biasVoltage\n  auto-poll\n  auto-pollBufferLength\n  auto-dataCallback\n  auto-enablePolling\n  auto-start_recording\n  auto-stop_recording\n  auto-start\n  auto-stop\n  auto-isAcquiring\n  auto-numDevices\n  auto-chanAddress\n  auto-getDevice"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0a2ccde97df513410069d54e47f7208194ae722db9615aa01e",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4417,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6846,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0a2ccde97df513410069d54e486d6881948dee9f51e35db458",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0a2ccde97df513410069d54e5d43a481949934be2366f6cb70",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Timepix/SPIDR像素探测器采集系统\",\n  \"name_en\": \"Timepix/SPIDR Pixel Detector Acquisition System\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于连接SPIDR并初始化、控制一个或多个Timepix像素探测器的采集系统，可设置偏置电压、启动或停止采集、通过轮询或回调接收数据，并将采集数据记录到文件。\",\n  \"description_en\": \"An acquisition system for connecting to SPIDR and initializing and controlling one or more Timepix pixel detectors. It supports bias voltage control, starting and stopping acquisition, receiving data by polling or callback, and recording acquired data to files.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-data_thread\",\n      \"description\": \"运行数据接收线程。\",\n      \"description_en\": \"Run the data reception thread.\"\n    },\n    {\n      \"action_name\": \"auto-biasVoltage\",\n      \"description\": \"获取或设置偏置电压。\",\n      \"description_en\": \"Get or set the bias voltage.\"\n    },\n    {\n      \"action_name\": \"auto-poll\",\n      \"description\": \"轮询读取缓冲区中的采集数据。\",\n      \"description_en\": \"Poll acquired data from the buffer.\"\n    },\n    {\n      \"action_name\": \"auto-pollBufferLength\",\n      \"description\": \"获取或设置轮询缓冲区长度。\",\n      \"description_en\": \"Get or set the polling buffer length.\"\n    },\n    {\n      \"action_name\": \"auto-dataCallback\",\n      \"description\": \"获取或设置数据接收回调函数。\",\n      \"description_en\": \"Get or set the data-received callback function.\"\n    },\n    {\n      \"action_name\": \"auto-enablePolling\",\n      \"description\": \"启用轮询模式。\",\n      \"description_en\": \"Enable polling mode.\"\n    },\n    {\n      \"action_name\": \"auto-start_recording\",\n      \"description\": \"开始将采集数据记录到指定路径。\",\n      \"description_en\": \"Start recording acquired data to the specified path.\"\n    },\n    {\n      \"action_name\": \"auto-stop_recording\",\n      \"description\": \"停止记录采集数据。\",\n      \"description_en\": \"Stop recording acquired data.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"开始采集。\",\n      \"description_en\": \"Start acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止采集。\",\n      \"description_en\": \"Stop acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-isAcquiring\",\n      \"description\": \"获取是否正在采集。\",\n      \"description_en\": \"Get whether acquisition is active.\"\n    },\n    {\n      \"action_name\": \"auto-numDevices\",\n      \"description\": \"获取已连接设备数量。\",\n      \"description_en\": \"Get the number of connected devices.\"\n    },\n    {\n      \"action_name\": \"auto-chanAddress\",\n      \"description\": \"获取或设置通道地址。\",\n      \"description_en\": \"Get or set the channel address.\"\n    },\n    {\n      \"action_name\": \"auto-getDevice\",\n      \"description\": \"获取指定编号的Timepix设备对象。\",\n      \"description_en\": \"Get the Timepix device object for a specified index.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Timepix detector\",\n    \"SPIDR readout\",\n    \"pixel detector acquisition\",\n    \"bias voltage control\",\n    \"event data polling\",\n    \"detector data recording\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1519,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1718,
+      "output_tokens_details": {
+        "reasoning_tokens": 953
+      },
+      "total_tokens": 3237
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1519,
+      "output_token_count": 1718,
+      "predict_time": 32.458789117
+    }
+  },
+  "output_text": "{\n  \"name\": \"Timepix/SPIDR像素探测器采集系统\",\n  \"name_en\": \"Timepix/SPIDR Pixel Detector Acquisition System\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于连接SPIDR并初始化、控制一个或多个Timepix像素探测器的采集系统，可设置偏置电压、启动或停止采集、通过轮询或回调接收数据，并将采集数据记录到文件。\",\n  \"description_en\": \"An acquisition system for connecting to SPIDR and initializing and controlling one or more Timepix pixel detectors. It supports bias voltage control, starting and stopping acquisition, receiving data by polling or callback, and recording acquired data to files.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-data_thread\",\n      \"description\": \"运行数据接收线程。\",\n      \"description_en\": \"Run the data reception thread.\"\n    },\n    {\n      \"action_name\": \"auto-biasVoltage\",\n      \"description\": \"获取或设置偏置电压。\",\n      \"description_en\": \"Get or set the bias voltage.\"\n    },\n    {\n      \"action_name\": \"auto-poll\",\n      \"description\": \"轮询读取缓冲区中的采集数据。\",\n      \"description_en\": \"Poll acquired data from the buffer.\"\n    },\n    {\n      \"action_name\": \"auto-pollBufferLength\",\n      \"description\": \"获取或设置轮询缓冲区长度。\",\n      \"description_en\": \"Get or set the polling buffer length.\"\n    },\n    {\n      \"action_name\": \"auto-dataCallback\",\n      \"description\": \"获取或设置数据接收回调函数。\",\n      \"description_en\": \"Get or set the data-received callback function.\"\n    },\n    {\n      \"action_name\": \"auto-enablePolling\",\n      \"description\": \"启用轮询模式。\",\n      \"description_en\": \"Enable polling mode.\"\n    },\n    {\n      \"action_name\": \"auto-start_recording\",\n      \"description\": \"开始将采集数据记录到指定路径。\",\n      \"description_en\": \"Start recording acquired data to the specified path.\"\n    },\n    {\n      \"action_name\": \"auto-stop_recording\",\n      \"description\": \"停止记录采集数据。\",\n      \"description_en\": \"Stop recording acquired data.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"开始采集。\",\n      \"description_en\": \"Start acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止采集。\",\n      \"description_en\": \"Stop acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-isAcquiring\",\n      \"description\": \"获取是否正在采集。\",\n      \"description_en\": \"Get whether acquisition is active.\"\n    },\n    {\n      \"action_name\": \"auto-numDevices\",\n      \"description\": \"获取已连接设备数量。\",\n      \"description_en\": \"Get the number of connected devices.\"\n    },\n    {\n      \"action_name\": \"auto-chanAddress\",\n      \"description\": \"获取或设置通道地址。\",\n      \"description_en\": \"Get or set the channel address.\"\n    },\n    {\n      \"action_name\": \"auto-getDevice\",\n      \"description\": \"获取指定编号的Timepix设备对象。\",\n      \"description_en\": \"Get the Timepix device object for a specified index.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Timepix detector\",\n    \"SPIDR readout\",\n    \"pixel detector acquisition\",\n    \"bias voltage control\",\n    \"event data polling\",\n    \"detector data recording\"\n  ]\n}"
+}

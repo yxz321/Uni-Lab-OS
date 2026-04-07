@@ -1,40 +1,107 @@
-Device: port
-Registry Key: port
-Short Description: 通用设备通信端口接口，支持串口、TCP等多种底层传输协议。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (8):
-- auto-channel_count -> channel_count [UniLabJsonCommand] goal_params: none
-- auto-create -> create [UniLabJsonCommand] goal_params: cls, port, sn
-- auto-fileno -> fileno [UniLabJsonCommand] goal_params: none
-- auto-get_stages -> get_stages [UniLabJsonCommand] goal_params: only_chan_idents
-- auto-recv_message -> recv_message [UniLabJsonCommand] goal_params: block, timeout
-- auto-run -> run [UniLabJsonCommand] goal_params: none
-- auto-send_message -> send_message [UniLabJsonCommand] goal_params: msg
-- auto-serial_number -> serial_number [UniLabJsonCommand] goal_params: none
-
-Driver Functions (19):
-- Port.__init__(self, port, sn) (line 81)
-- Port.send_message(self, msg) (line 154)
-- Port.run(self) (line 162)
-- Port._recv(self, l, blocking) (line 184)
-- Port.fileno(self) (line 197)
-- Port.recv_message(self, block, timeout) (line 202)
-- Port._recv_message(self, blocking, timeout) (line 209)
-- Port.serial_number(self) (line 238)
-- Port.channel_count(self) (line 243)
-- Port._handle_message(self, msg) (line 248)
-- Port.__repr__(self) (line 252)
-- Port.get_stages(self, only_chan_idents) (line 256)
-- Port.create(cls, port, sn) (line 261)
-- CardSlotPort.__init__(self, port, sn) (line 278)
-- SingleControllerPort.__init__(self, port, sn) (line 282)
-- SingleControllerPort.send_message(self, msg) (line 289)
-- SingleControllerPort._recv_message(self, blocking) (line 294)
-- SingleControllerPort._handle_message(self, msg) (line 303)
-- SingleControllerPort.get_stages(self, only_chan_idents) (line 317)
+port:
+  name: Thorlabs APT通信端口
+  name_en: Thorlabs APT Communication Port
+  manufacturer: Thorlabs
+  category:
+  - 串行仪器通信接口
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 精密定位与运动控制
+  - 实验仪器通信与驱动集成
+  - 样品/探针定位与运动控制
+  - 串行仪器通信接口
+  description: 用于Thorlabs APT位移台/控制器通信的非物理软件组件。它负责通过串口样式端口发送和接收消息、运行消息处理循环、提供文件描述符访问，并读取控制器序列号、通道数量及已连接平台信息，适合在实验自动化中管理单控制器或卡槽式控制器的通信连接。
+  description_en: A non-physical software component for communicating with Thorlabs
+    APT motion-stage controllers. It sends and receives protocol messages over a serial-style
+    port, runs the message-processing loop, exposes the file descriptor, and retrieves
+    controller serial number, channel count, and connected stage information for automation
+    workflows involving single-controller or card-slot controllers.
+  class:
+    action_value_mappings:
+      auto-send_message:
+        schema:
+          description: 发送通信消息
+          description_en: send a communication message
+      auto-fileno:
+        schema:
+          description: 获取文件描述符
+          description_en: get the file descriptor
+      auto-recv_message:
+        schema:
+          description: 接收通信消息
+          description_en: receive a communication message
+      auto-run:
+        schema:
+          description: 运行消息处理循环
+          description_en: run the message-processing loop
+      auto-serial_number:
+        schema:
+          description: 获取序列号
+          description_en: get serial number
+      auto-channel_count:
+        schema:
+          description: 获取通道数量
+          description_en: get channel count
+      auto-get_stages:
+        schema:
+          description: 获取已连接平台信息
+          description_en: get connected stage information
+      auto-create:
+        schema:
+          description: 创建通信端口对象
+          description_en: create a communication port object
+auto_annotation_metadata:
+  registry_key: port
+  annotation_workflow_version: v4
+  tag_hints:
+  - Thorlabs APT
+  - serial communication
+  - motion controller communication
+  - stage discovery
+  - controller serial number
+  - multi-channel controller
+  - card slot controller
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该通信端口直接支撑位移台控制器的自动化通信与运行。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 组件用于在自动化工作流中管理 Thorlabs APT 控制器连接与消息收发。
+  - id: P-1009
+    name: 精密定位与运动控制
+    name_en: Precision Positioning & Motion Control
+    type: experimental_domain
+    rationale: 它专用于位移台/运动控制器通信，和精密运动控制紧密相关。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 描述突出串口样式协议通信、消息循环和控制器信息读取，符合仪器通信集成场景。
+  - id: P-0038
+    name: 样品/探针定位与运动控制
+    name_en: Sample / Probe Positioning & Motion Control
+    type: experimental_scene
+    rationale: 该端口服务于 APT 位移台控制器及已连接平台信息管理，关联运动定位场景。
+  - id: P-2013
+    name: 串行仪器通信接口
+    name_en: Serial Instrument Communication Interface
+    type: device_template_tag
+    rationale: 组件通过串口样式端口发送和接收 APT 协议消息，符合串行仪器通信接口模板。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

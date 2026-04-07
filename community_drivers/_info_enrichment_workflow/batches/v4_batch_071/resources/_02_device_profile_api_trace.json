@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: resources\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/pyvenus/resources.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.resources:Resources\n\nClass: Resources (focal)\n  Bases: []\n  Docstring: Static class with functions to generate python classes from Venus resources\n    \n\nFocal class methods:\n  [command] read_layout(cls, layout)\n    comment: make sure we are working with an absolute path\n    comment: get path of original layout and for generated files\n    comment: get the layout name (both original and sanitized)\n    comment: only proceed if deck layout has been updated\n    comment: create a copy of original deck layout\n    comment: convert deck layout from binary to ascii\n    comment: read deck layout file\n    comment: extract names of all the deck sequences\n    comment: extract names of all labware items\n    comment: setup template environement\n    comment: write python definition to file\n    comment: log output\n    comment: generate __init__.py\n    comment: Reads in a Venus layout file (*.lay) and converts it to a python class.\n\n        The generated python class is located in /venus_resources/ and will be named the same as original layout file prefixed ...\n  [command] read_liquid_classes(cls, include_1ml_channels=True, include_5ml_channels=False, include_96head=True, include_384head=False, include_washstations=False, include_default=True, include_custom=True, database='C:\\\\Program Files (x86)\\\\HAMILTON\\\\Config\\\\ML_STARLiquids.mdb')\n    comment: get output directory for resources\n    comment: set filenames and paths\n    comment: connect to Access DB with liquid classes\n    comment: generate list with appropriate device IDs\n    comment: set allowed liquid class types (default/custom)\n    comment: gather all liquid classes\n    comment: select only the liquid classes for the appropriate devices\n    comment: deselect old tip types\n    comment: deselect weird standard liquid classes that nobody needs\n    comment: deselect old dispense modes\n    comment: only allow selected type\n    comment: get dict of liquid parameters\n    comment: process this row?\n    comment: setup template environement\n    comment: write python definition to file\n    comment: log output\n    comment: generate __init__.py\n    comment: Reads in the default Venus liquid class database and converts it to a python class.\n\n        It is possible to restrict the list of liquid classes to those fitting the system configuration.\n        Th...\n  [command] read_submethods(cls, directory='')\n    comment: set default directory with SMTs\n    comment: get output directory for resources\n    comment: loop over all submethod libraries\n    comment: ignore temp files\n    comment: only proceed if smt file has been updated\n    comment: make copy of all files in resource folder\n    comment: convert binary files to ascii\n    comment: read file content\n    comment: get comments of submethod and its parameters\n    comment: setup regex expressions\n    comment: find all functions in file\n    comment: extract information for each function\n    comment: find all function parameters\n    comment: extract comments from SMT definition\n    comment: extract information for each parameter\n    comment: direction: in, out, in_out\n    comment: is this an array (e.g. array of variables, array of sequences\n    comment: define datatype in HSL and python\n    comment: define how the parameter is passed to the HSL function\n    comment: variable: variable is pushed to HSL and then the name of the variable is passed to function\n    comment: value: the value is directly passed to the function\n    comment: get comment for this parameter\n    comment: is a default value set?\n    comment: add to list of parameters\n    comment: throw an error on currently unsupported data types\n    comment: jump to next submethod if error\n    comment: sort so all parameters with default values are listed at the end\n    comment: add to list of functions\n    comment: add to list of SMT files\n    comment: setup template environement\n    comment: write python definition to file\n    comment: generate __init__.py\n    comment: Reads in all the submethod files at the specified folder and converts them to python classes.\n\n        An empty string for the directory parameter (default) loads from /smt/\n\n        All python classe...\n\nRegistry actions:\n  auto-read_layout (from read_layout())\n  auto-read_liquid_classes (from read_liquid_classes())\n  auto-read_submethods (from read_submethods())\n\nRequired output action ids:\n  auto-read_layout\n  auto-read_liquid_classes\n  auto-read_submethods"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_05812eccf064e4660069d55045c8bc8190a5a8a551525fa10f",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5692,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3164,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_05812eccf064e4660069d550462e50819086d97ff74fbf1c2e",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_05812eccf064e4660069d5504e70e4819092c08cf521d4bdd4",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"VENUS资源类生成工具\",\n  \"name_en\": \"VENUS Resource Class Generator\",\n  \"manufacturer\": \"Hamilton\",\n  \"description\": \"这是一个非物理的软件辅助组件，用于读取 Hamilton VENUS 的实验室自动化资源文件，如甲板布局、液体类别数据库和子方法库，并将其转换为可在 Python 中调用的资源类，便于在自动化实验脚本中复用系统配置与方法定义。\",\n  \"description_en\": \"This is a non-physical software helper component that reads Hamilton VENUS laboratory automation resource files, such as deck layouts, liquid class databases, and submethod libraries, and converts them into Python classes for reuse in automation scripts and workflow definitions.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-read_layout\",\n      \"description\": \"读取VENUS布局文件并生成对应的Python资源类。\",\n      \"description_en\": \"Read a VENUS layout file and generate the corresponding Python resource class.\"\n    },\n    {\n      \"action_name\": \"auto-read_liquid_classes\",\n      \"description\": \"读取VENUS液体类别数据库并生成Python液体类别定义。\",\n      \"description_en\": \"Read the VENUS liquid class database and generate Python liquid class definitions.\"\n    },\n    {\n      \"action_name\": \"auto-read_submethods\",\n      \"description\": \"读取VENUS子方法库并生成对应的Python类定义。\",\n      \"description_en\": \"Read VENUS submethod libraries and generate corresponding Python class definitions.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Hamilton VENUS\",\n    \"resource generation\",\n    \"deck layout parsing\",\n    \"liquid class database\",\n    \"submethod library\",\n    \"lab automation software\",\n    \"Python code generation\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1678,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 756,
+      "output_tokens_details": {
+        "reasoning_tokens": 374
+      },
+      "total_tokens": 2434
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1678,
+      "output_token_count": 756,
+      "predict_time": 15.152810153
+    }
+  },
+  "output_text": "{\n  \"name\": \"VENUS资源类生成工具\",\n  \"name_en\": \"VENUS Resource Class Generator\",\n  \"manufacturer\": \"Hamilton\",\n  \"description\": \"这是一个非物理的软件辅助组件，用于读取 Hamilton VENUS 的实验室自动化资源文件，如甲板布局、液体类别数据库和子方法库，并将其转换为可在 Python 中调用的资源类，便于在自动化实验脚本中复用系统配置与方法定义。\",\n  \"description_en\": \"This is a non-physical software helper component that reads Hamilton VENUS laboratory automation resource files, such as deck layouts, liquid class databases, and submethod libraries, and converts them into Python classes for reuse in automation scripts and workflow definitions.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-read_layout\",\n      \"description\": \"读取VENUS布局文件并生成对应的Python资源类。\",\n      \"description_en\": \"Read a VENUS layout file and generate the corresponding Python resource class.\"\n    },\n    {\n      \"action_name\": \"auto-read_liquid_classes\",\n      \"description\": \"读取VENUS液体类别数据库并生成Python液体类别定义。\",\n      \"description_en\": \"Read the VENUS liquid class database and generate Python liquid class definitions.\"\n    },\n    {\n      \"action_name\": \"auto-read_submethods\",\n      \"description\": \"读取VENUS子方法库并生成对应的Python类定义。\",\n      \"description_en\": \"Read VENUS submethod libraries and generate corresponding Python class definitions.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Hamilton VENUS\",\n    \"resource generation\",\n    \"deck layout parsing\",\n    \"liquid class database\",\n    \"submethod library\",\n    \"lab automation software\",\n    \"Python code generation\"\n  ]\n}"
+}

@@ -1,23 +1,123 @@
-Device: recipe
-Registry Key: recipe
-Short Description: A class for the recipes that will be used for the tube furnace CVD system
-
-Categories:
-- generic
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (4):
-- auto-initialize -> initialize [UniLabJsonCommand] goal_params: none
-- auto-logging -> logging [UniLabJsonCommand] goal_params: filename, freq
-- auto-poll -> poll [UniLabJsonCommand] goal_params: none
-- auto-run -> run [UniLabJsonCommand] goal_params: none
-
-Driver Functions (6):
-- recipe.__init__(self, filename) (line 134)
-- recipe.run(self) (line 172)
-- recipe.initialize(self) (line 224)
-- recipe.logging(self, freq, filename) (line 256)
-- recipe.poll(self) (line 281)
-- recipe.__write_to_file(self, filename, params) (line 314)
+recipe:
+  name: 管式炉CVD配方控制组件
+  name_en: Tube Furnace CVD Recipe Controller
+  manufacturer: ''
+  category:
+  - 管式炉
+  - 气体质量流量控制器
+  - 温度控制器
+  - 压力变送器
+  tags:
+  - 实验执行&合成设备
+  - 表面/薄膜体系
+  - 气体输送与过程控制
+  - 化学气相沉积与薄膜生长
+  - 气体供给与混气控制
+  - 过程变量监测与日志记录
+  - 管式炉
+  - 气体质量流量控制器
+  - 温度控制器
+  - 压力变送器
+  description: 用于管式炉CVD系统的非物理配方执行软件组件。它根据预定义步骤协调炉温、质量流量控制器和压力相关参数，支持设备初始化、过程执行、参数轮询与运行日志记录，适合自动化工艺流程管理。
+  description_en: A non-physical recipe execution software component for a tube furnace
+    CVD system. It coordinates furnace temperature, mass flow controller settings,
+    and pressure-related parameters according to predefined steps, and supports device
+    initialization, process execution, parameter polling, and run logging for automated
+    process management.
+  class:
+    action_value_mappings:
+      auto-run:
+        schema:
+          description: 执行整套工艺配方，按步骤设置炉温和气体流量，并在各步骤中等待温度接近设定值及保持规定时间。
+          description_en: Run the full process recipe by stepwise setting furnace
+            temperature and gas flow rates, then waiting for temperature to approach
+            the setpoint and holding each step for the specified time.
+      auto-initialize:
+        schema:
+          description: 初始化并验证配方所需设备的通信与可用状态。
+          description_en: Initialize the recipe and verify communication and availability
+            of the required devices.
+      auto-logging:
+        schema:
+          description: 按设定频率记录运行参数并写入日志文件。
+          description_en: Log operating parameters at a specified frequency and write
+            them to a log file.
+      auto-poll:
+        schema:
+          description: 轮询相关设备，读取当前运行参数并汇总返回。
+          description_en: Poll the associated devices to read current operating parameters
+            and return them in a combined result.
+auto_annotation_metadata:
+  registry_key: recipe
+  annotation_workflow_version: v4
+  tag_hints:
+  - tube furnace CVD
+  - recipe execution
+  - process sequencing
+  - temperature and gas-flow coordination
+  - MFC integration
+  - process logging
+  - device polling
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件按预定义步骤执行管式炉CVD配方，直接参与工艺运行。
+  - id: '4322'
+    name: 表面/薄膜体系
+    name_en: Surface / Thin Film System
+    type: experimental_domain
+    rationale: CVD管式炉工艺直接面向薄膜/表面材料制备。
+  - id: P-8103
+    name: 气体输送与过程控制
+    name_en: Gas Delivery & Process Control
+    type: experimental_domain
+    rationale: 配方明确协调气体流量、温度与压力参数。
+  - id: P-0208
+    name: 化学气相沉积与薄膜生长
+    name_en: Chemical Vapor Deposition & Thin-Film Growth
+    type: experimental_scene
+    rationale: 设备描述明确是管式炉CVD系统的配方执行组件。
+  - id: P-8104
+    name: 气体供给与混气控制
+    name_en: Gas Supply & Gas Mixing Control
+    type: experimental_scene
+    rationale: 其步骤控制包含质量流量控制器设定与气路协同。
+  - id: P-600101
+    name: 过程变量监测与日志记录
+    name_en: Process Variable Monitoring & Logging
+    type: experimental_scene
+    rationale: 支持参数轮询和按频率记录运行日志。
+  - id: P-0209
+    name: 管式炉
+    name_en: Tube Furnace
+    type: device_template_tag
+    rationale: 该配方组件围绕管式炉的温度步骤来执行工艺。
+  - id: P-8105
+    name: 气体质量流量控制器
+    name_en: Gas Mass Flow Controller
+    type: device_template_tag
+    rationale: 描述中明确提到与质量流量控制器联动。
+  - id: P-90001
+    name: 温度控制器
+    name_en: Temperature Controller
+    type: device_template_tag
+    rationale: 配方执行的关键动作之一是按步骤设定和等待温度到位。
+  - id: P-990004
+    name: 压力变送器
+    name_en: Pressure Transmitter
+    type: device_template_tag
+    rationale: 组件会协调并轮询压力相关参数，涉及压力监测对象。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

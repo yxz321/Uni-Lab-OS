@@ -1,46 +1,131 @@
-Device: pv_logger
-Registry Key: pv_logger
-Short Description: PV Logger是由EPICS (Argonne National Lab)生产的专业实验设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (9):
-- auto-add_pv -> add_pv [UniLabJsonCommand] goal_params: desc, descpv, mdel, mdelpv, pvname
-- auto-connect_pvs -> connect_pvs [UniLabJsonCommand] goal_params: none
-- auto-finish -> finish [UniLabJsonCommand] goal_params: none
-- auto-look_for_exit_signal -> look_for_exit_signal [UniLabJsonCommand] goal_params: none
-- auto-look_for_new_pvs -> look_for_new_pvs [UniLabJsonCommand] goal_params: none
-- auto-make_pvlog_folder -> make_pvlog_folder [UniLabJsonCommand] goal_params: chdir
-- auto-on_exit -> on_exit [UniLabJsonCommand] goal_params: none
-- auto-read_configfile -> read_configfile [UniLabJsonCommand] goal_params: none
-- auto-run -> run [UniLabJsonCommand] goal_params: none
-
-Driver Functions (24):
-- get_machineid_process() (line 113)
-- get_instruments(instrument_names, escan_credentials) (line 117)
-- save_pvlog_timestamp() (line 134)
-- check_pvlog_timestamp() (line 142)
-- LoggedPV.__init__(self, pvname, desc, mdel, descpv, mdelpv, connection_timeout) (line 169)
-- LoggedPV.write(self, txt, flush) (line 191)
-- LoggedPV.flush(self) (line 199)
-- LoggedPV.set_mdel(self, mdel, mdelpv) (line 205)
-- LoggedPV.set_desc(self, desc, descpv) (line 224)
-- LoggedPV.onConnect(self, pvname, conn, pv) (line 234)
-- LoggedPV.onChanges(self, pvname, value, char_value, timestamp, **kws) (line 248)
-- LoggedPV.save_current_value(self) (line 269)
-- LoggedPV.write_data(self) (line 279)
-- PVLogger.__init__(self, *args, **kwargs) (line 339)
-- PVLogger.__init__(self, configfile, prompt, escan_credentials) (line 345)
-- PVLogger.read_configfile(self) (line 357)
-- PVLogger.make_pvlog_folder(self, chdir) (line 381)
-- PVLogger.connect_pvs(self) (line 394)
-- PVLogger.add_pv(self, pvname, desc, mdel, descpv, mdelpv) (line 502)
-- PVLogger.look_for_new_pvs(self) (line 517)
-- PVLogger.look_for_exit_signal(self) (line 549)
-- PVLogger.finish(self) (line 573)
-- PVLogger.on_exit(self) (line 587)
-- PVLogger.run(self) (line 595)
+pv_logger:
+  name: PV日志记录组件
+  name_en: PV Logger
+  manufacturer: ''
+  category:
+  - 过程变量日志记录器
+  tags:
+  - 实验执行&合成设备
+  - 后处理设备
+  - 实验数据管理与记录
+  - 实验室自动化与仪器集成
+  - 追加式实验记录与索引访问
+  - 过程变量监测与日志记录
+  - 过程变量日志记录器
+  description: 用于采集并记录过程变量（PV）随时间变化数据的非物理软件组件，支持实验运行监测与追溯分析。
+  description_en: A non-physical software component that records time-series data
+    of process variables (PVs) for experiment monitoring and traceability analysis.
+  class:
+    action_value_mappings:
+      auto-read_configfile:
+        schema:
+          description: 读取记录配置文件，确定监测的 PV、日志路径以及采集起止时间等设置。
+          description_en: Read the logging configuration file to determine monitored
+            PVs, log paths, and collection start and end times.
+      auto-make_pvlog_folder:
+        schema:
+          description: 创建 PV 日志文件夹，并按需要切换到该目录以保存记录数据和元数据。
+          description_en: Create the PV log folder and optionally change into that
+            directory to store logged data and metadata.
+      auto-connect_pvs:
+        schema:
+          description: 连接或重新连接配置中的 PV，并建立相应的监测对象与元数据文件。
+          description_en: Connect or reconnect the configured PVs and create the corresponding
+            monitored objects and metadata files.
+      auto-add_pv:
+        schema:
+          description: 将新的 PV 加入记录列表，可同时附加描述和变更阈值等信息。
+          description_en: Add a new PV to the logging list, optionally with description
+            and monitor deadband information.
+      auto-look_for_new_pvs:
+        schema:
+          description: 检查新增 PV 请求文件，并将其中列出的 PV 动态加入监测过程。
+          description_en: Check for a new-PV request file and dynamically add the
+            listed PVs to the monitoring process.
+      auto-look_for_exit_signal:
+        schema:
+          description: 检查停止信号，例如停止文件或到达结束时间，以决定是否终止数据采集。
+          description_en: Check for an exit signal, such as a stop file or the configured
+            end time, to decide whether data collection should stop.
+      auto-finish:
+        schema:
+          description: 结束数据记录流程并完成收尾处理。
+          description_en: Finish the data logging process and perform final cleanup.
+      auto-on_exit:
+        schema:
+          description: 在退出时执行收尾操作，确保记录过程正确结束。
+          description_en: Perform exit-time cleanup actions to ensure the logging
+            process ends properly.
+      auto-run:
+        schema:
+          description: 启动并运行 PV 记录主循环，在开始时间后持续采集数据，直到收到退出条件为止。
+          description_en: Start and run the main PV logging loop, collecting data
+            after the start time until an exit condition is reached.
+auto_annotation_metadata:
+  registry_key: pv_logger
+  annotation_workflow_version: v4
+  tag_hints:
+  - EPICS PV logging
+  - process variable monitoring
+  - time-series data collection
+  - experiment data logging
+  - configuration-based acquisition
+  - dynamic PV enrollment
+  - stop-signal controlled logging
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件在实验运行期间持续采集PV时间序列，服务于在线运行监测。
+  - id: '4314'
+    name: 后处理设备
+    name_en: Post-processing Equipment
+    type: experimental_step
+    rationale: 采集结果同时用于实验追溯和后续分析归档。
+  - id: P-9103
+    name: 实验数据管理与记录
+    name_en: Experimental Data Management & Logging
+    type: experimental_domain
+    rationale: 组件核心就是实验过程变量数据的记录与管理。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: PV采集依赖控制系统接口，体现了实验自动化与设备集成特征。
+  - id: P-9104
+    name: 追加式实验记录与索引访问
+    name_en: Append-Only Experimental Logging & Indexed Access
+    type: experimental_scene
+    rationale: PV数据按运行过程持续写入日志并供后续检索。
+  proposed_new_tags:
+  - id: P-600101
+    name: 过程变量监测与日志记录
+    name_en: Process Variable Monitoring & Logging
+    type: experimental_scene
+    rationale: 该组件专门监测EPICS过程变量并记录其随时间变化。
+  - id: P-600102
+    name: 过程变量日志记录器
+    name_en: Process Variable Logger
+    type: device_template_tag
+    rationale: 该条目是面向PV时间序列采集、动态加点和停止控制的日志记录组件。
+  websearch_evidence:
+    device: pv_logger
+    websearch_trigger: pass_a_and_registry_identity_fields_empty
+    updated_fields:
+    - name
+    - name_en
+    - manufacturer
+    - description
+    - description_en
+    evidence:
+    - query: EPICS PV logger
+      note: 命名与常见 EPICS 术语一致，语义指向 PV 数据记录软件能力。
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

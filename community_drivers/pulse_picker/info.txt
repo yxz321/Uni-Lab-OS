@@ -1,32 +1,94 @@
-Device: pulse_picker
-Registry Key: pulse_picker
-Short Description: Optical Pulse Picker驱动，支持burst/close/flipflop/follower/open等6个操作。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (6):
-- auto-burst -> burst [UniLabJsonCommand] goal_params: wait
-- auto-close -> close [UniLabJsonCommand] goal_params: wait
-- auto-flipflop -> flipflop [UniLabJsonCommand] goal_params: wait
-- auto-follower -> follower [UniLabJsonCommand] goal_params: wait
-- auto-open -> open [UniLabJsonCommand] goal_params: wait
-- auto-reset -> reset [UniLabJsonCommand] goal_params: wait
-
-Driver Functions (13):
-- PulsePicker.__init__(self, *args, **kwargs) (line 97)
-- PulsePicker._do_move(self, state) (line 125)
-- PulsePicker._wait(self, sig, *goals) (line 136)
-- PulsePicker._log_request(self, mode) (line 149)
-- PulsePicker.reset(self, wait) (line 153)
-- PulsePicker.open(self, wait) (line 170)
-- PulsePicker.close(self, wait) (line 187)
-- PulsePicker.flipflop(self, wait) (line 203)
-- PulsePicker.burst(self, wait) (line 219)
-- PulsePicker.follower(self, wait) (line 236)
-- PulsePickerInOut.__init__(self, *args, **kwargs) (line 269)
-- PulsePickerInOut.__init__(self, prefix, **kwargs) (line 290)
-- PulsePickerInOut._do_move(self, state) (line 297)
+pulse_picker:
+  name: 光学脉冲选择器
+  name_en: Optical Pulse Picker
+  manufacturer: ''
+  category:
+  - 光学脉冲选择器
+  tags:
+  - 实验执行&合成设备
+  - 光学与光谱实验
+  - 激光激发与光谱测量
+  - 脉冲激励与时序控制
+  - 光学脉冲选择器
+  description: 用于按事件码控制光束脉冲通断的脉冲选择器。设备可在打开、关闭及多种工作模式之间切换，以选择性放行特定脉冲并阻挡其余脉冲，常用于光学束线或激光实验中的脉冲选通与时序控制。
+  description_en: A pulse picker used to gate beam pulses based on event codes. The
+    device can switch between open, closed, and several operating modes to pass selected
+    pulses while blocking others, commonly for pulse gating and timing control in
+    optical beamlines or laser experiments.
+  class:
+    action_value_mappings:
+      auto-burst:
+        schema:
+          description: 切换到突发模式以按设定方式成组放行脉冲。
+          description_en: Switch to burst mode to pass pulses in bursts.
+      auto-close:
+        schema:
+          description: 取消当前模式并将脉冲选择器保持为关闭状态。
+          description_en: Cancel the current mode and leave the pulse picker closed.
+      auto-flipflop:
+        schema:
+          description: 切换到翻转模式以交替放行和阻挡脉冲。
+          description_en: Switch to flip-flop mode to alternate between passing and
+            blocking pulses.
+      auto-follower:
+        schema:
+          description: 切换到跟随模式以跟随外部事件码进行脉冲选通。
+          description_en: Switch to follower mode to gate pulses by following external
+            event codes.
+      auto-open:
+        schema:
+          description: 取消当前模式并将脉冲选择器保持为打开状态。
+          description_en: Cancel the current mode and leave the pulse picker open.
+      auto-reset:
+        schema:
+          description: 取消当前工作模式并复位设备状态。
+          description_en: Cancel the current operating mode and reset the device state.
+auto_annotation_metadata:
+  registry_key: pulse_picker
+  annotation_workflow_version: v4
+  tag_hints:
+  - pulse picking
+  - optical gating
+  - event-code triggering
+  - beam shuttering
+  - burst mode
+  - flip-flop mode
+  - follower mode
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该设备在实验中直接控制脉冲通断，属于实验执行装置。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: 设备用于光束脉冲选通，显然属于光学实验域。
+  - id: P-3004
+    name: 激光激发与光谱测量
+    name_en: Laser Excitation & Spectroscopic Measurement
+    type: experimental_scene
+    rationale: 证据说明其常用于激光实验中的脉冲选通与束控。
+  - id: P-7008
+    name: 脉冲激励与时序控制
+    name_en: Pulse Excitation & Timing Control
+    type: experimental_scene
+    rationale: 设备支持burst、flip-flop、follower等模式，本质上是脉冲时序控制装置。
+  proposed_new_tags:
+  - id: P-500906
+    name: 光学脉冲选择器
+    name_en: Optical Pulse Picker
+    type: device_template_tag
+    rationale: 该设备专门按事件码选择性放行或阻挡光脉冲，适合作为通用脉冲选择器模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

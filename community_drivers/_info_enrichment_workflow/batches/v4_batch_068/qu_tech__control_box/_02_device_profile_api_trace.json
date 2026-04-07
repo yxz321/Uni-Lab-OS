@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: qu_tech__control_box\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: deprecated/pycqed/instrument_drivers/physical_instruments/QuTech_ControlBoxdriver.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.quantum_control.qutech_control_box:QuTech_ControlBox\n\nClass: QuTech_ControlBox (focal)\n  Bases: ['VisaInstrument']\n  Docstring: This is the qcodes driver for the 200 MS/s control box developed in\ncollaboration with EWI.\nThis is a direct port of the 'old' qtlab driver.\n\nRequirements:\ndefHeaders.py,  codec.pyx and working cython installation\n\nFocal class methods:\n  [command] add_params(self)\n    comment: once the demodulation_mode can be get from the FPGA, this\n    comment: line setting _demodulation_mode should be removed.\n    comment: single or double sideband demodulation\n    comment: Warning this way of generating paramters can create closures in\n    comment: multiprocessing, awaiting new syntax from Alex\n    comment: Need to add double wrapping for get/set funcs here\n  [command] init_params(self)\n  [command] run_test_suite(self)\n    comment: pass the CBox to the module so it can be used in the tests\n  [command] get_all(self)\n  [command] upload_standard_weights(self, IF)\n  [command] decode_message(self, data_bytes, data_bits_per_byte=7, bytes_per_value=2, signed_integer=False)\n    comment: checksum = c.calculate_checksum(message_bytes)\n    comment: if checksum != message_bytes[-1]:\n    comment: raise ValueError('Checksum does not match message')\n    comment: Exists for legacy use (only used in integration streaming mode)\n        recommend using the cython version otherwise.\n  [command] create_message(self, cmd, data_bytes=None, EOM=defHeaders.EndOfMessageHeader)\n    comment: Creates a bytearray to send as a message.\n        Starts with a command, then adds the data bytes and ends with EOM.\n  [command] get_input_avg_results(self)\n    comment: Read Functions\n    comment: Information on the encoding\n    comment: While loop is to make sure measurement finished before querying.\n    comment: read_N +2 is for checksum and EndOfMessage\n    comment: reads the Input Average log of the ADC input.\n        Corresponds to mode 3\n\n        @return ch0 and ch1 values\n  [command] get_integrated_avg_results(self)\n    comment: Information on the encoding\n    comment: read_N +2 is for checksum and EndOfMessage\n    comment: read the log of the master\n        Corresponds to mode 4: integrated average\n\n        @param timeout : the timeout time in ms\n        @return stat : 0 if the upload succeeded and 1 if the upload faile...\n  [command] get_integration_log_results(self)\n    comment: Information on the encoding\n    comment: read_N +2 is for checksum and EndOfMessage\n    comment: read the log of the master\n        Corresponds to mode 2: Integration logging\n\n        Uses fixed length for reading out the message for speedup.\n\n        Returns integrated logs for ch0 and ch1\n  [command] get_qubit_state_log_results(self)\n    comment: read_N +2 is for checksum and EndOfMessage\n    comment: encoded_message = self.serial_read(\n    comment: read_N=nr_of_channels*nr_of_counters*bytes_per_value+2)\n    comment: decoded_message = c.decode_message(\n    comment: encoded_message, data_bits_per_byte=data_bits_per_byte,\n    comment: bytes_per_value=bytes_per_value)\n    comment: Description :   Returns the qubit state log results after the logging\n                        started. State log is started together with system\n                        modes 1 (Integration logging),\n...\n  [command] get_qubit_state_log_counters(self)\n    comment: read_N +2 is for checksum and EndOfMessage\n    comment: Description :  Returns the values of the qubit state log counters.\n                       Counting is started started together with the\n                       QubitStateLog. The counters will be reset...\n  [command] send_stop_streaming(self)\n  [command] get_streaming_results(self, nr_samples=10000)\n    comment: Request the data\n    comment: Taking data like crazy!\n    comment: Has to use the slower (non cython) legacy version of the decoder\n    comment: because of unsigned integers and different shapes of databytes\n    comment: print 'Decoding data took %.4f s' % (t2-t1)\n    comment: Detect missing bytes upon decoding\n    comment: print  ValueError('Data lost at entry %s' %i)\n  [command] set_awg_lookuptable(self, awg_nr, table_nr, dac_ch, lut, length=None, unit='V')\n    comment: do conversion\n    comment: Check out of bounds\n    comment: for version >= 2.16, the I/Q port order is opposite to the earlier\n    comment: version\n    comment: Should be 128 but giving length 128 loads no pulse. - Adriaan\n    comment: Makes sure the values are rounded before encoding as bytes\n    comment: This length is substracted by 1, because the FPGA counts from 0\n    comment: With 1 substracted, the hardware will work properly.  -- 14-7-2015.\n    comment: # With 1 substracted, the hardware will work properly.  -- 14-7-2015.\n    comment: set the 14 bit values of a lut (V2.0)\n\n        @param awg : the awg of the dac, (0,1,2).\n        @param table_nr : the lut of the awg, (0,1,2,3,4,5,6,7).\n        @param dac : the dac of the awg.\n     ...\n  [command] restart_awg_tape(self, awg_nr)\n    comment: for version >= 2.16, restarting timing tape is done by switching from\n    comment: another mode into tape mode.\n    comment: for version <= 2.15, the previous AwgRestartTape command is sent.\n    comment: In tape without timing: Reset the tape pointer of specified awg to 0.\n        (for version <= 2.15)\n\n        In timing tape: Reset the segmented tape pointer of specified awg to 0.\n        (for versio...\n  [command] enable_dac(self, awg_nr, dac_ch, enable)\n    comment: for version >= 2.16, the I/Q port order is opposite to the earlier\n    comment: version\n    comment: mute or enable a dac of an awg\n\n        @param awg_nr : the awg of the dac, (0,1,2).\n        @param dac : the dac of the awg.\n            If version <= 2.15:  0 = Q and 1 = I channel.\n            If v...\n  [command] set_dac_offset(self, awg_nr, dac_ch, offset)\n    comment: for version >= 2.16, the I/Q port order is opposite to the earlier\n    comment: version\n    comment: For 14 bit signed value, the acceptable range is -8192 to 8191.\n    comment: set the offset of 1 dac of an awg.\n\n        @param awg : the awg of the dac, (0,1,2).\n        @param dac : the dac of the awg.\n            If version <= 2.15:  0 = Q and 1 = I channel.\n            If ...\n  [command] get_dac_offset(self, awg_nr, dac_ch)\n    comment: Returns the dac offset of \"awg_nr\" for \"dac_ch\" in mV\n  [command] set_ecc_truthtable()\n    comment: Note note implemented as Xiang indicated this will never be used.\n  [command] set_averaging_parameters(self, nr_samples, avg_size)\n    comment: set the parameters for Input and Integrated Average functions.\n\n        @param nr_samples : Number of samples of the input signal that get\n                            returned.\n                       ...\n  [command] serial_read(self, timeout=5, read_all=False, read_N=0)\n    comment: To catch all the \"empty\" messages (checksum +EOM)\n    comment: Removing this makes program more robust.\n    comment: If an error code gets send CBox will return [checksum, err_code, EOM]\n    comment: Reads on the serial port until EndOfMessageHeader is received.\n\n        If read all == False and read_N = 0 it reads 1 entry.\n        if read_all ==True it reads up to the EndOfMessageHeader.\n        ...\n  [command] serial_write(self, command, verify_execution=True)\n    comment: Done writing , verify message executed\n    comment: Core write function used for communicating with the Box.\n\n        Accepts either a bytes as input\n        e.g. command = b'Z\u0000'\n\n        Writes data to the serial port and verifies the checksum to see...\n  [command] set_conditional_tape(self, awg_nr, tape_nr, tape)\n    comment: TODO: an internal variable _segmented_tape or _conditional_tape\n    comment: should be added and the variable _tape should be removed.\n    comment: Check out of bounds\n    comment: add AWG number\n    comment: add the tape number\n    comment: add the tape length\n    comment: add the tape entries\n    comment: NOTE: ControlBox only support timing tape from version 2.16.\n              CBox_v3 have not supported timing tape yet(2016-02-15).\n\n        Set the conditional tape content for a specified awg.\n\n     ...\n  [command] set_segmented_tape(self, awg_nr, tape)\n    comment: TODO: an internal variable _segmented_tape or _conditional_tape\n    comment: should be added and the variable _tape should be removed.\n    comment: Check out of bounds\n    comment: NOTE: ControlBox only supports timing tape from version 2.16.\n              CBox_v3 does not supported timing tape yet(2016-02-15).\n\n        Set the Segmented Tape content for a specified awg.\n\n      ...\n  [command] create_timing_tape_entry(self, wait_time, pulse_num, end_of_marker, prepend_elt=None)\n    comment: Validating the inputs\n    comment: nested if because cannot compare < for None\n    comment: NOTE: 1280 should be 2560, see issue #11\n    comment: Creates timing tape entries used in the conditional tape or\n        segemented tape.\n\n        Hint if you want to combine multiple entries use the extend method\n        of a list\n\n        parameters:\n...\n  [command] convert_to_signed(self, unsigned_number, bit_width)\n    comment: Inteprete the input unsinged number into a signed number given the\n        bitwidth.\n\n        @param unsigned_number: the unsigned number.\n        @param bit_width: Bit width of the output signed numb...\n  [command] convert_arrary_to_signed(self, unsigned_array, bit_width)\n    comment: print(\"sample: \", sample)\n    comment: Inteprete the input unsinged number array into a signed number array\n        based on the given bitwidth.\n\n        @param unsigned_array: the unsigned number array.\n        @param bit_width: Bit width...\n\nRegistry actions:\n  auto-add_params (from add_params())\n  auto-init_params (from init_params())\n  auto-run_test_suite (from run_test_suite())\n  auto-get_all (from get_all())\n  auto-upload_standard_weights (from upload_standard_weights())\n  auto-decode_message (from decode_message())\n  auto-create_message (from create_message())\n  auto-get_input_avg_results (from get_input_avg_results())\n  auto-get_integrated_avg_results (from get_integrated_avg_results())\n  auto-get_integration_log_results (from get_integration_log_results())\n  auto-get_qubit_state_log_results (from get_qubit_state_log_results())\n  auto-get_qubit_state_log_counters (from get_qubit_state_log_counters())\n  auto-send_stop_streaming (from send_stop_streaming())\n  auto-get_streaming_results (from get_streaming_results())\n  auto-set_awg_lookuptable (from set_awg_lookuptable())\n  auto-restart_awg_tape (from restart_awg_tape())\n  auto-enable_dac (from enable_dac())\n  auto-set_dac_offset (from set_dac_offset())\n  auto-get_dac_offset (from get_dac_offset())\n  auto-set_ecc_truthtable (from set_ecc_truthtable())\n  auto-set_averaging_parameters (from set_averaging_parameters())\n  auto-serial_read (from serial_read())\n  auto-serial_write (from serial_write())\n  auto-set_conditional_tape (from set_conditional_tape())\n  auto-set_segmented_tape (from set_segmented_tape())\n  auto-create_timing_tape_entry (from create_timing_tape_entry())\n  auto-convert_to_signed (from convert_to_signed())\n  auto-convert_arrary_to_signed (from convert_arrary_to_signed())\n\nRequired output action ids:\n  auto-add_params\n  auto-init_params\n  auto-run_test_suite\n  auto-get_all\n  auto-upload_standard_weights\n  auto-decode_message\n  auto-create_message\n  auto-get_input_avg_results\n  auto-get_integrated_avg_results\n  auto-get_integration_log_results\n  auto-get_qubit_state_log_results\n  auto-get_qubit_state_log_counters\n  auto-send_stop_streaming\n  auto-get_streaming_results\n  auto-set_awg_lookuptable\n  auto-restart_awg_tape\n  auto-enable_dac\n  auto-set_dac_offset\n  auto-get_dac_offset\n  auto-set_ecc_truthtable\n  auto-set_averaging_parameters\n  auto-serial_read\n  auto-serial_write\n  auto-set_conditional_tape\n  auto-set_segmented_tape\n  auto-create_timing_tape_entry\n  auto-convert_to_signed\n  auto-convert_arrary_to_signed"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0ced09b83b32043f0069d54e55c7e481979d689b0768c66a90",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 13450,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 10631,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0ced09b83b32043f0069d54e5625dc819791736872fb4fc2ac",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0ced09b83b32043f0069d54e69886c8197bc144fc19e751707",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"QuTech量子控制箱\",\n  \"name_en\": \"QuTech Control Box\",\n  \"manufacturer\": \"QuTech\",\n  \"description\": \"用于量子比特实验的200 MS/s控制与读出电子学设备。该控制箱通过串行协议进行通信，可配置AWG查找表、DAC使能与偏置、分段/条件时序带，并读取输入平均、积分平均、积分日志、量子态日志及流式采集结果，常用于量子测控与读出实验。\",\n  \"description_en\": \"A 200 MS/s control and readout electronics unit for qubit experiments. The control box communicates over a serial protocol and supports configuring AWG lookup tables, DAC enable and offsets, segmented/conditional timing tapes, and reading input-average, integrated-average, integration-log, qubit-state-log, and streaming acquisition results for quantum control and readout experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-add_params\",\n      \"description\": \"添加控制箱驱动参数定义。\",\n      \"description_en\": \"Add the control box driver parameter definitions.\"\n    },\n    {\n      \"action_name\": \"auto-init_params\",\n      \"description\": \"初始化控制箱参数。\",\n      \"description_en\": \"Initialize the control box parameters.\"\n    },\n    {\n      \"action_name\": \"auto-run_test_suite\",\n      \"description\": \"运行面向控制箱的测试套件。\",\n      \"description_en\": \"Run the test suite for the control box.\"\n    },\n    {\n      \"action_name\": \"auto-get_all\",\n      \"description\": \"读取控制箱的全部已公开参数和状态。\",\n      \"description_en\": \"Read all exposed parameters and states from the control box.\"\n    },\n    {\n      \"action_name\": \"auto-upload_standard_weights\",\n      \"description\": \"向控制箱上传指定中频的标准权重。\",\n      \"description_en\": \"Upload standard weights for the specified intermediate frequency to the control box.\"\n    },\n    {\n      \"action_name\": \"auto-decode_message\",\n      \"description\": \"解码控制箱返回的协议消息。\",\n      \"description_en\": \"Decode a protocol message returned by the control box.\"\n    },\n    {\n      \"action_name\": \"auto-create_message\",\n      \"description\": \"创建发送给控制箱的协议消息。\",\n      \"description_en\": \"Create a protocol message to send to the control box.\"\n    },\n    {\n      \"action_name\": \"auto-get_input_avg_results\",\n      \"description\": \"读取ADC输入平均结果。\",\n      \"description_en\": \"Read the ADC input-average results.\"\n    },\n    {\n      \"action_name\": \"auto-get_integrated_avg_results\",\n      \"description\": \"读取积分平均测量结果。\",\n      \"description_en\": \"Read the integrated-average measurement results.\"\n    },\n    {\n      \"action_name\": \"auto-get_integration_log_results\",\n      \"description\": \"读取积分日志数据。\",\n      \"description_en\": \"Read the integration log data.\"\n    },\n    {\n      \"action_name\": \"auto-get_qubit_state_log_results\",\n      \"description\": \"读取量子态日志结果。\",\n      \"description_en\": \"Read the qubit state log results.\"\n    },\n    {\n      \"action_name\": \"auto-get_qubit_state_log_counters\",\n      \"description\": \"读取量子态日志计数器值。\",\n      \"description_en\": \"Read the qubit state log counter values.\"\n    },\n    {\n      \"action_name\": \"auto-send_stop_streaming\",\n      \"description\": \"发送停止流式采集命令。\",\n      \"description_en\": \"Send the command to stop streaming acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-get_streaming_results\",\n      \"description\": \"获取流式采集数据。\",\n      \"description_en\": \"Get the streaming acquisition data.\"\n    },\n    {\n      \"action_name\": \"auto-set_awg_lookuptable\",\n      \"description\": \"设置指定AWG、表号和DAC通道的查找表波形值。\",\n      \"description_en\": \"Set the lookup-table waveform values for the specified AWG, table number, and DAC channel.\"\n    },\n    {\n      \"action_name\": \"auto-restart_awg_tape\",\n      \"description\": \"重启或复位指定AWG的时序带指针。\",\n      \"description_en\": \"Restart or reset the timing tape pointer for the specified AWG.\"\n    },\n    {\n      \"action_name\": \"auto-enable_dac\",\n      \"description\": \"使能或静音指定DAC通道。\",\n      \"description_en\": \"Enable or mute the specified DAC channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_dac_offset\",\n      \"description\": \"设置指定DAC通道的输出偏置。\",\n      \"description_en\": \"Set the output offset of the specified DAC channel.\"\n    },\n    {\n      \"action_name\": \"auto-get_dac_offset\",\n      \"description\": \"读取指定DAC通道的输出偏置。\",\n      \"description_en\": \"Get the output offset of the specified DAC channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_ecc_truthtable\",\n      \"description\": \"定义ECC真值表（方法注明未实现）。\",\n      \"description_en\": \"Define the ECC truth table (marked as not implemented).\"\n    },\n    {\n      \"action_name\": \"auto-set_averaging_parameters\",\n      \"description\": \"设置平均测量的采样点数和平均长度。\",\n      \"description_en\": \"Set the sample count and averaging size for averaging measurements.\"\n    },\n    {\n      \"action_name\": \"auto-serial_read\",\n      \"description\": \"从串行接口读取控制箱协议数据。\",\n      \"description_en\": \"Read control box protocol data from the serial interface.\"\n    },\n    {\n      \"action_name\": \"auto-serial_write\",\n      \"description\": \"通过串行接口写入控制箱协议数据并可校验执行结果。\",\n      \"description_en\": \"Write control box protocol data through the serial interface and optionally verify execution.\"\n    },\n    {\n      \"action_name\": \"auto-set_conditional_tape\",\n      \"description\": \"设置指定AWG的条件时序带内容。\",\n      \"description_en\": \"Set the conditional timing tape content for the specified AWG.\"\n    },\n    {\n      \"action_name\": \"auto-set_segmented_tape\",\n      \"description\": \"设置指定AWG的分段时序带内容。\",\n      \"description_en\": \"Set the segmented timing tape content for the specified AWG.\"\n    },\n    {\n      \"action_name\": \"auto-create_timing_tape_entry\",\n      \"description\": \"根据等待时间、脉冲编号和标记位创建时序带条目。\",\n      \"description_en\": \"Create a timing tape entry from wait time, pulse number, and marker settings.\"\n    },\n    {\n      \"action_name\": \"auto-convert_to_signed\",\n      \"description\": \"按给定位宽将无符号整数转换为有符号整数。\",\n      \"description_en\": \"Convert an unsigned integer to a signed integer using the specified bit width.\"\n    },\n    {\n      \"action_name\": \"auto-convert_arrary_to_signed\",\n      \"description\": \"按给定位宽将无符号整数数组转换为有符号数组。\",\n      \"description_en\": \"Convert an unsigned integer array to a signed array using the specified bit width.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"quantum control electronics\",\n    \"qubit readout\",\n    \"200 MS/s\",\n    \"AWG waveform generation\",\n    \"DAC offset control\",\n    \"integration logging\",\n    \"qubit state logging\",\n    \"serial instrument communication\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 3722,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2650,
+      "output_tokens_details": {
+        "reasoning_tokens": 1016
+      },
+      "total_tokens": 6372
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 3722,
+      "output_token_count": 2650,
+      "predict_time": 42.093140244
+    }
+  },
+  "output_text": "{\n  \"name\": \"QuTech量子控制箱\",\n  \"name_en\": \"QuTech Control Box\",\n  \"manufacturer\": \"QuTech\",\n  \"description\": \"用于量子比特实验的200 MS/s控制与读出电子学设备。该控制箱通过串行协议进行通信，可配置AWG查找表、DAC使能与偏置、分段/条件时序带，并读取输入平均、积分平均、积分日志、量子态日志及流式采集结果，常用于量子测控与读出实验。\",\n  \"description_en\": \"A 200 MS/s control and readout electronics unit for qubit experiments. The control box communicates over a serial protocol and supports configuring AWG lookup tables, DAC enable and offsets, segmented/conditional timing tapes, and reading input-average, integrated-average, integration-log, qubit-state-log, and streaming acquisition results for quantum control and readout experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-add_params\",\n      \"description\": \"添加控制箱驱动参数定义。\",\n      \"description_en\": \"Add the control box driver parameter definitions.\"\n    },\n    {\n      \"action_name\": \"auto-init_params\",\n      \"description\": \"初始化控制箱参数。\",\n      \"description_en\": \"Initialize the control box parameters.\"\n    },\n    {\n      \"action_name\": \"auto-run_test_suite\",\n      \"description\": \"运行面向控制箱的测试套件。\",\n      \"description_en\": \"Run the test suite for the control box.\"\n    },\n    {\n      \"action_name\": \"auto-get_all\",\n      \"description\": \"读取控制箱的全部已公开参数和状态。\",\n      \"description_en\": \"Read all exposed parameters and states from the control box.\"\n    },\n    {\n      \"action_name\": \"auto-upload_standard_weights\",\n      \"description\": \"向控制箱上传指定中频的标准权重。\",\n      \"description_en\": \"Upload standard weights for the specified intermediate frequency to the control box.\"\n    },\n    {\n      \"action_name\": \"auto-decode_message\",\n      \"description\": \"解码控制箱返回的协议消息。\",\n      \"description_en\": \"Decode a protocol message returned by the control box.\"\n    },\n    {\n      \"action_name\": \"auto-create_message\",\n      \"description\": \"创建发送给控制箱的协议消息。\",\n      \"description_en\": \"Create a protocol message to send to the control box.\"\n    },\n    {\n      \"action_name\": \"auto-get_input_avg_results\",\n      \"description\": \"读取ADC输入平均结果。\",\n      \"description_en\": \"Read the ADC input-average results.\"\n    },\n    {\n      \"action_name\": \"auto-get_integrated_avg_results\",\n      \"description\": \"读取积分平均测量结果。\",\n      \"description_en\": \"Read the integrated-average measurement results.\"\n    },\n    {\n      \"action_name\": \"auto-get_integration_log_results\",\n      \"description\": \"读取积分日志数据。\",\n      \"description_en\": \"Read the integration log data.\"\n    },\n    {\n      \"action_name\": \"auto-get_qubit_state_log_results\",\n      \"description\": \"读取量子态日志结果。\",\n      \"description_en\": \"Read the qubit state log results.\"\n    },\n    {\n      \"action_name\": \"auto-get_qubit_state_log_counters\",\n      \"description\": \"读取量子态日志计数器值。\",\n      \"description_en\": \"Read the qubit state log counter values.\"\n    },\n    {\n      \"action_name\": \"auto-send_stop_streaming\",\n      \"description\": \"发送停止流式采集命令。\",\n      \"description_en\": \"Send the command to stop streaming acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-get_streaming_results\",\n      \"description\": \"获取流式采集数据。\",\n      \"description_en\": \"Get the streaming acquisition data.\"\n    },\n    {\n      \"action_name\": \"auto-set_awg_lookuptable\",\n      \"description\": \"设置指定AWG、表号和DAC通道的查找表波形值。\",\n      \"description_en\": \"Set the lookup-table waveform values for the specified AWG, table number, and DAC channel.\"\n    },\n    {\n      \"action_name\": \"auto-restart_awg_tape\",\n      \"description\": \"重启或复位指定AWG的时序带指针。\",\n      \"description_en\": \"Restart or reset the timing tape pointer for the specified AWG.\"\n    },\n    {\n      \"action_name\": \"auto-enable_dac\",\n      \"description\": \"使能或静音指定DAC通道。\",\n      \"description_en\": \"Enable or mute the specified DAC channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_dac_offset\",\n      \"description\": \"设置指定DAC通道的输出偏置。\",\n      \"description_en\": \"Set the output offset of the specified DAC channel.\"\n    },\n    {\n      \"action_name\": \"auto-get_dac_offset\",\n      \"description\": \"读取指定DAC通道的输出偏置。\",\n      \"description_en\": \"Get the output offset of the specified DAC channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_ecc_truthtable\",\n      \"description\": \"定义ECC真值表（方法注明未实现）。\",\n      \"description_en\": \"Define the ECC truth table (marked as not implemented).\"\n    },\n    {\n      \"action_name\": \"auto-set_averaging_parameters\",\n      \"description\": \"设置平均测量的采样点数和平均长度。\",\n      \"description_en\": \"Set the sample count and averaging size for averaging measurements.\"\n    },\n    {\n      \"action_name\": \"auto-serial_read\",\n      \"description\": \"从串行接口读取控制箱协议数据。\",\n      \"description_en\": \"Read control box protocol data from the serial interface.\"\n    },\n    {\n      \"action_name\": \"auto-serial_write\",\n      \"description\": \"通过串行接口写入控制箱协议数据并可校验执行结果。\",\n      \"description_en\": \"Write control box protocol data through the serial interface and optionally verify execution.\"\n    },\n    {\n      \"action_name\": \"auto-set_conditional_tape\",\n      \"description\": \"设置指定AWG的条件时序带内容。\",\n      \"description_en\": \"Set the conditional timing tape content for the specified AWG.\"\n    },\n    {\n      \"action_name\": \"auto-set_segmented_tape\",\n      \"description\": \"设置指定AWG的分段时序带内容。\",\n      \"description_en\": \"Set the segmented timing tape content for the specified AWG.\"\n    },\n    {\n      \"action_name\": \"auto-create_timing_tape_entry\",\n      \"description\": \"根据等待时间、脉冲编号和标记位创建时序带条目。\",\n      \"description_en\": \"Create a timing tape entry from wait time, pulse number, and marker settings.\"\n    },\n    {\n      \"action_name\": \"auto-convert_to_signed\",\n      \"description\": \"按给定位宽将无符号整数转换为有符号整数。\",\n      \"description_en\": \"Convert an unsigned integer to a signed integer using the specified bit width.\"\n    },\n    {\n      \"action_name\": \"auto-convert_arrary_to_signed\",\n      \"description\": \"按给定位宽将无符号整数数组转换为有符号数组。\",\n      \"description_en\": \"Convert an unsigned integer array to a signed array using the specified bit width.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"quantum control electronics\",\n    \"qubit readout\",\n    \"200 MS/s\",\n    \"AWG waveform generation\",\n    \"DAC offset control\",\n    \"integration logging\",\n    \"qubit state logging\",\n    \"serial instrument communication\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: psc_eth\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/delta_elektronika/psc_eth.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.power_supply.delta_elektronika_psc_eth:PscEth\n\nClass: PscEth (focal)\n  Bases: ['Instrument']\n  Docstring: Communicate with a Delta Elektronica one channel power supply via the\nPSC-ETH-2 ethernet interface.\n\nFor communication, make sure the device is set to \"ethernet\" mode.\n\nExample:\n    >>> import instruments as ik\n    >>> from instruments import units as u\n    >>> i = ik.delta_elektronika.PscEth.open_tcpip(\"192.168.127.100\", port=8462)\n    >>> print(i.name)\n\nFocal class methods:\n  [status_getter] name(self)\n  [status_getter] current_limit(self)\n    comment: Get the current limit status.\n\n        :return: A tuple of the current limit status and the current limit value.\n        :rtype: `tuple` of (`PscEth.LimitStatus`, `~pint.Quantity`)\n  [status_getter] voltage_limit(self)\n    comment: Get the voltage limit status.\n\n        :return: A tuple of the voltage limit status and the voltage limit value.\n        :rtype: `tuple` of (`PscEth.LimitStatus`, `~pint.Quantity`)\n  [command] recall(self)\n    comment: Recall the settings from non-volatile memory.\n  [command] reset(self)\n    comment: Reset the instrument to default settings.\n  [command] save(self)\n    comment: Save the current settings to non-volatile memory.\n  [status_setter] set_current_limit(self, stat, val=0)\n    comment: Set the current limit.\n\n        :param stat: The limit status to set.\n        :type stat: `PscEth.LimitStatus`\n        :param val: The current limit value to set. Only requiered when turning it on.\n  ...\n  [status_setter] set_voltage_limit(self, stat, val=0)\n    comment: Set the voltage limit.\n\n        :param stat: The limit status to set.\n        :type stat: `PscEth.LimitStatus`\n        :param val: The voltage limit value to set. Only requiered when turning it on.\n  ...\n\nRegistry actions:\n  auto-current (from current())\n  auto-current_max (from current_max())\n  auto-recall (from recall())\n  auto-reset (from reset())\n  auto-save (from save())\n  auto-set_current_limit (from set_current_limit())\n  auto-set_voltage_limit (from set_voltage_limit())\n  auto-voltage (from voltage())\n  auto-voltage_max (from voltage_max())\n  auto-name (from name())\n  auto-current_limit (from current_limit())\n  auto-voltage_limit (from voltage_limit())\n\nRequired output action ids:\n  auto-current\n  auto-current_max\n  auto-recall\n  auto-reset\n  auto-save\n  auto-set_current_limit\n  auto-set_voltage_limit\n  auto-voltage\n  auto-voltage_max\n  auto-name\n  auto-current_limit\n  auto-voltage_limit"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_00242774ad15146c0069d54c08e59c8190b960d038fa22c7a4",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1804,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5048,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_00242774ad15146c0069d54c09482081909d41e943d2a69989",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_00242774ad15146c0069d54c140af881908a2f3fcdddf27a1a",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Delta Elektronika 单通道可编程直流电源\",\n  \"name_en\": \"Delta Elektronika single-channel programmable DC power supply\",\n  \"manufacturer\": \"Delta Elektronika\",\n  \"description\": \"通过 PSC-ETH-2 以太网接口通信的单通道可编程直流电源，可用于实验中提供和调节输出电压、电流，并配置电压/电流限制以及保存、调用设备设置。\",\n  \"description_en\": \"A single-channel programmable DC power supply accessed via the PSC-ETH-2 Ethernet interface. It is used in laboratory setups to source and adjust output voltage and current, configure voltage/current limits, and save or recall instrument settings.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-current\",\n      \"description\": \"获取输出电流。\",\n      \"description_en\": \"Get the output current.\"\n    },\n    {\n      \"action_name\": \"auto-current_max\",\n      \"description\": \"获取最大输出电流。\",\n      \"description_en\": \"Get the maximum output current.\"\n    },\n    {\n      \"action_name\": \"auto-recall\",\n      \"description\": \"调用非易失性存储器中的设置。\",\n      \"description_en\": \"Recall settings from non-volatile memory.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"将设备重置为默认设置。\",\n      \"description_en\": \"Reset the instrument to default settings.\"\n    },\n    {\n      \"action_name\": \"auto-save\",\n      \"description\": \"将当前设置保存到非易失性存储器。\",\n      \"description_en\": \"Save the current settings to non-volatile memory.\"\n    },\n    {\n      \"action_name\": \"auto-set_current_limit\",\n      \"description\": \"设置/定义电流限制状态和数值。\",\n      \"description_en\": \"Set/define the current limit status and value.\"\n    },\n    {\n      \"action_name\": \"auto-set_voltage_limit\",\n      \"description\": \"设置/定义电压限制状态和数值。\",\n      \"description_en\": \"Set/define the voltage limit status and value.\"\n    },\n    {\n      \"action_name\": \"auto-voltage\",\n      \"description\": \"获取输出电压。\",\n      \"description_en\": \"Get the output voltage.\"\n    },\n    {\n      \"action_name\": \"auto-voltage_max\",\n      \"description\": \"获取最大输出电压。\",\n      \"description_en\": \"Get the maximum output voltage.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取设备名称。\",\n      \"description_en\": \"Get the device name.\"\n    },\n    {\n      \"action_name\": \"auto-current_limit\",\n      \"description\": \"获取电流限制状态和数值。\",\n      \"description_en\": \"Get the current limit status and value.\"\n    },\n    {\n      \"action_name\": \"auto-voltage_limit\",\n      \"description\": \"获取电压限制状态和数值。\",\n      \"description_en\": \"Get the voltage limit status and value.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"programmable DC power supply\",\n    \"single-channel output\",\n    \"Ethernet control\",\n    \"voltage/current sourcing\",\n    \"current limit setting\",\n    \"voltage limit setting\",\n    \"non-volatile settings\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1357,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1227,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2584
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1357,
+      "output_token_count": 1227,
+      "predict_time": 21.59147356
+    }
+  },
+  "output_text": "{\n  \"name\": \"Delta Elektronika 单通道可编程直流电源\",\n  \"name_en\": \"Delta Elektronika single-channel programmable DC power supply\",\n  \"manufacturer\": \"Delta Elektronika\",\n  \"description\": \"通过 PSC-ETH-2 以太网接口通信的单通道可编程直流电源，可用于实验中提供和调节输出电压、电流，并配置电压/电流限制以及保存、调用设备设置。\",\n  \"description_en\": \"A single-channel programmable DC power supply accessed via the PSC-ETH-2 Ethernet interface. It is used in laboratory setups to source and adjust output voltage and current, configure voltage/current limits, and save or recall instrument settings.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-current\",\n      \"description\": \"获取输出电流。\",\n      \"description_en\": \"Get the output current.\"\n    },\n    {\n      \"action_name\": \"auto-current_max\",\n      \"description\": \"获取最大输出电流。\",\n      \"description_en\": \"Get the maximum output current.\"\n    },\n    {\n      \"action_name\": \"auto-recall\",\n      \"description\": \"调用非易失性存储器中的设置。\",\n      \"description_en\": \"Recall settings from non-volatile memory.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"将设备重置为默认设置。\",\n      \"description_en\": \"Reset the instrument to default settings.\"\n    },\n    {\n      \"action_name\": \"auto-save\",\n      \"description\": \"将当前设置保存到非易失性存储器。\",\n      \"description_en\": \"Save the current settings to non-volatile memory.\"\n    },\n    {\n      \"action_name\": \"auto-set_current_limit\",\n      \"description\": \"设置/定义电流限制状态和数值。\",\n      \"description_en\": \"Set/define the current limit status and value.\"\n    },\n    {\n      \"action_name\": \"auto-set_voltage_limit\",\n      \"description\": \"设置/定义电压限制状态和数值。\",\n      \"description_en\": \"Set/define the voltage limit status and value.\"\n    },\n    {\n      \"action_name\": \"auto-voltage\",\n      \"description\": \"获取输出电压。\",\n      \"description_en\": \"Get the output voltage.\"\n    },\n    {\n      \"action_name\": \"auto-voltage_max\",\n      \"description\": \"获取最大输出电压。\",\n      \"description_en\": \"Get the maximum output voltage.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取设备名称。\",\n      \"description_en\": \"Get the device name.\"\n    },\n    {\n      \"action_name\": \"auto-current_limit\",\n      \"description\": \"获取电流限制状态和数值。\",\n      \"description_en\": \"Get the current limit status and value.\"\n    },\n    {\n      \"action_name\": \"auto-voltage_limit\",\n      \"description\": \"获取电压限制状态和数值。\",\n      \"description_en\": \"Get the voltage limit status and value.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"programmable DC power supply\",\n    \"single-channel output\",\n    \"Ethernet control\",\n    \"voltage/current sourcing\",\n    \"current limit setting\",\n    \"voltage limit setting\",\n    \"non-volatile settings\"\n  ]\n}"
+}

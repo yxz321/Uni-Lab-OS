@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: rail\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: Rail.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.rail.rail:Rail\n\nClass: Rail (focal)\n  Bases: []\n\nFocal class methods:\n  [command] read_intelligent(self)\n    comment: Read the echo from Linear Motor Axis\n  [command] connect_rail(self, host=RAIL_HOST, port=RAIL_PORT, timeout=2)\n    comment: Establish connection with the Linear Motor Axis via telnet\n    comment: nf.log_print('Initiating Linear Motor Axis...')\n    comment: nf.log_print(\"Another user is already in connection!\")\n    comment: nf.log_print(\"Checking for reference status...\")\n    comment: Check for reference status\n    comment: nf.log_print(\"Reference already completed!\")\n    comment: nf.log_print(\"Referencing position...\")\n    comment: nf.log_print(\"Homing linear motor...\")\n  [command] set_ml(self, ml=4700)\n    comment: Set the mass load for the rail, Mecademic weight=4,5kg\n  [command] set_vel(self, vel)\n    comment: Accelerate or decelerate the moving speed\n    comment: cmd = f\"SPI {int(vel*1000)}\\r\".encode()\n  [status_getter] get_actual_vel(self)\n    comment: Tell the current speed\n  [command] check_move(self, check_pos)\n    comment: Block the next movement\n    comment: nf.log_print(f\"Abs_Position reached: {self.getPosition()}mm; Processing time: {self.getProcessTime()}ms\")\n  [command] getProcessTime(self)\n    comment: Tell the time used for last movement\n  [command] getPosition(self)\n    comment: Tell the current position of Linear Motor in mm\n  [command] getStatus(self)\n    comment: Tell the current status of Linear Motor Axis, status= 1: the Linear Motor Axis is stopped, status= 0: the Linear Motor is in motion\n  [command] move(self, pos_abs)\n    comment: Drive the Linear Motor Axis into expected position, argument's unit in mm\n    comment: time.sleep(0.1)\n    comment: cmd = f\"G {int(pos_abs*1000)}\\r\".encode()\n    comment: self.session.write(cmd)\n    comment: self.check_move(check_pos=pos_abs)\n    comment: return True\n  [command] rel_move(self, pos_rel)\n  [command] stopMotion(self)\n  [command] resumeMotion(self)\n  [command] disconnect_rail(self, homerail=True)\n    comment: Disconnect with the Linear Motor, power_statu = 1: Linear MOtor still connected, power_statu = 2 : Linear Motor disconnected\n    comment: nf.log_print('Shutting down Linear Motor Axis...')\n    comment: nf.log_print(\"Linear axis disconnected!\")\n  [command] removeerror(self)\n\nRegistry actions:\n  auto-read_intelligent (from read_intelligent())\n  auto-connect_rail (from connect_rail())\n  auto-set_ml (from set_ml())\n  auto-set_vel (from set_vel())\n  auto-check_move (from check_move())\n  auto-getProcessTime (from getProcessTime())\n  auto-getPosition (from getPosition())\n  auto-getStatus (from getStatus())\n  auto-move (from move())\n  auto-rel_move (from rel_move())\n  auto-stopMotion (from stopMotion())\n  auto-resumeMotion (from resumeMotion())\n  auto-disconnect_rail (from disconnect_rail())\n  auto-removeerror (from removeerror())\n\nRequired output action ids:\n  auto-read_intelligent\n  auto-connect_rail\n  auto-set_ml\n  auto-set_vel\n  auto-check_move\n  auto-getProcessTime\n  auto-getPosition\n  auto-getStatus\n  auto-move\n  auto-rel_move\n  auto-stopMotion\n  auto-resumeMotion\n  auto-disconnect_rail\n  auto-removeerror"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_02c4e1057a04d85c0069d54e6a6bdc81939445a82ba2c24ebb",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1798,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5519,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_02c4e1057a04d85c0069d54e6ac99c8193abe34eba9e06258b",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_02c4e1057a04d85c0069d54e739df48193a9a6a49b06e26a4c",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"线性电机滑台\",\n  \"name_en\": \"Linear Motor Rail\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验平台上一维直线运动与定位的线性电机滑台。该设备支持通过网络连接、回零/参考点建立、设置负载与速度、执行绝对和相对位移、停止与恢复运动，并可读取当前位置、运动状态、回显信息及上次运动耗时，适合样品、机械臂末端或工装在导轨上的精密移动。\",\n  \"description_en\": \"A linear motor rail for one-dimensional motion and positioning in laboratory setups. It supports network connection, homing/referencing, load and speed configuration, absolute and relative moves, stop and resume control, and reading current position, motion status, device echo, and last move time. It is suitable for precise transport of samples, fixtures, or robot-mounted payloads along a rail.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-read_intelligent\",\n      \"description\": \"读取线性电机轴返回的回显信息。\",\n      \"description_en\": \"Read the echo returned by the linear motor axis.\"\n    },\n    {\n      \"action_name\": \"auto-connect_rail\",\n      \"description\": \"通过 Telnet 连接线性电机滑台，并检查或执行参考点/回零流程。\",\n      \"description_en\": \"Connect to the linear motor rail via Telnet and check or perform referencing/homing.\"\n    },\n    {\n      \"action_name\": \"auto-set_ml\",\n      \"description\": \"设置滑台运动时的负载质量参数。\",\n      \"description_en\": \"Set the mass load parameter for rail motion.\"\n    },\n    {\n      \"action_name\": \"auto-set_vel\",\n      \"description\": \"设置滑台的运动速度。\",\n      \"description_en\": \"Set the motion speed of the rail.\"\n    },\n    {\n      \"action_name\": \"auto-check_move\",\n      \"description\": \"阻塞等待，直到滑台到达指定位置。\",\n      \"description_en\": \"Block until the rail reaches the specified position.\"\n    },\n    {\n      \"action_name\": \"auto-getProcessTime\",\n      \"description\": \"获取上一次运动所用时间。\",\n      \"description_en\": \"Get the time used for the last movement.\"\n    },\n    {\n      \"action_name\": \"auto-getPosition\",\n      \"description\": \"获取线性电机滑台的当前位置。\",\n      \"description_en\": \"Get the current position of the linear motor rail.\"\n    },\n    {\n      \"action_name\": \"auto-getStatus\",\n      \"description\": \"获取线性电机轴的当前运动状态。\",\n      \"description_en\": \"Get the current motion status of the linear motor axis.\"\n    },\n    {\n      \"action_name\": \"auto-move\",\n      \"description\": \"将滑台移动到指定绝对位置。\",\n      \"description_en\": \"Move the rail to a specified absolute position.\"\n    },\n    {\n      \"action_name\": \"auto-rel_move\",\n      \"description\": \"按给定相对位移移动滑台。\",\n      \"description_en\": \"Move the rail by a specified relative displacement.\"\n    },\n    {\n      \"action_name\": \"auto-stopMotion\",\n      \"description\": \"停止滑台运动。\",\n      \"description_en\": \"Stop the rail motion.\"\n    },\n    {\n      \"action_name\": \"auto-resumeMotion\",\n      \"description\": \"恢复滑台运动。\",\n      \"description_en\": \"Resume the rail motion.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect_rail\",\n      \"description\": \"断开与线性电机滑台的连接，可在断开前执行回零。\",\n      \"description_en\": \"Disconnect from the linear motor rail, optionally homing before disconnection.\"\n    },\n    {\n      \"action_name\": \"auto-removeerror\",\n      \"description\": \"清除线性电机轴的错误状态。\",\n      \"description_en\": \"Clear the error state of the linear motor axis.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"linear motion\",\n    \"motorized rail\",\n    \"linear motor axis\",\n    \"absolute positioning\",\n    \"relative move\",\n    \"homing\",\n    \"telnet control\",\n    \"motion status monitoring\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1520,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1429,
+      "output_tokens_details": {
+        "reasoning_tokens": 512
+      },
+      "total_tokens": 2949
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1520,
+      "output_token_count": 1429,
+      "predict_time": 23.085302711
+    }
+  },
+  "output_text": "{\n  \"name\": \"线性电机滑台\",\n  \"name_en\": \"Linear Motor Rail\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验平台上一维直线运动与定位的线性电机滑台。该设备支持通过网络连接、回零/参考点建立、设置负载与速度、执行绝对和相对位移、停止与恢复运动，并可读取当前位置、运动状态、回显信息及上次运动耗时，适合样品、机械臂末端或工装在导轨上的精密移动。\",\n  \"description_en\": \"A linear motor rail for one-dimensional motion and positioning in laboratory setups. It supports network connection, homing/referencing, load and speed configuration, absolute and relative moves, stop and resume control, and reading current position, motion status, device echo, and last move time. It is suitable for precise transport of samples, fixtures, or robot-mounted payloads along a rail.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-read_intelligent\",\n      \"description\": \"读取线性电机轴返回的回显信息。\",\n      \"description_en\": \"Read the echo returned by the linear motor axis.\"\n    },\n    {\n      \"action_name\": \"auto-connect_rail\",\n      \"description\": \"通过 Telnet 连接线性电机滑台，并检查或执行参考点/回零流程。\",\n      \"description_en\": \"Connect to the linear motor rail via Telnet and check or perform referencing/homing.\"\n    },\n    {\n      \"action_name\": \"auto-set_ml\",\n      \"description\": \"设置滑台运动时的负载质量参数。\",\n      \"description_en\": \"Set the mass load parameter for rail motion.\"\n    },\n    {\n      \"action_name\": \"auto-set_vel\",\n      \"description\": \"设置滑台的运动速度。\",\n      \"description_en\": \"Set the motion speed of the rail.\"\n    },\n    {\n      \"action_name\": \"auto-check_move\",\n      \"description\": \"阻塞等待，直到滑台到达指定位置。\",\n      \"description_en\": \"Block until the rail reaches the specified position.\"\n    },\n    {\n      \"action_name\": \"auto-getProcessTime\",\n      \"description\": \"获取上一次运动所用时间。\",\n      \"description_en\": \"Get the time used for the last movement.\"\n    },\n    {\n      \"action_name\": \"auto-getPosition\",\n      \"description\": \"获取线性电机滑台的当前位置。\",\n      \"description_en\": \"Get the current position of the linear motor rail.\"\n    },\n    {\n      \"action_name\": \"auto-getStatus\",\n      \"description\": \"获取线性电机轴的当前运动状态。\",\n      \"description_en\": \"Get the current motion status of the linear motor axis.\"\n    },\n    {\n      \"action_name\": \"auto-move\",\n      \"description\": \"将滑台移动到指定绝对位置。\",\n      \"description_en\": \"Move the rail to a specified absolute position.\"\n    },\n    {\n      \"action_name\": \"auto-rel_move\",\n      \"description\": \"按给定相对位移移动滑台。\",\n      \"description_en\": \"Move the rail by a specified relative displacement.\"\n    },\n    {\n      \"action_name\": \"auto-stopMotion\",\n      \"description\": \"停止滑台运动。\",\n      \"description_en\": \"Stop the rail motion.\"\n    },\n    {\n      \"action_name\": \"auto-resumeMotion\",\n      \"description\": \"恢复滑台运动。\",\n      \"description_en\": \"Resume the rail motion.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect_rail\",\n      \"description\": \"断开与线性电机滑台的连接，可在断开前执行回零。\",\n      \"description_en\": \"Disconnect from the linear motor rail, optionally homing before disconnection.\"\n    },\n    {\n      \"action_name\": \"auto-removeerror\",\n      \"description\": \"清除线性电机轴的错误状态。\",\n      \"description_en\": \"Clear the error state of the linear motor axis.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"linear motion\",\n    \"motorized rail\",\n    \"linear motor axis\",\n    \"absolute positioning\",\n    \"relative move\",\n    \"homing\",\n    \"telnet control\",\n    \"motion status monitoring\"\n  ]\n}"
+}

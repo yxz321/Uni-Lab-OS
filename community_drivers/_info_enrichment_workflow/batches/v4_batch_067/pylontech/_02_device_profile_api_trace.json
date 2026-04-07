@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: pylontech\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pylontech/pylontech.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.pylontech:Pylontech\n\nClass: HexToByte \n  Bases: ['construct.Adapter']\n\nClass: JoinBytes \n  Bases: ['construct.Adapter']\n\nClass: DivideBy1000 \n  Bases: ['construct.Adapter']\n\nClass: DivideBy100 \n  Bases: ['construct.Adapter']\n\nClass: DivideBy10 \n  Bases: ['construct.Adapter']\n\nClass: ToVolt \n  Bases: ['construct.Adapter']\n\nClass: ToAmp \n  Bases: ['construct.Adapter']\n\nClass: ToCelsius \n  Bases: ['construct.Adapter']\n\nClass: Pylontech (focal)\n  Bases: []\n\nFocal class methods:\n  [command] get_frame_checksum(frame)\n  [command] get_info_length(info)\n  [command] send_cmd(self, address, cmd, info=b'')\n  [command] read_frame(self)\n  [command] scan_for_batteries(self, start=0, end=255)\n    comment: Returns a map of the batteries id to their serial number\n  [command] get_protocol_version(self)\n  [command] get_manufacturer_info(self)\n  [command] get_system_parameters(self, dev_id=None)\n  [command] get_management_info(self, dev_id)\n  [command] get_module_serial_number(self, dev_id=None)\n    comment: infoflag = f.info[0]\n  [command] get_values(self)\n    comment: infoflag = f.info[0]\n  [command] get_values_single(self, dev_id)\n    comment: infoflag = f.info[0]\n\nRegistry actions:\n  auto-get_frame_checksum (from get_frame_checksum())\n  auto-get_info_length (from get_info_length())\n  auto-send_cmd (from send_cmd())\n  auto-read_frame (from read_frame())\n  auto-scan_for_batteries (from scan_for_batteries())\n  auto-get_protocol_version (from get_protocol_version())\n  auto-get_manufacturer_info (from get_manufacturer_info())\n  auto-get_system_parameters (from get_system_parameters())\n  auto-get_management_info (from get_management_info())\n  auto-get_module_serial_number (from get_module_serial_number())\n  auto-get_values (from get_values())\n  auto-get_values_single (from get_values_single())\n\nRequired output action ids:\n  auto-get_frame_checksum\n  auto-get_info_length\n  auto-send_cmd\n  auto-read_frame\n  auto-scan_for_batteries\n  auto-get_protocol_version\n  auto-get_manufacturer_info\n  auto-get_system_parameters\n  auto-get_management_info\n  auto-get_module_serial_number\n  auto-get_values\n  auto-get_values_single"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0cfed1e662e928ce0069d54e36cd9081938202306be731b487",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1814,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4781,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0cfed1e662e928ce0069d54e3732a481938157961088fcee2c",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0cfed1e662e928ce0069d54e405b848193b44e2559c7cfa1b9",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"派能储能电池模组\",\n  \"name_en\": \"Pylontech battery module\",\n  \"manufacturer\": \"Pylontech\",\n  \"description\": \"用于与派能储能锂电池模组或其电池管理系统通信，扫描总线上的电池模块，并读取协议版本、厂商信息、系统参数、管理信息、序列号及运行数值，适合实验室储能系统监测与集成。\",\n  \"description_en\": \"Used to communicate with Pylontech energy storage battery modules or their battery management interface, scan battery modules on the bus, and read protocol version, manufacturer information, system parameters, management information, serial numbers, and operating values for laboratory energy storage monitoring and integration.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-get_frame_checksum\",\n      \"description\": \"计算通信帧校验和。\",\n      \"description_en\": \"Calculate the checksum of a communication frame.\"\n    },\n    {\n      \"action_name\": \"auto-get_info_length\",\n      \"description\": \"获取信息区长度编码。\",\n      \"description_en\": \"Get the encoded length of the information field.\"\n    },\n    {\n      \"action_name\": \"auto-send_cmd\",\n      \"description\": \"向指定电池地址发送命令帧。\",\n      \"description_en\": \"Send a command frame to the specified battery address.\"\n    },\n    {\n      \"action_name\": \"auto-read_frame\",\n      \"description\": \"读取并解析设备返回的通信帧。\",\n      \"description_en\": \"Read and parse a communication frame returned by the device.\"\n    },\n    {\n      \"action_name\": \"auto-scan_for_batteries\",\n      \"description\": \"扫描总线上的电池模块并返回设备编号与序列号映射。\",\n      \"description_en\": \"Scan battery modules on the bus and return a mapping of device IDs to serial numbers.\"\n    },\n    {\n      \"action_name\": \"auto-get_protocol_version\",\n      \"description\": \"读取设备支持的通信协议版本。\",\n      \"description_en\": \"Read the communication protocol version supported by the device.\"\n    },\n    {\n      \"action_name\": \"auto-get_manufacturer_info\",\n      \"description\": \"读取设备厂商信息。\",\n      \"description_en\": \"Read manufacturer information from the device.\"\n    },\n    {\n      \"action_name\": \"auto-get_system_parameters\",\n      \"description\": \"读取系统参数。\",\n      \"description_en\": \"Read system parameters.\"\n    },\n    {\n      \"action_name\": \"auto-get_management_info\",\n      \"description\": \"读取指定电池模块的管理信息。\",\n      \"description_en\": \"Read management information for the specified battery module.\"\n    },\n    {\n      \"action_name\": \"auto-get_module_serial_number\",\n      \"description\": \"读取电池模块序列号。\",\n      \"description_en\": \"Read the battery module serial number.\"\n    },\n    {\n      \"action_name\": \"auto-get_values\",\n      \"description\": \"读取电池系统的运行数值。\",\n      \"description_en\": \"Read operating values from the battery system.\"\n    },\n    {\n      \"action_name\": \"auto-get_values_single\",\n      \"description\": \"读取指定电池模块的运行数值。\",\n      \"description_en\": \"Read operating values from the specified battery module.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Pylontech\",\n    \"energy storage battery\",\n    \"battery management\",\n    \"battery telemetry\",\n    \"module scanning\",\n    \"serial communication\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1256,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1178,
+      "output_tokens_details": {
+        "reasoning_tokens": 431
+      },
+      "total_tokens": 2434
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1256,
+      "output_token_count": 1178,
+      "predict_time": 23.086317616
+    }
+  },
+  "output_text": "{\n  \"name\": \"派能储能电池模组\",\n  \"name_en\": \"Pylontech battery module\",\n  \"manufacturer\": \"Pylontech\",\n  \"description\": \"用于与派能储能锂电池模组或其电池管理系统通信，扫描总线上的电池模块，并读取协议版本、厂商信息、系统参数、管理信息、序列号及运行数值，适合实验室储能系统监测与集成。\",\n  \"description_en\": \"Used to communicate with Pylontech energy storage battery modules or their battery management interface, scan battery modules on the bus, and read protocol version, manufacturer information, system parameters, management information, serial numbers, and operating values for laboratory energy storage monitoring and integration.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-get_frame_checksum\",\n      \"description\": \"计算通信帧校验和。\",\n      \"description_en\": \"Calculate the checksum of a communication frame.\"\n    },\n    {\n      \"action_name\": \"auto-get_info_length\",\n      \"description\": \"获取信息区长度编码。\",\n      \"description_en\": \"Get the encoded length of the information field.\"\n    },\n    {\n      \"action_name\": \"auto-send_cmd\",\n      \"description\": \"向指定电池地址发送命令帧。\",\n      \"description_en\": \"Send a command frame to the specified battery address.\"\n    },\n    {\n      \"action_name\": \"auto-read_frame\",\n      \"description\": \"读取并解析设备返回的通信帧。\",\n      \"description_en\": \"Read and parse a communication frame returned by the device.\"\n    },\n    {\n      \"action_name\": \"auto-scan_for_batteries\",\n      \"description\": \"扫描总线上的电池模块并返回设备编号与序列号映射。\",\n      \"description_en\": \"Scan battery modules on the bus and return a mapping of device IDs to serial numbers.\"\n    },\n    {\n      \"action_name\": \"auto-get_protocol_version\",\n      \"description\": \"读取设备支持的通信协议版本。\",\n      \"description_en\": \"Read the communication protocol version supported by the device.\"\n    },\n    {\n      \"action_name\": \"auto-get_manufacturer_info\",\n      \"description\": \"读取设备厂商信息。\",\n      \"description_en\": \"Read manufacturer information from the device.\"\n    },\n    {\n      \"action_name\": \"auto-get_system_parameters\",\n      \"description\": \"读取系统参数。\",\n      \"description_en\": \"Read system parameters.\"\n    },\n    {\n      \"action_name\": \"auto-get_management_info\",\n      \"description\": \"读取指定电池模块的管理信息。\",\n      \"description_en\": \"Read management information for the specified battery module.\"\n    },\n    {\n      \"action_name\": \"auto-get_module_serial_number\",\n      \"description\": \"读取电池模块序列号。\",\n      \"description_en\": \"Read the battery module serial number.\"\n    },\n    {\n      \"action_name\": \"auto-get_values\",\n      \"description\": \"读取电池系统的运行数值。\",\n      \"description_en\": \"Read operating values from the battery system.\"\n    },\n    {\n      \"action_name\": \"auto-get_values_single\",\n      \"description\": \"读取指定电池模块的运行数值。\",\n      \"description_en\": \"Read operating values from the specified battery module.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Pylontech\",\n    \"energy storage battery\",\n    \"battery management\",\n    \"battery telemetry\",\n    \"module scanning\",\n    \"serial communication\"\n  ]\n}"
+}

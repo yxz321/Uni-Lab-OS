@@ -1,45 +1,113 @@
-Device: pulsar
-Registry Key: pulsar
-Short Description: QuTech Pulsar Pulse Generation Module是由QuTech生产的表征设备，主要功能包括停止、启动。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (8):
-- auto-AWG_obj -> AWG_obj [UniLabJsonCommand] goal_params: none
-- auto-channel_opt -> channel_opt [UniLabJsonCommand] goal_params: name, option, value
-- auto-clock -> clock [UniLabJsonCommand] goal_params: channel
-- auto-define_channel -> define_channel [UniLabJsonCommand] goal_params: AWG, active, delay, high, id, low, name, offset, type
-- auto-program_awgs -> program_awgs [UniLabJsonCommand] goal_params: AWGs, allow_first_nonzero, channels, loop, sequence, verbose
-- auto-update_AWG5014_settings -> update_AWG5014_settings [UniLabJsonCommand] goal_params: AWGs
-- auto-update_channel_settings -> update_channel_settings [UniLabJsonCommand] goal_params: none
-- auto-used_AWGs -> used_AWGs [UniLabJsonCommand] goal_params: none
-
-Driver Functions (24):
-- Pulsar.__init__(self, name, default_AWG, master_AWG) (line 112)
-- Pulsar.define_channel(self, id, name, type, delay, offset, high, low, active, AWG) (line 139)
-- Pulsar.AWG_obj(self, **kw) (line 181)
-- Pulsar.clock(self, channel) (line 207)
-- Pulsar.channel_opt(self, name, option, value) (line 221)
-- Pulsar.used_AWGs(self) (line 243)
-- Pulsar.start(self) (line 255)
-- Pulsar.stop(self) (line 284)
-- Pulsar.program_awgs(self, sequence, *elements, AWGs, channels, loop, allow_first_nonzero, verbose) (line 292)
-- Pulsar._program_AWG5014(self, obj, sequence, el_wfs, loop, allow_first_nonzero) (line 362)
-- Pulsar._program_UHFQC(self, obj, sequence, el_wfs, loop, allow_first_nonzero) (line 515)
-- Pulsar._start_AWG(self, AWG) (line 607)
-- Pulsar._stop_AWG(self, AWG) (line 616)
-- Pulsar._is_AWG_running(self, AWG) (line 625)
-- Pulsar._set_default_AWG(self, AWG) (line 634)
-- Pulsar._get_default_AWG(self) (line 637)
-- Pulsar._clock_prequeried(self, status) (line 640)
-- Pulsar.update_channel_settings() (line 655)
-- Pulsar.update_AWG5014_settings(self, AWGs) (line 659)
-- Pulsar._AWG5014_group_ids(cid) (line 685)
-- Pulsar._AWG5014_id_channel(self, cid, AWG) (line 698)
-- Pulsar._AWG5014_activate_channels(self, grps, AWG) (line 715)
-- Pulsar._AWG5014_chan_cfg(self, AWG) (line 726)
-- Pulsar._UHFQC_element_seqc(reps, wait, name1, name2, readout) (line 759)
+pulsar:
+  name: Pulsar任意波形发生器协调控制器
+  name_en: Pulsar AWG Orchestration Controller
+  manufacturer: ''
+  category:
+  - 任意波形发生器协调控制器
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 电子与电气测试
+  - 脉冲激励与时序控制
+  - 任意波形发生器协调控制器
+  description: 一个非物理的软件组件，用于在实验中统一管理、配置和编程一台或多台任意波形发生器（AWG）。它维护通道定义、查询时钟、协调主从AWG启动，并将序列与波形元素下发到受支持的AWG，证据显示其主要面向
+    Tektronix AWG5014，并部分支持 Zurich Instruments UHFLI。
+  description_en: A non-physical software component for centrally managing, configuring,
+    and programming one or more arbitrary waveform generators (AWGs) in experiments.
+    It keeps channel definitions, queries clock rates, coordinates master/slave AWG
+    startup, and uploads sequences and waveform elements to supported AWGs. The evidence
+    indicates primary support for the Tektronix AWG5014 and partial support for the
+    Zurich Instruments UHFLI.
+  class:
+    action_value_mappings:
+      auto-define_channel:
+        schema:
+          description: 定义并登记AWG通道及其延迟、偏置、电平、激活状态和所属AWG，用于后续波形映射与控制。
+          description_en: Define and register an AWG channel with its delay, offset,
+            levels, active state, and assigned AWG for later waveform mapping and
+            control.
+      auto-AWG_obj:
+        schema:
+          description: 根据AWG名称或通道名称返回对应的AWG对象，用于定位目标仪器。
+          description_en: Return the corresponding AWG object based on an AWG name
+            or channel name to identify the target instrument.
+      auto-clock:
+        schema:
+          description: 获取指定通道对应AWG的采样时钟速率。
+          description_en: Get the sampling clock rate of the AWG associated with a
+            specified channel.
+      auto-channel_opt:
+        schema:
+          description: 获取或设置已定义通道的配置选项。
+          description_en: Get or set a configuration option for a previously defined
+            channel.
+      auto-used_AWGs:
+        schema:
+          description: 返回当前已注册并处于活动使用状态的AWG名称集合。
+          description_en: Return the set of AWG names that are currently registered
+            and actively used.
+      auto-program_awgs:
+        schema:
+          description: 将实验序列和波形元素编程到一个或多个AWG，上传波形并设置段顺序、循环和触发等待。
+          description_en: Program one or more AWGs with an experimental sequence and
+            waveform elements, uploading waveforms and setting segment order, looping,
+            and trigger waiting.
+      auto-update_channel_settings:
+        schema:
+          description: 根据当前保存的通道定义更新相关AWG的通道设置。
+          description_en: Update AWG channel settings based on the currently stored
+            channel definitions.
+      auto-update_AWG5014_settings:
+        schema:
+          description: 将保存的通道参数写入Tektronix AWG5014的设置中。
+          description_en: Apply the stored channel parameters to the settings of a
+            Tektronix AWG5014.
+auto_annotation_metadata:
+  registry_key: pulsar
+  annotation_workflow_version: v4
+  tag_hints:
+  - AWG orchestration
+  - multi-AWG synchronization
+  - waveform programming
+  - channel mapping
+  - master-slave triggering
+  - Tektronix AWG5014
+  - Zurich Instruments UHFLI
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件负责实验中AWG的编程与启动协调，属于实验执行控制链路。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它统一管理多台AWG及通道定义，体现仪器集成与自动化控制。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: AWG波形编程和通道电平设置属于电子信号实验相关能力。
+  - id: P-7008
+    name: 脉冲激励与时序控制
+    name_en: Pulse Excitation & Timing Control
+    type: experimental_scene
+    rationale: 该组件协调主从AWG启动并下发波形序列，直接服务脉冲与时序控制实验。
+  proposed_new_tags:
+  - id: P-500905
+    name: 任意波形发生器协调控制器
+    name_en: Arbitrary Waveform Generator Orchestration Controller
+    type: device_template_tag
+    rationale: 该软件组件并非单台AWG本体，而是面向多台AWG的统一配置、编程与协调控制器。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review
