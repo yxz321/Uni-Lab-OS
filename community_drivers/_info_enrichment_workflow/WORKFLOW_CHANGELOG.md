@@ -67,6 +67,10 @@ Versioning rule:
   todo manager, not only the persistent JSON TODO queue.
 - Removed the prompt rule that forbade web search solely for empty
   manufacturer, so manufacturer can again be researched when useful.
+- Increased the Responses API read timeout in `run_pass_a.py` and
+  `run_pass_b.py` from `240s` to `300s` after `v4_batch_009` showed repeated
+  Pass B timeouts at the old limit; the incomplete batch then completed
+  successfully without manual chunking.
 
 ## v3
 

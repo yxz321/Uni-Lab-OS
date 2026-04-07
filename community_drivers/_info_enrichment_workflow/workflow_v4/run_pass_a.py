@@ -17,6 +17,7 @@ from responses_compat import extract_output_text_compat
 
 DEFAULT_BASE_URL = 'https://api.openai.com/v1'
 SECRET_ENV_PATH = Path.home() / '.config' / 'unilabos' / 'openai.env'
+API_READ_TIMEOUT_SECONDS = 300
 
 SYSTEM_PROMPT = """\
 You are interpreting extracted evidence about a lab-device driver.
@@ -197,7 +198,7 @@ def process_device(
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=240) as resp:
+        with urllib.request.urlopen(req, timeout=API_READ_TIMEOUT_SECONDS) as resp:
             raw_response = json.loads(resp.read().decode('utf-8'))
     except urllib.error.HTTPError as exc:
         body = exc.read().decode('utf-8', errors='replace')

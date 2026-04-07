@@ -1,0 +1,305 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "batch_tag_results",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "devices": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "device": {
+                    "type": "string"
+                  },
+                  "existing_tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "name_en": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "rationale": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "name_en",
+                        "type",
+                        "rationale"
+                      ]
+                    }
+                  },
+                  "proposed_new_tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "name_en": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "rationale": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "name_en",
+                        "type",
+                        "rationale"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "device",
+                  "existing_tags",
+                  "proposed_new_tags"
+                ]
+              }
+            }
+          },
+          "required": [
+            "devices"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are assigning tags to lab devices using extracted evidence and a provided full tag list.\n\nRules:\n- The response MUST follow the requested JSON schema exactly.\n- The top-level object must be: {\"devices\": [ ... ]}.\n- Each device result object must contain exactly these keys:\n  `device`, `existing_tags`, `proposed_new_tags`.\n- Every tag object in both `existing_tags` and `proposed_new_tags` must contain exactly:\n  `id`, `name`, `name_en`, `type`, `rationale`.\n- The `type` field is mandatory on every tag object and must be one of:\n  `experimental_step`, `experimental_domain`, `experimental_scene`, `device_template_tag`.\n- The combined set of `existing_tags` and `proposed_new_tags` must contain at least one tag of each required type.\n- Prefer existing tags when reasonably relevant.\n- Include all relevant tags, not exactly one per type.\n- A practical default is roughly 1-4 relevant tags per type when supported.\n- For `experimental_step`: choose only from existing tags. Do not propose new ones.\n- For `experimental_domain`, `experimental_scene`, and `device_template_tag`:\n  choose from existing tags first, but you may propose multiple new tags if the existing list is insufficient.\n- Proposed new tags are allowed only for:\n  `experimental_domain`, `experimental_scene`, `device_template_tag`.\n- A proposed tag must be broad enough that:\n  - multiple real-world devices would fall under `device_template_tag`\n  - multiple device templates would fall under `experimental_scene`\n  - multiple scenes would fall under `experimental_domain`\n- Every tag object's `id` must be a string.\n- For existing tags, copy the provided tag id as a string.\n- For proposed new tags, create a string id like `P-0001`, `P-0002`, etc.\n- `name` should be Chinese-preferred and `name_en` should be English.\n- Every selected or proposed tag must include a short, device-specific rationale.\n- Do not output IDs only. Return full tag objects.\n- Do not use bilingual mixed strings inside `name`.\n- Prefer recall over precision, but do not select obviously unrelated tags.\n- Use only the evidence provided in the device summaries. Do not assume hidden registry priors.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Available tags:\n  [4312] 备料&前处理设备 / Material Preparation & Pre-processing Equipment (experimental_step)\n  [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)\n  [4314] 后处理设备 / Post-processing Equipment (experimental_step)\n  [4315] 器件/细胞设备 / Device / Cell Equipment (experimental_step)\n  [4316] 表征设备 / Characterization Equipment (experimental_step)\n  [4317] 物流/机械 / Logistics / Machinery (experimental_step)\n  [4318] 生命体系 / Life Sciences (experimental_domain)\n  [4319] 溶液配制与反应 / Solution Preparation & Reaction (experimental_domain)\n  [4320] 溶液→固体反应 / Solution-to-Solid Reaction (experimental_domain)\n  [4321] 熔体/高粘体系 / Melt / High-Viscosity System (experimental_domain)\n  [4322] 表面/薄膜体系 / Surface / Thin Film System (experimental_domain)\n  [4323] 粉体&固相反应 / Powder & Solid-Phase Reaction (experimental_domain)\n  [4324] 金属熔炼/增材制造 / Metal Smelting / Additive Manufacturing (experimental_domain)\n  [4325] 智慧表征与检测中心 / Intelligent Characterization & Testing Center (experimental_domain)\n  [4326] 化工放大与连续工艺优化 / Chemical Scale-up & Continuous Process Optimization (experimental_domain)\n  [4327] 基因编辑、分子生物学与育种 / Gene Editing, Molecular Biology & Breeding (experimental_scene)\n  [4328] DNA文库构建测序与蛋白设计 / DNA Library Construction, Sequencing & Protein Design (experimental_scene)\n  [4329] 代谢组学研究 / Metabolomics Research (experimental_scene)\n  [4330] 细胞生物学研究 / Cell Biology Research (experimental_scene)\n  [4331] 动物实验 / Animal Experiments (experimental_scene)\n  [4332] 广州 π-hub / Guangzhou π-hub (experimental_scene)\n  [4333] 深研院 AI4LifeScience / SIAIS AI4LifeScience (experimental_scene)\n  [4334] 移液站产品 / Liquid Handling Station Products (experimental_scene)\n  [4335] ADC药物 / ADC Drugs (experimental_scene)\n  [4336] 多肽药物 / Peptide Drugs (experimental_scene)\n  [4337] 电解液配方与工艺 / Electrolyte Formulation & Process (experimental_scene)\n  [4338] 有机 SuperChemputer / Organic SuperChemputer (experimental_scene)\n  [4339] 流动化学 / Flow Chemistry (experimental_scene)\n  [4340] 小分子药物和PROTAC药物 / Small Molecule & PROTAC Drugs (experimental_scene)\n  [4341] 溶液反应教学 / Solution Reaction Teaching (experimental_scene)\n  [4342] 智能香氛仪 / Intelligent Fragrance Diffuser (experimental_scene)\n  [4343] 水热无机合成-纳米粒子MOF/COF / Hydrothermal Inorganic Synthesis - Nanoparticle MOF/COF (experimental_scene)\n  [4344] 涂层材料 / Coating Materials (experimental_scene)\n  [4345] 高分子/树脂粉末 / Polymer / Resin Powder (experimental_scene)\n  [4346] 水热无机合成-多孔催化剂 / Hydrothermal Inorganic Synthesis - Porous Catalyst (experimental_scene)\n  [4347] 钙钛矿薄膜电池 / Perovskite Thin Film Battery (experimental_scene)\n  [4348] 有机光伏材料（OPV和OLED） / Organic Photovoltaic Materials (OPV & OLED) (experimental_scene)\n  [4349] 二维材料 / 2D Materials (experimental_scene)\n  [4350] 稀土永磁与超导材料 / Rare Earth Permanent Magnet & Superconducting Materials (experimental_scene)\n  [4351] 固态电解质大装置 / Solid-State Electrolyte Large-Scale Facility (experimental_scene)\n  [4352] 硅酸盐与陶瓷材料 / Silicate & Ceramic Materials (experimental_scene)\n  [4353] 热处理工艺研发 / Heat Treatment Process R&D (experimental_scene)\n  [4354] 金属检测中心 / Metal Testing Center (experimental_scene)\n  [4355] 钢铁材料 / Steel Materials (experimental_scene)\n  [4356] 合金研发 / Alloy R&D (experimental_scene)\n  [4357] 物化表征测试中心 / Physicochemical Characterization & Testing Center (experimental_scene)\n  [4358] Hyper-FIB / Hyper-FIB (experimental_scene)\n  [4359] 纤维纺丝 / Fiber Spinning (experimental_scene)\n  [4360] AGV / AGV (device_template_tag)\n  [4361] DNA测序仪 / DNA Sequencer (device_template_tag)\n  [4362] X射线衍射仪 / X-Ray Diffractometer (device_template_tag)\n  [4363] 一体化配粉配液站 / Integrated Powder & Liquid Dispensing Station (device_template_tag)\n  [4426] 电子天平 / Electronic Balance (device_template_tag)\n  [4364] 万能试验机标准机 / Universal Testing Machine (device_template_tag)\n  [4365] 介电常数测定仪 / Dielectric Constant Meter (device_template_tag)\n  [4366] 低温/冷冻离心机 / Refrigerated Centrifuge (device_template_tag)\n  [4367] 低温冰箱 / Low-Temperature Freezer (device_template_tag)\n  [4368] 光化学反应器 / Photochemical Reactor (device_template_tag)\n  [4369] 冷热水机 / Chiller / Heater Unit (device_template_tag)\n  [4370] 凝胶渗透色谱仪 / Gel Permeation Chromatograph (device_template_tag)\n  [4371] 制备色谱仪 / Preparative Chromatograph (device_template_tag)\n  [4372] 匀胶机 / Spin Coater (device_template_tag)\n  [4373] 化学气相沉积设备 / Chemical Vapor Deposition System (device_template_tag)\n  [4374] 压片机 / Tablet Press (device_template_tag)\n  [4375] 反应釜 / Reactor Vessel (device_template_tag)\n  [4376] 合成反应仪 / Synthesis Reactor (device_template_tag)\n  [4377] 喷雾沉淀装置 / Spray Precipitation System (device_template_tag)\n  [4378] 固体称量工作站 / Solid Weighing Workstation (device_template_tag)\n  [4379] 固相萃取设备 / Solid Phase Extraction System (device_template_tag)\n  [4380] 基质辅助激光解吸电离飞行时间质谱仪 / MALDI-TOF Mass Spectrometer (device_template_tag)\n  [4381] 多肽合成仪 / Peptide Synthesizer (device_template_tag)\n  [4382] 多通阀 / Multi-Port Valve (device_template_tag)\n  [4383] 实时定量PCR仪 / Real-Time Quantitative PCR (device_template_tag)\n  [4384] 封膜仪 / Plate Sealer (device_template_tag)\n  [4385] 并行反应仪 / Parallel Reactor (device_template_tag)\n  [4386] 开关盖加液模块 / Cap/Decap Liquid Dispensing Module (device_template_tag)\n  [4387] 微生物培养箱 / Microbial Incubator (device_template_tag)\n  [4388] 微通道反应器 / Microreactor (device_template_tag)\n  [4389] 恒温摇床 / Constant Temperature Shaker (device_template_tag)\n  [4390] 扫描电子显微镜 / Scanning Electron Microscope (device_template_tag)\n  [4391] 抽提萃取设备 / Extraction Equipment (device_template_tag)\n  [4392] 拉曼光谱仪 / Raman Spectrometer (device_template_tag)\n  [4393] 振荡器（非恒温） / Oscillator (Non-Thermostatic) (device_template_tag)\n  [4394] 接种仪 / Inoculator (device_template_tag)\n  [4395] 控温磁力搅拌器 / Temperature-Controlled Magnetic Stirrer (device_template_tag)\n  [4396] 撕膜仪 / Plate Desealer (device_template_tag)\n  [4397] 旋转蒸发器 / Rotary Evaporator (device_template_tag)\n  [4398] 旋转黏度计 / Rotational Viscometer (device_template_tag)\n  [4399] 普通PCR仪 / Thermal Cycler (device_template_tag)\n  [4400] 普通光学显微镜 / Optical Microscope (device_template_tag)\n  [4401] 机械搅拌反应釜 / Mechanical Stirring Reactor (device_template_tag)\n  [4402] 机械臂 / Robotic Arm (device_template_tag)\n  [4403] 柱塞泵 / Plunger Pump (device_template_tag)\n  [4404] 核磁共振波谱仪 / NMR Spectrometer (device_template_tag)\n  [4405] 核酸合成仪 / Nucleic Acid Synthesizer (device_template_tag)\n  [4406] 核酸纯化仪 / Nucleic Acid Purification System (device_template_tag)\n  [4407] 模具电池组装工站 / Mold Cell Assembly Workstation (device_template_tag)\n  [4408] 毛细管电泳仪 / Capillary Electrophoresis System (device_template_tag)\n  [4409] 毛细管黏度计 / Capillary Viscometer (device_template_tag)\n  [4410] 气体保护干燥箱 / Gas-Protected Drying Oven (device_template_tag)\n  [4411] 气相色谱质谱联用仪 / GC-MS (device_template_tag)\n  [4412] 氮吹仪 / Nitrogen Evaporator (device_template_tag)\n  [4413] 注射泵 / Syringe Pump (device_template_tag)\n  [4414] 洗板机 / Microplate Washer (device_template_tag)\n  [4415] 流化床反应器 / Fluidized Bed Reactor (device_template_tag)\n  [4416] 流式细胞仪 / Flow Cytometer (device_template_tag)\n  [4417] 液体密度计 / Liquid Density Meter (device_template_tag)\n  [4418] 液相色谱质谱联用仪 / LC-MS (device_template_tag)\n  [4419] 深低温冰箱 / Ultra-Low Temperature Freezer (device_template_tag)\n  [4420] 热分析联用仪 / Thermal Analysis System (device_template_tag)\n  [4421] 热混匀仪 / Thermomixer (device_template_tag)\n  [4422] 球磨机 / Ball Mill (device_template_tag)\n  [4423] 生物分子相互作用分析仪 / Biomolecular Interaction Analyzer (device_template_tag)\n  [4424] 电化学反应器 / Electrochemical Reactor (device_template_tag)\n  [4425] 电化学工作站 / Electrochemical Workstation (device_template_tag)\n  [4427] 电池测试柜 / Battery Test Cabinet (device_template_tag)\n  [4428] 电热板 / Hot Plate (device_template_tag)\n  [4429] 电穿孔仪（电转化仪） / Electroporator (device_template_tag)\n  [4430] 真空干燥箱 / Vacuum Drying Oven (device_template_tag)\n  [4431] 真空离心浓缩仪 / Vacuum Centrifugal Concentrator (device_template_tag)\n  [4432] 磁珠纯化模块 / Magnetic Bead Purification Module (device_template_tag)\n  [4433] 示差扫描量热仪 / Differential Scanning Calorimeter (device_template_tag)\n  [4434] 离心机 / Centrifuge (device_template_tag)\n  [4435] 移液器 / Pipette (device_template_tag)\n  [4436] 移液工作站 / Liquid Handling Workstation (device_template_tag)\n  [4437] 移液管 / Pipette Tube (device_template_tag)\n  [4438] 箱式电阻炉 / Box Resistance Furnace (device_template_tag)\n  [4439] 紫外-可见分光光谱仪 / UV-Vis Spectrophotometer (device_template_tag)\n  [4440] 红外光谱仪 / Infrared Spectrometer (device_template_tag)\n  [4441] 纽扣电池组装工站 / Coin Cell Assembly Workstation (device_template_tag)\n  [4442] 组织培养试验箱 / Tissue Culture Chamber (device_template_tag)\n  [4443] 组织破碎机 / Tissue Homogenizer (device_template_tag)\n  [4444] 细胞分析仪 / Cell Analyzer (device_template_tag)\n  [4445] 细胞融合仪 / Cell Fusion System (device_template_tag)\n  [4446] 自动化耗材堆栈 / Automated Consumable Stack (device_template_tag)\n  [4447] 荧光显微镜 / Fluorescence Microscope (device_template_tag)\n  [4448] 落球黏度计 / Falling Ball Viscometer (device_template_tag)\n  [4449] 蒸镀仪 / Evaporation Coater (device_template_tag)\n  [4450] 薄层色谱仪 / Thin Layer Chromatograph (device_template_tag)\n  [4451] 蠕动泵 / Peristaltic Pump (device_template_tag)\n  [4452] 表面等离子体谐振分析仪 / Surface Plasmon Resonance Analyzer (device_template_tag)\n  [4453] 超声破碎仪 / Ultrasonic Homogenizer (device_template_tag)\n  [4454] 软包电池组装工站 / Pouch Cell Assembly Workstation (device_template_tag)\n  [4455] 过滤器 / Filter (device_template_tag)\n  [4456] 透射电子显微镜 / Transmission Electron Microscope (device_template_tag)\n  [4457] 酶标仪 / Microplate Reader (device_template_tag)\n  [4458] 顶置失重固体投料模块 / Overhead Loss-in-Weight Solid Feeder (device_template_tag)\n  [4459] 高低温金属浴 / High/Low Temperature Metal Bath (device_template_tag)\n  [4460] 高内涵细胞成像分析系统 / High Content Cell Imaging Analysis System (device_template_tag)\n  [4461] 高压反应器 / High Pressure Reactor (device_template_tag)\n  [4462] 蛋白质组学研究 / Proteomics Research (experimental_scene)\n  [4463] 高粘度高分子树脂/薄膜 / High-Viscosity Polymer Resin / Film (experimental_scene)\n  [4464] 粘接剂 / Adhesive (experimental_scene)\n  [P-0001] 实验室自动化与仪器集成 / Laboratory Automation & Instrument Integration (experimental_domain)\n  [P-0002] 实验仪器数据采集与联机控制 / Instrument Data Acquisition & Online Control (experimental_scene)\n  [P-0004] 数据采集与控制接口 / Data Acquisition and Control Interface (device_template_tag)\n  [P-0001] 实验室自动化与仪器集成 / Laboratory Automation & Instrument Integration (experimental_domain)\n  [P-0003] 实验仪器通信与驱动集成 / Instrument Communication & Driver Integration (experimental_scene)\n  [P-0005] USB仪器通信接口 / USB Instrument Communication Interface (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0007] 显微镜自动化控制器 / Microscope Automation Controller (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0007] 显微镜自动化控制器 / Microscope Automation Controller (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0009] LED光源控制器 / LED Light Controller (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0007] 显微镜自动化控制器 / Microscope Automation Controller (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0010] 二极管激光器 / Diode Laser (device_template_tag)\n  [P-0011] 电子与电气测试 / Electronics & Electrical Testing (experimental_domain)\n  [P-0012] 射频与电子电路测试 / RF & Electronic Circuit Testing (experimental_scene)\n  [P-0013] 射频信号发生器 / RF Signal Generator (device_template_tag)\n  [P-0014] 电压监测与传感器信号采集 / Voltage Monitoring & Sensor Signal Acquisition (experimental_scene)\n  [P-0015] 电压采集模块 / Voltage Acquisition Module (device_template_tag)\n  [P-0011] 电子与电气测试 / Electronics & Electrical Testing (experimental_domain)\n  [P-0016] 电源与电池测试 / Power Supply & Battery Testing (experimental_scene)\n  [P-0017] 电子负载 / Electronic Load (device_template_tag)\n  [P-0016] 电源与电池测试 / Power Supply & Battery Testing (experimental_scene)\n  [P-0018] 继电器切换板 / Relay Switching Board (device_template_tag)\n  [P-0019] 源测单元模块 / Source-Measure Unit Module (device_template_tag)\n  [P-0020] 机器人与移动平台 / Robotics & Mobile Platforms (experimental_domain)\n  [P-0021] 移动机器人与自动驾驶实验 / Mobile Robotics & Autonomous Vehicle Experiments (experimental_scene)\n  [P-0022] 轮速编码器 / Wheel Speed Encoder (device_template_tag)\n  [P-0023] 声光可调滤波器 / Acousto-Optic Tunable Filter (device_template_tag)\n  [P-0024] 瞬态信号采集与同步触发测量 / Transient Signal Acquisition & Synchronized Triggered Measurement (experimental_scene)\n  [P-0025] 高速数据采集系统 / High-Speed Data Acquisition System (device_template_tag)\n  [P-0024] 瞬态信号采集与同步触发测量 / Transient Signal Acquisition & Synchronized Triggered Measurement (experimental_scene)\n  [P-0026] 模块化高速数据采集机箱 / Modular High-Speed Data Acquisition Chassis (device_template_tag)\n  [P-0028] 数据采集流水线处理节点 / Data Acquisition Pipeline Processing Node (device_template_tag)\n  [P-0029] X射线成像与束线探测 / X-Ray Imaging & Beamline Detection (experimental_scene)\n  [P-0030] 面阵探测器 / Area Detector (device_template_tag)\n  [P-0031] OPC-UA服务器建模与地址空间管理 / OPC-UA Server Modeling & Address Space Management (experimental_scene)\n  [P-0032] OPC-UA地址空间构建器 / OPC-UA Address Space Builder (device_template_tag)\n  [P-0033] 高速数字链路路由与调试 / High-Speed Digital Link Routing & Debugging (experimental_scene)\n  [P-0034] 数字交叉点开关 / Digital Crosspoint Switch (device_template_tag)\n  [P-0035] PLC控制与设备联锁 / PLC Control & Equipment Interlock (experimental_scene)\n  [P-0036] PLC控制器 / PLC Controller (device_template_tag)\n  [P-0037] 任意函数发生器 / Arbitrary Function Generator (device_template_tag)\n  [P-0038] 样品/探针定位与运动控制 / Sample / Probe Positioning & Motion Control (experimental_scene)\n  [P-0039] 电动直线位移台 / Motorized Linear Translation Stage (device_template_tag)\n  [P-1001] 数字万用表 / Digital Multimeter (device_template_tag)\n  [P-1002] 数字存储示波器 / Digital Storage Oscilloscope (device_template_tag)\n  [P-1003] 矢量信号分析仪 / Vector Signal Analyzer (device_template_tag)\n  [P-1004] 频谱分析仪 / Spectrum Analyzer (device_template_tag)\n  [P-1005] 矢量网络分析仪 / Vector Network Analyzer (device_template_tag)\n  [P-1004] 频谱分析仪 / Spectrum Analyzer (device_template_tag)\n  [P-1006] 真空系统与高真空实验 / Vacuum Systems & High-Vacuum Experiments (experimental_domain)\n  [P-1007] 高真空/超高真空腔体与仪器配套 / High/Ultra-High Vacuum Chamber & Instrument Support (experimental_scene)\n  [P-1008] 涡轮分子真空泵 / Turbomolecular Vacuum Pump (device_template_tag)\n  [P-1009] 精密定位与运动控制 / Precision Positioning & Motion Control (experimental_domain)\n  [P-1011] 压电步进位移台控制器 / Piezo Stepper Stage Controller (device_template_tag)\n  [P-2001] 模拟输入数据采集模块 / Analog Input Data Acquisition Module (device_template_tag)\n  [P-2012] 可编程直流电源 / Programmable DC Power Supply (device_template_tag)\n  [P-2013] 串行仪器通信接口 / Serial Instrument Communication Interface (device_template_tag)\n  [P-2014] 高光谱成像与反射/辐射表征 / Hyperspectral Imaging & Reflectance/Radiance Characterization (experimental_scene)\n  [P-2002] 高光谱相机 / Hyperspectral Camera (device_template_tag)\n  [P-2003] 低温与量子测量 / Cryogenic & Quantum Measurements (experimental_domain)\n  [P-2004] 超导磁体与低温磁场控制 / Superconducting Magnet & Cryogenic Magnetic Field Control (experimental_scene)\n  [P-2005] 磁体电源程序控制器 / Magnet Power Supply Programmer (device_template_tag)\n  [P-2003] 低温与量子测量 / Cryogenic & Quantum Measurements (experimental_domain)\n  [P-2004] 超导磁体与低温磁场控制 / Superconducting Magnet & Cryogenic Magnetic Field Control (experimental_scene)\n  [P-2006] 超导磁体系统 / Superconducting Magnet System (device_template_tag)\n  [P-2003] 低温与量子测量 / Cryogenic & Quantum Measurements (experimental_domain)\n  [P-2004] 超导磁体与低温磁场控制 / Superconducting Magnet & Cryogenic Magnetic Field Control (experimental_scene)\n  [P-2006] 超导磁体系统 / Superconducting Magnet System (device_template_tag)\n  [P-2003] 低温与量子测量 / Cryogenic & Quantum Measurements (experimental_domain)\n  [P-2004] 超导磁体与低温磁场控制 / Superconducting Magnet & Cryogenic Magnetic Field Control (experimental_scene)\n  [P-2007] 矢量磁场与角分辨测量 / Vector Magnetic Field & Angular-Resolved Measurement (experimental_scene)\n  [P-2006] 超导磁体系统 / Superconducting Magnet System (device_template_tag)\n  [P-2008] 矢量超导磁体系统 / Vector Superconducting Magnet System (device_template_tag)\n  [P-2009] X射线与辐射能谱测量 / X-Ray & Radiation Spectroscopy (experimental_scene)\n  [P-2010] 多道分析器 / Multi-Channel Analyzer (device_template_tag)\n  [P-2011] 步进电机控制器 / Stepper Motor Controller (device_template_tag)\n  [P-3001] 科学相机 / Scientific Camera (device_template_tag)\n  [P-3002] 光谱采集与检测 / Spectral Acquisition & Detection (experimental_scene)\n  [P-3001] 科学相机 / Scientific Camera (device_template_tag)\n  [P-3002] 光谱采集与检测 / Spectral Acquisition & Detection (experimental_scene)\n  [P-3008] 电动位移台控制器 / Motorized Stage Controller (device_template_tag)\n  [P-3006] 量子比特脉冲控制与读出 / Qubit Pulse Control & Readout (experimental_scene)\n  [P-3007] 量子实验控制器 / Quantum Experiment Controller (device_template_tag)\n  [P-3003] 光学与光谱实验 / Optical & Spectroscopy Experiments (experimental_domain)\n  [P-3004] 激光激发与光谱测量 / Laser Excitation & Spectroscopic Measurement (experimental_scene)\n  [P-3005] 实验室激光光源 / Laboratory Laser Source (device_template_tag)\n  [P-5001] 实验室机器人操作与样品转运 / Laboratory Robotic Manipulation & Sample Transfer (experimental_scene)\n  [P-5002] 光谱传感器 / Spectral Sensor (device_template_tag)\n  [P-5003] 电动定位台 / Motorized Positioning Stage (device_template_tag)\n  [P-5004] 实验扫描数据文件 / Experimental Scan Data File (device_template_tag)\n  [P-5003] 电动定位台 / Motorized Positioning Stage (device_template_tag)\n  [P-5006] 实验装置数字化设计与制造数据 / Digital Design & Manufacturing Data for Experimental Apparatus (experimental_domain)\n  [P-5007] 三维几何建模与STL导出 / 3D Geometry Modeling & STL Export (experimental_scene)\n  [P-5008] STL网格文件写出器 / STL Mesh File Exporter (device_template_tag)\n  [P-5009] Modbus TCP现场设备 / Modbus TCP Field Device (device_template_tag)\n  [P-5010] X射线束线光路与衰减控制 / X-Ray Beamline Optics & Attenuation Control (experimental_scene)\n  [P-5011] 电动固体衰减器 / Motorized Solid Attenuator (device_template_tag)\n  [P-5001] 微孔板样品孵育与混匀 / Microplate Sample Incubation & Mixing (experimental_scene)\n  [P-5002] 微孔板恒温振荡器 / Microplate Thermoshaker (device_template_tag)\n  [P-5003] 微孔板检测与高通量筛选 / Microplate Detection & High-Throughput Screening (experimental_scene)\n  [P-5001] 微孔板样品孵育与混匀 / Microplate Sample Incubation & Mixing (experimental_scene)\n  [P-5002] 微孔板恒温振荡器 / Microplate Thermoshaker (device_template_tag)\n  [P-5004] USB GPIO接口模块 / USB GPIO Interface Module (device_template_tag)\n  [P-5011] 电子器件供电与台架测试 / Electronic Device Powering & Bench Testing (experimental_scene)\n  [P-5005] CAN总线通信记录与离线分析 / CAN Bus Communication Logging & Offline Analysis (experimental_scene)\n  [P-5006] CAN总线日志记录器 / CAN Bus Logger (device_template_tag)\n  [P-5007] 实验室机械臂自动化与样品搬运 / Laboratory Robotic Arm Automation & Sample Handling (experimental_scene)\n  [P-5008] 激光功率/能量计 / Laser Power / Energy Meter (device_template_tag)\n  [P-5009] 激光功率监测与能量校准 / Laser Power Monitoring & Energy Calibration (experimental_scene)\n  [P-5010] 频率响应分析仪 / Frequency Response Analyzer (device_template_tag)\n  [P-6002] 外接设备恒温控制 / External Equipment Thermostating (experimental_scene)\n  [P-6001] 蓝牙流式采集设备 / Bluetooth Streaming Acquisition Device (device_template_tag)\n  [P-6003] 足式机器人控制与感知实验 / Legged Robot Control & Perception Experiments (experimental_scene)\n  [P-6004] 双足机器人套件 / Bipedal Robotics Kit (device_template_tag)\n  [P-9001] 三维感知与空间测绘 / 3D Perception & Spatial Mapping (experimental_domain)\n  [P-9002] 三维点云采集与重建 / 3D Point Cloud Acquisition & Reconstruction (experimental_scene)\n  [P-9003] 三维激光雷达 / 3D LiDAR (device_template_tag)\n  [P-9004] 环境控制与稳定性测试 / Environmental Control & Stability Testing (experimental_domain)\n  [P-9005] 气候箱培养与稳定性试验 / Climate Chamber Incubation & Stability Testing (experimental_scene)\n  [P-9006] 气候箱 / Climate Chamber (device_template_tag)\n  [P-9004] 环境控制与稳定性测试 / Environmental Control & Stability Testing (experimental_domain)\n  [P-9005] 气候箱培养与稳定性试验 / Climate Chamber Incubation & Stability Testing (experimental_scene)\n  [P-9006] 气候箱 / Climate Chamber (device_template_tag)\n\n---\nDevices to tag:\n\nDevice: attribute_proxy\n  name: Tango设备属性代理\n  name_en: Tango Device Attribute Proxy\n  manufacturer: Tango Controls (ESRF)\n  description_zh: 用于 TANGO 控制系统的通用属性代理，可连接实验室中受 TANGO 管理的仪器或子系统，并对其属性进行读取、写入、轮询和事件订阅。它本身不对应某一种单一物理设备，而是面向各类通过 TANGO 暴露属性的实验硬件。\n  description_en: A generic attribute proxy for the TANGO control system, used to connect to laboratory instruments or subsystems managed by TANGO and to read, write, poll, and subscribe to their attributes. It does not correspond to one specific physical device, but rather to a wide range of experimental hardware exposing attributes through TANGO.\n  tag_hints: ['Tango Controls', 'device attribute access', 'event subscription', 'attribute polling', 'laboratory control system']\n  actions:\n    - auto-get: Read the current attribute value\n    - auto-get_w_value: Read the current attribute value together with the write value when available\n    - auto-put: Write an attribute value\n    - auto-get_config: Get the attribute configuration\n    - auto-get_reading: Get the current reading and related metadata\n    - auto-has_subscription: Check whether a subscription is active\n    - auto-subscribe_callback: Subscribe a callback for attribute updates\n    - auto-unsubscribe_callback: Unsubscribe the callback for attribute updates\n    - auto-set_polling: Set polling parameters for the attribute\n    - auto-set_converter: Set the data converter\n    - auto-poll: Poll the attribute and update on change\n    - auto-datatype_allowed: Check whether the datatype is allowed\n    - auto-set_trl: Set the TANGO resource locator\n    - auto-source: Get the data source setting\n    - auto-get_datakey: Get the data key identifier\n    - auto-get_value: Get the current attribute value\n    - auto-get_setpoint: Get the setpoint value\n    - auto-set_callback: Set the update callback function\n    - auto-allow_events: Get whether event-based updates are allowed\n\nDevice: autolab\n  name: Autolab电化学工作站\n  name_en: Autolab Electrochemical Workstation\n  manufacturer: Metrohm Autolab\n  description_zh: Autolab电化学工作站是一类用于电化学实验的恒电位/恒电流测试仪器，可控制电化学池的电位与电流并采集响应信号。它常用于循环伏安、计时电流/计时电位、电化学阻抗谱（FRA/EIS）以及电池、腐蚀、传感器和电催化等研究。\n  description_en: The Autolab electrochemical workstation is a potentiostat/galvanostat for electrochemical experiments. It controls the potential or current of an electrochemical cell and records the response signal. It is commonly used for cyclic voltammetry, chrono methods, electrochemical impedance spectroscopy (FRA/EIS), and studies of batteries, corrosion, sensors, and electrocatalysis.\n  tag_hints: ['electrochemical workstation', 'potentiostat galvanostat', 'electrochemical impedance spectroscopy', 'FRA', 'voltammetry', 'battery testing', 'corrosion analysis']\n  actions:\n    - auto-connect: Connect to the electrochemical workstation.\n    - auto-disconnect: Disconnect from the electrochemical workstation.\n    - auto-ismeasuring: Check whether the instrument is currently measuring.\n    - auto-potential: Read the current electrode potential.\n    - auto-current: Read the current.\n    - auto-setCurrentRange: Set the current range.\n    - auto-setStability: Set the control stability parameter.\n    - auto-appliedPotential: Read the currently applied potential.\n    - auto-abort: Abort the current measurement.\n    - auto-loadProcedure: Load a measurement procedure or experimental method.\n    - auto-setSetpoints: Set parameter setpoints for the measurement procedure.\n    - auto-whileMeasuring: Continuously read a specified type of data during measurement.\n    - auto-CellOnOff: Turn the electrochemical cell output on or off.\n    - auto-parseNox: Parse an Autolab procedure file (.nox).\n    - auto-parseFRA: Parse frequency response analyzer measurement data.\n    - auto-performMeasurement: Run a complete measurement with a specified procedure, including setpoints, cell control, and data saving.\n\nDevice: awg\n  name: 高密度任意波形发生器\n  name_en: HDAWG Arbitrary Waveform Generator\n  manufacturer: Zurich Instruments\n  description_zh: 这是一种高密度高速任意波形发生器，可输出用户定义的模拟波形、脉冲序列和定时控制信号，并支持序列器、波形存储器与命令表控制。常用于量子控制实验、脉冲编排、同步时序和高速电子测量。\n  description_en: This is a high-density, high-speed arbitrary waveform generator that outputs user-defined analog waveforms, pulse sequences, and timing signals, with support for sequencer control, waveform memory, and command tables. It is commonly used for quantum control experiments, pulse sequencing, synchronized timing, and high-speed electronic measurements.\n  tag_hints: ['arbitrary waveform generation', 'pulse sequencing', 'quantum control', 'waveform memory', 'command table', 'high-speed analog output', 'Zurich Instruments']\n  actions:\n    - auto-compile_sequencer_program: Compile the device sequencer program.\n    - auto-enable_sequencer: Start the sequencer for the selected channel.\n    - auto-load_sequencer_program: Compile and load a sequencer program onto the AWG core.\n    - auto-read_from_waveform_memory: Read waveforms from waveform memory.\n    - auto-wait_done: Wait until the AWG has finished output.\n    - auto-write_to_waveform_memory: Write waveforms to waveform memory.\n    - auto-check_status: Check the command table status.\n    - auto-load_validation_schema: Load the command table validation schema.\n    - auto-upload_to_device: Upload the command table to the device.\n    - auto-load_from_device: Load the command table from the device.\n    - auto-enable_qccs_mode: Enable QCCS operating mode.\n\nDevice: axis\n  name: AG-UC2 两轴压电微步运动控制器\n  name_en: AG-UC2 Two-Axis Piezo Motion Controller\n  manufacturer: Newport\n  description_zh: 这是一台用于驱动两路微位移轴的运动控制器，可控制 X/Y 两个轴进行相对步进、连续点动、限位移动与零点设定，并支持步幅和步延时等参数设置。它常用于光学对准、精密微位移调整和实验平台上的双轴定位任务。\n  description_en: This is a two-axis motion controller for driving micro-positioning axes. It controls X and Y axes for relative stepping, continuous jogging, motion toward limits, and zero-position definition, with adjustable step amplitude and step delay. It is commonly used for optical alignment, precision micro-positioning, and dual-axis positioning tasks in laboratory setups.\n  tag_hints: ['two-axis motion control', 'piezo step motor', 'micro-positioning', 'optical alignment', 'jog motion', 'relative step move', 'serial control']\n  actions:\n    - auto-axis: Select or access one motion axis on the controller.\n    - auto-enable_remote_mode: Enable the controller's remote-control mode.\n    - auto-error_previous_command: Get the error status of the previous command.\n    - auto-firmware_version: Get the firmware version.\n    - auto-limit_status: Get the limit status.\n    - auto-sleep_time: Get or set the sleep time.\n    - auto-reset_controller: Reset the controller.\n    - auto-ag_sendcmd: Send a raw command to the controller.\n    - auto-ag_query: Send a raw query to the controller and read the response.\n    - auto-axis_status: Get the axis status.\n    - auto-jog: Jog the selected axis in a continuous jog mode.\n    - auto-number_of_steps: Get or set the number of steps.\n    - auto-move_relative: Move the selected axis by a relative number of steps.\n    - auto-move_to_limit: Move the selected axis toward a limit until the limit is reached.\n    - auto-step_amplitude: Get or set the step amplitude.\n    - auto-step_delay: Get or set the step delay.\n    - auto-am_i_still: Get whether the axis has stopped moving.\n    - auto-zero_position: Define the current position as zero.\n\nDevice: ba_cnet_client_application\n  name: BACnet楼宇自动化控制器\n  name_en: BACnet Building Automation Controller\n  manufacturer: \n  description_zh: 这是一类支持 BACnet 协议的楼宇自动化现场设备或控制器，常用于连接和管理暖通空调、环境传感器、执行器、电表、报警点位等。它可在网络中发布设备与对象信息，并允许读取或写入各类点位属性。在实验室或科研设施中，这类设备常用于房间环境监测、空调与通风联动、能耗采集以及楼宇基础设施集成。\n  description_en: This is a BACnet-compatible building automation field device or controller used to interface with HVAC equipment, environmental sensors, actuators, utility meters, and alarm points. It exposes device and object information on the network and allows properties of points to be read or written. In laboratories and research facilities, such devices are commonly used for room environmental monitoring, HVAC and ventilation coordination, energy data collection, and facility infrastructure integration.\n  tag_hints: ['BACnet MS/TP', 'building automation', 'HVAC monitoring', 'environmental control', 'property read/write', 'facility integration']\n  actions:\n    - auto-all_props_results: Process the results of reading all properties of an object.\n    - auto-confirmation: Handle a confirmed BACnet response message.\n    - auto-fetch_values: Fetch current point values from device objects.\n    - auto-handle_response_for_obj_list: Handle the response from reading a device object list.\n    - auto-handle_write_prop_cb: Handle the callback result of a property write operation.\n    - auto-indication: Handle an incoming BACnet indication or unsolicited message.\n    - auto-make_rp_for_obj_list: Create a request context for reading a device object list.\n    - auto-process_IAmRequest: Process an I-Am announcement to identify a discovered device.\n    - auto-read_next_object: Read the next object in the object list sequence.\n    - auto-read_property: Read a specified property of a BACnet object.\n    - auto-read_property_callback: Handle the callback result of a property read operation.\n    - auto-request: Send a BACnet request message.\n    - auto-run: Run the BACnet client communication loop.\n    - auto-set_value_for_prop: Set the value of a specified property.\n    - auto-start: Start device communication or polling.\n    - auto-trim_obj_list: Trim and filter a device object list.\n    - auto-who_is: Send Who-Is to discover devices on the BACnet network.\n    - auto-write_property: Write a specified property value of a BACnet object.\n    - auto-write_values_to_csv: Write a snapshot of current point values to a CSV file.\n    - auto-get_values_for_device: Get the values of a device's objects.\n    - auto-get_obj_list_for_device: Get the object list of a device.\n    - auto-get_address_for_device_id: Get the address corresponding to a device ID.\n    - auto-get_value_for_prop: Get the value of a specified property.\n    - auto-get_values_for_all_props: Get the values of all properties of a specified object.\n    - auto-get_device_db: Get the discovered device database.\n    - auto-get_values_dict: Get the collected values dictionary.\n    - auto-completed: Mark a task or operation as completed.\n    - auto-process_task: Execute one periodic task cycle.\n\nDevice: bambu_client\n  name: Bambu Lab 3D打印机\n  name_en: Bambu Lab 3D Printer\n  manufacturer: Bambu Lab\n  description_zh: 这是一类 Bambu Lab 桌面级熔融沉积成型（FDM）3D打印机，可用于实验室中的快速原型制作、夹具治具加工、样件验证和教学演示。设备通常支持远程任务管理、打印状态监测、摄像头查看，并可结合 AMS 自动供料系统进行多材料或多色打印。\n  description_en: This is a family of Bambu Lab desktop fused deposition modeling (FDM) 3D printers used in laboratories for rapid prototyping, fixture and jig fabrication, sample validation, and teaching demonstrations. The printers commonly support remote job management, print-status monitoring, camera viewing, and can work with the AMS automatic material system for multi-material or multi-color printing.\n  tag_hints: ['FDM 3D printing', 'rapid prototyping', 'AMS multi-material printing', 'remote print monitoring', 'printer webcam', 'cloud print job management']\n  actions:\n    - auto-get: send a generic GET request for printer-related resources\n    - auto-post: send a generic POST request for printer-related resources\n    - auto-put: send a generic PUT request to update printer-related resources\n    - auto-delete: send a generic DELETE request to remove printer-related resources\n    - auto-start_print_job: start a print job\n    - auto-start_cloud_print: start printing from a cloud-stored file\n    - auto-update_user_profile: update the user profile\n    - auto-create_project: create a print project\n    - auto-create_task: create a print task\n    - auto-mark_notification_read: mark a notification as read or unread\n    - auto-bind_device: bind a printer to the account\n    - auto-unbind_device: unbind a printer\n    - auto-upload_file: upload a print file\n    - auto-get_devices: get bound device list\n    - auto-get_device_version: get device firmware version information\n    - auto-get_device_versions: get firmware version information for all devices\n    - auto-get_ams_filaments: get AMS filament information\n    - auto-get_print_status: get print status\n    - auto-get_user_profile: get user profile\n    - auto-get_user_info: get user information\n    - auto-get_projects: get project list\n    - auto-get_cloud_files: get cloud file list\n    - auto-get_tasks: get print task list\n    - auto-get_task: get a specific print task\n    - auto-get_project: get a specific project\n    - auto-get_camera_credentials: get camera access credentials\n    - auto-get_ttcode: get camera TTCode\n    - auto-get_cloud_video_url: get cloud video stream URL\n    - auto-get_camera_urls: get camera-related URLs\n    - auto-get_notifications: get notification list\n    - auto-get_messages: get message list\n    - auto-get_slicer_settings: get slicer settings\n    - auto-get_slicer_resources: get slicer resources\n    - auto-get_device_info: get detailed device information\n    - auto-get_upload_url: get file upload URL\n\nDevice: base__lut_man\n  name: 任意波形发生器\n  name_en: Arbitrary Waveform Generator\n  manufacturer: \n  description_zh: 任意波形发生器可输出用户定义的电压波形，并可通过查找表或码字索引快速调用不同脉冲。它常用于实验室中的脉冲激励、时序控制以及需要精确波形合成的测量系统。\n  description_en: An arbitrary waveform generator outputs user-defined voltage waveforms and can rapidly call up different pulses through lookup tables or codeword indexing. It is commonly used in laboratories for pulse excitation, timing control, and measurement systems that require precise waveform synthesis.\n  tag_hints: ['arbitrary waveform generation', 'waveform lookup table', 'codeword addressing', 'pulse generation', 'DIO-triggered waveform selection', 'timing control']\n  actions:\n    - auto-set_default_lutmap: Set the default waveform lookup-table mapping.\n    - auto-generate_standard_waveforms: Generate the standard waveform set.\n    - auto-load_waveform_onto_AWG_lookuptable: Load a single waveform into the AWG lookup table.\n    - auto-load_waveforms_onto_AWG_lookuptable: Load all mapped waveforms into the AWG lookup table.\n    - auto-render_wave: Display the waveform plot.\n    - auto-render_wave_PSD: Display the waveform power spectral density plot.\n    - auto-time_to_sample: Convert a time value to the corresponding sample index.\n    - auto-make: Update pending lookup-table waveforms on the AWG, stopping and restarting output if needed.\n\nDevice: base_client\n  name: 仪器服务器客户端\n  name_en: Instrument Server Client\n  manufacturer: \n  description_zh: 用于连接实验室仪器管理服务器的客户端组件，可与服务器建立连接、发送请求并断开连接，适合远程仪器访问与实验自动化控制场景。\n  description_en: A client component for connecting to a laboratory instrument management server. It can establish a connection, send requests, and disconnect, supporting remote instrument access and lab automation workflows.\n  tag_hints: ['instrument server', 'remote instrument control', 'lab automation', 'client-server communication', 'networked instruments']\n  actions:\n    - auto-connect: Connect to the instrument management server.\n    - auto-ask: Send a request to the server and receive a response.\n    - auto-disconnect: Disconnect from the instrument management server.\n\nDevice: base_driver\n  name: PC散热与灯效控制设备\n  name_en: PC Cooling and Lighting Control Device\n  manufacturer: \n  description_zh: 用于台式机或测试平台的硬件控制设备，可管理风扇或水泵转速、RGB灯光，以及部分机型的显示屏内容，并读取设备状态与标识信息。常见于一体式水冷、风扇集线器或机箱控制器。\n  description_en: A hardware control device used in desktop PCs or test benches to manage fan or pump speed, RGB lighting, and on some models integrated display content, while reporting device status and identification information. Common examples include AIO liquid coolers, fan hubs, and case controllers.\n  tag_hints: ['PC cooling control', 'fan and pump control', 'RGB lighting', 'AIO liquid cooler', 'LCD status display', 'hardware status monitoring']\n  actions:\n    - auto-connect: Connect to the device.\n    - auto-disconnect: Disconnect from the device.\n    - auto-initialize: Initialize the device so it enters a controllable operating state.\n    - auto-set_color: Set the lighting mode and colors for a specific channel.\n    - auto-set_fixed_speed: Set a specific channel to a fixed speed duty.\n    - auto-set_screen: Set the display mode and content for a screen channel.\n    - auto-set_speed_profile: Set a speed duty profile for a specific channel.\n    - auto-find_supported_devices: Find and bind compatible devices.\n    - auto-get_status: Get the status report.\n    - auto-description: Get the human-readable device description.\n    - auto-vendor_id: Get the vendor identifier.\n    - auto-product_id: Get the product identifier.\n    - auto-release_number: Get the device release number.\n    - auto-serial_number: Get the serial number.\n    - auto-bus: Get the bus the device is connected to.\n    - auto-address: Get the device address on the bus.\n    - auto-port: Get the physical port the device is connected to.\n    - auto-find_devices: Find devices.\n\nDevice: base_instrument\n  name: 通用SCPI仪器\n  name_en: Generic SCPI Instrument\n  manufacturer: \n  description_zh: 支持SCPI命令控制的通用实验室电子仪器，可代表频谱仪、信号源、示波器、源表等多种台式测量设备。此类仪器常用于实验室自动化测试、参数配置、状态查询和测量数据采集。\n  description_en: A generic laboratory electronic instrument that accepts SCPI commands. It can represent many benchtop test and measurement devices, such as spectrum analyzers, signal generators, oscilloscopes, or source meters, and is commonly used for automated testing, parameter configuration, status queries, and measurement data acquisition in laboratories.\n  tag_hints: ['SCPI control', 'test and measurement', 'lab automation', 'remote instrument control', 'benchtop instrument']\n  actions:\n    - auto-close: Close the communication connection to the instrument.\n    - auto-query: Send a query command to the instrument and read back the response.\n    - auto-set_opc_timeout: Set the timeout and polling interval used while waiting for instrument operation complete (OPC).\n    - auto-wait_opc: Wait for the instrument to complete the current operation.\n    - auto-write: Send an SCPI command to the instrument.\n"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0fc17d7cd90fc7b60069d491ecb83081979c84bad234f4fd44",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 39540,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 26874,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0fc17d7cd90fc7b60069d491ee2ddc8197aa03de42c1e4de81",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0fc17d7cd90fc7b60069d49244659481979bb529a3554c67f6",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"devices\":[{\"device\":\"attribute_proxy\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该代理在实验进行过程中连接并控制TANGO管理的仪器属性，服务于在线运行与控制。\"},{\"id\":\"P-0001\",\"name\":\"实验室自动化与仪器集成\",\"name_en\":\"Laboratory Automation & Instrument Integration\",\"type\":\"experimental_domain\",\"rationale\":\"设备本质是面向多类实验硬件的控制系统属性代理，属于实验室自动化与集成范畴。\"},{\"id\":\"P-0002\",\"name\":\"实验仪器数据采集与联机控制\",\"name_en\":\"Instrument Data Acquisition & Online Control\",\"type\":\"experimental_scene\",\"rationale\":\"支持属性读取、写入、轮询和事件订阅，直接对应联机采集与控制场景。\"},{\"id\":\"P-0003\",\"name\":\"实验仪器通信与驱动集成\",\"name_en\":\"Instrument Communication & Driver Integration\",\"type\":\"experimental_scene\",\"rationale\":\"该组件作为TANGO属性访问层，承担仪器通信与驱动对接作用。\"},{\"id\":\"P-0004\",\"name\":\"数据采集与控制接口\",\"name_en\":\"Data Acquisition and Control Interface\",\"type\":\"device_template_tag\",\"rationale\":\"作为通用属性代理，它提供对实验设备属性的统一读写和订阅接口。\"}],\"proposed_new_tags\":[]},{\"device\":\"autolab\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"Autolab可主动施加电位/电流并驱动电化学池运行，属于实验执行设备。\"},{\"id\":\"4316\",\"name\":\"表征设备\",\"name_en\":\"Characterization Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备同时采集电流、电位和阻抗响应，广泛用于电化学表征测试。\"},{\"id\":\"4325\",\"name\":\"智慧表征与检测中心\",\"name_en\":\"Intelligent Characterization & Testing Center\",\"type\":\"experimental_domain\",\"rationale\":\"Autolab主要用于电化学测试、阻抗谱和性能评估，符合检测表征类实验域。\"},{\"id\":\"P-0016\",\"name\":\"电源与电池测试\",\"name_en\":\"Power Supply & Battery Testing\",\"type\":\"experimental_scene\",\"rationale\":\"描述中明确提到电池研究，Autolab常用于电池充放电与阻抗分析。\"},{\"id\":\"4425\",\"name\":\"电化学工作站\",\"name_en\":\"Electrochemical Workstation\",\"type\":\"device_template_tag\",\"rationale\":\"设备描述直接对应恒电位/恒电流型电化学工作站。\"}],\"proposed_new_tags\":[{\"id\":\"P-7001\",\"name\":\"电化学测试与分析\",\"name_en\":\"Electrochemical Testing & Analysis\",\"type\":\"experimental_domain\",\"rationale\":\"该设备核心用途是电化学测量与分析，现有实验域对其覆盖不够直接。\"},{\"id\":\"P-7002\",\"name\":\"电化学表征与阻抗谱测量\",\"name_en\":\"Electrochemical Characterization & Impedance Spectroscopy\",\"type\":\"experimental_scene\",\"rationale\":\"其典型应用包括循环伏安、计时法和EIS，适合作为更贴切的实验场景标签。\"}]},{\"device\":\"awg\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备输出脉冲与定时控制信号，直接参与实验激励和控制执行。\"},{\"id\":\"P-2003\",\"name\":\"低温与量子测量\",\"name_en\":\"Cryogenic & Quantum Measurements\",\"type\":\"experimental_domain\",\"rationale\":\"描述中明确提到量子控制实验，是其重要应用方向。\"},{\"id\":\"P-0011\",\"name\":\"电子与电气测试\",\"name_en\":\"Electronics & Electrical Testing\",\"type\":\"experimental_domain\",\"rationale\":\"同时用于高速电子测量与信号激励，符合电子测试领域。\"},{\"id\":\"P-3006\",\"name\":\"量子比特脉冲控制与读出\",\"name_en\":\"Qubit Pulse Control & Readout\",\"type\":\"experimental_scene\",\"rationale\":\"其序列器、命令表和高速波形输出非常适合量子比特脉冲编排。\"},{\"id\":\"P-0024\",\"name\":\"瞬态信号采集与同步触发测量\",\"name_en\":\"Transient Signal Acquisition & Synchronized Triggered Measurement\",\"type\":\"experimental_scene\",\"rationale\":\"设备支持同步时序和高速脉冲输出，适用于触发同步实验。\"},{\"id\":\"P-0037\",\"name\":\"任意函数发生器\",\"name_en\":\"Arbitrary Function Generator\",\"type\":\"device_template_tag\",\"rationale\":\"现有模板中最接近其可编程波形输出能力的是任意函数发生器。\"}],\"proposed_new_tags\":[{\"id\":\"P-7003\",\"name\":\"任意波形发生器\",\"name_en\":\"Arbitrary Waveform Generator\",\"type\":\"device_template_tag\",\"rationale\":\"该设备本质上是高速多通道AWG，较现有函数发生器标签更准确。\"}]},{\"device\":\"axis\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该控制器在实验过程中驱动X/Y轴完成定位和调节，属于执行类设备。\"},{\"id\":\"P-1009\",\"name\":\"精密定位与运动控制\",\"name_en\":\"Precision Positioning & Motion Control\",\"type\":\"experimental_domain\",\"rationale\":\"其核心功能是双轴微位移与精密运动控制。\"},{\"id\":\"P-0038\",\"name\":\"样品/探针定位与运动控制\",\"name_en\":\"Sample / Probe Positioning & Motion Control\",\"type\":\"experimental_scene\",\"rationale\":\"设备用于实验平台上的双轴定位、点动和限位移动，与定位控制场景一致。\"},{\"id\":\"P-1011\",\"name\":\"压电步进位移台控制器\",\"name_en\":\"Piezo Stepper Stage Controller\",\"type\":\"device_template_tag\",\"rationale\":\"设备名称和功能均对应压电微步位移台控制器。\"}],\"proposed_new_tags\":[]},{\"device\":\"ba_cnet_client_application\",\"existing_tags\":[{\"id\":\"4317\",\"name\":\"物流/机械\",\"name_en\":\"Logistics / Machinery\",\"type\":\"experimental_step\",\"rationale\":\"该类设备主要服务于实验设施侧的暖通、传感器和执行器联动，接近机电基础设施环节。\"},{\"id\":\"P-0001\",\"name\":\"实验室自动化与仪器集成\",\"name_en\":\"Laboratory Automation & Instrument Integration\",\"type\":\"experimental_domain\",\"rationale\":\"BACnet控制器常用于实验室设施与监控系统集成。\"},{\"id\":\"P-9004\",\"name\":\"环境控制与稳定性测试\",\"name_en\":\"Environmental Control & Stability Testing\",\"type\":\"experimental_domain\",\"rationale\":\"描述中明确涉及房间环境监测、空调与通风联动。\"},{\"id\":\"P-0002\",\"name\":\"实验仪器数据采集与联机控制\",\"name_en\":\"Instrument Data Acquisition & Online Control\",\"type\":\"experimental_scene\",\"rationale\":\"设备支持点位属性读写、轮询和在线获取状态值，符合联机监控场景。\"}],\"proposed_new_tags\":[{\"id\":\"P-7004\",\"name\":\"楼宇环境监测与HVAC联动\",\"name_en\":\"Building Environment Monitoring & HVAC Coordination\",\"type\":\"experimental_scene\",\"rationale\":\"该设备典型用于暖通空调、环境传感器和告警点位协同控制。\"},{\"id\":\"P-7005\",\"name\":\"BACnet楼宇自动化控制器\",\"name_en\":\"BACnet Building Automation Controller\",\"type\":\"device_template_tag\",\"rationale\":\"设备描述直接指向支持BACnet协议的楼宇自动化现场控制器。\"}]},{\"device\":\"bambu_client\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"3D打印机直接执行材料沉积与打印制造任务。\"},{\"id\":\"P-5006\",\"name\":\"实验装置数字化设计与制造数据\",\"name_en\":\"Digital Design & Manufacturing Data for Experimental Apparatus\",\"type\":\"experimental_domain\",\"rationale\":\"该设备用于实验室夹具、治具和样件的数字化制造流程。\"}],\"proposed_new_tags\":[{\"id\":\"P-7006\",\"name\":\"实验室快速原型与工装制造\",\"name_en\":\"Laboratory Rapid Prototyping & Fixture Fabrication\",\"type\":\"experimental_scene\",\"rationale\":\"描述中明确用于快速原型制作、夹具治具加工和教学演示。\"},{\"id\":\"P-7007\",\"name\":\"熔融沉积成型3D打印机\",\"name_en\":\"FDM 3D Printer\",\"type\":\"device_template_tag\",\"rationale\":\"Bambu Lab设备属于桌面级FDM 3D打印机，可支持多材料打印。\"}]},{\"device\":\"base__lut_man\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备输出脉冲和电压波形，直接承担实验激励与时序执行。\"},{\"id\":\"P-0011\",\"name\":\"电子与电气测试\",\"name_en\":\"Electronics & Electrical Testing\",\"type\":\"experimental_domain\",\"rationale\":\"任意波形发生器常用于电子测量系统中的激励与控制。\"},{\"id\":\"P-0037\",\"name\":\"任意函数发生器\",\"name_en\":\"Arbitrary Function Generator\",\"type\":\"device_template_tag\",\"rationale\":\"现有模板中最接近其用户自定义波形输出能力的是任意函数发生器。\"}],\"proposed_new_tags\":[{\"id\":\"P-7008\",\"name\":\"脉冲激励与时序控制\",\"name_en\":\"Pulse Excitation & Timing Control\",\"type\":\"experimental_scene\",\"rationale\":\"其查找表和码字索引机制非常适合脉冲激励与精确时序控制场景。\"},{\"id\":\"P-7009\",\"name\":\"任意波形发生器\",\"name_en\":\"Arbitrary Waveform Generator\",\"type\":\"device_template_tag\",\"rationale\":\"该设备以波形查找表和码字寻址为核心，属于典型AWG类别。\"}]},{\"device\":\"base_client\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该客户端用于实验过程中远程访问和控制仪器服务器上的设备资源。\"},{\"id\":\"P-0001\",\"name\":\"实验室自动化与仪器集成\",\"name_en\":\"Laboratory Automation & Instrument Integration\",\"type\":\"experimental_domain\",\"rationale\":\"其主要用途是连接实验室仪器管理服务器并参与自动化工作流。\"},{\"id\":\"P-0002\",\"name\":\"实验仪器数据采集与联机控制\",\"name_en\":\"Instrument Data Acquisition & Online Control\",\"type\":\"experimental_scene\",\"rationale\":\"建立连接、发送请求和远程操作都属于联机控制场景。\"},{\"id\":\"P-0003\",\"name\":\"实验仪器通信与驱动集成\",\"name_en\":\"Instrument Communication & Driver Integration\",\"type\":\"experimental_scene\",\"rationale\":\"该组件位于客户端通信层，适合归入仪器通信集成场景。\"},{\"id\":\"P-0004\",\"name\":\"数据采集与控制接口\",\"name_en\":\"Data Acquisition and Control Interface\",\"type\":\"device_template_tag\",\"rationale\":\"作为仪器服务器客户端，它提供统一的请求与控制接口能力。\"}],\"proposed_new_tags\":[]},{\"device\":\"base_driver\",\"existing_tags\":[{\"id\":\"4317\",\"name\":\"物流/机械\",\"name_en\":\"Logistics / Machinery\",\"type\":\"experimental_step\",\"rationale\":\"该设备管理风扇、水泵等机电部件，属于实验台架辅助机械控制。\"},{\"id\":\"P-0011\",\"name\":\"电子与电气测试\",\"name_en\":\"Electronics & Electrical Testing\",\"type\":\"experimental_domain\",\"rationale\":\"描述中提到台式机和测试平台使用场景，属于电子测试配套硬件。\"},{\"id\":\"P-5011\",\"name\":\"电子器件供电与台架测试\",\"name_en\":\"Electronic Device Powering & Bench Testing\",\"type\":\"experimental_scene\",\"rationale\":\"该类控制器常见于PC测试台架和硬件状态监测场景。\"}],\"proposed_new_tags\":[{\"id\":\"P-7010\",\"name\":\"PC散热与灯效控制\",\"name_en\":\"PC Cooling & Lighting Control\",\"type\":\"experimental_scene\",\"rationale\":\"设备支持风扇/水泵转速、RGB灯效和屏幕内容控制，适合作为独立场景。\"},{\"id\":\"P-7011\",\"name\":\"风扇水泵与灯效控制器\",\"name_en\":\"Fan, Pump & Lighting Controller\",\"type\":\"device_template_tag\",\"rationale\":\"该设备类别覆盖AIO水冷控制器、风扇集线器和机箱灯效控制器。\"}]},{\"device\":\"base_instrument\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该类SCPI仪器可作为信号源、源表等主动输出与控制设备使用。\"},{\"id\":\"4316\",\"name\":\"表征设备\",\"name_en\":\"Characterization Equipment\",\"type\":\"experimental_step\",\"rationale\":\"同类设备也常作为示波器、频谱仪等测量表征设备使用。\"},{\"id\":\"P-0011\",\"name\":\"电子与电气测试\",\"name_en\":\"Electronics & Electrical Testing\",\"type\":\"experimental_domain\",\"rationale\":\"描述中明确包括频谱仪、信号源、示波器和源表等电子测试设备。\"},{\"id\":\"P-0001\",\"name\":\"实验室自动化与仪器集成\",\"name_en\":\"Laboratory Automation & Instrument Integration\",\"type\":\"experimental_domain\",\"rationale\":\"SCPI控制通常用于自动化测试系统中的统一仪器接入。\"},{\"id\":\"P-0002\",\"name\":\"实验仪器数据采集与联机控制\",\"name_en\":\"Instrument Data Acquisition & Online Control\",\"type\":\"experimental_scene\",\"rationale\":\"其query/write/wait操作直接服务于联机控制和测量数据采集。\"},{\"id\":\"P-0012\",\"name\":\"射频与电子电路测试\",\"name_en\":\"RF & Electronic Circuit Testing\",\"type\":\"experimental_scene\",\"rationale\":\"频谱仪和信号源等典型SCPI设备常见于射频与电子电路测试。\"}],\"proposed_new_tags\":[{\"id\":\"P-7012\",\"name\":\"SCPI台式电子仪器\",\"name_en\":\"SCPI Benchtop Electronic Instrument\",\"type\":\"device_template_tag\",\"rationale\":\"该设备类以SCPI指令集为统一控制方式，覆盖多类台式测试测量仪器。\"}]}]}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 11619,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 7456,
+      "output_tokens_details": {
+        "reasoning_tokens": 4124
+      },
+      "total_tokens": 19075
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 11619,
+      "output_token_count": 7456,
+      "predict_time": 143.108312872
+    }
+  },
+  "device_result": {
+    "device": "attribute_proxy",
+    "existing_tags": [
+      {
+        "id": "4313",
+        "name": "实验执行&合成设备",
+        "name_en": "Experiment Execution & Synthesis Equipment",
+        "type": "experimental_step",
+        "rationale": "该代理在实验进行过程中连接并控制TANGO管理的仪器属性，服务于在线运行与控制。"
+      },
+      {
+        "id": "P-0001",
+        "name": "实验室自动化与仪器集成",
+        "name_en": "Laboratory Automation & Instrument Integration",
+        "type": "experimental_domain",
+        "rationale": "设备本质是面向多类实验硬件的控制系统属性代理，属于实验室自动化与集成范畴。"
+      },
+      {
+        "id": "P-0002",
+        "name": "实验仪器数据采集与联机控制",
+        "name_en": "Instrument Data Acquisition & Online Control",
+        "type": "experimental_scene",
+        "rationale": "支持属性读取、写入、轮询和事件订阅，直接对应联机采集与控制场景。"
+      },
+      {
+        "id": "P-0003",
+        "name": "实验仪器通信与驱动集成",
+        "name_en": "Instrument Communication & Driver Integration",
+        "type": "experimental_scene",
+        "rationale": "该组件作为TANGO属性访问层，承担仪器通信与驱动对接作用。"
+      },
+      {
+        "id": "P-0004",
+        "name": "数据采集与控制接口",
+        "name_en": "Data Acquisition and Control Interface",
+        "type": "device_template_tag",
+        "rationale": "作为通用属性代理，它提供对实验设备属性的统一读写和订阅接口。"
+      }
+    ],
+    "proposed_new_tags": []
+  }
+}
