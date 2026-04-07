@@ -60,6 +60,9 @@ Versioning rule:
 - Documented that the IDE todo stack must be kept synchronized with the
   persistent JSON TODO queue so autonomous continuation does not stall across
   turn boundaries.
+- Clarified that the todo tail must be self-renewing: append fresh future-cycle
+  TODOs before starting the current last TODO, and reread the production
+  starter prompt after automatic context compaction.
 
 ## v3
 

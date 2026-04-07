@@ -135,8 +135,15 @@ Control rule:
 - append next-cycle TODOs before dispatching the next normal batch
 - append next-cycle TODOs before entering workflow-update mode
 - keep the IDE todo stack synchronized with those same next-cycle actions so the autonomous loop can resume reliably across turn boundaries
+- do not start work on the current last TODO unless at least one newer future-cycle TODO has already been appended after it
+- keep an explicit tail TODO whose purpose is to append more next-cycle TODOs before the stack runs dry
 
 This rule applies whether or not a workflow update is needed.
+
+After automatic context compaction:
+- reread `production_starter_prompt_v4.md`
+- reread `production_state_v4.json`
+- reconstruct the IDE todo stack from the current next-cycle actions before continuing
 
 ## Information priority
 
