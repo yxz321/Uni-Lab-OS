@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: system\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: generated/nidaqmx/system/system.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.system:System\n\nClass: System (focal)\n  Bases: []\n  Docstring: Represents a DAQmx system.\n\nContains static properties that access tasks, scales, and global channels\nstored in Measurement Automation Explorer (MAX), performs immediate\noperations on DAQ hardware, and creates classes from which you can get\ninformation about the hardware.\n\nFocal class methods:\n  [command] local()\n    comment: nidaqmx.system.system.System: Represents the local DAQmx system.\n  [command] remote(grpc_options)\n    comment: nidaqmx.system.system.System: Represents the remote DAQmx system.\n\n        Args:\n            grpc_options (:class:`~nidaqmx.GrpcSessionOptions`): Specifies\n                the gRPC session options.\n  [command] devices(self)\n    comment: nidaqmx.system._collections.DeviceCollection: Indicates the\n            collection of devices for this DAQmx system.\n  [command] driver_version(self)\n    comment: collections.namedtuple: Indicates the major, minor and update\n            portions of the installed version of NI-DAQmx.\n\n            - major_version (int): Indicates the major portion of the\n        ...\n  [command] global_channels(self)\n    comment: nidaqmx.system._collections.PersistedChannelCollection: Indicates\n            the collection of global channels for this DAQmx system.\n  [command] scales(self)\n    comment: nidaqmx.system._collections.PersistedScaleCollection: Indicates\n            the collection of custom scales for this DAQmx system.\n  [command] tasks(self)\n    comment: nidaqmx.system._collections.PersistedTaskCollection: Indicates\n            the collection of saved tasks for this DAQmx system.\n  [command] connect_terms(self, source_terminal, destination_terminal, signal_modifiers=SignalModifiers.DO_NOT_INVERT_POLARITY)\n    comment: Creates a route between a source and destination terminal. The\n        route can carry a variety of digital signals, such as triggers,\n        clocks, and hardware events.\n\n        Args:\n            s...\n  [command] disconnect_terms(self, source_terminal, destination_terminal)\n    comment: Removes signal routes you created by using the DAQmx Connect\n        Terminals function. The DAQmx Disconnect Terminals function\n        cannot remove task-based routes, such as those you create\n     ...\n  [command] tristate_output_term(self, output_terminal)\n    comment: Sets a terminal to high-impedance state. If you connect an\n        external signal to a terminal on the I/O connector, the terminal\n        must be in high-impedance state. Otherwise, the device could...\n  [command] set_digital_power_up_states(self, device_name, power_up_states)\n    comment: region Power Up States Functions\n    comment: Updates power up states for digital physical channels.\n\n        Args:\n            device_name (str): Specifies the name as configured in MAX\n                of the device to which this operation appli...\n  [command] get_digital_power_up_states(self, device_name)\n    comment: Gets the power up states for digital physical lines.\n\n        Args:\n            device_name (str): Specifies the name as configured in MAX\n                of the device to which this operation applies...\n  [command] set_digital_pull_up_pull_down_states(self, device_name, power_up_states)\n    comment: Sets the resistor level to pull up or pull down for lines when\n        they are in tristate logic.\n\n        Args:\n            device_name (str): Specifies the name as configured in MAX\n               ...\n  [command] get_digital_pull_up_pull_down_states(self, device_name)\n    comment: Gets the resistor level for lines when they are in tristate\n        logic.\n\n        Args:\n            device_name (str): Specifies the name as configured in MAX\n                of the device to which ...\n  [command] set_analog_power_up_states(self, device_name, power_up_states)\n    comment: Updates power up states for analog physical channels.\n\n        Args:\n            device_name (str): Specifies the name as configured in MAX\n                of the device to which this operation applie...\n  [command] set_analog_power_up_states_with_output_type(self, power_up_states)\n    comment: Updates power up states for analog physical channels.\n\n        Args:\n            power_up_states (List[nidaqmx.types.AOPowerUpState]):\n                Contains the physical channels and power up state...\n  [command] get_analog_power_up_states(self, device_name)\n    comment: Here get_analog_power_up_states is not called, since it is deprecated and passes channel_type in wrong direction\n    comment: Gets the power up states for analog physical channels.\n\n        Args:\n            device_name (str): Specifies the name as configured in MAX\n                of the device to which this operation appli...\n  [command] get_analog_power_up_states_with_output_type(self, physical_channels)\n    comment: Gets the power up states for analog physical channels.\n\n        Args:\n            physical_channels (List[str]): Indicates the physical\n                channels that were modified.\n        Returns:\n  ...\n  [command] set_digital_logic_family_power_up_state(self, device_name, logic_family)\n    comment: Sets the digital logic family to use when the device powers up.\n\n        Args:\n            device_name (str): Specifies the name as configured in MAX\n                of the device to which this operat...\n  [command] get_digital_logic_family_power_up_state(self, device_name)\n    comment: Gets the digital logic family for a device.\n\n        Args:\n            device_name (str): Specifies the name as configured in MAX\n                of the device to which this operation applies.\n       ...\n  [command] auto_configure_cdaq_sync_connections(self, chassis_devices_ports='', timeout=WAIT_INFINITELY)\n    comment: region cDAQ Sync Functions\n    comment: Detects and configures cDAQ Sync connections between devices.\n        Stop all NI-DAQmx tasks running on the devices prior to running\n        this function because any running tasks cause auto-configu...\n  [command] are_configured_cdaq_sync_ports_disconnected(self, chassis_devices_ports='', timeout=WAIT_INFINITELY)\n    comment: Verifies configured cDAQ Sync connections between devices.\n        Failures generally indicate a wiring issue or that a device has\n        been powered off or removed. Stop all NI-DAQmx tasks running ...\n  [command] add_cdaq_sync_connection(self, ports_to_connect)\n    comment: Adds a cDAQ Sync connection between devices. The connection is\n        not verified.\n\n        Args:\n            ports_to_connect (nidaqmx.types.CDAQSyncConnection):\n                Specifies the cDAQ ...\n  [command] remove_cdaq_sync_connection(self, ports_to_disconnect)\n    comment: Removes a cDAQ Sync connection between devices. The connection\n        is not verified.\n\n        Args:\n            ports_to_disconnect (nidaqmx.types.CDAQSyncConnection):\n                Specifies the...\n\nRegistry actions:\n  auto-local (from local())\n  auto-remote (from remote())\n  auto-devices (from devices())\n  auto-driver_version (from driver_version())\n  auto-global_channels (from global_channels())\n  auto-scales (from scales())\n  auto-tasks (from tasks())\n  auto-connect_terms (from connect_terms())\n  auto-disconnect_terms (from disconnect_terms())\n  auto-tristate_output_term (from tristate_output_term())\n  auto-set_digital_power_up_states (from set_digital_power_up_states())\n  auto-get_digital_power_up_states (from get_digital_power_up_states())\n  auto-set_digital_pull_up_pull_down_states (from set_digital_pull_up_pull_down_states())\n  auto-get_digital_pull_up_pull_down_states (from get_digital_pull_up_pull_down_states())\n  auto-set_analog_power_up_states (from set_analog_power_up_states())\n  auto-set_analog_power_up_states_with_output_type (from set_analog_power_up_states_with_output_type())\n  auto-get_analog_power_up_states (from get_analog_power_up_states())\n  auto-get_analog_power_up_states_with_output_type (from get_analog_power_up_states_with_output_type())\n  auto-set_digital_logic_family_power_up_state (from set_digital_logic_family_power_up_state())\n  auto-get_digital_logic_family_power_up_state (from get_digital_logic_family_power_up_state())\n  auto-auto_configure_cdaq_sync_connections (from auto_configure_cdaq_sync_connections())\n  auto-are_configured_cdaq_sync_ports_disconnected (from are_configured_cdaq_sync_ports_disconnected())\n  auto-add_cdaq_sync_connection (from add_cdaq_sync_connection())\n  auto-remove_cdaq_sync_connection (from remove_cdaq_sync_connection())\n\nRequired output action ids:\n  auto-local\n  auto-remote\n  auto-devices\n  auto-driver_version\n  auto-global_channels\n  auto-scales\n  auto-tasks\n  auto-connect_terms\n  auto-disconnect_terms\n  auto-tristate_output_term\n  auto-set_digital_power_up_states\n  auto-get_digital_power_up_states\n  auto-set_digital_pull_up_pull_down_states\n  auto-get_digital_pull_up_pull_down_states\n  auto-set_analog_power_up_states\n  auto-set_analog_power_up_states_with_output_type\n  auto-get_analog_power_up_states\n  auto-get_analog_power_up_states_with_output_type\n  auto-set_digital_logic_family_power_up_state\n  auto-get_digital_logic_family_power_up_state\n  auto-auto_configure_cdaq_sync_connections\n  auto-are_configured_cdaq_sync_ports_disconnected\n  auto-add_cdaq_sync_connection\n  auto-remove_cdaq_sync_connection"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_00bb32cb39269dbd0069d562cbded081939c240d71474d0a29",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 10626,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7846,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_00bb32cb39269dbd0069d562cc57648193a60e0b179173dca4",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_00bb32cb39269dbd0069d562d4bac88193bac523039c811350",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"NI-DAQmx 系统管理组件\",\n  \"name_en\": \"NI-DAQmx System Manager\",\n  \"manufacturer\": \"National Instruments (NI)\",\n  \"description\": \"这是一个非物理的软件系统管理组件，用于表示和管理 NI-DAQmx 数据采集系统。它用于访问本地或远程 DAQmx 系统、枚举设备与已保存任务/通道/标度，并执行与硬件配置相关的系统级操作，如端子路由、上电默认状态设置以及 cDAQ 同步连接配置。\",\n  \"description_en\": \"This is a non-physical software system management component that represents and manages an NI-DAQmx data acquisition system. It is used to access local or remote DAQmx systems, enumerate devices and persisted tasks/channels/scales, and perform system-level hardware configuration operations such as terminal routing, power-up state configuration, and cDAQ synchronization setup.\",\n  \"tag_hints\": [\n    \"NI-DAQmx\",\n    \"DAQ system management\",\n    \"device enumeration\",\n    \"terminal routing\",\n    \"power-up state configuration\",\n    \"cDAQ synchronization\",\n    \"persisted tasks and channels\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-local\",\n      \"description\": \"获取本地 DAQmx 系统对象。\",\n      \"description_en\": \"Get the local DAQmx system object.\"\n    },\n    {\n      \"action_name\": \"auto-remote\",\n      \"description\": \"连接并获取远程 DAQmx 系统对象。\",\n      \"description_en\": \"Connect to and get a remote DAQmx system object.\"\n    },\n    {\n      \"action_name\": \"auto-devices\",\n      \"description\": \"获取该 DAQmx 系统中的设备集合。\",\n      \"description_en\": \"Get the collection of devices in this DAQmx system.\"\n    },\n    {\n      \"action_name\": \"auto-driver_version\",\n      \"description\": \"获取已安装 NI-DAQmx 驱动的版本信息。\",\n      \"description_en\": \"Get the installed NI-DAQmx driver version information.\"\n    },\n    {\n      \"action_name\": \"auto-global_channels\",\n      \"description\": \"获取系统中已保存的全局通道集合。\",\n      \"description_en\": \"Get the collection of persisted global channels in the system.\"\n    },\n    {\n      \"action_name\": \"auto-scales\",\n      \"description\": \"获取系统中已保存的自定义标度集合。\",\n      \"description_en\": \"Get the collection of persisted custom scales in the system.\"\n    },\n    {\n      \"action_name\": \"auto-tasks\",\n      \"description\": \"获取系统中已保存的任务集合。\",\n      \"description_en\": \"Get the collection of persisted tasks in the system.\"\n    },\n    {\n      \"action_name\": \"auto-connect_terms\",\n      \"description\": \"在源端子和目标端子之间创建信号路由。\",\n      \"description_en\": \"Create a signal route between a source terminal and a destination terminal.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect_terms\",\n      \"description\": \"移除已创建的端子信号路由。\",\n      \"description_en\": \"Remove a previously created terminal signal route.\"\n    },\n    {\n      \"action_name\": \"auto-tristate_output_term\",\n      \"description\": \"将输出端子设置为高阻态。\",\n      \"description_en\": \"Set an output terminal to a high-impedance state.\"\n    },\n    {\n      \"action_name\": \"auto-set_digital_power_up_states\",\n      \"description\": \"设置指定设备数字物理通道的上电默认状态。\",\n      \"description_en\": \"Set the power-up default states for digital physical channels on a specified device.\"\n    },\n    {\n      \"action_name\": \"auto-get_digital_power_up_states\",\n      \"description\": \"获取指定设备数字物理线路的上电默认状态。\",\n      \"description_en\": \"Get the power-up default states for digital physical lines on a specified device.\"\n    },\n    {\n      \"action_name\": \"auto-set_digital_pull_up_pull_down_states\",\n      \"description\": \"设置数字线路在三态逻辑下的上拉/下拉电阻状态。\",\n      \"description_en\": \"Set the pull-up or pull-down resistor states for digital lines in tristate logic.\"\n    },\n    {\n      \"action_name\": \"auto-get_digital_pull_up_pull_down_states\",\n      \"description\": \"获取数字线路在三态逻辑下的上拉/下拉电阻状态。\",\n      \"description_en\": \"Get the pull-up or pull-down resistor states for digital lines in tristate logic.\"\n    },\n    {\n      \"action_name\": \"auto-set_analog_power_up_states\",\n      \"description\": \"设置指定设备模拟物理通道的上电默认状态。\",\n      \"description_en\": \"Set the power-up default states for analog physical channels on a specified device.\"\n    },\n    {\n      \"action_name\": \"auto-set_analog_power_up_states_with_output_type\",\n      \"description\": \"按输出类型设置模拟物理通道的上电默认状态。\",\n      \"description_en\": \"Set the power-up default states for analog physical channels with output type information.\"\n    },\n    {\n      \"action_name\": \"auto-get_analog_power_up_states\",\n      \"description\": \"获取指定设备模拟物理通道的上电默认状态。\",\n      \"description_en\": \"Get the power-up default states for analog physical channels on a specified device.\"\n    },\n    {\n      \"action_name\": \"auto-get_analog_power_up_states_with_output_type\",\n      \"description\": \"按物理通道获取模拟通道的上电默认状态及输出类型信息。\",\n      \"description_en\": \"Get the power-up default states and output type information for analog channels by physical channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_digital_logic_family_power_up_state\",\n      \"description\": \"设置设备上电时使用的数字逻辑电平族。\",\n      \"description_en\": \"Set the digital logic family used by a device at power-up.\"\n    },\n    {\n      \"action_name\": \"auto-get_digital_logic_family_power_up_state\",\n      \"description\": \"获取设备的数字逻辑电平族设置。\",\n      \"description_en\": \"Get the digital logic family setting for a device.\"\n    },\n    {\n      \"action_name\": \"auto-auto_configure_cdaq_sync_connections\",\n      \"description\": \"自动检测并配置设备之间的 cDAQ 同步连接。\",\n      \"description_en\": \"Automatically detect and configure cDAQ synchronization connections between devices.\"\n    },\n    {\n      \"action_name\": \"auto-are_configured_cdaq_sync_ports_disconnected\",\n      \"description\": \"检查已配置的 cDAQ 同步端口是否断开。\",\n      \"description_en\": \"Check whether configured cDAQ synchronization ports are disconnected.\"\n    },\n    {\n      \"action_name\": \"auto-add_cdaq_sync_connection\",\n      \"description\": \"添加一条 cDAQ 同步连接配置。\",\n      \"description_en\": \"Add a cDAQ synchronization connection configuration.\"\n    },\n    {\n      \"action_name\": \"auto-remove_cdaq_sync_connection\",\n      \"description\": \"移除一条 cDAQ 同步连接配置。\",\n      \"description_en\": \"Remove a cDAQ synchronization connection configuration.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2718,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2004,
+      "output_tokens_details": {
+        "reasoning_tokens": 451
+      },
+      "total_tokens": 4722
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2718,
+      "output_token_count": 2004,
+      "predict_time": 29.471209748
+    }
+  },
+  "output_text": "{\n  \"name\": \"NI-DAQmx 系统管理组件\",\n  \"name_en\": \"NI-DAQmx System Manager\",\n  \"manufacturer\": \"National Instruments (NI)\",\n  \"description\": \"这是一个非物理的软件系统管理组件，用于表示和管理 NI-DAQmx 数据采集系统。它用于访问本地或远程 DAQmx 系统、枚举设备与已保存任务/通道/标度，并执行与硬件配置相关的系统级操作，如端子路由、上电默认状态设置以及 cDAQ 同步连接配置。\",\n  \"description_en\": \"This is a non-physical software system management component that represents and manages an NI-DAQmx data acquisition system. It is used to access local or remote DAQmx systems, enumerate devices and persisted tasks/channels/scales, and perform system-level hardware configuration operations such as terminal routing, power-up state configuration, and cDAQ synchronization setup.\",\n  \"tag_hints\": [\n    \"NI-DAQmx\",\n    \"DAQ system management\",\n    \"device enumeration\",\n    \"terminal routing\",\n    \"power-up state configuration\",\n    \"cDAQ synchronization\",\n    \"persisted tasks and channels\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-local\",\n      \"description\": \"获取本地 DAQmx 系统对象。\",\n      \"description_en\": \"Get the local DAQmx system object.\"\n    },\n    {\n      \"action_name\": \"auto-remote\",\n      \"description\": \"连接并获取远程 DAQmx 系统对象。\",\n      \"description_en\": \"Connect to and get a remote DAQmx system object.\"\n    },\n    {\n      \"action_name\": \"auto-devices\",\n      \"description\": \"获取该 DAQmx 系统中的设备集合。\",\n      \"description_en\": \"Get the collection of devices in this DAQmx system.\"\n    },\n    {\n      \"action_name\": \"auto-driver_version\",\n      \"description\": \"获取已安装 NI-DAQmx 驱动的版本信息。\",\n      \"description_en\": \"Get the installed NI-DAQmx driver version information.\"\n    },\n    {\n      \"action_name\": \"auto-global_channels\",\n      \"description\": \"获取系统中已保存的全局通道集合。\",\n      \"description_en\": \"Get the collection of persisted global channels in the system.\"\n    },\n    {\n      \"action_name\": \"auto-scales\",\n      \"description\": \"获取系统中已保存的自定义标度集合。\",\n      \"description_en\": \"Get the collection of persisted custom scales in the system.\"\n    },\n    {\n      \"action_name\": \"auto-tasks\",\n      \"description\": \"获取系统中已保存的任务集合。\",\n      \"description_en\": \"Get the collection of persisted tasks in the system.\"\n    },\n    {\n      \"action_name\": \"auto-connect_terms\",\n      \"description\": \"在源端子和目标端子之间创建信号路由。\",\n      \"description_en\": \"Create a signal route between a source terminal and a destination terminal.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect_terms\",\n      \"description\": \"移除已创建的端子信号路由。\",\n      \"description_en\": \"Remove a previously created terminal signal route.\"\n    },\n    {\n      \"action_name\": \"auto-tristate_output_term\",\n      \"description\": \"将输出端子设置为高阻态。\",\n      \"description_en\": \"Set an output terminal to a high-impedance state.\"\n    },\n    {\n      \"action_name\": \"auto-set_digital_power_up_states\",\n      \"description\": \"设置指定设备数字物理通道的上电默认状态。\",\n      \"description_en\": \"Set the power-up default states for digital physical channels on a specified device.\"\n    },\n    {\n      \"action_name\": \"auto-get_digital_power_up_states\",\n      \"description\": \"获取指定设备数字物理线路的上电默认状态。\",\n      \"description_en\": \"Get the power-up default states for digital physical lines on a specified device.\"\n    },\n    {\n      \"action_name\": \"auto-set_digital_pull_up_pull_down_states\",\n      \"description\": \"设置数字线路在三态逻辑下的上拉/下拉电阻状态。\",\n      \"description_en\": \"Set the pull-up or pull-down resistor states for digital lines in tristate logic.\"\n    },\n    {\n      \"action_name\": \"auto-get_digital_pull_up_pull_down_states\",\n      \"description\": \"获取数字线路在三态逻辑下的上拉/下拉电阻状态。\",\n      \"description_en\": \"Get the pull-up or pull-down resistor states for digital lines in tristate logic.\"\n    },\n    {\n      \"action_name\": \"auto-set_analog_power_up_states\",\n      \"description\": \"设置指定设备模拟物理通道的上电默认状态。\",\n      \"description_en\": \"Set the power-up default states for analog physical channels on a specified device.\"\n    },\n    {\n      \"action_name\": \"auto-set_analog_power_up_states_with_output_type\",\n      \"description\": \"按输出类型设置模拟物理通道的上电默认状态。\",\n      \"description_en\": \"Set the power-up default states for analog physical channels with output type information.\"\n    },\n    {\n      \"action_name\": \"auto-get_analog_power_up_states\",\n      \"description\": \"获取指定设备模拟物理通道的上电默认状态。\",\n      \"description_en\": \"Get the power-up default states for analog physical channels on a specified device.\"\n    },\n    {\n      \"action_name\": \"auto-get_analog_power_up_states_with_output_type\",\n      \"description\": \"按物理通道获取模拟通道的上电默认状态及输出类型信息。\",\n      \"description_en\": \"Get the power-up default states and output type information for analog channels by physical channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_digital_logic_family_power_up_state\",\n      \"description\": \"设置设备上电时使用的数字逻辑电平族。\",\n      \"description_en\": \"Set the digital logic family used by a device at power-up.\"\n    },\n    {\n      \"action_name\": \"auto-get_digital_logic_family_power_up_state\",\n      \"description\": \"获取设备的数字逻辑电平族设置。\",\n      \"description_en\": \"Get the digital logic family setting for a device.\"\n    },\n    {\n      \"action_name\": \"auto-auto_configure_cdaq_sync_connections\",\n      \"description\": \"自动检测并配置设备之间的 cDAQ 同步连接。\",\n      \"description_en\": \"Automatically detect and configure cDAQ synchronization connections between devices.\"\n    },\n    {\n      \"action_name\": \"auto-are_configured_cdaq_sync_ports_disconnected\",\n      \"description\": \"检查已配置的 cDAQ 同步端口是否断开。\",\n      \"description_en\": \"Check whether configured cDAQ synchronization ports are disconnected.\"\n    },\n    {\n      \"action_name\": \"auto-add_cdaq_sync_connection\",\n      \"description\": \"添加一条 cDAQ 同步连接配置。\",\n      \"description_en\": \"Add a cDAQ synchronization connection configuration.\"\n    },\n    {\n      \"action_name\": \"auto-remove_cdaq_sync_connection\",\n      \"description\": \"移除一条 cDAQ 同步连接配置。\",\n      \"description_en\": \"Remove a cDAQ synchronization connection configuration.\"\n    }\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: stream_client\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: acq400_hapi/acq400.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.stream_client.stream_client:StreamClient\n\nClass: DataNotAvailableError \n  Bases: ['Exception']\n\nClass: AcqPorts \n  Bases: []\n  Docstring: uut server port constants\n\nClass: AcqSites \n  Bases: []\n  Docstring: uut site constants\n\nClass: SF \n  Bases: []\n  Docstring: uut system state constants\n\nClass: STATE \n  Bases: []\n  Docstring: transient state constants\n\nClass: Signals \n  Bases: []\n\nClass: StreamClient (focal)\n  Bases: ['netclient.Netclient']\n  Docstring: handles live streaming data\n\nClass: RawClient \n  Bases: ['netclient.Netclient']\n  Docstring: handles raw data from any service port\n\nClass: MgtDramPullClient \n  Bases: ['RawClient']\n\nClass: ChannelClient \n  Bases: ['RawClient']\n  Docstring: handles post shot data for one channel.\n\nArgs:\n    addr (str) : ip address or hostname\n\n    ch (int) : channel number 1..N\n\nClass: ExitCommand \n  Bases: ['Exception']\n\nClass: Statusmonitor \n  Bases: []\n  Docstring: monitors the status channel\n\nEfficient event-driven monitoring in a separate thread\n\nClass: NullFilter \n  Bases: []\n\nClass: ProcessMonitor \n  Bases: []\n\nClass: Acq400 \n  Bases: []\n  Docstring: Host-side proxy for Acq400 uut.\n\nacq400 discovers and maintains all site servers, maintains a monitor  and     handles multiple channel post shot upload\n\nClass: Acq2106 \n  Bases: ['Acq400']\n  Docstring: Acq2106 specialization of Acq400\n\nDefines features specific to ACQ2106\n\nClass: Mgt508Ports \n  Bases: []\n\nClass: DotFilter \n  Bases: []\n\nClass: Mgt508 \n  Bases: ['Acq400']\n  Docstring: Warning: not true to say \"Mgt508 is a Acq400\". The commonality is limited to an S0 service.\n@@todo: refactor with a common base class Device, then Mgt508 is a Device and Acq400 is a Device\n\nClass: Acq2106_Mgtdram8 \n  Bases: ['Acq2106']\n  Docstring: Mgtdram8 specialization of Acq2106\n\nDefines features specific to Acq2106_Mgtdram8\n\nClass: Acq2106_TIGA \n  Bases: ['Acq2106']\n  Docstring: TIGA specialization of Acq2106\n\nDefines features specific to Acq2106_TIGA\n\nClass: Acq1102 \n  Bases: ['Acq2106']\n\nRegistry actions:\n  read\n  get_blocks\n  st_monitor\n  get_state\n  get_pre\n  get_post\n  get_total\n  get_elapsed\n  wait_event\n  wait_armed\n  wait_stopped\n  wait_state_changed\n  init_site_client\n  make_sa_sd_aliases\n  get_sys_info\n  close\n  state\n  post_samples\n  pre_samples\n  elapsed_samples\n  demux_status\n  samples\n  get_aggregator_sites\n  get_aggregator_svc_list\n  fetch_all_calibration\n  scale_raw\n  chan2volts\n  read_chan\n  read_decims\n  nchan\n  data_size\n  uut_demux_enabled\n  read_transient_timebase\n  load_segments\n  show_segments\n  clear_counters\n  set_sync_routing_master\n  set_sync_routing_slave\n  set_sync_routing\n  set_mb_clk\n  load_stl\n  load_gpg\n  load_dpg\n  load_wrpg\n  load_dio482pg\n  set_DO\n  load_awg\n  set_segment\n  run_service\n\nRequired output action ids:\n  read\n  get_blocks\n  st_monitor\n  get_state\n  get_pre\n  get_post\n  get_total\n  get_elapsed\n  wait_event\n  wait_armed\n  wait_stopped\n  wait_state_changed\n  init_site_client\n  make_sa_sd_aliases\n  get_sys_info\n  close\n  state\n  post_samples\n  pre_samples\n  elapsed_samples\n  demux_status\n  samples\n  get_aggregator_sites\n  get_aggregator_svc_list\n  fetch_all_calibration\n  scale_raw\n  chan2volts\n  read_chan\n  read_decims\n  nchan\n  data_size\n  uut_demux_enabled\n  read_transient_timebase\n  load_segments\n  show_segments\n  clear_counters\n  set_sync_routing_master\n  set_sync_routing_slave\n  set_sync_routing\n  set_mb_clk\n  load_stl\n  load_gpg\n  load_dpg\n  load_wrpg\n  load_dio482pg\n  set_DO\n  load_awg\n  set_segment\n  run_service"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0adc76ed30560e880069d5618e3a508193a1719f7ba8a1920b",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4842,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 12489,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0adc76ed30560e880069d5618ed43481939e5a0c544e0005af",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0adc76ed30560e880069d561a0d9d081939cf021f4a5637824",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"ACQ400 数据流客户端\",\n  \"name_en\": \"ACQ400 Stream Client\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于连接 ACQ400/ACQ2106 系列采集系统的主机端软件客户端，负责实时数据流读取、状态监视、通道数据获取、校准换算以及采集相关服务配置。它用于实验中的高速数据采集与后处理，本身不是实体仪器。\",\n  \"description_en\": \"A host-side software client for connecting to ACQ400/ACQ2106 acquisition systems. It handles live data streaming, status monitoring, channel data retrieval, calibration-based scaling, and acquisition-related service configuration. It is used for high-speed experimental data capture and post-processing, and is not a physical instrument itself.\",\n  \"tag_hints\": [\n    \"ACQ400\",\n    \"DAQ streaming\",\n    \"status monitoring\",\n    \"post-shot data retrieval\",\n    \"channel scaling\",\n    \"synchronization routing\",\n    \"pattern generator loading\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"read\",\n      \"description\": \"读取实时流或原始数据。\",\n      \"description_en\": \"Read live stream or raw data.\"\n    },\n    {\n      \"action_name\": \"get_blocks\",\n      \"description\": \"获取数据块。\",\n      \"description_en\": \"Get data blocks.\"\n    },\n    {\n      \"action_name\": \"st_monitor\",\n      \"description\": \"监视状态通道。\",\n      \"description_en\": \"Monitor the status channel.\"\n    },\n    {\n      \"action_name\": \"get_state\",\n      \"description\": \"获取当前采集状态。\",\n      \"description_en\": \"Get the current acquisition state.\"\n    },\n    {\n      \"action_name\": \"get_pre\",\n      \"description\": \"获取预触发样本数。\",\n      \"description_en\": \"Get the pre-trigger sample count.\"\n    },\n    {\n      \"action_name\": \"get_post\",\n      \"description\": \"获取后触发样本数。\",\n      \"description_en\": \"Get the post-trigger sample count.\"\n    },\n    {\n      \"action_name\": \"get_total\",\n      \"description\": \"获取总样本数。\",\n      \"description_en\": \"Get the total sample count.\"\n    },\n    {\n      \"action_name\": \"get_elapsed\",\n      \"description\": \"获取已采集样本数。\",\n      \"description_en\": \"Get the elapsed sample count.\"\n    },\n    {\n      \"action_name\": \"wait_event\",\n      \"description\": \"等待状态或系统事件。\",\n      \"description_en\": \"Wait for a status or system event.\"\n    },\n    {\n      \"action_name\": \"wait_armed\",\n      \"description\": \"等待系统进入就绪状态。\",\n      \"description_en\": \"Wait for the system to become armed.\"\n    },\n    {\n      \"action_name\": \"wait_stopped\",\n      \"description\": \"等待采集停止。\",\n      \"description_en\": \"Wait for acquisition to stop.\"\n    },\n    {\n      \"action_name\": \"wait_state_changed\",\n      \"description\": \"等待状态变化。\",\n      \"description_en\": \"Wait for a state change.\"\n    },\n    {\n      \"action_name\": \"init_site_client\",\n      \"description\": \"初始化站点客户端连接。\",\n      \"description_en\": \"Initialize a site client connection.\"\n    },\n    {\n      \"action_name\": \"make_sa_sd_aliases\",\n      \"description\": \"创建站点别名映射。\",\n      \"description_en\": \"Create site alias mappings.\"\n    },\n    {\n      \"action_name\": \"get_sys_info\",\n      \"description\": \"获取系统信息。\",\n      \"description_en\": \"Get system information.\"\n    },\n    {\n      \"action_name\": \"close\",\n      \"description\": \"关闭客户端连接。\",\n      \"description_en\": \"Close the client connection.\"\n    },\n    {\n      \"action_name\": \"state\",\n      \"description\": \"查询当前状态。\",\n      \"description_en\": \"Query the current state.\"\n    },\n    {\n      \"action_name\": \"post_samples\",\n      \"description\": \"获取后触发样本数。\",\n      \"description_en\": \"Get the post-trigger sample count.\"\n    },\n    {\n      \"action_name\": \"pre_samples\",\n      \"description\": \"获取预触发样本数。\",\n      \"description_en\": \"Get the pre-trigger sample count.\"\n    },\n    {\n      \"action_name\": \"elapsed_samples\",\n      \"description\": \"获取已采集样本数。\",\n      \"description_en\": \"Get the elapsed sample count.\"\n    },\n    {\n      \"action_name\": \"demux_status\",\n      \"description\": \"获取解复用状态。\",\n      \"description_en\": \"Get demultiplexing status.\"\n    },\n    {\n      \"action_name\": \"samples\",\n      \"description\": \"获取样本计数信息。\",\n      \"description_en\": \"Get sample count information.\"\n    },\n    {\n      \"action_name\": \"get_aggregator_sites\",\n      \"description\": \"获取聚合器站点列表。\",\n      \"description_en\": \"Get the list of aggregator sites.\"\n    },\n    {\n      \"action_name\": \"get_aggregator_svc_list\",\n      \"description\": \"获取聚合器服务列表。\",\n      \"description_en\": \"Get the aggregator service list.\"\n    },\n    {\n      \"action_name\": \"fetch_all_calibration\",\n      \"description\": \"获取全部校准数据。\",\n      \"description_en\": \"Fetch all calibration data.\"\n    },\n    {\n      \"action_name\": \"scale_raw\",\n      \"description\": \"按校准参数缩放原始数据。\",\n      \"description_en\": \"Scale raw data using calibration parameters.\"\n    },\n    {\n      \"action_name\": \"chan2volts\",\n      \"description\": \"将通道原始数据换算为电压。\",\n      \"description_en\": \"Convert channel raw data to volts.\"\n    },\n    {\n      \"action_name\": \"read_chan\",\n      \"description\": \"读取单个通道的数据。\",\n      \"description_en\": \"Read data from a single channel.\"\n    },\n    {\n      \"action_name\": \"read_decims\",\n      \"description\": \"读取抽取后的数据。\",\n      \"description_en\": \"Read decimated data.\"\n    },\n    {\n      \"action_name\": \"nchan\",\n      \"description\": \"获取通道数量。\",\n      \"description_en\": \"Get the number of channels.\"\n    },\n    {\n      \"action_name\": \"data_size\",\n      \"description\": \"获取数据大小。\",\n      \"description_en\": \"Get the data size.\"\n    },\n    {\n      \"action_name\": \"uut_demux_enabled\",\n      \"description\": \"查询设备端是否启用解复用。\",\n      \"description_en\": \"Query whether device-side demultiplexing is enabled.\"\n    },\n    {\n      \"action_name\": \"read_transient_timebase\",\n      \"description\": \"读取瞬态采集时间基。\",\n      \"description_en\": \"Read the transient acquisition timebase.\"\n    },\n    {\n      \"action_name\": \"load_segments\",\n      \"description\": \"加载分段采集配置。\",\n      \"description_en\": \"Load segmented acquisition configuration.\"\n    },\n    {\n      \"action_name\": \"show_segments\",\n      \"description\": \"显示分段配置信息。\",\n      \"description_en\": \"Show segmented configuration information.\"\n    },\n    {\n      \"action_name\": \"clear_counters\",\n      \"description\": \"清除计数器。\",\n      \"description_en\": \"Clear counters.\"\n    },\n    {\n      \"action_name\": \"set_sync_routing_master\",\n      \"description\": \"设置主设备同步路由。\",\n      \"description_en\": \"Set synchronization routing for the master device.\"\n    },\n    {\n      \"action_name\": \"set_sync_routing_slave\",\n      \"description\": \"设置从设备同步路由。\",\n      \"description_en\": \"Set synchronization routing for the slave device.\"\n    },\n    {\n      \"action_name\": \"set_sync_routing\",\n      \"description\": \"设置同步路由。\",\n      \"description_en\": \"Set synchronization routing.\"\n    },\n    {\n      \"action_name\": \"set_mb_clk\",\n      \"description\": \"设置主背板时钟。\",\n      \"description_en\": \"Set the main backplane clock.\"\n    },\n    {\n      \"action_name\": \"load_stl\",\n      \"description\": \"加载 STL 配置或序列表。\",\n      \"description_en\": \"Load STL configuration or sequence data.\"\n    },\n    {\n      \"action_name\": \"load_gpg\",\n      \"description\": \"加载通用脉冲发生器配置。\",\n      \"description_en\": \"Load general-purpose pulse generator configuration.\"\n    },\n    {\n      \"action_name\": \"load_dpg\",\n      \"description\": \"加载数字脉冲发生器配置。\",\n      \"description_en\": \"Load digital pulse generator configuration.\"\n    },\n    {\n      \"action_name\": \"load_wrpg\",\n      \"description\": \"加载 WRPG 配置。\",\n      \"description_en\": \"Load WRPG configuration.\"\n    },\n    {\n      \"action_name\": \"load_dio482pg\",\n      \"description\": \"加载 DIO482 脉冲发生器配置。\",\n      \"description_en\": \"Load DIO482 pulse generator configuration.\"\n    },\n    {\n      \"action_name\": \"set_DO\",\n      \"description\": \"设置数字输出状态。\",\n      \"description_en\": \"Set the digital output state.\"\n    },\n    {\n      \"action_name\": \"load_awg\",\n      \"description\": \"加载任意波形发生器数据。\",\n      \"description_en\": \"Load arbitrary waveform generator data.\"\n    },\n    {\n      \"action_name\": \"set_segment\",\n      \"description\": \"设置当前采集分段参数。\",\n      \"description_en\": \"Set current acquisition segment parameters.\"\n    },\n    {\n      \"action_name\": \"run_service\",\n      \"description\": \"运行指定服务。\",\n      \"description_en\": \"Run a specified service.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1765,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3127,
+      "output_tokens_details": {
+        "reasoning_tokens": 1034
+      },
+      "total_tokens": 4892
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1765,
+      "output_token_count": 3127,
+      "predict_time": 44.023941023
+    }
+  },
+  "output_text": "{\n  \"name\": \"ACQ400 数据流客户端\",\n  \"name_en\": \"ACQ400 Stream Client\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于连接 ACQ400/ACQ2106 系列采集系统的主机端软件客户端，负责实时数据流读取、状态监视、通道数据获取、校准换算以及采集相关服务配置。它用于实验中的高速数据采集与后处理，本身不是实体仪器。\",\n  \"description_en\": \"A host-side software client for connecting to ACQ400/ACQ2106 acquisition systems. It handles live data streaming, status monitoring, channel data retrieval, calibration-based scaling, and acquisition-related service configuration. It is used for high-speed experimental data capture and post-processing, and is not a physical instrument itself.\",\n  \"tag_hints\": [\n    \"ACQ400\",\n    \"DAQ streaming\",\n    \"status monitoring\",\n    \"post-shot data retrieval\",\n    \"channel scaling\",\n    \"synchronization routing\",\n    \"pattern generator loading\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"read\",\n      \"description\": \"读取实时流或原始数据。\",\n      \"description_en\": \"Read live stream or raw data.\"\n    },\n    {\n      \"action_name\": \"get_blocks\",\n      \"description\": \"获取数据块。\",\n      \"description_en\": \"Get data blocks.\"\n    },\n    {\n      \"action_name\": \"st_monitor\",\n      \"description\": \"监视状态通道。\",\n      \"description_en\": \"Monitor the status channel.\"\n    },\n    {\n      \"action_name\": \"get_state\",\n      \"description\": \"获取当前采集状态。\",\n      \"description_en\": \"Get the current acquisition state.\"\n    },\n    {\n      \"action_name\": \"get_pre\",\n      \"description\": \"获取预触发样本数。\",\n      \"description_en\": \"Get the pre-trigger sample count.\"\n    },\n    {\n      \"action_name\": \"get_post\",\n      \"description\": \"获取后触发样本数。\",\n      \"description_en\": \"Get the post-trigger sample count.\"\n    },\n    {\n      \"action_name\": \"get_total\",\n      \"description\": \"获取总样本数。\",\n      \"description_en\": \"Get the total sample count.\"\n    },\n    {\n      \"action_name\": \"get_elapsed\",\n      \"description\": \"获取已采集样本数。\",\n      \"description_en\": \"Get the elapsed sample count.\"\n    },\n    {\n      \"action_name\": \"wait_event\",\n      \"description\": \"等待状态或系统事件。\",\n      \"description_en\": \"Wait for a status or system event.\"\n    },\n    {\n      \"action_name\": \"wait_armed\",\n      \"description\": \"等待系统进入就绪状态。\",\n      \"description_en\": \"Wait for the system to become armed.\"\n    },\n    {\n      \"action_name\": \"wait_stopped\",\n      \"description\": \"等待采集停止。\",\n      \"description_en\": \"Wait for acquisition to stop.\"\n    },\n    {\n      \"action_name\": \"wait_state_changed\",\n      \"description\": \"等待状态变化。\",\n      \"description_en\": \"Wait for a state change.\"\n    },\n    {\n      \"action_name\": \"init_site_client\",\n      \"description\": \"初始化站点客户端连接。\",\n      \"description_en\": \"Initialize a site client connection.\"\n    },\n    {\n      \"action_name\": \"make_sa_sd_aliases\",\n      \"description\": \"创建站点别名映射。\",\n      \"description_en\": \"Create site alias mappings.\"\n    },\n    {\n      \"action_name\": \"get_sys_info\",\n      \"description\": \"获取系统信息。\",\n      \"description_en\": \"Get system information.\"\n    },\n    {\n      \"action_name\": \"close\",\n      \"description\": \"关闭客户端连接。\",\n      \"description_en\": \"Close the client connection.\"\n    },\n    {\n      \"action_name\": \"state\",\n      \"description\": \"查询当前状态。\",\n      \"description_en\": \"Query the current state.\"\n    },\n    {\n      \"action_name\": \"post_samples\",\n      \"description\": \"获取后触发样本数。\",\n      \"description_en\": \"Get the post-trigger sample count.\"\n    },\n    {\n      \"action_name\": \"pre_samples\",\n      \"description\": \"获取预触发样本数。\",\n      \"description_en\": \"Get the pre-trigger sample count.\"\n    },\n    {\n      \"action_name\": \"elapsed_samples\",\n      \"description\": \"获取已采集样本数。\",\n      \"description_en\": \"Get the elapsed sample count.\"\n    },\n    {\n      \"action_name\": \"demux_status\",\n      \"description\": \"获取解复用状态。\",\n      \"description_en\": \"Get demultiplexing status.\"\n    },\n    {\n      \"action_name\": \"samples\",\n      \"description\": \"获取样本计数信息。\",\n      \"description_en\": \"Get sample count information.\"\n    },\n    {\n      \"action_name\": \"get_aggregator_sites\",\n      \"description\": \"获取聚合器站点列表。\",\n      \"description_en\": \"Get the list of aggregator sites.\"\n    },\n    {\n      \"action_name\": \"get_aggregator_svc_list\",\n      \"description\": \"获取聚合器服务列表。\",\n      \"description_en\": \"Get the aggregator service list.\"\n    },\n    {\n      \"action_name\": \"fetch_all_calibration\",\n      \"description\": \"获取全部校准数据。\",\n      \"description_en\": \"Fetch all calibration data.\"\n    },\n    {\n      \"action_name\": \"scale_raw\",\n      \"description\": \"按校准参数缩放原始数据。\",\n      \"description_en\": \"Scale raw data using calibration parameters.\"\n    },\n    {\n      \"action_name\": \"chan2volts\",\n      \"description\": \"将通道原始数据换算为电压。\",\n      \"description_en\": \"Convert channel raw data to volts.\"\n    },\n    {\n      \"action_name\": \"read_chan\",\n      \"description\": \"读取单个通道的数据。\",\n      \"description_en\": \"Read data from a single channel.\"\n    },\n    {\n      \"action_name\": \"read_decims\",\n      \"description\": \"读取抽取后的数据。\",\n      \"description_en\": \"Read decimated data.\"\n    },\n    {\n      \"action_name\": \"nchan\",\n      \"description\": \"获取通道数量。\",\n      \"description_en\": \"Get the number of channels.\"\n    },\n    {\n      \"action_name\": \"data_size\",\n      \"description\": \"获取数据大小。\",\n      \"description_en\": \"Get the data size.\"\n    },\n    {\n      \"action_name\": \"uut_demux_enabled\",\n      \"description\": \"查询设备端是否启用解复用。\",\n      \"description_en\": \"Query whether device-side demultiplexing is enabled.\"\n    },\n    {\n      \"action_name\": \"read_transient_timebase\",\n      \"description\": \"读取瞬态采集时间基。\",\n      \"description_en\": \"Read the transient acquisition timebase.\"\n    },\n    {\n      \"action_name\": \"load_segments\",\n      \"description\": \"加载分段采集配置。\",\n      \"description_en\": \"Load segmented acquisition configuration.\"\n    },\n    {\n      \"action_name\": \"show_segments\",\n      \"description\": \"显示分段配置信息。\",\n      \"description_en\": \"Show segmented configuration information.\"\n    },\n    {\n      \"action_name\": \"clear_counters\",\n      \"description\": \"清除计数器。\",\n      \"description_en\": \"Clear counters.\"\n    },\n    {\n      \"action_name\": \"set_sync_routing_master\",\n      \"description\": \"设置主设备同步路由。\",\n      \"description_en\": \"Set synchronization routing for the master device.\"\n    },\n    {\n      \"action_name\": \"set_sync_routing_slave\",\n      \"description\": \"设置从设备同步路由。\",\n      \"description_en\": \"Set synchronization routing for the slave device.\"\n    },\n    {\n      \"action_name\": \"set_sync_routing\",\n      \"description\": \"设置同步路由。\",\n      \"description_en\": \"Set synchronization routing.\"\n    },\n    {\n      \"action_name\": \"set_mb_clk\",\n      \"description\": \"设置主背板时钟。\",\n      \"description_en\": \"Set the main backplane clock.\"\n    },\n    {\n      \"action_name\": \"load_stl\",\n      \"description\": \"加载 STL 配置或序列表。\",\n      \"description_en\": \"Load STL configuration or sequence data.\"\n    },\n    {\n      \"action_name\": \"load_gpg\",\n      \"description\": \"加载通用脉冲发生器配置。\",\n      \"description_en\": \"Load general-purpose pulse generator configuration.\"\n    },\n    {\n      \"action_name\": \"load_dpg\",\n      \"description\": \"加载数字脉冲发生器配置。\",\n      \"description_en\": \"Load digital pulse generator configuration.\"\n    },\n    {\n      \"action_name\": \"load_wrpg\",\n      \"description\": \"加载 WRPG 配置。\",\n      \"description_en\": \"Load WRPG configuration.\"\n    },\n    {\n      \"action_name\": \"load_dio482pg\",\n      \"description\": \"加载 DIO482 脉冲发生器配置。\",\n      \"description_en\": \"Load DIO482 pulse generator configuration.\"\n    },\n    {\n      \"action_name\": \"set_DO\",\n      \"description\": \"设置数字输出状态。\",\n      \"description_en\": \"Set the digital output state.\"\n    },\n    {\n      \"action_name\": \"load_awg\",\n      \"description\": \"加载任意波形发生器数据。\",\n      \"description_en\": \"Load arbitrary waveform generator data.\"\n    },\n    {\n      \"action_name\": \"set_segment\",\n      \"description\": \"设置当前采集分段参数。\",\n      \"description_en\": \"Set current acquisition segment parameters.\"\n    },\n    {\n      \"action_name\": \"run_service\",\n      \"description\": \"运行指定服务。\",\n      \"description_en\": \"Run a specified service.\"\n    }\n  ]\n}"
+}

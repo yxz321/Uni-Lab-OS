@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: star_chatterbox_backend\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pylabrobot/liquid_handling/backends/hamilton/STAR_chatterbox.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.liquid_handler.hamilton_star_chatterbox_backend:STARChatterboxBackend\n\nClass: STARChatterboxBackend (focal)\n  Bases: ['STARBackend']\n  Docstring: Chatterbox backend for 'STAR'\n\nFocal class methods:\n  [command] setup(self, skip_instrument_initialization=False, skip_pip=False, skip_autoload=False, skip_iswap=False, skip_core96_head=False)\n    comment: Request machine information\n    comment: Parse left X-drive configuration byte (xl) to identify installed modules\n    comment: xl is a bit field: bit 0 (LSB) reserved, bit 1 = iSWAP, bit 2 = 96-head\n    comment: Use bitwise operations to check specific bits\n    comment: Parse autoload from kb configuration byte\n    comment: Mock firmware information for 96-head if installed\n    comment: Initialize the chatterbox backend and detect installed modules.\n\n    Args:\n      skip_instrument_initialization: If True, skip instrument initialization.\n      skip_pip: If True, skip pipetting channe...\n  [command] stop(self)\n  [command] send_raw_command(self, command, write_timeout=None, read_timeout=None, wait=True)\n  [command] request_machine_configuration(self)\n    comment: # # # # # # # STAR configuration # # # # # # # #\n    comment: Return mock machine configuration data.\n    (Mock MEM-READ command)\n\n    Configuration byte `kb` is directly copied from a STARlet with 8-channel pipettor,\n    iSWAP, and autoload installed.\n\n    Bit ...\n  [command] request_extended_configuration(self)\n    comment: Calculate xl byte based on installed modules\n    comment: Bit 0: (reserved)\n    comment: Bit 1: iSWAP (based on __init__ parameter)\n    comment: Bit 2: 96-head (based on __init__ parameter)\n    comment: Return mock extended configuration data.\n\n    Extended configuration is dynamically generated based on __init__ parameters.\n\n    Returns:\n      Dict with extended configuration parameters including xl...\n  [command] request_tip_presence(self, mock_presence=None)\n    comment: # # # # # # # 1_000 uL Channel: Basic Commands # # # # # # # #\n    comment: Check mock tip presence with optional list for user-modifiable tip presence.\n    (Mock MEM-READ command)\n    Args:\n      mock_presence: Optional list indicating tip presence for each channel.\n        ...\n  [command] request_z_pos_channel_n(self, channel)\n  [command] channel_dispensing_drive_request_position(self, channel_idx, simulated_value=0.0)\n    comment: Override to return mock dispensing drive position.\n\n    This method is called when the system needs to know the current position\n    of a channel's dispensing drive (e.g., before emptying tips).\n\n    ...\n  [command] move_channel_y(self, channel, y)\n  [command] step_off_foil(self, wells, front_channel, back_channel, move_inwards=2, move_height=15)\n    comment: # # # # # # # 1_000 uL Channel: Complex Commands # # # # # # # #\n  [command] pierce_foil(self, wells, piercing_channels, hold_down_channels, move_inwards, spread='wide', one_by_one=False, distance_from_bottom=20.0)\n  [command] head96_request_firmware_version(self)\n    comment: # # # # # # # Extension: 96-Head # # # # # # # #\n    comment: Return mock 96-head firmware version.\n  [command] request_iswap_initialization_status(self)\n    comment: # # # # # # # Extension: iSWAP # # # # # # # #\n    comment: Return mock iSWAP initialization status.\n  [status_getter] iswap_parked(self)\n  [command] move_iswap_x(self, x_position)\n  [command] move_iswap_y(self, y_position)\n  [command] move_iswap_z(self, z_position)\n  [command] slow_iswap(self, wrist_velocity=20000, gripper_velocity=20000)\n    comment: A context manager that sets the iSWAP to slow speed during the context.\n\nRegistry actions:\n  auto-channel_dispensing_drive_request_position (from channel_dispensing_drive_request_position())\n  auto-head96_request_firmware_version (from head96_request_firmware_version())\n  auto-move_channel_y (from move_channel_y())\n  auto-move_iswap_x (from move_iswap_x())\n  auto-move_iswap_y (from move_iswap_y())\n  auto-move_iswap_z (from move_iswap_z())\n  auto-pierce_foil (from pierce_foil())\n  auto-request_extended_configuration (from request_extended_configuration())\n  auto-request_iswap_initialization_status (from request_iswap_initialization_status())\n  auto-request_machine_configuration (from request_machine_configuration())\n  auto-request_tip_presence (from request_tip_presence())\n  auto-request_z_pos_channel_n (from request_z_pos_channel_n())\n  auto-send_raw_command (from send_raw_command())\n  auto-setup (from setup())\n  auto-slow_iswap (from slow_iswap())\n  auto-step_off_foil (from step_off_foil())\n  auto-stop (from stop())\n  auto-iswap_parked (from iswap_parked())\n\nRequired output action ids:\n  auto-channel_dispensing_drive_request_position\n  auto-head96_request_firmware_version\n  auto-move_channel_y\n  auto-move_iswap_x\n  auto-move_iswap_y\n  auto-move_iswap_z\n  auto-pierce_foil\n  auto-request_extended_configuration\n  auto-request_iswap_initialization_status\n  auto-request_machine_configuration\n  auto-request_tip_presence\n  auto-request_z_pos_channel_n\n  auto-send_raw_command\n  auto-setup\n  auto-slow_iswap\n  auto-step_off_foil\n  auto-stop\n  auto-iswap_parked"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0df645008fb825210069d56157fa1c8196a48f855824dfe3ff",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6416,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7740,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0df645008fb825210069d5615b1a04819690073fd6dd5e20ba",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0df645008fb825210069d5616c7c6081968c05bf9fe933085f",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"STAR Chatterbox 模拟后端\",\n  \"name_en\": \"STAR Chatterbox Backend\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个面向 Hamilton STAR 液体处理平台的非实体模拟组件。它通过返回虚拟机器配置、吸头状态、96头固件信息、iSWAP 状态与位置等数据，并模拟通道及 iSWAP 运动，用于开发、调试、命令测试和流程验证，而非直接驱动真实仪器。\",\n  \"description_en\": \"This is a non-physical simulation component for the Hamilton STAR liquid handling platform. It provides mock machine configuration, tip status, 96-head firmware data, iSWAP status and positions, and simulated channel and iSWAP motion for development, debugging, command testing, and workflow validation rather than direct control of real hardware.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-setup\",\n      \"description\": \"初始化模拟 STAR 后端并检测已启用模块。\",\n      \"description_en\": \"Initialize the simulated STAR backend and detect enabled modules.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止模拟后端。\",\n      \"description_en\": \"Stop the simulated backend.\"\n    },\n    {\n      \"action_name\": \"auto-send_raw_command\",\n      \"description\": \"向模拟 STAR 会话发送原始命令。\",\n      \"description_en\": \"Send a raw command to the simulated STAR session.\"\n    },\n    {\n      \"action_name\": \"auto-request_machine_configuration\",\n      \"description\": \"请求模拟整机配置数据。\",\n      \"description_en\": \"Request mock machine configuration data.\"\n    },\n    {\n      \"action_name\": \"auto-request_extended_configuration\",\n      \"description\": \"请求模拟扩展配置数据。\",\n      \"description_en\": \"Request mock extended configuration data.\"\n    },\n    {\n      \"action_name\": \"auto-request_tip_presence\",\n      \"description\": \"请求各通道的模拟吸头存在状态。\",\n      \"description_en\": \"Request simulated tip presence status for each channel.\"\n    },\n    {\n      \"action_name\": \"auto-request_z_pos_channel_n\",\n      \"description\": \"请求指定通道的模拟 Z 位置。\",\n      \"description_en\": \"Request the simulated Z position of a specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-channel_dispensing_drive_request_position\",\n      \"description\": \"请求指定通道分液驱动的模拟位置。\",\n      \"description_en\": \"Request the simulated dispensing drive position of a specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-move_channel_y\",\n      \"description\": \"模拟移动指定通道的 Y 轴位置。\",\n      \"description_en\": \"Simulate moving the Y position of a specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-step_off_foil\",\n      \"description\": \"模拟通道在封膜上踏离的操作流程。\",\n      \"description_en\": \"Simulate the step-off-foil operation for channels.\"\n    },\n    {\n      \"action_name\": \"auto-pierce_foil\",\n      \"description\": \"模拟使用通道刺穿封膜。\",\n      \"description_en\": \"Simulate piercing foil with channels.\"\n    },\n    {\n      \"action_name\": \"auto-head96_request_firmware_version\",\n      \"description\": \"请求模拟 96 头模块的固件版本。\",\n      \"description_en\": \"Request the mock firmware version of the 96-head module.\"\n    },\n    {\n      \"action_name\": \"auto-request_iswap_initialization_status\",\n      \"description\": \"请求模拟 iSWAP 的初始化状态。\",\n      \"description_en\": \"Request the simulated initialization status of the iSWAP.\"\n    },\n    {\n      \"action_name\": \"auto-iswap_parked\",\n      \"description\": \"获取 iSWAP 是否处于停放位置。\",\n      \"description_en\": \"get whether the iSWAP is parked\"\n    },\n    {\n      \"action_name\": \"auto-move_iswap_x\",\n      \"description\": \"模拟移动 iSWAP 的 X 轴位置。\",\n      \"description_en\": \"Simulate moving the iSWAP X position.\"\n    },\n    {\n      \"action_name\": \"auto-move_iswap_y\",\n      \"description\": \"模拟移动 iSWAP 的 Y 轴位置。\",\n      \"description_en\": \"Simulate moving the iSWAP Y position.\"\n    },\n    {\n      \"action_name\": \"auto-move_iswap_z\",\n      \"description\": \"模拟移动 iSWAP 的 Z 轴位置。\",\n      \"description_en\": \"Simulate moving the iSWAP Z position.\"\n    },\n    {\n      \"action_name\": \"auto-slow_iswap\",\n      \"description\": \"在上下文中临时将模拟 iSWAP 切换为低速运动。\",\n      \"description_en\": \"Temporarily switch the simulated iSWAP to slow motion within a context.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"liquid handling simulation\",\n    \"Hamilton STAR\",\n    \"mock backend\",\n    \"iSWAP\",\n    \"96-head\",\n    \"tip presence emulation\",\n    \"foil piercing workflow\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2001,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1911,
+      "output_tokens_details": {
+        "reasoning_tokens": 808
+      },
+      "total_tokens": 3912
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2001,
+      "output_token_count": 1911,
+      "predict_time": 41.972350728
+    }
+  },
+  "output_text": "{\n  \"name\": \"STAR Chatterbox 模拟后端\",\n  \"name_en\": \"STAR Chatterbox Backend\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个面向 Hamilton STAR 液体处理平台的非实体模拟组件。它通过返回虚拟机器配置、吸头状态、96头固件信息、iSWAP 状态与位置等数据，并模拟通道及 iSWAP 运动，用于开发、调试、命令测试和流程验证，而非直接驱动真实仪器。\",\n  \"description_en\": \"This is a non-physical simulation component for the Hamilton STAR liquid handling platform. It provides mock machine configuration, tip status, 96-head firmware data, iSWAP status and positions, and simulated channel and iSWAP motion for development, debugging, command testing, and workflow validation rather than direct control of real hardware.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-setup\",\n      \"description\": \"初始化模拟 STAR 后端并检测已启用模块。\",\n      \"description_en\": \"Initialize the simulated STAR backend and detect enabled modules.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止模拟后端。\",\n      \"description_en\": \"Stop the simulated backend.\"\n    },\n    {\n      \"action_name\": \"auto-send_raw_command\",\n      \"description\": \"向模拟 STAR 会话发送原始命令。\",\n      \"description_en\": \"Send a raw command to the simulated STAR session.\"\n    },\n    {\n      \"action_name\": \"auto-request_machine_configuration\",\n      \"description\": \"请求模拟整机配置数据。\",\n      \"description_en\": \"Request mock machine configuration data.\"\n    },\n    {\n      \"action_name\": \"auto-request_extended_configuration\",\n      \"description\": \"请求模拟扩展配置数据。\",\n      \"description_en\": \"Request mock extended configuration data.\"\n    },\n    {\n      \"action_name\": \"auto-request_tip_presence\",\n      \"description\": \"请求各通道的模拟吸头存在状态。\",\n      \"description_en\": \"Request simulated tip presence status for each channel.\"\n    },\n    {\n      \"action_name\": \"auto-request_z_pos_channel_n\",\n      \"description\": \"请求指定通道的模拟 Z 位置。\",\n      \"description_en\": \"Request the simulated Z position of a specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-channel_dispensing_drive_request_position\",\n      \"description\": \"请求指定通道分液驱动的模拟位置。\",\n      \"description_en\": \"Request the simulated dispensing drive position of a specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-move_channel_y\",\n      \"description\": \"模拟移动指定通道的 Y 轴位置。\",\n      \"description_en\": \"Simulate moving the Y position of a specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-step_off_foil\",\n      \"description\": \"模拟通道在封膜上踏离的操作流程。\",\n      \"description_en\": \"Simulate the step-off-foil operation for channels.\"\n    },\n    {\n      \"action_name\": \"auto-pierce_foil\",\n      \"description\": \"模拟使用通道刺穿封膜。\",\n      \"description_en\": \"Simulate piercing foil with channels.\"\n    },\n    {\n      \"action_name\": \"auto-head96_request_firmware_version\",\n      \"description\": \"请求模拟 96 头模块的固件版本。\",\n      \"description_en\": \"Request the mock firmware version of the 96-head module.\"\n    },\n    {\n      \"action_name\": \"auto-request_iswap_initialization_status\",\n      \"description\": \"请求模拟 iSWAP 的初始化状态。\",\n      \"description_en\": \"Request the simulated initialization status of the iSWAP.\"\n    },\n    {\n      \"action_name\": \"auto-iswap_parked\",\n      \"description\": \"获取 iSWAP 是否处于停放位置。\",\n      \"description_en\": \"get whether the iSWAP is parked\"\n    },\n    {\n      \"action_name\": \"auto-move_iswap_x\",\n      \"description\": \"模拟移动 iSWAP 的 X 轴位置。\",\n      \"description_en\": \"Simulate moving the iSWAP X position.\"\n    },\n    {\n      \"action_name\": \"auto-move_iswap_y\",\n      \"description\": \"模拟移动 iSWAP 的 Y 轴位置。\",\n      \"description_en\": \"Simulate moving the iSWAP Y position.\"\n    },\n    {\n      \"action_name\": \"auto-move_iswap_z\",\n      \"description\": \"模拟移动 iSWAP 的 Z 轴位置。\",\n      \"description_en\": \"Simulate moving the iSWAP Z position.\"\n    },\n    {\n      \"action_name\": \"auto-slow_iswap\",\n      \"description\": \"在上下文中临时将模拟 iSWAP 切换为低速运动。\",\n      \"description_en\": \"Temporarily switch the simulated iSWAP to slow motion within a context.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"liquid handling simulation\",\n    \"Hamilton STAR\",\n    \"mock backend\",\n    \"iSWAP\",\n    \"96-head\",\n    \"tip presence emulation\",\n    \"foil piercing workflow\"\n  ]\n}"
+}

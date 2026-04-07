@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: telnet\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/centralcontrol/_telnetlib/telnetlib.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.telnet:Telnet\n\nClass: Telnet (focal)\n  Bases: []\n  Docstring: Telnet interface class.\n\nAn instance of this class represents a connection to a telnet\nserver.  The instance is initially not connected; the open()\nmethod must be used to establish a connection.  Alternatively, the\nhost name and optional port number can be passed to the\nconstructor, too.\n\nDon't try to reopen an already connected instance.\n\nThis class has many read_*() methods.  Note that some of them\nraise EOFError when the end of the connection is read, because\nthey can return an empty string for other reasons.  See the\nindividual doc strings.\n\nread_until(expected, [timeout])\n    Read until the expected string has been seen, or a timeout is\n    hit (default is no timeout); may block.\n\nread_all()\n    Read all data until EOF; may block.\n\nread_some()\n    Read at least one byte or EOF; may block.\n\nread_very_eager()\n    Read all data available already queued or on the socket,\n    without blocking.\n\nread_eager()\n    Read either data already queued or some data available on the\n    socket, without blocking.\n\nread_lazy()\n    Read all data in the raw queue (processing it first), without\n    doing any socket I/O.\n\nread_very_lazy()\n    Reads all data in the cooked queue, without doing any socket\n    I/O.\n\nread_sb_data()\n    Reads available data between SB ... SE sequence. Don't block.\n\nset_option_negotiation_callback(callback)\n    Each time a telnet option is read on the input flow, this callback\n    (if set) is called with the following parameters :\n    callback(telnet socket, command, option)\n        option will be chr(0) when there is no option.\n    No other action is done afterwards by telnetlib.\n\nFocal class methods:\n  [command] open(self, host, port=0, timeout=socket._GLOBAL_DEFAULT_TIMEOUT)\n    comment: Connect to a host.\n\n        The optional second argument is the port number, which\n        defaults to the standard telnet port (23).\n\n        Don't try to reopen an already connected instance.\n  [command] msg(self, msg, *args)\n    comment: Print a debug message, when the debug level is > 0.\n\n        If extra arguments are present, they are substituted in the\n        message using the standard string formatting operator.\n  [command] set_debuglevel(self, debuglevel)\n    comment: Set the debug level.\n\n        The higher it is, the more debug output you get (on sys.stdout).\n  [command] close(self)\n    comment: Close the connection.\n  [command] get_socket(self)\n    comment: Return the socket object used internally.\n  [command] fileno(self)\n    comment: Return the fileno() of the socket object used internally.\n  [command] write(self, buffer)\n    comment: Write a string to the socket, doubling any IAC characters.\n\n        Can block if the connection is blocked.  May raise\n        OSError if the connection is closed.\n  [command] read_until(self, match, timeout=None)\n    comment: Read until a given string is encountered or until timeout.\n\n        When no match is found, return whatever is available instead,\n        possibly the empty string.  Raise EOFError if the connection\n ...\n  [command] read_all(self)\n    comment: Read all data until EOF; block until connection closed.\n  [command] read_some(self)\n    comment: Read at least one byte of cooked data unless EOF is hit.\n\n        Return b'' if EOF is hit.  Block if no data is immediately\n        available.\n  [command] read_very_eager(self)\n    comment: Read everything that's possible without blocking in I/O (eager).\n\n        Raise EOFError if connection closed and no cooked data\n        available.  Return b'' if no cooked data available otherwise.\n ...\n  [command] read_eager(self)\n    comment: Read readily available data.\n\n        Raise EOFError if connection closed and no cooked data\n        available.  Return b'' if no cooked data available otherwise.\n        Don't block unless in the mid...\n  [command] read_lazy(self)\n    comment: Process and return data that's already in the queues (lazy).\n\n        Raise EOFError if connection closed and no data available.\n        Return b'' if no cooked data available otherwise.  Don't block\n...\n  [command] read_very_lazy(self)\n    comment: Return any data available in the cooked queue (very lazy).\n\n        Raise EOFError if connection closed and no data available.\n        Return b'' if no cooked data available otherwise.  Don't block.\n  [command] read_sb_data(self)\n    comment: Return any data available in the SB ... SE queue.\n\n        Return b'' if no SB ... SE available. Should only be called\n        after seeing a SB or SE command. When a new SB command is\n        found, ...\n  [command] set_option_negotiation_callback(self, callback)\n    comment: Provide a callback function called after each receipt of a telnet option.\n  [command] process_rawq(self)\n    comment: 'IAC: IAC CMD [OPTION only for WILL/WONT/DO/DONT]'\n    comment: Callback is supposed to look into\n    comment: the sbdataq\n    comment: We can't offer automatic processing of\n    comment: suboptions. Alas, we should not get any\n    comment: unless we did a WILL/DO before.\n    comment: Transfer from raw queue to cooked queue.\n\n        Set self.eof when connection is closed.  Don't block unless in\n        the midst of an IAC sequence.\n  [command] rawq_getchar(self)\n    comment: Get next char from raw queue.\n\n        Block if no data is immediately available.  Raise EOFError\n        when connection is closed.\n  [command] fill_rawq(self)\n    comment: The buffer size should be fairly small so as to avoid quadratic\n    comment: behavior in process_rawq() above\n    comment: Fill raw queue from exactly one recv() system call.\n\n        Block if no data is immediately available.  Set self.eof when\n        connection is closed.\n  [command] sock_avail(self)\n    comment: Test whether data is available on the socket.\n  [command] interact(self)\n    comment: Interaction function, emulates a very dumb telnet client.\n  [command] mt_interact(self)\n    comment: Multithreaded version of interact().\n  [command] listener(self)\n    comment: Helper for mt_interact() -- this executes in the other thread.\n  [command] expect(self, list, timeout=None)\n    comment: Read until one from a list of a regular expressions matches.\n\n        The first argument is a list of regular expressions, either\n        compiled (re.Pattern instances) or uncompiled (strings).\n     ...\n\nRegistry actions:\n  auto-open (from open())\n  auto-msg (from msg())\n  auto-set_debuglevel (from set_debuglevel())\n  auto-close (from close())\n  auto-get_socket (from get_socket())\n  auto-fileno (from fileno())\n  auto-write (from write())\n  auto-read_until (from read_until())\n  auto-read_all (from read_all())\n  auto-read_some (from read_some())\n  auto-read_very_eager (from read_very_eager())\n  auto-read_eager (from read_eager())\n  auto-read_lazy (from read_lazy())\n  auto-read_very_lazy (from read_very_lazy())\n  auto-read_sb_data (from read_sb_data())\n  auto-set_option_negotiation_callback (from set_option_negotiation_callback())\n  auto-process_rawq (from process_rawq())\n  auto-rawq_getchar (from rawq_getchar())\n  auto-fill_rawq (from fill_rawq())\n  auto-sock_avail (from sock_avail())\n  auto-interact (from interact())\n  auto-mt_interact (from mt_interact())\n  auto-listener (from listener())\n  auto-expect (from expect())\n\nRequired output action ids:\n  auto-open\n  auto-msg\n  auto-set_debuglevel\n  auto-close\n  auto-get_socket\n  auto-fileno\n  auto-write\n  auto-read_until\n  auto-read_all\n  auto-read_some\n  auto-read_very_eager\n  auto-read_eager\n  auto-read_lazy\n  auto-read_very_lazy\n  auto-read_sb_data\n  auto-set_option_negotiation_callback\n  auto-process_rawq\n  auto-rawq_getchar\n  auto-fill_rawq\n  auto-sock_avail\n  auto-interact\n  auto-mt_interact\n  auto-listener\n  auto-expect"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_051631760ba325400069d56686d3cc8190bb0cfa1029945006",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 9130,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7225,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_051631760ba325400069d56687a4448190836efa688ff3ec06",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_051631760ba325400069d5668f3a648190aa605fa0e8f8c67d",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Telnet 连接接口\",\n  \"name_en\": \"Telnet Connection Interface\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件通信组件，用于通过 Telnet 协议连接远程主机。在实验系统中可用于建立会话、发送文本命令、读取返回数据、处理 Telnet 选项协商，以及进行交互式远程控制。\",\n  \"description_en\": \"This is a non-physical software communication component for connecting to remote hosts over the Telnet protocol. In laboratory systems, it can be used to open sessions, send text commands, read returned data, handle Telnet option negotiation, and support interactive remote control.\",\n  \"tag_hints\": [\n    \"telnet communication\",\n    \"remote command session\",\n    \"network socket I/O\",\n    \"text protocol exchange\",\n    \"interactive terminal session\",\n    \"option negotiation\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开到远程 Telnet 主机的连接。\",\n      \"description_en\": \"Open a connection to a remote Telnet host.\"\n    },\n    {\n      \"action_name\": \"auto-msg\",\n      \"description\": \"输出调试消息。\",\n      \"description_en\": \"Output a debug message.\"\n    },\n    {\n      \"action_name\": \"auto-set_debuglevel\",\n      \"description\": \"设置调试输出级别。\",\n      \"description_en\": \"Set the debug output level.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭 Telnet 连接。\",\n      \"description_en\": \"Close the Telnet connection.\"\n    },\n    {\n      \"action_name\": \"auto-get_socket\",\n      \"description\": \"获取内部使用的套接字对象。\",\n      \"description_en\": \"Get the internally used socket object.\"\n    },\n    {\n      \"action_name\": \"auto-fileno\",\n      \"description\": \"获取内部套接字的文件描述符。\",\n      \"description_en\": \"Get the file descriptor of the internal socket.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向 Telnet 连接写入数据。\",\n      \"description_en\": \"Write data to the Telnet connection.\"\n    },\n    {\n      \"action_name\": \"auto-read_until\",\n      \"description\": \"读取数据直到出现指定内容或超时。\",\n      \"description_en\": \"Read data until the specified content is found or a timeout occurs.\"\n    },\n    {\n      \"action_name\": \"auto-read_all\",\n      \"description\": \"持续读取全部数据直到连接结束。\",\n      \"description_en\": \"Read all data until the connection reaches EOF.\"\n    },\n    {\n      \"action_name\": \"auto-read_some\",\n      \"description\": \"读取至少一部分可用数据。\",\n      \"description_en\": \"Read at least some available data.\"\n    },\n    {\n      \"action_name\": \"auto-read_very_eager\",\n      \"description\": \"以尽量不阻塞的方式读取当前可立即获得的全部数据。\",\n      \"description_en\": \"Read all immediately available data with minimal blocking.\"\n    },\n    {\n      \"action_name\": \"auto-read_eager\",\n      \"description\": \"读取当前已准备好的数据。\",\n      \"description_en\": \"Read data that is currently ready and available.\"\n    },\n    {\n      \"action_name\": \"auto-read_lazy\",\n      \"description\": \"处理并返回队列中已存在的数据，不主动进行新的套接字读取。\",\n      \"description_en\": \"Process and return data already in the queues without initiating new socket I/O.\"\n    },\n    {\n      \"action_name\": \"auto-read_very_lazy\",\n      \"description\": \"返回已处理队列中当前可用的数据，不进行套接字 I/O。\",\n      \"description_en\": \"Return currently available cooked-queue data without socket I/O.\"\n    },\n    {\n      \"action_name\": \"auto-read_sb_data\",\n      \"description\": \"读取 Telnet 子协商区段中的可用数据。\",\n      \"description_en\": \"Read available data from the Telnet subnegotiation buffer.\"\n    },\n    {\n      \"action_name\": \"auto-set_option_negotiation_callback\",\n      \"description\": \"设置 Telnet 选项协商回调函数。\",\n      \"description_en\": \"Set the callback function for Telnet option negotiation.\"\n    },\n    {\n      \"action_name\": \"auto-process_rawq\",\n      \"description\": \"处理原始输入队列并转换为可用数据队列。\",\n      \"description_en\": \"Process the raw input queue and convert it into usable data queues.\"\n    },\n    {\n      \"action_name\": \"auto-rawq_getchar\",\n      \"description\": \"从原始输入队列获取下一个字符。\",\n      \"description_en\": \"Get the next character from the raw input queue.\"\n    },\n    {\n      \"action_name\": \"auto-fill_rawq\",\n      \"description\": \"通过一次套接字接收操作填充原始输入队列。\",\n      \"description_en\": \"Fill the raw input queue using one socket receive operation.\"\n    },\n    {\n      \"action_name\": \"auto-sock_avail\",\n      \"description\": \"检查套接字上是否有可用数据。\",\n      \"description_en\": \"Check whether data is available on the socket.\"\n    },\n    {\n      \"action_name\": \"auto-interact\",\n      \"description\": \"启动交互式 Telnet 会话。\",\n      \"description_en\": \"Start an interactive Telnet session.\"\n    },\n    {\n      \"action_name\": \"auto-mt_interact\",\n      \"description\": \"以多线程方式启动交互式 Telnet 会话。\",\n      \"description_en\": \"Start an interactive Telnet session in multithreaded mode.\"\n    },\n    {\n      \"action_name\": \"auto-listener\",\n      \"description\": \"运行多线程交互会话中使用的监听辅助流程。\",\n      \"description_en\": \"Run the listener helper used in the multithreaded interactive session.\"\n    },\n    {\n      \"action_name\": \"auto-expect\",\n      \"description\": \"读取数据直到匹配给定正则表达式列表中的某一项或超时。\",\n      \"description_en\": \"Read data until one of the given regular expressions matches or a timeout occurs.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2554,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1820,
+      "output_tokens_details": {
+        "reasoning_tokens": 479
+      },
+      "total_tokens": 4374
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2554,
+      "output_token_count": 1820,
+      "predict_time": 24.884422582
+    }
+  },
+  "output_text": "{\n  \"name\": \"Telnet 连接接口\",\n  \"name_en\": \"Telnet Connection Interface\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件通信组件，用于通过 Telnet 协议连接远程主机。在实验系统中可用于建立会话、发送文本命令、读取返回数据、处理 Telnet 选项协商，以及进行交互式远程控制。\",\n  \"description_en\": \"This is a non-physical software communication component for connecting to remote hosts over the Telnet protocol. In laboratory systems, it can be used to open sessions, send text commands, read returned data, handle Telnet option negotiation, and support interactive remote control.\",\n  \"tag_hints\": [\n    \"telnet communication\",\n    \"remote command session\",\n    \"network socket I/O\",\n    \"text protocol exchange\",\n    \"interactive terminal session\",\n    \"option negotiation\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开到远程 Telnet 主机的连接。\",\n      \"description_en\": \"Open a connection to a remote Telnet host.\"\n    },\n    {\n      \"action_name\": \"auto-msg\",\n      \"description\": \"输出调试消息。\",\n      \"description_en\": \"Output a debug message.\"\n    },\n    {\n      \"action_name\": \"auto-set_debuglevel\",\n      \"description\": \"设置调试输出级别。\",\n      \"description_en\": \"Set the debug output level.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭 Telnet 连接。\",\n      \"description_en\": \"Close the Telnet connection.\"\n    },\n    {\n      \"action_name\": \"auto-get_socket\",\n      \"description\": \"获取内部使用的套接字对象。\",\n      \"description_en\": \"Get the internally used socket object.\"\n    },\n    {\n      \"action_name\": \"auto-fileno\",\n      \"description\": \"获取内部套接字的文件描述符。\",\n      \"description_en\": \"Get the file descriptor of the internal socket.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向 Telnet 连接写入数据。\",\n      \"description_en\": \"Write data to the Telnet connection.\"\n    },\n    {\n      \"action_name\": \"auto-read_until\",\n      \"description\": \"读取数据直到出现指定内容或超时。\",\n      \"description_en\": \"Read data until the specified content is found or a timeout occurs.\"\n    },\n    {\n      \"action_name\": \"auto-read_all\",\n      \"description\": \"持续读取全部数据直到连接结束。\",\n      \"description_en\": \"Read all data until the connection reaches EOF.\"\n    },\n    {\n      \"action_name\": \"auto-read_some\",\n      \"description\": \"读取至少一部分可用数据。\",\n      \"description_en\": \"Read at least some available data.\"\n    },\n    {\n      \"action_name\": \"auto-read_very_eager\",\n      \"description\": \"以尽量不阻塞的方式读取当前可立即获得的全部数据。\",\n      \"description_en\": \"Read all immediately available data with minimal blocking.\"\n    },\n    {\n      \"action_name\": \"auto-read_eager\",\n      \"description\": \"读取当前已准备好的数据。\",\n      \"description_en\": \"Read data that is currently ready and available.\"\n    },\n    {\n      \"action_name\": \"auto-read_lazy\",\n      \"description\": \"处理并返回队列中已存在的数据，不主动进行新的套接字读取。\",\n      \"description_en\": \"Process and return data already in the queues without initiating new socket I/O.\"\n    },\n    {\n      \"action_name\": \"auto-read_very_lazy\",\n      \"description\": \"返回已处理队列中当前可用的数据，不进行套接字 I/O。\",\n      \"description_en\": \"Return currently available cooked-queue data without socket I/O.\"\n    },\n    {\n      \"action_name\": \"auto-read_sb_data\",\n      \"description\": \"读取 Telnet 子协商区段中的可用数据。\",\n      \"description_en\": \"Read available data from the Telnet subnegotiation buffer.\"\n    },\n    {\n      \"action_name\": \"auto-set_option_negotiation_callback\",\n      \"description\": \"设置 Telnet 选项协商回调函数。\",\n      \"description_en\": \"Set the callback function for Telnet option negotiation.\"\n    },\n    {\n      \"action_name\": \"auto-process_rawq\",\n      \"description\": \"处理原始输入队列并转换为可用数据队列。\",\n      \"description_en\": \"Process the raw input queue and convert it into usable data queues.\"\n    },\n    {\n      \"action_name\": \"auto-rawq_getchar\",\n      \"description\": \"从原始输入队列获取下一个字符。\",\n      \"description_en\": \"Get the next character from the raw input queue.\"\n    },\n    {\n      \"action_name\": \"auto-fill_rawq\",\n      \"description\": \"通过一次套接字接收操作填充原始输入队列。\",\n      \"description_en\": \"Fill the raw input queue using one socket receive operation.\"\n    },\n    {\n      \"action_name\": \"auto-sock_avail\",\n      \"description\": \"检查套接字上是否有可用数据。\",\n      \"description_en\": \"Check whether data is available on the socket.\"\n    },\n    {\n      \"action_name\": \"auto-interact\",\n      \"description\": \"启动交互式 Telnet 会话。\",\n      \"description_en\": \"Start an interactive Telnet session.\"\n    },\n    {\n      \"action_name\": \"auto-mt_interact\",\n      \"description\": \"以多线程方式启动交互式 Telnet 会话。\",\n      \"description_en\": \"Start an interactive Telnet session in multithreaded mode.\"\n    },\n    {\n      \"action_name\": \"auto-listener\",\n      \"description\": \"运行多线程交互会话中使用的监听辅助流程。\",\n      \"description_en\": \"Run the listener helper used in the multithreaded interactive session.\"\n    },\n    {\n      \"action_name\": \"auto-expect\",\n      \"description\": \"读取数据直到匹配给定正则表达式列表中的某一项或超时。\",\n      \"description_en\": \"Read data until one of the given regular expressions matches or a timeout occurs.\"\n    }\n  ]\n}"
+}

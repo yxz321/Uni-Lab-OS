@@ -1,59 +1,157 @@
-Device: spi_device
-Registry Key: spi_device
-Short Description: SPI Device SPI通信驱动模块是由复纳科学仪器（上海）有限公司生产的专业实验设备。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (21):
-- auto-acquire_data -> acquire_data [UniLabJsonCommand] goal_params: none
-- auto-buffer_bytearray -> buffer_bytearray [UniLabJsonCommand] goal_params: orig, size
-- auto-change_setting -> change_setting [UniLabJsonCommand] goal_params: setting, value
-- auto-check_crc -> check_crc [UniLabJsonCommand] goal_params: crc_received, data
-- auto-compute_crc -> compute_crc [UniLabJsonCommand] goal_params: data
-- auto-connect -> connect [UniLabJsonCommand] goal_params: none
-- auto-decode_read_response -> decode_read_response [UniLabJsonCommand] goal_params: buffered_response, missing_echo_len, name, unbuffered_cmd
-- auto-disconnect -> disconnect [UniLabJsonCommand] goal_params: none
-- auto-errorcode_to_string -> errorcode_to_string [UniLabJsonCommand] goal_params: code
-- auto-fix_crc -> fix_crc [UniLabJsonCommand] goal_params: cmd
-- auto-flush_input_buffer -> flush_input_buffer [UniLabJsonCommand] goal_params: none
-- auto-gain_to_ff -> gain_to_ff [UniLabJsonCommand] goal_params: gain
-- auto-get_spectrum -> get_spectrum [UniLabJsonCommand] goal_params: none
-- auto-init_eeprom -> init_eeprom [UniLabJsonCommand] goal_params: none
-- auto-read_page -> read_page [UniLabJsonCommand] goal_params: page
-- auto-send_command -> send_command [UniLabJsonCommand] goal_params: cmd
-- auto-set_gain -> set_gain [UniLabJsonCommand] goal_params: value
-- auto-set_integration_time_ms -> set_integration_time_ms [UniLabJsonCommand] goal_params: value
-- auto-to_hex -> to_hex [UniLabJsonCommand] goal_params: values
-- auto-validate_write_response -> validate_write_response [UniLabJsonCommand] goal_params: response
-- auto-wait_for_data_ready -> wait_for_data_ready [UniLabJsonCommand] goal_params: none
-
-Driver Functions (25):
-- CommandTuple.__init__(self, address, value, write_len, name) (line 110)
-- CommandTuple.__str__(self) (line 116)
-- SPIDevice.__init__(self, device_id, message_queue, alert_queue) (line 157)
-- SPIDevice.connect(self) (line 281)
-- SPIDevice.init_eeprom(self) (line 301)
-- SPIDevice.disconnect(self) (line 331)
-- SPIDevice.acquire_data(self) (line 335)
-- SPIDevice.set_integration_time_ms(self, value) (line 394)
-- SPIDevice.set_gain(self, value) (line 401)
-- SPIDevice.change_setting(self, setting, value) (line 408)
-- SPIDevice._init_process_funcs(self) (line 416)
-- SPIDevice.to_hex(self, values) (line 442)
-- SPIDevice.check_crc(self, crc_received, data) (line 447)
-- SPIDevice.compute_crc(self, data) (line 454)
-- SPIDevice.fix_crc(self, cmd) (line 461)
-- SPIDevice.errorcode_to_string(self, code) (line 475)
-- SPIDevice.validate_write_response(self, response) (line 483)
-- SPIDevice.buffer_bytearray(self, orig, size) (line 499)
-- SPIDevice.decode_read_response(self, unbuffered_cmd, buffered_response, name, missing_echo_len) (line 537)
-- SPIDevice.send_command(self, cmd) (line 560)
-- SPIDevice.flush_input_buffer(self) (line 590)
-- SPIDevice.wait_for_data_ready(self) (line 614)
-- SPIDevice.gain_to_ff(self, gain) (line 624)
-- SPIDevice.read_page(self, page) (line 632)
-- SPIDevice.get_spectrum(self) (line 654)
+spi_device:
+  name: Wasatch SPI光谱仪
+  name_en: Wasatch SPI Spectrometer
+  manufacturer: Wasatch Photonics
+  category:
+  - 光谱仪
+  - 拉曼光谱仪
+  tags:
+  - 表征设备
+  - 光学与光谱实验
+  - 光谱采集与检测
+  - 光谱仪
+  - 拉曼光谱仪
+  description: 通过 FT232H USB 转 SPI 转换器通信的 Wasatch 光谱仪，用于触发采集、读取光谱数据，并设置积分时间、探测器增益及
+    EEPROM/FPGA 相关参数，常用于拉曼或通用光谱测量系统。
+  description_en: A Wasatch spectrometer controlled through an FT232H USB-to-SPI interface.
+    It is used to trigger acquisitions, read spectral data, and configure integration
+    time, detector gain, and EEPROM/FPGA-related settings in Raman or general spectroscopy
+    setups.
+  class:
+    action_value_mappings:
+      auto-connect:
+        schema:
+          description: 初始化并连接 SPI 光谱仪通信。
+          description_en: Initialize and connect communication with the SPI spectrometer.
+      auto-init_eeprom:
+        schema:
+          description: 从 EEPROM 读取启动参数并初始化本地设置。
+          description_en: Load startup parameters from EEPROM and initialize local
+            settings.
+      auto-disconnect:
+        schema:
+          description: 断开与光谱仪的连接。
+          description_en: Disconnect from the spectrometer.
+      auto-acquire_data:
+        schema:
+          description: 执行一次数据采集，并按需要进行软件平均或 2x2 bin 处理。
+          description_en: Perform one data acquisition, with optional software averaging
+            or 2x2 binning.
+      auto-set_integration_time_ms:
+        schema:
+          description: 设置积分时间（毫秒）。
+          description_en: Set the integration time in milliseconds.
+      auto-set_gain:
+        schema:
+          description: 设置探测器增益。
+          description_en: Set the detector gain.
+      auto-change_setting:
+        schema:
+          description: 更改指定设备设置。
+          description_en: Change a specified device setting.
+      auto-to_hex:
+        schema:
+          description: 将字节数据格式化为十六进制文本。
+          description_en: Format byte data as hexadecimal text.
+      auto-check_crc:
+        schema:
+          description: 校验数据的 CRC 校验和。
+          description_en: Verify the CRC checksum of data.
+      auto-compute_crc:
+        schema:
+          description: 计算数据的 CRC 校验和。
+          description_en: Compute the CRC checksum of data.
+      auto-fix_crc:
+        schema:
+          description: 重新计算并替换 SPI 命令中的 CRC。
+          description_en: Recompute and replace the CRC in an SPI command.
+      auto-errorcode_to_string:
+        schema:
+          description: 将设备错误码转换为文本说明。
+          description_en: Convert a device error code to a text description.
+      auto-validate_write_response:
+        schema:
+          description: 验证 SPI 写命令响应是否有效。
+          description_en: Validate whether an SPI write-command response is valid.
+      auto-buffer_bytearray:
+        schema:
+          description: 生成适用于 SPI 读写的定长缓冲区。
+          description_en: Create a fixed-size buffer for SPI read/write operations.
+      auto-decode_read_response:
+        schema:
+          description: 解析并校验 SPI 读取响应数据。
+          description_en: Decode and validate SPI read-response data.
+      auto-send_command:
+        schema:
+          description: 向设备发送 SPI 命令并读取响应。
+          description_en: Send an SPI command to the device and read the response.
+      auto-flush_input_buffer:
+        schema:
+          description: 清空 SPI 输入缓冲区。
+          description_en: Flush the SPI input buffer.
+      auto-wait_for_data_ready:
+        schema:
+          description: 等待设备数据就绪信号。
+          description_en: Wait for the device data-ready signal.
+      auto-gain_to_ff:
+        schema:
+          description: 将增益值转换为设备使用的 16 位 Funky Float 格式。
+          description_en: Convert a gain value to the 16-bit Funky Float format used
+            by the device.
+      auto-read_page:
+        schema:
+          description: 读取 EEPROM 页面数据。
+          description_en: Read an EEPROM page.
+      auto-get_spectrum:
+        schema:
+          description: 获取光谱。
+          description_en: Get spectrum.
+auto_annotation_metadata:
+  registry_key: spi_device
+  annotation_workflow_version: v4
+  tag_hints:
+  - Raman spectroscopy
+  - spectral acquisition
+  - SPI communication via FT232H
+  - integration time control
+  - detector gain control
+  - EEPROM configuration
+  - FPGA-based spectrometer
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该设备用于获取光谱数据并进行拉曼或通用光谱测量，属于典型表征设备。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: 设备用于光谱采集、积分时间控制和增益设置，直接服务于光学/光谱实验。
+  - id: P-3002
+    name: 光谱采集与检测
+    name_en: Spectral Acquisition & Detection
+    type: experimental_scene
+    rationale: 其核心动作是触发采集并读取光谱数据，完全符合光谱采集与检测场景。
+  - id: P-9806
+    name: 光谱仪
+    name_en: Spectrometer
+    type: device_template_tag
+    rationale: Wasatch设备本体是光谱仪，通过SPI链路进行配置和读谱。
+  - id: '4392'
+    name: 拉曼光谱仪
+    name_en: Raman Spectrometer
+    type: device_template_tag
+    rationale: 描述明确提到常用于拉曼测量系统，因此可补充归入拉曼光谱仪类型。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

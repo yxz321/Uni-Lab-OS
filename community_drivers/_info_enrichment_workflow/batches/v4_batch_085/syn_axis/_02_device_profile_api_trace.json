@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: syn_axis\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: ophyd/sim.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.synthetic_axis.syn_axis_driver:SynAxis\n\nClass: NullStatus \n  Bases: ['StatusBase']\n  Docstring: A simple Status object that is always immediately done, successfully.\n\nClass: EnumSignal \n  Bases: ['Signal']\n\nClass: SynSignal \n  Bases: ['Signal']\n  Docstring: A synthetic Signal that evaluates a Python function when triggered.\n\nParameters\n----------\nfunc : callable, optional\n    This function sets the signal to a new value when it is triggered.\n    Expected signature: ``f() -> value``.\n    By default, triggering the signal does not change the value.\nname : string, keyword only\nexposure_time : number, optional\n    Seconds of delay when triggered (simulated 'exposure time'). Default is\n    0.\nprecision : integer, optional\n    Digits of precision. Default is 3.\nparent : Device, optional\n    Used internally if this Signal is made part of a larger Device.\nkind : a member the Kind IntEnum (or equivalent integer), optional\n    Default is Kind.normal. See Kind for options.\n\nClass: SynSignalRO \n  Bases: ['SynSignal']\n\nClass: SynPeriodicSignal \n  Bases: ['SynSignal']\n  Docstring: A synthetic Signal that evaluates a Python function periodically.\nThe signal value is updated in a background thread. To start the thread,\ncall the `start_simulation()` method before the beginning of simulation.\n\nParameters\n----------\nfunc : callable, optional\n    This function sets the signal to a new value when it is triggered.\n    Expected signature: ``f() -> value``.\n    By default, triggering the signal generates white noise on [0, 1].\nname : string, keyword only\nperiod : number, optional\n    How often the Signal's value is updated in the background. Default is\n    1 second.\nperiod_jitter : number, optional\n    Random Gaussian variation of the period. Default is 1 second.\nexposure_time : number, optional\n    Seconds of delay when triggered (simulated 'exposure time'). Default is\n    0.\nparent : Device, optional\n    Used internally if this Signal is made part of a larger Device.\nkind : a member the Kind IntEnum (or equivalent integer), optional\n    Default is Kind.normal. See Kind for options.\n\nClass: _ReadbackSignal \n  Bases: ['Signal']\n\nClass: _SetpointSignal \n  Bases: ['Signal']\n\nClass: SynAxis (focal)\n  Bases: ['Device']\n  Docstring: A synthetic settable Device mimic any 1D Axis (position, temperature).\n\nParameters\n----------\nname : string, keyword only\nreadback_func : callable, optional\n    When the Device is set to ``x``, its readback will be updated to\n    ``f(x)``. This can be used to introduce random noise or a systematic\n    offset.\n    Expected signature: ``f(x) -> value``.\nvalue : object, optional\n    The initial value. Default is 0.\ndelay : number, optional\n    Simulates how long it takes the device to \"move\". Default is 0 seconds.\nprecision : integer, optional\n    Digits of precision. Default is 3.\nparent : Device, optional\n    Used internally if this Signal is made part of a larger Device.\nkind : a member the Kind IntEnum (or equivalent integer), optional\n    Default is Kind.normal. See Kind for options.\nevents_per_move: number of events to push to a Status object for each move.\n    Must be at least 1, more than one will give \"moving\" statuses that can be\n    used for progress bars etc.\n    Default is 1.\n\nClass: SynAxisEmptyHints \n  Bases: ['SynAxis']\n\nClass: SynAxisNoHints \n  Bases: ['SynAxis']\n\nClass: SynGauss \n  Bases: ['Device']\n  Docstring: Evaluate a point on a Gaussian based on the value of a motor.\n\nParameters\n----------\nname : string\nmotor : Device\nmotor_field : string\ncenter : number\n    center of peak\nImax : number\n    max intensity of peak\nsigma : number, optional\n    Default is 1.\nnoise : {'poisson', 'uniform', None}, optional\n    Add noise to the gaussian peak.\nnoise_multiplier : float, optional\n    Only relevant for 'uniform' noise. Multiply the random amount of\n    noise by 'noise_multiplier'\nrandom_state : numpy random state object, optional\n    np.random.RandomState(0), to generate random number with given seed\n\nExample\n-------\nmotor = SynAxis(name='motor')\ndet = SynGauss('det', motor, 'motor', center=0, Imax=1, sigma=1)\n\nClass: Syn2DGauss \n  Bases: ['Device']\n  Docstring: Evaluate a point on a Gaussian based on the value of a motor.\n\nParameters\n----------\nname : str\n    The name of the detector\nmotor0 : SynAxis\n    The 'x' coordinate of the 2-D gaussian blob\nmotor_field0 : str\n    The name field of the motor. Should be the key in motor0.describe()\nmotor1 : SynAxis\n    The 'y' coordinate of the 2-D gaussian blob\nmotor_field1 : str\n    The name field of the motor. Should be the key in motor1.describe()\ncenter : iterable, optional\n    The center of the gaussian blob\n    Defaults to (0,0)\nImax : float, optional\n    The intensity at `center`\n    Defaults to 1\nsigma : float, optional\n    Standard deviation for gaussian blob\n    Defaults to 1\nnoise : {'poisson', 'uniform', None}, optional\n    Add noise to the gaussian peak..\n    Defaults to None\nnoise_multiplier : float, optional\n    Only relevant for 'uniform' noise. Multiply the random amount of\n    noise by 'noise_multiplier'\n    Defaults to 1\nrandom_state : numpy random state object, optional\n    np.random.RandomState(0), to generate random number with given seed\n\nExample\n-------\nmotor = SynAxis(name='motor')\ndet = SynGauss('det', motor, 'motor', center=0, Imax=1, sigma=1)\n\nClass: TrivialFlyer \n  Bases: []\n  Docstring: Trivial flyer that complies to the API but returns empty data.\n\nClass: NewTrivialFlyer \n  Bases: ['TrivialFlyer']\n  Docstring: The old-style API inserted Resource and Datum documents into a database\ndirectly. The new-style API only caches the documents and provides an\ninterface (collect_asset_docs) for accessing that cache. This change was\npart of the \"asset refactor\" that changed that way Resource and Datum\ndocuments flowed through ophyd, bluesky, and databroker. Trivial flyer that\ncomplies to the API but returns empty data.\n\nClass: MockFlyer \n  Bases: []\n  Docstring: Class for mocking a flyscan API implemented with stepper motors.\n\nClass: SynSignalWithRegistry \n  Bases: ['SynSignal']\n  Docstring: A SynSignal integrated with databroker.assets\n\nParameters\n----------\nfunc : callable, optional\n    This function sets the signal to a new value when it is triggered.\n    Expected signature: ``f() -> value``.\n    By default, triggering the signal does not change the value.\nname : string, keyword only\nexposure_time : number, optional\n    Seconds of delay when triggered (simulated 'exposure time'). Default is\n    0.\nparent : Device, optional\n    Used internally if this Signal is made part of a larger Device.\nreg : Registry, optional\n    DEPRECATED. If used, this is ignored and a warning is issued. In a\n    future release, this parameter will be removed.\nsave_path : str, optional\n    Path to save files to, if None make a temp dir, defaults to None.\nsave_func : function, optional\n    The function to save the data, function signature must be:\n    `func(file_path, array)`, defaults to np.save\nsave_spec : str, optional\n    The spec for the save function, defaults to 'RWFS_NPY'\nsave_ext : str, optional\n    The extension to add to the file name, defaults to '.npy'\n\nClass: NumpySeqHandler \n  Bases: []\n\nClass: ABDetector \n  Bases: ['Device']\n\nClass: DetWithCountTime \n  Bases: ['Device']\n\nClass: DetWithConf \n  Bases: ['Device']\n\nClass: InvariantSignal \n  Bases: ['SynSignal']\n\nClass: SPseudo3x3 \n  Bases: ['PseudoPositioner']\n\nClass: SPseudo1x3 \n  Bases: ['PseudoPositioner']\n\nClass: SynAxisNoPosition \n  Bases: ['SynAxis']\n\nClass: FakeEpicsSignal \n  Bases: ['SynSignal']\n  Docstring: Fake version of EpicsSignal that's really just a SynSignal.\n\nWheras SynSignal is generally used to test plans, FakeEpicsSignal is\ngenerally used in conjunction with make_fake_device to test any logic\ninside of a Device subclass.\n\nUnlike in SynSignal, this class is generally instantiated inside of a\nsubcomponent generated automatically by make_fake_device. This means we\nneed extra hooks for modifying the signal's properties after the class\ninstantiates.\n\nWe can emulate EpicsSignal features here. We currently emulate the put\nlimits and some enum handling.\n\nClass: FakeEpicsSignalRO \n  Bases: ['SynSignalRO', 'FakeEpicsSignal']\n  Docstring: Read-only FakeEpicsSignal\n\nClass: FakeEpicsSignalWithRBV \n  Bases: ['FakeEpicsSignal']\n  Docstring: FakeEpicsSignal with PV and PV_RBV; used in the AreaDetector PV naming\nscheme\n\nClass: FakeEpicsPathSignal \n  Bases: ['FakeEpicsSignal']\n  Docstring: FakeEpicsPathSignal; used in AreaDetector for interacting with paths\n\nClass: DirectImage \n  Bases: ['Device']\n\nFocal class methods:\n  [command] set(self, value)\n  [status_getter] position(self)\n\nRegistry actions:\n  auto-set (from set())\n  auto-put (from put())\n  auto-get (from get())\n  auto-describe (from describe())\n  auto-trigger (from trigger())\n  auto-sim_set_func (from sim_set_func())\n  auto-start_simulation (from start_simulation())\n  auto-read (from read())\n  auto-subscribe (from subscribe())\n  auto-timestamp (from timestamp())\n  auto-position (from position())\n  auto-hints (from hints())\n  auto-clear_sub (from clear_sub())\n  auto-unsubscribe (from unsubscribe())\n  auto-unsubscribe_all (from unsubscribe_all())\n  auto-precision (from precision())\n  auto-exposure_time (from exposure_time())\n  auto-kickoff (from kickoff())\n  auto-describe_collect (from describe_collect())\n  auto-read_configuration (from read_configuration())\n  auto-describe_configuration (from describe_configuration())\n  auto-complete (from complete())\n  auto-collect (from collect())\n  auto-collect_asset_docs (from collect_asset_docs())\n  auto-stage (from stage())\n  auto-unstage (from unstage())\n  auto-get_file_list (from get_file_list())\n  auto-forward (from forward())\n  auto-inverse (from inverse())\n  auto-sim_set_putter (from sim_set_putter())\n  auto-sim_put (from sim_put())\n  auto-enum_strs (from enum_strs())\n  auto-sim_set_enum_strs (from sim_set_enum_strs())\n  auto-limits (from limits())\n  auto-sim_set_limits (from sim_set_limits())\n  auto-check_value (from check_value())\n\nRequired output action ids:\n  auto-set\n  auto-put\n  auto-get\n  auto-describe\n  auto-trigger\n  auto-sim_set_func\n  auto-start_simulation\n  auto-read\n  auto-subscribe\n  auto-timestamp\n  auto-position\n  auto-hints\n  auto-clear_sub\n  auto-unsubscribe\n  auto-unsubscribe_all\n  auto-precision\n  auto-exposure_time\n  auto-kickoff\n  auto-describe_collect\n  auto-read_configuration\n  auto-describe_configuration\n  auto-complete\n  auto-collect\n  auto-collect_asset_docs\n  auto-stage\n  auto-unstage\n  auto-get_file_list\n  auto-forward\n  auto-inverse\n  auto-sim_set_putter\n  auto-sim_put\n  auto-enum_strs\n  auto-sim_set_enum_strs\n  auto-limits\n  auto-sim_set_limits\n  auto-check_value"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_02e5b6d215d973590069d562b98e4881969c67828c5c9c478f",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 12191,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 14032,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_02e5b6d215d973590069d562ba01c88196b2b8ce0b738f1b6b",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_02e5b6d215d973590069d562d97a488196ab08b73deca55142",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"合成轴仿真组件\",\n  \"name_en\": \"Synthetic Axis Simulation Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件模拟组件，源自 ophyd 的 sim 模块。其核心类 SynAxis 用于模拟一维可设定轴，例如位置轴或温度轴，并可配合合成信号、周期更新、伪 EPICS 信号和简单扫描/采集接口，用于实验控制程序、扫描流程和数据采集逻辑的测试与演示。\",\n  \"description_en\": \"This is a non-physical software simulation component derived from ophyd's sim module. Its core class, SynAxis, simulates a settable 1D axis such as position or temperature, and can be used with synthetic signals, periodic updates, fake EPICS-like signals, and simple scan/acquisition interfaces for testing and demonstrating experiment control, scan plans, and data acquisition logic.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set\",\n      \"description\": \"设置模拟轴的目标值。\",\n      \"description_en\": \"Set the target value of the simulated axis.\"\n    },\n    {\n      \"action_name\": \"auto-put\",\n      \"description\": \"写入模拟信号的值。\",\n      \"description_en\": \"Write a value to a synthetic signal.\"\n    },\n    {\n      \"action_name\": \"auto-get\",\n      \"description\": \"读取当前模拟值。\",\n      \"description_en\": \"Get the current simulated value.\"\n    },\n    {\n      \"action_name\": \"auto-describe\",\n      \"description\": \"获取该模拟组件数据字段的描述信息。\",\n      \"description_en\": \"Describe the data fields exposed by this simulation component.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"触发一次模拟更新或生成一次模拟读数。\",\n      \"description_en\": \"Trigger a simulated update or generate one synthetic reading.\"\n    },\n    {\n      \"action_name\": \"auto-sim_set_func\",\n      \"description\": \"定义用于生成模拟值的函数。\",\n      \"description_en\": \"Define the function used to generate simulated values.\"\n    },\n    {\n      \"action_name\": \"auto-start_simulation\",\n      \"description\": \"启动后台周期性模拟更新。\",\n      \"description_en\": \"Start background periodic simulation updates.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取当前模拟数据。\",\n      \"description_en\": \"Read the current simulated data.\"\n    },\n    {\n      \"action_name\": \"auto-subscribe\",\n      \"description\": \"订阅模拟值或状态变化通知。\",\n      \"description_en\": \"Subscribe to simulated value or status change notifications.\"\n    },\n    {\n      \"action_name\": \"auto-timestamp\",\n      \"description\": \"获取最近一次模拟更新的时间戳。\",\n      \"description_en\": \"Get the timestamp of the most recent simulated update.\"\n    },\n    {\n      \"action_name\": \"auto-position\",\n      \"description\": \"获取位置。\",\n      \"description_en\": \"Get position.\"\n    },\n    {\n      \"action_name\": \"auto-hints\",\n      \"description\": \"获取提示元数据。\",\n      \"description_en\": \"Get hint metadata.\"\n    },\n    {\n      \"action_name\": \"auto-clear_sub\",\n      \"description\": \"清除指定的订阅回调。\",\n      \"description_en\": \"Clear a specified subscription callback.\"\n    },\n    {\n      \"action_name\": \"auto-unsubscribe\",\n      \"description\": \"取消指定订阅。\",\n      \"description_en\": \"Unsubscribe a specified callback.\"\n    },\n    {\n      \"action_name\": \"auto-unsubscribe_all\",\n      \"description\": \"取消全部订阅。\",\n      \"description_en\": \"Unsubscribe all callbacks.\"\n    },\n    {\n      \"action_name\": \"auto-precision\",\n      \"description\": \"获取精度。\",\n      \"description_en\": \"Get precision.\"\n    },\n    {\n      \"action_name\": \"auto-exposure_time\",\n      \"description\": \"获取曝光时间。\",\n      \"description_en\": \"Get exposure time.\"\n    },\n    {\n      \"action_name\": \"auto-kickoff\",\n      \"description\": \"启动一次异步模拟扫描或采集过程。\",\n      \"description_en\": \"Start an asynchronous simulated scan or acquisition process.\"\n    },\n    {\n      \"action_name\": \"auto-describe_collect\",\n      \"description\": \"获取采集输出数据结构的描述信息。\",\n      \"description_en\": \"Describe the structure of collected output data.\"\n    },\n    {\n      \"action_name\": \"auto-read_configuration\",\n      \"description\": \"读取当前模拟配置。\",\n      \"description_en\": \"Read the current simulation configuration.\"\n    },\n    {\n      \"action_name\": \"auto-describe_configuration\",\n      \"description\": \"获取模拟配置字段的描述信息。\",\n      \"description_en\": \"Describe the simulation configuration fields.\"\n    },\n    {\n      \"action_name\": \"auto-complete\",\n      \"description\": \"完成当前异步模拟过程。\",\n      \"description_en\": \"Complete the current asynchronous simulation process.\"\n    },\n    {\n      \"action_name\": \"auto-collect\",\n      \"description\": \"收集缓冲的模拟数据。\",\n      \"description_en\": \"Collect buffered simulated data.\"\n    },\n    {\n      \"action_name\": \"auto-collect_asset_docs\",\n      \"description\": \"收集与模拟数据相关的资产文档。\",\n      \"description_en\": \"Collect asset documents associated with simulated data.\"\n    },\n    {\n      \"action_name\": \"auto-stage\",\n      \"description\": \"为一次实验运行准备该模拟组件。\",\n      \"description_en\": \"Stage the simulation component for a run.\"\n    },\n    {\n      \"action_name\": \"auto-unstage\",\n      \"description\": \"将该模拟组件恢复到未准备状态。\",\n      \"description_en\": \"Unstage the simulation component back to its idle state.\"\n    },\n    {\n      \"action_name\": \"auto-get_file_list\",\n      \"description\": \"获取模拟生成的数据文件列表。\",\n      \"description_en\": \"Get the list of data files generated by the simulation.\"\n    },\n    {\n      \"action_name\": \"auto-forward\",\n      \"description\": \"执行伪坐标到实坐标的前向变换。\",\n      \"description_en\": \"Perform forward transformation from pseudo coordinates to real coordinates.\"\n    },\n    {\n      \"action_name\": \"auto-inverse\",\n      \"description\": \"执行实坐标到伪坐标的逆向变换。\",\n      \"description_en\": \"Perform inverse transformation from real coordinates to pseudo coordinates.\"\n    },\n    {\n      \"action_name\": \"auto-sim_set_putter\",\n      \"description\": \"定义模拟写入操作的处理函数。\",\n      \"description_en\": \"Define the handler used for simulated put operations.\"\n    },\n    {\n      \"action_name\": \"auto-sim_put\",\n      \"description\": \"模拟一次外部写入以更新信号值。\",\n      \"description_en\": \"Simulate an external put to update the signal value.\"\n    },\n    {\n      \"action_name\": \"auto-enum_strs\",\n      \"description\": \"获取枚举字符串列表。\",\n      \"description_en\": \"Get the list of enum strings.\"\n    },\n    {\n      \"action_name\": \"auto-sim_set_enum_strs\",\n      \"description\": \"定义枚举字符串列表。\",\n      \"description_en\": \"Define the list of enum strings.\"\n    },\n    {\n      \"action_name\": \"auto-limits\",\n      \"description\": \"获取数值范围限制。\",\n      \"description_en\": \"Get the value limits.\"\n    },\n    {\n      \"action_name\": \"auto-sim_set_limits\",\n      \"description\": \"定义数值范围限制。\",\n      \"description_en\": \"Define the value limits.\"\n    },\n    {\n      \"action_name\": \"auto-check_value\",\n      \"description\": \"检查给定值是否符合模拟规则或范围限制。\",\n      \"description_en\": \"Check whether a proposed value satisfies simulation rules or limits.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"synthetic axis simulation\",\n    \"non-physical test device\",\n    \"ophyd sim\",\n    \"bluesky plan testing\",\n    \"1D position/temperature emulation\",\n    \"synthetic signal generation\",\n    \"fake EPICS signal\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 3372,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3303,
+      "output_tokens_details": {
+        "reasoning_tokens": 1552
+      },
+      "total_tokens": 6675
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 3372,
+      "output_token_count": 3303,
+      "predict_time": 58.716173843
+    }
+  },
+  "output_text": "{\n  \"name\": \"合成轴仿真组件\",\n  \"name_en\": \"Synthetic Axis Simulation Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件模拟组件，源自 ophyd 的 sim 模块。其核心类 SynAxis 用于模拟一维可设定轴，例如位置轴或温度轴，并可配合合成信号、周期更新、伪 EPICS 信号和简单扫描/采集接口，用于实验控制程序、扫描流程和数据采集逻辑的测试与演示。\",\n  \"description_en\": \"This is a non-physical software simulation component derived from ophyd's sim module. Its core class, SynAxis, simulates a settable 1D axis such as position or temperature, and can be used with synthetic signals, periodic updates, fake EPICS-like signals, and simple scan/acquisition interfaces for testing and demonstrating experiment control, scan plans, and data acquisition logic.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set\",\n      \"description\": \"设置模拟轴的目标值。\",\n      \"description_en\": \"Set the target value of the simulated axis.\"\n    },\n    {\n      \"action_name\": \"auto-put\",\n      \"description\": \"写入模拟信号的值。\",\n      \"description_en\": \"Write a value to a synthetic signal.\"\n    },\n    {\n      \"action_name\": \"auto-get\",\n      \"description\": \"读取当前模拟值。\",\n      \"description_en\": \"Get the current simulated value.\"\n    },\n    {\n      \"action_name\": \"auto-describe\",\n      \"description\": \"获取该模拟组件数据字段的描述信息。\",\n      \"description_en\": \"Describe the data fields exposed by this simulation component.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"触发一次模拟更新或生成一次模拟读数。\",\n      \"description_en\": \"Trigger a simulated update or generate one synthetic reading.\"\n    },\n    {\n      \"action_name\": \"auto-sim_set_func\",\n      \"description\": \"定义用于生成模拟值的函数。\",\n      \"description_en\": \"Define the function used to generate simulated values.\"\n    },\n    {\n      \"action_name\": \"auto-start_simulation\",\n      \"description\": \"启动后台周期性模拟更新。\",\n      \"description_en\": \"Start background periodic simulation updates.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取当前模拟数据。\",\n      \"description_en\": \"Read the current simulated data.\"\n    },\n    {\n      \"action_name\": \"auto-subscribe\",\n      \"description\": \"订阅模拟值或状态变化通知。\",\n      \"description_en\": \"Subscribe to simulated value or status change notifications.\"\n    },\n    {\n      \"action_name\": \"auto-timestamp\",\n      \"description\": \"获取最近一次模拟更新的时间戳。\",\n      \"description_en\": \"Get the timestamp of the most recent simulated update.\"\n    },\n    {\n      \"action_name\": \"auto-position\",\n      \"description\": \"获取位置。\",\n      \"description_en\": \"Get position.\"\n    },\n    {\n      \"action_name\": \"auto-hints\",\n      \"description\": \"获取提示元数据。\",\n      \"description_en\": \"Get hint metadata.\"\n    },\n    {\n      \"action_name\": \"auto-clear_sub\",\n      \"description\": \"清除指定的订阅回调。\",\n      \"description_en\": \"Clear a specified subscription callback.\"\n    },\n    {\n      \"action_name\": \"auto-unsubscribe\",\n      \"description\": \"取消指定订阅。\",\n      \"description_en\": \"Unsubscribe a specified callback.\"\n    },\n    {\n      \"action_name\": \"auto-unsubscribe_all\",\n      \"description\": \"取消全部订阅。\",\n      \"description_en\": \"Unsubscribe all callbacks.\"\n    },\n    {\n      \"action_name\": \"auto-precision\",\n      \"description\": \"获取精度。\",\n      \"description_en\": \"Get precision.\"\n    },\n    {\n      \"action_name\": \"auto-exposure_time\",\n      \"description\": \"获取曝光时间。\",\n      \"description_en\": \"Get exposure time.\"\n    },\n    {\n      \"action_name\": \"auto-kickoff\",\n      \"description\": \"启动一次异步模拟扫描或采集过程。\",\n      \"description_en\": \"Start an asynchronous simulated scan or acquisition process.\"\n    },\n    {\n      \"action_name\": \"auto-describe_collect\",\n      \"description\": \"获取采集输出数据结构的描述信息。\",\n      \"description_en\": \"Describe the structure of collected output data.\"\n    },\n    {\n      \"action_name\": \"auto-read_configuration\",\n      \"description\": \"读取当前模拟配置。\",\n      \"description_en\": \"Read the current simulation configuration.\"\n    },\n    {\n      \"action_name\": \"auto-describe_configuration\",\n      \"description\": \"获取模拟配置字段的描述信息。\",\n      \"description_en\": \"Describe the simulation configuration fields.\"\n    },\n    {\n      \"action_name\": \"auto-complete\",\n      \"description\": \"完成当前异步模拟过程。\",\n      \"description_en\": \"Complete the current asynchronous simulation process.\"\n    },\n    {\n      \"action_name\": \"auto-collect\",\n      \"description\": \"收集缓冲的模拟数据。\",\n      \"description_en\": \"Collect buffered simulated data.\"\n    },\n    {\n      \"action_name\": \"auto-collect_asset_docs\",\n      \"description\": \"收集与模拟数据相关的资产文档。\",\n      \"description_en\": \"Collect asset documents associated with simulated data.\"\n    },\n    {\n      \"action_name\": \"auto-stage\",\n      \"description\": \"为一次实验运行准备该模拟组件。\",\n      \"description_en\": \"Stage the simulation component for a run.\"\n    },\n    {\n      \"action_name\": \"auto-unstage\",\n      \"description\": \"将该模拟组件恢复到未准备状态。\",\n      \"description_en\": \"Unstage the simulation component back to its idle state.\"\n    },\n    {\n      \"action_name\": \"auto-get_file_list\",\n      \"description\": \"获取模拟生成的数据文件列表。\",\n      \"description_en\": \"Get the list of data files generated by the simulation.\"\n    },\n    {\n      \"action_name\": \"auto-forward\",\n      \"description\": \"执行伪坐标到实坐标的前向变换。\",\n      \"description_en\": \"Perform forward transformation from pseudo coordinates to real coordinates.\"\n    },\n    {\n      \"action_name\": \"auto-inverse\",\n      \"description\": \"执行实坐标到伪坐标的逆向变换。\",\n      \"description_en\": \"Perform inverse transformation from real coordinates to pseudo coordinates.\"\n    },\n    {\n      \"action_name\": \"auto-sim_set_putter\",\n      \"description\": \"定义模拟写入操作的处理函数。\",\n      \"description_en\": \"Define the handler used for simulated put operations.\"\n    },\n    {\n      \"action_name\": \"auto-sim_put\",\n      \"description\": \"模拟一次外部写入以更新信号值。\",\n      \"description_en\": \"Simulate an external put to update the signal value.\"\n    },\n    {\n      \"action_name\": \"auto-enum_strs\",\n      \"description\": \"获取枚举字符串列表。\",\n      \"description_en\": \"Get the list of enum strings.\"\n    },\n    {\n      \"action_name\": \"auto-sim_set_enum_strs\",\n      \"description\": \"定义枚举字符串列表。\",\n      \"description_en\": \"Define the list of enum strings.\"\n    },\n    {\n      \"action_name\": \"auto-limits\",\n      \"description\": \"获取数值范围限制。\",\n      \"description_en\": \"Get the value limits.\"\n    },\n    {\n      \"action_name\": \"auto-sim_set_limits\",\n      \"description\": \"定义数值范围限制。\",\n      \"description_en\": \"Define the value limits.\"\n    },\n    {\n      \"action_name\": \"auto-check_value\",\n      \"description\": \"检查给定值是否符合模拟规则或范围限制。\",\n      \"description_en\": \"Check whether a proposed value satisfies simulation rules or limits.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"synthetic axis simulation\",\n    \"non-physical test device\",\n    \"ophyd sim\",\n    \"bluesky plan testing\",\n    \"1D position/temperature emulation\",\n    \"synthetic signal generation\",\n    \"fake EPICS signal\"\n  ]\n}"
+}

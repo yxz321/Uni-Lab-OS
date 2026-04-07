@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: spot_graphic\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: nion/swift/model/Graphics.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.spot_graphic:SpotGraphic\n\nClass: DrawingContextLike \n  Bases: ['typing.Protocol']\n\nClass: CoordinateMappingLike \n  Bases: ['typing.Protocol']\n\nClass: ModifiersLike \n  Bases: ['typing.Protocol']\n\nClass: NullModifiers \n  Bases: ['ModifiersLike']\n\nClass: GraphicAttributeEnum \n  Bases: ['enum.Enum']\n\nClass: Graphic \n  Bases: ['Persistence.PersistentObject']\n\nClass: MissingGraphic \n  Bases: ['Graphic']\n\nClass: RectangleTypeGraphic \n  Bases: ['Graphic']\n\nClass: RectangleGraphic \n  Bases: ['RectangleTypeGraphic']\n\nClass: EllipseGraphic \n  Bases: ['RectangleTypeGraphic']\n\nClass: LineTypeGraphic \n  Bases: ['Graphic']\n\nClass: LineGraphic \n  Bases: ['LineTypeGraphic']\n\nClass: LineProfileGraphic \n  Bases: ['LineTypeGraphic']\n\nClass: PointTypeGraphic \n  Bases: ['Graphic']\n\nClass: PointGraphic \n  Bases: ['PointTypeGraphic']\n\nClass: IntervalGraphic \n  Bases: ['Graphic']\n\nClass: ChannelGraphic \n  Bases: ['Graphic']\n\nClass: SpotGraphic (focal)\n  Bases: ['Graphic']\n\nClass: WedgeGraphic \n  Bases: ['Graphic']\n\nClass: RingGraphic \n  Bases: ['Graphic']\n\nClass: LatticeGraphic \n  Bases: ['Graphic']\n\nClass: MaskItem \n  Bases: []\n\nClass: EmptyMaskItem \n  Bases: ['MaskItem']\n\nClass: RectangleMaskItem \n  Bases: ['MaskItem']\n\nClass: EllipseMaskItem \n  Bases: ['MaskItem']\n\nClass: LineMaskItem \n  Bases: ['MaskItem']\n\nClass: PointMaskItem \n  Bases: ['MaskItem']\n\nClass: SpotMaskItem \n  Bases: ['MaskItem']\n\nClass: WedgeMaskItem \n  Bases: ['MaskItem']\n\nClass: RingMaskItem \n  Bases: ['MaskItem']\n\nClass: LatticeMaskItem \n  Bases: ['MaskItem']\n\nClass: RegionBase \n  Bases: []\n\nClass: EmptyRegion \n  Bases: ['RegionBase']\n\nClass: RectangleLikeRegion \n  Bases: ['RegionBase']\n\nClass: RectangleRegion \n  Bases: ['RectangleLikeRegion']\n\nClass: EllipseRegion \n  Bases: ['RectangleLikeRegion']\n\nClass: LineTypeRegion \n  Bases: ['RegionBase']\n\nClass: LineRegion \n  Bases: ['LineTypeRegion']\n\nClass: LineProfileRegion \n  Bases: ['LineTypeRegion']\n\nClass: PointRegion \n  Bases: ['RegionBase']\n\nClass: IntervalRegion \n  Bases: ['RegionBase']\n\nClass: ChannelRegion \n  Bases: ['RegionBase']\n\nClass: SpotRegion \n  Bases: ['RegionBase']\n\nClass: WedgeRegion \n  Bases: ['RegionBase']\n\nClass: RingRegion \n  Bases: ['RegionBase']\n\nClass: LatticeRegion \n  Bases: ['RegionBase']\n\nFocal class methods:\n  [command] bounds(self)\n  [command] bounds(self, value)\n  [command] rotation(self)\n  [command] rotation(self, value)\n  [command] mime_data_dict(self)\n  [command] read_from_mime_data(self, graphic_dict)\n  [command] get_attributes(self)\n  [command] used_role(self)\n  [command] center(self)\n  [command] center(self, center)\n  [command] size(self)\n  [command] size(self, size)\n    comment: keep center the same\n  [command] get_region(self)\n  [command] get_mask_item(self)\n  [command] test(self, mapping, ui_settings, p, move_only)\n    comment: test point hit\n    comment: first convert to widget coordinates since test distances\n    comment: are specified in widget coordinates\n    comment: label\n    comment: didn't find anything\n  [command] begin_drag(self)\n  [command] end_drag(self, part_data)\n  [command] adjust_part(self, mapping, original, current, part, modifiers)\n    comment: rectangle\n  [command] nudge(self, mapping, delta)\n  [command] label_position(self, mapping, font_metrics, padding)\n\nRegistry actions:\n  auto-bounds (from bounds())\n  auto-rotation (from rotation())\n  auto-mime_data_dict (from mime_data_dict())\n  auto-read_from_mime_data (from read_from_mime_data())\n  auto-get_attributes (from get_attributes())\n  auto-used_role (from used_role())\n  auto-center (from center())\n  auto-size (from size())\n  auto-get_region (from get_region())\n  auto-get_mask_item (from get_mask_item())\n  auto-test (from test())\n  auto-begin_drag (from begin_drag())\n  auto-end_drag (from end_drag())\n  auto-adjust_part (from adjust_part())\n  auto-nudge (from nudge())\n  auto-label_position (from label_position())\n\nRequired output action ids:\n  auto-bounds\n  auto-rotation\n  auto-mime_data_dict\n  auto-read_from_mime_data\n  auto-get_attributes\n  auto-used_role\n  auto-center\n  auto-size\n  auto-get_region\n  auto-get_mask_item\n  auto-test\n  auto-begin_drag\n  auto-end_drag\n  auto-adjust_part\n  auto-nudge\n  auto-label_position"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0591e367d0b4fa8f0069d55fae83808197b9ae12f9f6417f6c",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5557,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7911,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0591e367d0b4fa8f0069d55faefe9881979947602357477dc8",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0591e367d0b4fa8f0069d55fc47664819791f255fae2eb6781",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"点状选区图形组件\",\n  \"name_en\": \"Spot Selection Graphic Component\",\n  \"manufacturer\": \"Nion\",\n  \"description\": \"用于科学图像或数据界面中的非物理图形组件，表示一个可编辑的点状选区。它支持边界、中心、尺寸、旋转、区域与掩膜对象生成，以及命中测试、拖拽调整、微调和序列化，常用于显微数据分析中的交互式标注与掩膜定义。\",\n  \"description_en\": \"A non-physical graphical component for scientific image or data interfaces that represents an editable spot-shaped selection. It supports bounds, center, size, rotation, region and mask generation, hit testing, drag adjustment, nudging, and serialization, and is used for interactive annotation and mask definition in microscopy data analysis workflows.\",\n  \"tag_hints\": [\n    \"graphical ROI\",\n    \"spot region\",\n    \"image annotation\",\n    \"mask generation\",\n    \"hit testing\",\n    \"drag interaction\",\n    \"microscopy data analysis\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-bounds\",\n      \"description\": \"获取或设置图形边界\",\n      \"description_en\": \"Get or set the graphic bounds.\"\n    },\n    {\n      \"action_name\": \"auto-rotation\",\n      \"description\": \"获取或设置图形旋转角度\",\n      \"description_en\": \"Get or set the graphic rotation.\"\n    },\n    {\n      \"action_name\": \"auto-mime_data_dict\",\n      \"description\": \"导出图形的 MIME 数据字典\",\n      \"description_en\": \"Export the graphic MIME data dictionary.\"\n    },\n    {\n      \"action_name\": \"auto-read_from_mime_data\",\n      \"description\": \"从 MIME 数据字典读取并恢复图形\",\n      \"description_en\": \"Read and restore the graphic from a MIME data dictionary.\"\n    },\n    {\n      \"action_name\": \"auto-get_attributes\",\n      \"description\": \"获取图形属性\",\n      \"description_en\": \"Get the graphic attributes.\"\n    },\n    {\n      \"action_name\": \"auto-used_role\",\n      \"description\": \"获取图形使用的角色\",\n      \"description_en\": \"Get the role used by the graphic.\"\n    },\n    {\n      \"action_name\": \"auto-center\",\n      \"description\": \"获取或设置点状选区中心\",\n      \"description_en\": \"Get or set the center of the spot selection.\"\n    },\n    {\n      \"action_name\": \"auto-size\",\n      \"description\": \"获取或设置点状选区尺寸\",\n      \"description_en\": \"Get or set the size of the spot selection.\"\n    },\n    {\n      \"action_name\": \"auto-get_region\",\n      \"description\": \"获取对应的区域对象\",\n      \"description_en\": \"Get the corresponding region object.\"\n    },\n    {\n      \"action_name\": \"auto-get_mask_item\",\n      \"description\": \"获取对应的掩膜项\",\n      \"description_en\": \"Get the corresponding mask item.\"\n    },\n    {\n      \"action_name\": \"auto-test\",\n      \"description\": \"测试给定点是否命中图形或其可编辑部件\",\n      \"description_en\": \"Test whether a given point hits the graphic or one of its editable parts.\"\n    },\n    {\n      \"action_name\": \"auto-begin_drag\",\n      \"description\": \"开始拖拽交互\",\n      \"description_en\": \"Begin a drag interaction.\"\n    },\n    {\n      \"action_name\": \"auto-end_drag\",\n      \"description\": \"结束拖拽交互\",\n      \"description_en\": \"End a drag interaction.\"\n    },\n    {\n      \"action_name\": \"auto-adjust_part\",\n      \"description\": \"在拖拽过程中调整图形部件\",\n      \"description_en\": \"Adjust a graphic part during dragging.\"\n    },\n    {\n      \"action_name\": \"auto-nudge\",\n      \"description\": \"按位移量微调图形位置\",\n      \"description_en\": \"Nudge the graphic position by a delta.\"\n    },\n    {\n      \"action_name\": \"auto-label_position\",\n      \"description\": \"计算标签显示位置\",\n      \"description_en\": \"Compute the label display position.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1810,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2074,
+      "output_tokens_details": {
+        "reasoning_tokens": 1160
+      },
+      "total_tokens": 3884
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1810,
+      "output_token_count": 2074,
+      "predict_time": 33.700654059
+    }
+  },
+  "output_text": "{\n  \"name\": \"点状选区图形组件\",\n  \"name_en\": \"Spot Selection Graphic Component\",\n  \"manufacturer\": \"Nion\",\n  \"description\": \"用于科学图像或数据界面中的非物理图形组件，表示一个可编辑的点状选区。它支持边界、中心、尺寸、旋转、区域与掩膜对象生成，以及命中测试、拖拽调整、微调和序列化，常用于显微数据分析中的交互式标注与掩膜定义。\",\n  \"description_en\": \"A non-physical graphical component for scientific image or data interfaces that represents an editable spot-shaped selection. It supports bounds, center, size, rotation, region and mask generation, hit testing, drag adjustment, nudging, and serialization, and is used for interactive annotation and mask definition in microscopy data analysis workflows.\",\n  \"tag_hints\": [\n    \"graphical ROI\",\n    \"spot region\",\n    \"image annotation\",\n    \"mask generation\",\n    \"hit testing\",\n    \"drag interaction\",\n    \"microscopy data analysis\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-bounds\",\n      \"description\": \"获取或设置图形边界\",\n      \"description_en\": \"Get or set the graphic bounds.\"\n    },\n    {\n      \"action_name\": \"auto-rotation\",\n      \"description\": \"获取或设置图形旋转角度\",\n      \"description_en\": \"Get or set the graphic rotation.\"\n    },\n    {\n      \"action_name\": \"auto-mime_data_dict\",\n      \"description\": \"导出图形的 MIME 数据字典\",\n      \"description_en\": \"Export the graphic MIME data dictionary.\"\n    },\n    {\n      \"action_name\": \"auto-read_from_mime_data\",\n      \"description\": \"从 MIME 数据字典读取并恢复图形\",\n      \"description_en\": \"Read and restore the graphic from a MIME data dictionary.\"\n    },\n    {\n      \"action_name\": \"auto-get_attributes\",\n      \"description\": \"获取图形属性\",\n      \"description_en\": \"Get the graphic attributes.\"\n    },\n    {\n      \"action_name\": \"auto-used_role\",\n      \"description\": \"获取图形使用的角色\",\n      \"description_en\": \"Get the role used by the graphic.\"\n    },\n    {\n      \"action_name\": \"auto-center\",\n      \"description\": \"获取或设置点状选区中心\",\n      \"description_en\": \"Get or set the center of the spot selection.\"\n    },\n    {\n      \"action_name\": \"auto-size\",\n      \"description\": \"获取或设置点状选区尺寸\",\n      \"description_en\": \"Get or set the size of the spot selection.\"\n    },\n    {\n      \"action_name\": \"auto-get_region\",\n      \"description\": \"获取对应的区域对象\",\n      \"description_en\": \"Get the corresponding region object.\"\n    },\n    {\n      \"action_name\": \"auto-get_mask_item\",\n      \"description\": \"获取对应的掩膜项\",\n      \"description_en\": \"Get the corresponding mask item.\"\n    },\n    {\n      \"action_name\": \"auto-test\",\n      \"description\": \"测试给定点是否命中图形或其可编辑部件\",\n      \"description_en\": \"Test whether a given point hits the graphic or one of its editable parts.\"\n    },\n    {\n      \"action_name\": \"auto-begin_drag\",\n      \"description\": \"开始拖拽交互\",\n      \"description_en\": \"Begin a drag interaction.\"\n    },\n    {\n      \"action_name\": \"auto-end_drag\",\n      \"description\": \"结束拖拽交互\",\n      \"description_en\": \"End a drag interaction.\"\n    },\n    {\n      \"action_name\": \"auto-adjust_part\",\n      \"description\": \"在拖拽过程中调整图形部件\",\n      \"description_en\": \"Adjust a graphic part during dragging.\"\n    },\n    {\n      \"action_name\": \"auto-nudge\",\n      \"description\": \"按位移量微调图形位置\",\n      \"description_en\": \"Nudge the graphic position by a delta.\"\n    },\n    {\n      \"action_name\": \"auto-label_position\",\n      \"description\": \"计算标签显示位置\",\n      \"description_en\": \"Compute the label display position.\"\n    }\n  ]\n}"
+}

@@ -1,35 +1,78 @@
-Device: task_worker
-Registry Key: task_worker
-Short Description: taskWorker
-
-Categories:
-- devices
-- generic
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (4):
-- auto-computeLoop -> computeLoop [UniLabJsonCommand] goal_params: none
-- auto-loop_forever -> loop_forever [UniLabJsonCommand] goal_params: none
-- auto-returnLoop -> returnLoop [UniLabJsonCommand] goal_params: none
-- auto-tasksLoop -> tasksLoop [UniLabJsonCommand] goal_params: none
-
-Driver Functions (17):
-- str_presenter(dumper, data) (line 142)
-- TaskError.__init__(self, taskDescr, traceback, exception) (line 189)
-- TaskError.log_url(self) (line 195)
-- TaskError.html_log_url(self) (line 200)
-- TaskError.format_taskDesc(self) (line 204)
-- TaskError.extra_template_kwargs(self, mode) (line 207)
-- TaskError.to_string(self, mode) (line 211)
-- RecipeTaskError.format_taskDesc(self) (line 253)
-- RecipeTaskError.extra_template_kwargs(self, mode) (line 262)
-- taskWorker.__init__(self, nodeserver_port) (line 273)
-- taskWorker.loop_forever(self) (line 285)
-- taskWorker._return_task_results(self) (line 305)
-- taskWorker._get_tasks(self) (line 372)
-- taskWorker.tasksLoop(self) (line 416)
-- taskWorker.returnLoop(self) (line 440)
-- taskWorker.computeLoop(self) (line 465)
-- on_SIGHUP(signum, frame) (line 564)
+task_worker:
+  name: 集群任务工作器
+  name_en: Cluster Task Worker
+  manufacturer: ''
+  category:
+  - 分布式计算节点
+  tags:
+  - 后处理设备
+  - 实验计算与数据处理
+  - 分布式实验数据处理
+  - 分布式计算节点
+  description: 用于实验数据处理集群的非物理软件组件。它会持续轮询任务队列、获取待处理任务、执行配方型计算流程，并将结果返回到上游队列或服务。
+  description_en: A non-physical software component for experimental data-processing
+    clusters. It continuously polls task queues, fetches pending jobs, executes recipe-based
+    computation workflows, and returns results to an upstream queue or service.
+  class:
+    action_value_mappings:
+      auto-loop_forever:
+        schema:
+          description: 持续运行工作器主循环。
+          description_en: Run the worker main loop continuously.
+      auto-tasksLoop:
+        schema:
+          description: 轮询任务队列并获取新的待计算任务。
+          description_en: Poll task queues and fetch new tasks for computation.
+      auto-returnLoop:
+        schema:
+          description: 持续返回已完成任务的结果。
+          description_en: Continuously return results for completed tasks.
+      auto-computeLoop:
+        schema:
+          description: 处理已入队任务，加载输入并执行配方计算。
+          description_en: Process queued tasks, load inputs, and execute recipe-based
+            computations.
+auto_annotation_metadata:
+  registry_key: task_worker
+  annotation_workflow_version: v4
+  tag_hints:
+  - cluster worker
+  - distributed task processing
+  - recipe execution
+  - task queue polling
+  - result return
+  - experimental data processing
+  - PYME cluster
+  existing_tags:
+  - id: '4314'
+    name: 后处理设备
+    name_en: Post-processing Equipment
+    type: experimental_step
+    rationale: 该工作器用于执行实验数据处理任务并返回结果，主要服务后处理阶段。
+  - id: P-700004
+    name: 实验计算与数据处理
+    name_en: Experimental Computing & Data Processing
+    type: experimental_domain
+    rationale: 其核心是配方型计算与实验数据处理，明显属于实验计算领域。
+  - id: P-60008
+    name: 分布式实验数据处理
+    name_en: Distributed Experimental Data Processing
+    type: experimental_scene
+    rationale: 该组件持续轮询队列、执行任务并回传结果，符合分布式处理场景。
+  - id: P-700005
+    name: 分布式计算节点
+    name_en: Distributed Compute Node
+    type: device_template_tag
+    rationale: 它本质上充当实验数据处理集群中的工作计算节点。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

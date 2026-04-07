@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: step_scan\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: epicsscan/scan.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.scanning.step_scan:StepScan\n\nClass: ScanPublisher \n  Bases: ['Thread']\n  Docstring: Provides a way to run user-supplied functions per scan point,\nin a separate thread, so as to not delay scan operation.\n\nInitialize a ScanPublisher with a function to call per point, and the\nStepScan instance.  On .start(), a separate thread will createrd and\nthe .run() method run.  Here, this runs a loop, looking at the .cpt\nattribute.  When this .cpt changes, the executing will run the user\nsupplied code with arguments of 'scan=scan instance', and 'cpt=cpt'\n\nThus, at each point in the scan the scanning process should set .cpt,\nand the user-supplied func will execute.\n\nTo stop the thread, set .cpt to None.  The thread will also automatically\nstop if .cpt has not changed in more than 1 hour\n\nClass: StepScan (focal)\n  Bases: ['object']\n  Docstring: General Step Scanning for Epics\n\nFocal class methods:\n  [command] set_info(self, attr, value)\n    comment: set scan info to _scan variable\n  [command] open_output_file(self, filename=None, comments=None)\n    comment: if self.filetype == 'ASCII':\n    comment: creator = ASCIIScanFile\n    comment: opens the output file\n  [command] add_counter(self, counter, label=None)\n    comment: add simple counter\n  [command] add_trigger(self, trigger, label=None, value=1)\n    comment: add simple detector trigger\n  [command] add_extra_pvs(self, extra_pvs)\n    comment: add extra pvs (tuple of (desc, pvname))\n  [command] add_positioner(self, pos)\n    comment: add a Positioner\n  [command] add_detector(self, det)\n    comment: if det.extra_pvs is None: # not fully connected!\n    comment: add a Detector -- needs to be derived from Detector_Mixin\n  [command] set_dwelltime(self, dtime=None)\n    comment: set scan dwelltime per point to constant value\n  [command] at_break(self, breakpoint=0, clear=False)\n  [command] pre_scan(self, row=0, filename=None, **kws)\n    comment: dtimer.show()\n  [command] post_scan(self, row=0, filename=None, **kws)\n  [command] verify_scan(self)\n    comment: this does some simple checks of Scans, checking that\n        the length of the positions array matches the length of the\n        positioners array.\n\n        For each Positioner, the max and min positi...\n  [command] check_outputs(self, out, msg='unknown')\n    comment: check outputs of a previous command\n            Any True value indicates an error\n        That is, return values must be None or evaluate to False\n        to indicate success.\n  [command] read_extra_pvs(self)\n    comment: read values for extra PVs and 'extra_pvs' values from database\n  [command] clear_data(self)\n    comment: clear scan data\n  [command] publish_data(self, cpt, npts=0, scan=None, **kws)\n    comment: function to publish data:\n\n        this will be called per point by an non-blocking thread\n  [command] set_all_scandata(self)\n  [command] init_scandata(self)\n    comment: print(\"INIT SCAN DATA \", self.counters)\n    comment: print(\"ADD SCAN DATA DET \", name, pvname)\n  [command] set_error(self, msg)\n    comment: set scan error message\n  [status_getter] get_bool(self, key)\n  [command] look_for_interrupts(self)\n    comment: set interrupt requests:\n\n        abort / pause / resume\n        if scandb is being used, these are looked up from database.\n  [command] write(self, msg)\n  [command] clear_interrupts(self)\n    comment: re-set interrupt requests:\n           abort / pause / resume\n           if scandb is being used, these are looked up from database.\n  [command] estimate_scan_time(self)\n    comment: print('est time ', npts, self.dwelltime)\n    comment: estimate scan time\n  [command] prepare_scan(self, debug=False)\n    comment: self.set_info('scan_progress', 'starting scan')\n    comment: prepare stepscan\n  [command] run(self, filename=None, comments=None, debug=False)\n    comment: caput('13XRM:map:filename', filename)\n    comment: set dwelltime\n    comment: print(\"SCAN 1 det armed: \", len(self.counters), self.counters)\n    comment: move to next position\n    comment: move positioners\n    comment: trigger detectors\n    comment: for det in self.detectors:\n    comment: det.start(mode=self.detmode, arm=False, wait=False)\n    comment: wait for detectors\n    comment: print(\"STEP SCAN triggers may be done: \", i,\n    comment: [(trig, trig.done) for trig in self.triggers])\n    comment: print(\"STEP SCAN  point_ok = \", point_ok)\n    comment: read counters and actual positions\n    comment: print(\"read counters: \", dat, time.time()-t0)\n    comment: if this is a breakpoint, execute those functions\n    comment: scan complete\n    comment: return to original positions, write data\n    comment: run post_scan methods\n    comment: end data thread\n    comment: run a stepscan:\n           Verify, Save original positions,\n           Setup output files and messenger thread,\n           run pre_scan methods\n           Loop over points\n           run post_scan met...\n\nRegistry actions:\n  auto-add_counter (from add_counter())\n  auto-add_detector (from add_detector())\n  auto-add_extra_pvs (from add_extra_pvs())\n  auto-add_positioner (from add_positioner())\n  auto-add_trigger (from add_trigger())\n  auto-at_break (from at_break())\n  auto-check_outputs (from check_outputs())\n  auto-clear_data (from clear_data())\n  auto-clear_interrupts (from clear_interrupts())\n  auto-estimate_scan_time (from estimate_scan_time())\n  auto-init_scandata (from init_scandata())\n  auto-look_for_interrupts (from look_for_interrupts())\n  auto-open_output_file (from open_output_file())\n  auto-post_scan (from post_scan())\n  auto-pre_scan (from pre_scan())\n  auto-prepare_scan (from prepare_scan())\n  auto-publish_data (from publish_data())\n  auto-read_extra_pvs (from read_extra_pvs())\n  auto-run (from run())\n  auto-set_all_scandata (from set_all_scandata())\n  auto-set_dwelltime (from set_dwelltime())\n  auto-set_error (from set_error())\n  auto-set_info (from set_info())\n  auto-verify_scan (from verify_scan())\n  auto-write (from write())\n  auto-get_bool (from get_bool())\n\nRequired output action ids:\n  auto-add_counter\n  auto-add_detector\n  auto-add_extra_pvs\n  auto-add_positioner\n  auto-add_trigger\n  auto-at_break\n  auto-check_outputs\n  auto-clear_data\n  auto-clear_interrupts\n  auto-estimate_scan_time\n  auto-init_scandata\n  auto-look_for_interrupts\n  auto-open_output_file\n  auto-post_scan\n  auto-pre_scan\n  auto-prepare_scan\n  auto-publish_data\n  auto-read_extra_pvs\n  auto-run\n  auto-set_all_scandata\n  auto-set_dwelltime\n  auto-set_error\n  auto-set_info\n  auto-verify_scan\n  auto-write\n  auto-get_bool"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_06b3c6456b0ec3dd0069d56160f4648193a747cf9b3d31515e",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7823,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6312,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_06b3c6456b0ec3dd0069d561615a7881938e20237cd6491ca1",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_06b3c6456b0ec3dd0069d56167d71c8193872be3483a63cbf0",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"EPICS步进扫描控制组件\",\n  \"name_en\": \"EPICS Step Scan Control Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验自动化中的非物理软件组件，负责组织EPICS步进扫描流程。它可配置位置器、探测器、触发器、计数器和额外PV，执行逐点扫描、采集数据、处理暂停/中止、发布每点数据并写出扫描文件。\",\n  \"description_en\": \"A non-physical software component for experiment automation that orchestrates EPICS step-scan workflows. It configures positioners, detectors, triggers, counters, and extra PVs, then executes point-by-point scans, acquires data, handles pause/abort logic, publishes per-point data, and writes scan output files.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-add_counter\",\n      \"description\": \"添加计数器到扫描流程。\",\n      \"description_en\": \"Add a counter to the scan workflow.\"\n    },\n    {\n      \"action_name\": \"auto-add_detector\",\n      \"description\": \"添加探测器到扫描流程。\",\n      \"description_en\": \"Add a detector to the scan workflow.\"\n    },\n    {\n      \"action_name\": \"auto-add_extra_pvs\",\n      \"description\": \"添加需要附带记录的额外PV。\",\n      \"description_en\": \"Add extra PVs to be recorded with the scan.\"\n    },\n    {\n      \"action_name\": \"auto-add_positioner\",\n      \"description\": \"添加扫描位置器。\",\n      \"description_en\": \"Add a scan positioner.\"\n    },\n    {\n      \"action_name\": \"auto-add_trigger\",\n      \"description\": \"添加探测器触发器。\",\n      \"description_en\": \"Add a detector trigger.\"\n    },\n    {\n      \"action_name\": \"auto-at_break\",\n      \"description\": \"设置或清除断点处执行的操作。\",\n      \"description_en\": \"Set or clear actions to execute at scan breakpoints.\"\n    },\n    {\n      \"action_name\": \"auto-check_outputs\",\n      \"description\": \"检查前一步操作输出是否存在错误。\",\n      \"description_en\": \"Check whether outputs from a previous operation indicate an error.\"\n    },\n    {\n      \"action_name\": \"auto-clear_data\",\n      \"description\": \"清空当前扫描数据。\",\n      \"description_en\": \"Clear current scan data.\"\n    },\n    {\n      \"action_name\": \"auto-clear_interrupts\",\n      \"description\": \"清除扫描的中止、暂停和恢复请求。\",\n      \"description_en\": \"Clear abort, pause, and resume requests for the scan.\"\n    },\n    {\n      \"action_name\": \"auto-estimate_scan_time\",\n      \"description\": \"估算扫描总耗时。\",\n      \"description_en\": \"Estimate the total scan duration.\"\n    },\n    {\n      \"action_name\": \"auto-init_scandata\",\n      \"description\": \"初始化扫描数据结构。\",\n      \"description_en\": \"Initialize scan data structures.\"\n    },\n    {\n      \"action_name\": \"auto-look_for_interrupts\",\n      \"description\": \"检查是否有中止、暂停或恢复请求。\",\n      \"description_en\": \"Check for abort, pause, or resume requests.\"\n    },\n    {\n      \"action_name\": \"auto-open_output_file\",\n      \"description\": \"打开扫描输出文件。\",\n      \"description_en\": \"Open the scan output file.\"\n    },\n    {\n      \"action_name\": \"auto-post_scan\",\n      \"description\": \"执行扫描结束后的收尾操作。\",\n      \"description_en\": \"Run post-scan cleanup operations.\"\n    },\n    {\n      \"action_name\": \"auto-pre_scan\",\n      \"description\": \"执行扫描开始前的准备操作。\",\n      \"description_en\": \"Run pre-scan setup operations.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_scan\",\n      \"description\": \"准备步进扫描运行环境。\",\n      \"description_en\": \"Prepare the step-scan runtime environment.\"\n    },\n    {\n      \"action_name\": \"auto-publish_data\",\n      \"description\": \"发布每个扫描点的数据。\",\n      \"description_en\": \"Publish data for each scan point.\"\n    },\n    {\n      \"action_name\": \"auto-read_extra_pvs\",\n      \"description\": \"读取额外PV的当前值。\",\n      \"description_en\": \"Read current values of extra PVs.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"执行完整的步进扫描过程。\",\n      \"description_en\": \"Execute the full step-scan procedure.\"\n    },\n    {\n      \"action_name\": \"auto-set_all_scandata\",\n      \"description\": \"设置全部扫描数据内容。\",\n      \"description_en\": \"Set all scan data content.\"\n    },\n    {\n      \"action_name\": \"auto-set_dwelltime\",\n      \"description\": \"设置每个扫描点的驻留时间。\",\n      \"description_en\": \"Set the dwell time for each scan point.\"\n    },\n    {\n      \"action_name\": \"auto-set_error\",\n      \"description\": \"设置扫描错误信息。\",\n      \"description_en\": \"Set the scan error message.\"\n    },\n    {\n      \"action_name\": \"auto-set_info\",\n      \"description\": \"设置扫描信息属性。\",\n      \"description_en\": \"Set a scan information attribute.\"\n    },\n    {\n      \"action_name\": \"auto-verify_scan\",\n      \"description\": \"校验扫描配置是否有效。\",\n      \"description_en\": \"Verify that the scan configuration is valid.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"写入扫描消息或日志信息。\",\n      \"description_en\": \"Write a scan message or log entry.\"\n    },\n    {\n      \"action_name\": \"auto-get_bool\",\n      \"description\": \"获取布尔状态标志。\",\n      \"description_en\": \"Get boolean status flag.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"EPICS step scan\",\n    \"scan orchestration\",\n    \"positioner control sequencing\",\n    \"detector triggering\",\n    \"counter acquisition\",\n    \"per-point data publishing\",\n    \"scan file output\",\n    \"pause abort resume handling\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2370,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1615,
+      "output_tokens_details": {
+        "reasoning_tokens": 302
+      },
+      "total_tokens": 3985
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2370,
+      "output_token_count": 1615,
+      "predict_time": 36.824962982
+    }
+  },
+  "output_text": "{\n  \"name\": \"EPICS步进扫描控制组件\",\n  \"name_en\": \"EPICS Step Scan Control Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验自动化中的非物理软件组件，负责组织EPICS步进扫描流程。它可配置位置器、探测器、触发器、计数器和额外PV，执行逐点扫描、采集数据、处理暂停/中止、发布每点数据并写出扫描文件。\",\n  \"description_en\": \"A non-physical software component for experiment automation that orchestrates EPICS step-scan workflows. It configures positioners, detectors, triggers, counters, and extra PVs, then executes point-by-point scans, acquires data, handles pause/abort logic, publishes per-point data, and writes scan output files.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-add_counter\",\n      \"description\": \"添加计数器到扫描流程。\",\n      \"description_en\": \"Add a counter to the scan workflow.\"\n    },\n    {\n      \"action_name\": \"auto-add_detector\",\n      \"description\": \"添加探测器到扫描流程。\",\n      \"description_en\": \"Add a detector to the scan workflow.\"\n    },\n    {\n      \"action_name\": \"auto-add_extra_pvs\",\n      \"description\": \"添加需要附带记录的额外PV。\",\n      \"description_en\": \"Add extra PVs to be recorded with the scan.\"\n    },\n    {\n      \"action_name\": \"auto-add_positioner\",\n      \"description\": \"添加扫描位置器。\",\n      \"description_en\": \"Add a scan positioner.\"\n    },\n    {\n      \"action_name\": \"auto-add_trigger\",\n      \"description\": \"添加探测器触发器。\",\n      \"description_en\": \"Add a detector trigger.\"\n    },\n    {\n      \"action_name\": \"auto-at_break\",\n      \"description\": \"设置或清除断点处执行的操作。\",\n      \"description_en\": \"Set or clear actions to execute at scan breakpoints.\"\n    },\n    {\n      \"action_name\": \"auto-check_outputs\",\n      \"description\": \"检查前一步操作输出是否存在错误。\",\n      \"description_en\": \"Check whether outputs from a previous operation indicate an error.\"\n    },\n    {\n      \"action_name\": \"auto-clear_data\",\n      \"description\": \"清空当前扫描数据。\",\n      \"description_en\": \"Clear current scan data.\"\n    },\n    {\n      \"action_name\": \"auto-clear_interrupts\",\n      \"description\": \"清除扫描的中止、暂停和恢复请求。\",\n      \"description_en\": \"Clear abort, pause, and resume requests for the scan.\"\n    },\n    {\n      \"action_name\": \"auto-estimate_scan_time\",\n      \"description\": \"估算扫描总耗时。\",\n      \"description_en\": \"Estimate the total scan duration.\"\n    },\n    {\n      \"action_name\": \"auto-init_scandata\",\n      \"description\": \"初始化扫描数据结构。\",\n      \"description_en\": \"Initialize scan data structures.\"\n    },\n    {\n      \"action_name\": \"auto-look_for_interrupts\",\n      \"description\": \"检查是否有中止、暂停或恢复请求。\",\n      \"description_en\": \"Check for abort, pause, or resume requests.\"\n    },\n    {\n      \"action_name\": \"auto-open_output_file\",\n      \"description\": \"打开扫描输出文件。\",\n      \"description_en\": \"Open the scan output file.\"\n    },\n    {\n      \"action_name\": \"auto-post_scan\",\n      \"description\": \"执行扫描结束后的收尾操作。\",\n      \"description_en\": \"Run post-scan cleanup operations.\"\n    },\n    {\n      \"action_name\": \"auto-pre_scan\",\n      \"description\": \"执行扫描开始前的准备操作。\",\n      \"description_en\": \"Run pre-scan setup operations.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_scan\",\n      \"description\": \"准备步进扫描运行环境。\",\n      \"description_en\": \"Prepare the step-scan runtime environment.\"\n    },\n    {\n      \"action_name\": \"auto-publish_data\",\n      \"description\": \"发布每个扫描点的数据。\",\n      \"description_en\": \"Publish data for each scan point.\"\n    },\n    {\n      \"action_name\": \"auto-read_extra_pvs\",\n      \"description\": \"读取额外PV的当前值。\",\n      \"description_en\": \"Read current values of extra PVs.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"执行完整的步进扫描过程。\",\n      \"description_en\": \"Execute the full step-scan procedure.\"\n    },\n    {\n      \"action_name\": \"auto-set_all_scandata\",\n      \"description\": \"设置全部扫描数据内容。\",\n      \"description_en\": \"Set all scan data content.\"\n    },\n    {\n      \"action_name\": \"auto-set_dwelltime\",\n      \"description\": \"设置每个扫描点的驻留时间。\",\n      \"description_en\": \"Set the dwell time for each scan point.\"\n    },\n    {\n      \"action_name\": \"auto-set_error\",\n      \"description\": \"设置扫描错误信息。\",\n      \"description_en\": \"Set the scan error message.\"\n    },\n    {\n      \"action_name\": \"auto-set_info\",\n      \"description\": \"设置扫描信息属性。\",\n      \"description_en\": \"Set a scan information attribute.\"\n    },\n    {\n      \"action_name\": \"auto-verify_scan\",\n      \"description\": \"校验扫描配置是否有效。\",\n      \"description_en\": \"Verify that the scan configuration is valid.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"写入扫描消息或日志信息。\",\n      \"description_en\": \"Write a scan message or log entry.\"\n    },\n    {\n      \"action_name\": \"auto-get_bool\",\n      \"description\": \"获取布尔状态标志。\",\n      \"description_en\": \"Get boolean status flag.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"EPICS step scan\",\n    \"scan orchestration\",\n    \"positioner control sequencing\",\n    \"detector triggering\",\n    \"counter acquisition\",\n    \"per-point data publishing\",\n    \"scan file output\",\n    \"pause abort resume handling\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: temper_device\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: temperusb/temper.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.sensors.temperature.temper_device:TemperDevice\n\nClass: TemperDevice (focal)\n  Bases: ['object']\n  Docstring: A TEMPer USB thermometer.\n\nClass: TemperHandler \n  Bases: ['object']\n  Docstring: Handler for TEMPer USB thermometers.\n\nFocal class methods:\n  [command] set_calibration_data(self, scale=None, offset=None)\n    comment: Set device calibration data based on settings in /etc/temper.conf.\n  [command] lookup_offset(self, sensor)\n    comment: Lookup the number of sensors on the device by product name.\n  [command] lookup_humidity_offset(self, sensor)\n    comment: Get the offset of the humidity data.\n  [command] lookup_sensor_count(self)\n    comment: Lookup the number of sensors on the device by product name.\n  [status_getter] get_sensor_count(self)\n    comment: Get number of sensors on the device.\n  [status_setter] set_sensor_count(self, count)\n    comment: Currently this only supports 1 and 2 sensor models.\n    comment: If you have the 8 sensor model, please contribute to the\n    comment: discussion here: https://github.com/padelt/temper-python/issues\n    comment: Set number of sensors on the device.\n\n        To do: revamp /etc/temper.conf file to include this data.\n  [status_getter] get_product(self)\n    comment: Get device product name.\n  [status_getter] get_ports(self)\n    comment: Get device USB ports.\n  [status_getter] get_bus(self)\n    comment: Get device USB bus.\n  [status_getter] get_data(self, reset_device=False)\n    comment: detach kernel driver from both interfaces if attached, so we can set_configuration()\n    comment: Prevent kernel message:\n    comment: \"usbfs: process <PID> (python) did not claim interface x before use\"\n    comment: This will become unnecessary once pull-request #124 for\n    comment: PyUSB has been accepted and we depend on a fixed release\n    comment: of PyUSB.  Until then, and even with the fix applied, it\n    comment: does not hurt to explicitly claim the interface.\n    comment: Turns out we don't actually need that ctrl_transfer.\n    comment: Disabling this reduces number of USBErrors from ~7/30 to 0!\n    comment: self._device.ctrl_transfer(bmRequestType=0x21, bRequest=0x09,\n    comment: wValue=0x0201, wIndex=0x00, data_or_wLength='\\x01\\x01',\n    comment: timeout=TIMEOUT)\n    comment: Magic: Our TEMPerV1.4 likes to be asked twice.  When\n    comment: only asked once, it get's stuck on the next access and\n    comment: requires a reset.\n    comment: Turns out a whole lot of that magic seems unnecessary.\n    comment: self._control_transfer(COMMANDS['ini1'])\n    comment: self._interrupt_read()\n    comment: self._control_transfer(COMMANDS['ini2'])\n    comment: self._interrupt_read()\n    comment: self._interrupt_read()\n    comment: Get temperature\n    comment: Get humidity\n    comment: Combine temperature and humidity data\n    comment: Be a nice citizen and undo potential interface claiming.\n    comment: Also see: https://github.com/walac/pyusb/blob/master/docs/tutorial.rst#dont-be-selfish\n    comment: Catch the permissions exception and add our message\n    comment: Get data from the USB device.\n  [status_getter] get_temperature(self, format='celsius', sensor=0)\n    comment: Get device temperature reading.\n  [status_getter] get_temperatures(self, sensors=None)\n    comment: Interpret device response\n    comment: Apply scaling and offset (if any)\n    comment: Get device temperature reading.\n\n        Params:\n        - sensors: optional list of sensors to get a reading for, examples:\n          [0,] - get reading for sensor 0\n          [0, 1,] - get reading f...\n  [status_getter] get_humidity(self, sensors=None)\n    comment: Interpret device response\n    comment: Get device humidity reading.\n\n        Params:\n        - sensors: optional list of sensors to get a reading for, examples:\n          [0,] - get reading for sensor 0\n          [0, 1,] - get reading for ...\n  [command] close(self)\n    comment: Does nothing in this device. Other device types may need to do cleanup here.\n\nRegistry actions:\n  auto-set_calibration_data (from set_calibration_data())\n  auto-lookup_offset (from lookup_offset())\n  auto-lookup_humidity_offset (from lookup_humidity_offset())\n  auto-lookup_sensor_count (from lookup_sensor_count())\n  auto-set_sensor_count (from set_sensor_count())\n  auto-close (from close())\n\nRequired output action ids:\n  auto-set_calibration_data\n  auto-lookup_offset\n  auto-lookup_humidity_offset\n  auto-lookup_sensor_count\n  auto-set_sensor_count\n  auto-close"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0a6c62bab9b35c860069d5669c69f88193853fd91fb118dcd3",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1775,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5920,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0a6c62bab9b35c860069d5669cc9a88193b782e67ebd0a7777",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0a6c62bab9b35c860069d566ae47948193ab830c52de29bcb5",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"TEMPer USB温度传感器\",\n  \"name_en\": \"TEMPer USB Temperature Sensor\",\n  \"manufacturer\": \"\",\n  \"description\": \"一种通过 USB 连接的温度传感器设备，用于实验中采集环境温度或样品附近温度。根据型号不同，可支持 1 到 2 个传感器通道，部分型号还可读取湿度数据，并可应用校准比例与偏移。\",\n  \"description_en\": \"A USB-connected temperature sensing device used in laboratory setups to measure ambient temperature or temperature near a sample. Depending on the model, it may support 1 to 2 sensor channels, and some variants can also report humidity and apply calibration scale and offset.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_calibration_data\",\n      \"description\": \"根据配置设置校准比例和偏移。\",\n      \"description_en\": \"Set calibration scale and offset from configuration.\"\n    },\n    {\n      \"action_name\": \"auto-lookup_offset\",\n      \"description\": \"查找指定传感器的温度偏移量。\",\n      \"description_en\": \"Look up the temperature offset for a specified sensor.\"\n    },\n    {\n      \"action_name\": \"auto-lookup_humidity_offset\",\n      \"description\": \"查找指定传感器的湿度偏移量。\",\n      \"description_en\": \"Look up the humidity offset for a specified sensor.\"\n    },\n    {\n      \"action_name\": \"auto-lookup_sensor_count\",\n      \"description\": \"根据产品名称查找设备的传感器数量。\",\n      \"description_en\": \"Look up the number of sensors on the device based on the product name.\"\n    },\n    {\n      \"action_name\": \"auto-set_sensor_count\",\n      \"description\": \"设置传感器数量。\",\n      \"description_en\": \"Set the number of sensors.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭设备连接；此设备通常无需额外清理。\",\n      \"description_en\": \"Close the device connection; this device typically requires no additional cleanup.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB temperature sensing\",\n    \"humidity sensing\",\n    \"multi-probe thermometer\",\n    \"environment monitoring\",\n    \"sensor calibration\",\n    \"USB HID sensor\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1792,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1414,
+      "output_tokens_details": {
+        "reasoning_tokens": 914
+      },
+      "total_tokens": 3206
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1792,
+      "output_token_count": 1414,
+      "predict_time": 26.333015641
+    }
+  },
+  "output_text": "{\n  \"name\": \"TEMPer USB温度传感器\",\n  \"name_en\": \"TEMPer USB Temperature Sensor\",\n  \"manufacturer\": \"\",\n  \"description\": \"一种通过 USB 连接的温度传感器设备，用于实验中采集环境温度或样品附近温度。根据型号不同，可支持 1 到 2 个传感器通道，部分型号还可读取湿度数据，并可应用校准比例与偏移。\",\n  \"description_en\": \"A USB-connected temperature sensing device used in laboratory setups to measure ambient temperature or temperature near a sample. Depending on the model, it may support 1 to 2 sensor channels, and some variants can also report humidity and apply calibration scale and offset.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_calibration_data\",\n      \"description\": \"根据配置设置校准比例和偏移。\",\n      \"description_en\": \"Set calibration scale and offset from configuration.\"\n    },\n    {\n      \"action_name\": \"auto-lookup_offset\",\n      \"description\": \"查找指定传感器的温度偏移量。\",\n      \"description_en\": \"Look up the temperature offset for a specified sensor.\"\n    },\n    {\n      \"action_name\": \"auto-lookup_humidity_offset\",\n      \"description\": \"查找指定传感器的湿度偏移量。\",\n      \"description_en\": \"Look up the humidity offset for a specified sensor.\"\n    },\n    {\n      \"action_name\": \"auto-lookup_sensor_count\",\n      \"description\": \"根据产品名称查找设备的传感器数量。\",\n      \"description_en\": \"Look up the number of sensors on the device based on the product name.\"\n    },\n    {\n      \"action_name\": \"auto-set_sensor_count\",\n      \"description\": \"设置传感器数量。\",\n      \"description_en\": \"Set the number of sensors.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭设备连接；此设备通常无需额外清理。\",\n      \"description_en\": \"Close the device connection; this device typically requires no additional cleanup.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB temperature sensing\",\n    \"humidity sensing\",\n    \"multi-probe thermometer\",\n    \"environment monitoring\",\n    \"sensor calibration\",\n    \"USB HID sensor\"\n  ]\n}"
+}

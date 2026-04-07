@@ -1,29 +1,87 @@
-Device: stream
-Registry Key: stream
-Short Description: Stream
-
-Categories:
-- generic
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (3):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-finalize -> finalize [UniLabJsonCommand] goal_params: filename
-- auto-put -> put [UniLabJsonCommand] goal_params: data, filename
-
-Driver Functions (13):
-- Stream.__init__(self, server_address, server_port, dir_manager, filter) (line 84)
-- Stream._connect(self) (line 113)
-- Stream.finalize(self, filename) (line 121)
-- Stream.close(self) (line 135)
-- Stream.put(self, filename, data) (line 144)
-- Stream._send_loop(self) (line 154)
-- Stream._recv_loop(self) (line 196)
-- distribution_function_round_robin(n_servers, i) (line 223)
-- Streamer.__init__(self, serverfilter, servers, distribution_fcn, filter) (line 236)
-- Streamer.put(self, filename, data, **kwargs) (line 271)
-- Streamer.put_stream(self, idx, filename, data) (line 282)
-- Streamer.close(self) (line 287)
-- n_cluster_servers(serverfilter) (line 293)
+stream:
+  name: 集群数据流传输器
+  name_en: Cluster Data Streamer
+  manufacturer: ''
+  category:
+  - 实验数据流传输器
+  tags:
+  - 后处理设备
+  - 实验数据管理与记录
+  - 实验计算与数据处理
+  - 分布式实验数据处理
+  - 科学数据存储与归档
+  - 实验数据流传输器
+  description: 用于实验数据处理流程的非实体软件组件。它通过异步、非阻塞方式将文件或数据块排队并持续发送到单一服务器或集群节点，适合采集过程中进行后台流式写入与收尾归档。
+  description_en: A non-physical software component for experimental data workflows.
+    It queues files or data blocks and streams them asynchronously in a non-blocking
+    manner to a single server or cluster nodes, supporting background data spooling
+    and finalization during acquisition.
+  class:
+    action_value_mappings:
+      auto-finalize:
+        schema:
+          description: 完成数据流传输并执行收尾，可选择写入结束标记文件后停止相关线程。
+          description_en: Finalize the data stream and perform cleanup, optionally
+            writing a sentinel file before stopping the related threads.
+      auto-close:
+        schema:
+          description: 关闭传输器并停止后台活动。
+          description_en: Close the streamer and stop background activity.
+      auto-put:
+        schema:
+          description: 将文件或数据加入发送队列进行异步传输；传入空数据可作为结束标记。
+          description_en: Queue a file or data block for asynchronous transfer; passing
+            null data can act as an end-of-stream sentinel.
+auto_annotation_metadata:
+  registry_key: stream
+  annotation_workflow_version: v4
+  tag_hints:
+  - asynchronous data streaming
+  - non-blocking file spooling
+  - cluster data transfer
+  - experiment data pipeline
+  - persistent server connection
+  - background upload
+  existing_tags:
+  - id: '4314'
+    name: 后处理设备
+    name_en: Post-processing Equipment
+    type: experimental_step
+    rationale: 该组件负责采集过程中的后台流式写入与收尾归档，更偏向数据后处理/归档环节。
+  - id: P-9103
+    name: 实验数据管理与记录
+    name_en: Experimental Data Management & Logging
+    type: experimental_domain
+    rationale: 其主要职责是把实验文件或数据块异步传输并完成最终整理。
+  - id: P-700004
+    name: 实验计算与数据处理
+    name_en: Experimental Computing & Data Processing
+    type: experimental_domain
+    rationale: 该组件本质是实验数据处理流水线中的软件传输节点。
+  - id: P-60008
+    name: 分布式实验数据处理
+    name_en: Distributed Experimental Data Processing
+    type: experimental_scene
+    rationale: 描述明确提到发送到单一服务器或集群节点，符合分布式数据处理场景。
+  - id: P-20010
+    name: 科学数据存储与归档
+    name_en: Scientific Data Storage & Archiving
+    type: experimental_scene
+    rationale: 其finalize与后台spooling能力直接服务于实验数据归档。
+  - id: P-990205
+    name: 实验数据流传输器
+    name_en: Experimental Data Streamer
+    type: device_template_tag
+    rationale: 组件名称和功能都与实验数据流传输器模板直接一致。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

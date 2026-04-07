@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: tds2024\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: lantz/drivers/legacy/tektronix/tds2024b.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.oscilloscope.tds2024:TDS2024\n\nClass: TDS2024 (focal)\n  Bases: ['VisaDriver']\n  Docstring: Tektronix TDS2024 200 MHz 4 Channel Digital Real-Time Oscilloscope\n    \n\nFocal class methods:\n  [command] autoconf(self)\n    comment: Autoconfig oscilloscope.\n  [command] initialize(self)\n    comment: initiate.\n  [command] idn(self)\n    comment: IDN.\n  [command] trigger(self)\n    comment: Trigger state.\n  [command] trigger(self, mode)\n    comment: Set trigger state.\n  [command] triggerlevel(self)\n    comment: Set trigger level to 50% of the minimum adn maximum\n        values of the signal.\n  [command] forcetrigger(self)\n    comment: Force trigger event.\n  [command] datasource(self, chn)\n    comment: Selects channel.\n  [command] acqparams(self)\n    comment: params = self.query(\":WFMPRE:XZE?;XIN?;YZE?;YMU?;YOFF?;\")\n    comment: X/Y Increment Origin and Offset.\n  [command] dataencoding(self)\n    comment: Set data encoding.\n  [command] curv(self)\n    comment: Get data.\n\n            Returns:\n            xdata, data as list\n  [command] measure_frequency(self, channel)\n    comment: Get immediate measurement result.\n  [command] measure_min(self, channel)\n    comment: Get immediate measurement result.\n  [command] measure_max(self, chn)\n    comment: Get immediate measurement result.\n  [command] measure_mean(self, chn)\n    comment: Get immediate measurement result.\n\nRegistry actions:\n  auto-initialize (from initialize())\n  auto-autoconf (from autoconf())\n  auto-idn (from idn())\n  auto-trigger (from trigger())\n  auto-triggerlevel (from triggerlevel())\n  auto-forcetrigger (from forcetrigger())\n  auto-datasource (from datasource())\n  auto-acqparams (from acqparams())\n  auto-dataencoding (from dataencoding())\n  auto-curv (from curv())\n  auto-measure_frequency (from measure_frequency())\n  auto-measure_min (from measure_min())\n  auto-measure_max (from measure_max())\n  auto-measure_mean (from measure_mean())\n\nRequired output action ids:\n  auto-initialize\n  auto-autoconf\n  auto-idn\n  auto-trigger\n  auto-triggerlevel\n  auto-forcetrigger\n  auto-datasource\n  auto-acqparams\n  auto-dataencoding\n  auto-curv\n  auto-measure_frequency\n  auto-measure_min\n  auto-measure_max\n  auto-measure_mean"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0201f4f2062e26890069d564de13e48197816a26d54391abce",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1799,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5045,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0201f4f2062e26890069d564de73bc8197b07a2d14d501244c",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0201f4f2062e26890069d564e60ae08197bf9497d9893af0d4",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"泰克 TDS2024 数字实时示波器\",\n  \"name_en\": \"Tektronix TDS2024 Digital Real-Time Oscilloscope\",\n  \"manufacturer\": \"Tektronix\",\n  \"description\": \"一款 200 MHz、4 通道数字实时示波器，用于采集、显示和测量电信号波形。该设备可进行触发控制、通道选择、波形数据读取以及频率、最小值、最大值和平均值等即时测量，适用于电子实验与信号调试。\",\n  \"description_en\": \"A 200 MHz, 4-channel digital real-time oscilloscope used to acquire, display, and measure electrical waveforms. It supports trigger control, channel selection, waveform data readout, and immediate measurements such as frequency, minimum, maximum, and mean, making it suitable for electronics experiments and signal debugging.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"初始化示波器通信与设备状态。\",\n      \"description_en\": \"Initialize oscilloscope communication and device state.\"\n    },\n    {\n      \"action_name\": \"auto-autoconf\",\n      \"description\": \"自动配置示波器以适应当前输入信号。\",\n      \"description_en\": \"Automatically configure the oscilloscope for the current input signal.\"\n    },\n    {\n      \"action_name\": \"auto-idn\",\n      \"description\": \"读取设备身份信息。\",\n      \"description_en\": \"Read the device identification information.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"获取或设置触发状态/模式。\",\n      \"description_en\": \"Get or set the trigger state/mode.\"\n    },\n    {\n      \"action_name\": \"auto-triggerlevel\",\n      \"description\": \"将触发电平设置为信号最小值与最大值之间的 50%。\",\n      \"description_en\": \"Set the trigger level to 50% between the signal minimum and maximum.\"\n    },\n    {\n      \"action_name\": \"auto-forcetrigger\",\n      \"description\": \"强制产生一次触发事件。\",\n      \"description_en\": \"Force a trigger event.\"\n    },\n    {\n      \"action_name\": \"auto-datasource\",\n      \"description\": \"选择波形数据采集的输入通道。\",\n      \"description_en\": \"Select the input channel used as the waveform data source.\"\n    },\n    {\n      \"action_name\": \"auto-acqparams\",\n      \"description\": \"读取波形采集参数，如 X/Y 增量、原点和偏移量。\",\n      \"description_en\": \"Read waveform acquisition parameters such as X/Y increment, origin, and offset.\"\n    },\n    {\n      \"action_name\": \"auto-dataencoding\",\n      \"description\": \"设置波形数据传输编码格式。\",\n      \"description_en\": \"Set the waveform data transfer encoding format.\"\n    },\n    {\n      \"action_name\": \"auto-curv\",\n      \"description\": \"读取当前波形数据，返回时间轴与采样值。\",\n      \"description_en\": \"Read the current waveform data and return the time axis and sampled values.\"\n    },\n    {\n      \"action_name\": \"auto-measure_frequency\",\n      \"description\": \"测量指定通道信号的频率。\",\n      \"description_en\": \"Measure the frequency of the signal on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-measure_min\",\n      \"description\": \"测量指定通道信号的最小值。\",\n      \"description_en\": \"Measure the minimum value of the signal on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-measure_max\",\n      \"description\": \"测量指定通道信号的最大值。\",\n      \"description_en\": \"Measure the maximum value of the signal on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-measure_mean\",\n      \"description\": \"测量指定通道信号的平均值。\",\n      \"description_en\": \"Measure the mean value of the signal on the specified channel.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"digital oscilloscope\",\n    \"waveform acquisition\",\n    \"trigger control\",\n    \"electrical signal measurement\",\n    \"4-channel oscilloscope\",\n    \"200 MHz bandwidth\",\n    \"waveform readout\",\n    \"Tektronix TDS2000 series\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1317,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1343,
+      "output_tokens_details": {
+        "reasoning_tokens": 395
+      },
+      "total_tokens": 2660
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1317,
+      "output_token_count": 1343,
+      "predict_time": 20.459203501
+    }
+  },
+  "output_text": "{\n  \"name\": \"泰克 TDS2024 数字实时示波器\",\n  \"name_en\": \"Tektronix TDS2024 Digital Real-Time Oscilloscope\",\n  \"manufacturer\": \"Tektronix\",\n  \"description\": \"一款 200 MHz、4 通道数字实时示波器，用于采集、显示和测量电信号波形。该设备可进行触发控制、通道选择、波形数据读取以及频率、最小值、最大值和平均值等即时测量，适用于电子实验与信号调试。\",\n  \"description_en\": \"A 200 MHz, 4-channel digital real-time oscilloscope used to acquire, display, and measure electrical waveforms. It supports trigger control, channel selection, waveform data readout, and immediate measurements such as frequency, minimum, maximum, and mean, making it suitable for electronics experiments and signal debugging.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"初始化示波器通信与设备状态。\",\n      \"description_en\": \"Initialize oscilloscope communication and device state.\"\n    },\n    {\n      \"action_name\": \"auto-autoconf\",\n      \"description\": \"自动配置示波器以适应当前输入信号。\",\n      \"description_en\": \"Automatically configure the oscilloscope for the current input signal.\"\n    },\n    {\n      \"action_name\": \"auto-idn\",\n      \"description\": \"读取设备身份信息。\",\n      \"description_en\": \"Read the device identification information.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"获取或设置触发状态/模式。\",\n      \"description_en\": \"Get or set the trigger state/mode.\"\n    },\n    {\n      \"action_name\": \"auto-triggerlevel\",\n      \"description\": \"将触发电平设置为信号最小值与最大值之间的 50%。\",\n      \"description_en\": \"Set the trigger level to 50% between the signal minimum and maximum.\"\n    },\n    {\n      \"action_name\": \"auto-forcetrigger\",\n      \"description\": \"强制产生一次触发事件。\",\n      \"description_en\": \"Force a trigger event.\"\n    },\n    {\n      \"action_name\": \"auto-datasource\",\n      \"description\": \"选择波形数据采集的输入通道。\",\n      \"description_en\": \"Select the input channel used as the waveform data source.\"\n    },\n    {\n      \"action_name\": \"auto-acqparams\",\n      \"description\": \"读取波形采集参数，如 X/Y 增量、原点和偏移量。\",\n      \"description_en\": \"Read waveform acquisition parameters such as X/Y increment, origin, and offset.\"\n    },\n    {\n      \"action_name\": \"auto-dataencoding\",\n      \"description\": \"设置波形数据传输编码格式。\",\n      \"description_en\": \"Set the waveform data transfer encoding format.\"\n    },\n    {\n      \"action_name\": \"auto-curv\",\n      \"description\": \"读取当前波形数据，返回时间轴与采样值。\",\n      \"description_en\": \"Read the current waveform data and return the time axis and sampled values.\"\n    },\n    {\n      \"action_name\": \"auto-measure_frequency\",\n      \"description\": \"测量指定通道信号的频率。\",\n      \"description_en\": \"Measure the frequency of the signal on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-measure_min\",\n      \"description\": \"测量指定通道信号的最小值。\",\n      \"description_en\": \"Measure the minimum value of the signal on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-measure_max\",\n      \"description\": \"测量指定通道信号的最大值。\",\n      \"description_en\": \"Measure the maximum value of the signal on the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-measure_mean\",\n      \"description\": \"测量指定通道信号的平均值。\",\n      \"description_en\": \"Measure the mean value of the signal on the specified channel.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"digital oscilloscope\",\n    \"waveform acquisition\",\n    \"trigger control\",\n    \"electrical signal measurement\",\n    \"4-channel oscilloscope\",\n    \"200 MHz bandwidth\",\n    \"waveform readout\",\n    \"Tektronix TDS2000 series\"\n  ]\n}"
+}

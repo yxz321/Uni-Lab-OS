@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: srsdg645\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/srs/srsdg645.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.digital_delay_generator.srs_dg645:SRSDG645\n\nClass: SRSDG645 (focal)\n  Bases: ['SCPIInstrument']\n  Docstring: Communicates with a Stanford Research Systems DG645 digital delay generator,\nusing the SCPI commands documented in the `user's guide`_.\n\nExample usage:\n\n>>> import instruments as ik\n>>> import instruments.units as u\n>>> srs = ik.srs.SRSDG645.open_gpibusb('/dev/ttyUSB0', 1)\n>>> srs.channel[\"B\"].delay = (srs.channel[\"A\"], u.Quantity(10, 'ns'))\n>>> srs.output[\"AB\"].level_amplitude = u.Quantity(4.0, \"V\")\n\n.. _user's guide: http://www.thinksrs.com/downloads/PDFs/Manuals/DG645m.pdf\n\nFocal class methods:\n  [status_getter] channel(self)\n    comment: Gets a specific channel object.\n\n        The desired channel is accessed by passing an EnumValue from\n        `SRSDG645.Channels`. For example, to access channel A:\n\n        >>> import instruments as ...\n  [status_getter] output(self)\n    comment: Gets the specified output port.\n\n        :type: :class:`SRSDG645.Output`\n  [status_getter] display(self)\n    comment: Gets/sets the front-panel display mode for the connected DDG.\n        The mode is a tuple of the display mode and the channel.\n\n        :type: `tuple` of an `SRSDG645.DisplayMode` and an `SRSDG645.Cha...\n  [status_setter] display(self, newval)\n    comment: TODO: check types here.\n  [status_getter] enable_adv_triggering(self)\n    comment: Gets/sets whether advanced triggering is enabled.\n\n        :type: `bool`\n  [status_setter] enable_adv_triggering(self, newval)\n  [status_getter] trigger_rate(self)\n    comment: Gets/sets the rate of the internal trigger.\n\n        :type: `~pint.Quantity` or `float`\n        :units: As passed or Hz if not specified.\n  [status_setter] trigger_rate(self, newval)\n  [status_getter] trigger_source(self)\n    comment: Gets/sets the source for the trigger.\n\n        :type: :class:`SRSDG645.TriggerSource`\n  [status_setter] trigger_source(self, newval)\n  [status_getter] holdoff(self)\n    comment: Gets/sets the trigger holdoff time.\n\n        :type: `~pint.Quantity` or `float`\n        :units: As passed, or s if not specified.\n  [status_setter] holdoff(self, newval)\n  [status_getter] enable_burst_mode(self)\n    comment: Gets/sets whether burst mode is enabled.\n\n        :type: `bool`\n  [status_setter] enable_burst_mode(self, newval)\n  [status_getter] enable_burst_t0_first(self)\n    comment: Gets/sets whether T0 output in burst mode is on first. If\n        enabled, the T0 output is enabled for first delay cycle of the\n        burst only. If disabled, the T0 output is enabled for all delay...\n  [status_setter] enable_burst_t0_first(self, newval)\n  [status_getter] burst_count(self)\n    comment: Gets/sets the burst count. When burst mode is enabled, the\n        DG645 outputs burst count delay cycles per trigger.\n        Valid numbers for burst count are between 1 and 2**32 - 1\n  [status_setter] burst_count(self, newval)\n  [status_getter] burst_period(self)\n    comment: Gets/sets the burst period. The burst period sets the time\n        between delay cycles during a burst. The burst period may\n        range from 100 ns to 2000 – 10 ns in 10 ns steps.\n\n        :units: ...\n  [status_setter] burst_period(self, newval)\n  [status_getter] burst_delay(self)\n    comment: Gets/sets the burst delay. When burst mode is enabled the DG645\n        delays the first burst pulse relative to the trigger by the\n        burst delay. The burst delay may range from 0 ps to < 2000 s...\n  [status_setter] burst_delay(self, newval)\n\nRegistry actions:\n  auto-burst_count (from burst_count())\n  auto-burst_delay (from burst_delay())\n  auto-burst_period (from burst_period())\n  auto-display (from display())\n  auto-enable_adv_triggering (from enable_adv_triggering())\n  auto-enable_burst_mode (from enable_burst_mode())\n  auto-enable_burst_t0_first (from enable_burst_t0_first())\n  auto-holdoff (from holdoff())\n  auto-trigger_rate (from trigger_rate())\n  auto-trigger_source (from trigger_source())\n  auto-channel (from channel())\n  auto-output (from output())\n  auto-idx (from idx())\n  auto-delay (from delay())\n  auto-polarity (from polarity())\n  auto-level_amplitude (from level_amplitude())\n  auto-level_offset (from level_offset())\n\nRequired output action ids:\n  auto-burst_count\n  auto-burst_delay\n  auto-burst_period\n  auto-display\n  auto-enable_adv_triggering\n  auto-enable_burst_mode\n  auto-enable_burst_t0_first\n  auto-holdoff\n  auto-trigger_rate\n  auto-trigger_source\n  auto-channel\n  auto-output\n  auto-idx\n  auto-delay\n  auto-polarity\n  auto-level_amplitude\n  auto-level_offset"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_02945dd36a65ea9a0069d5614b0d9c81978876779936f214d8",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1803,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7763,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_02945dd36a65ea9a0069d5614b79d481979f492ee76fce468c",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_02945dd36a65ea9a0069d5615c7f348197ac7a6ba4336ab58b",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"DG645数字延迟发生器\",\n  \"name_en\": \"DG645 Digital Delay Generator\",\n  \"manufacturer\": \"Stanford Research Systems\",\n  \"description\": \"这是一台数字延迟发生器，用于在触发事件后输出具有可编程时间延迟的定时脉冲。该设备可配置延迟通道、触发源与触发速率、触发保持时间、突发模式，以及输出极性、幅度和偏置，常用于激光同步、时序分配和通用实验触发控制。\",\n  \"description_en\": \"This is a digital delay generator used to produce precisely timed pulses with programmable delays relative to a trigger event. It supports configuration of delay channels, trigger source and rate, trigger holdoff, burst mode, and output polarity, amplitude, and offset, making it useful for laser synchronization, timing distribution, and general experimental trigger control.\",\n  \"tag_hints\": [\n    \"digital delay generator\",\n    \"pulse timing\",\n    \"trigger control\",\n    \"burst mode\",\n    \"laser synchronization\",\n    \"SCPI instrument\",\n    \"programmable delay\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-burst_count\",\n      \"description\": \"获取/设置突发计数\",\n      \"description_en\": \"get/set burst count\"\n    },\n    {\n      \"action_name\": \"auto-burst_delay\",\n      \"description\": \"获取/设置突发延迟\",\n      \"description_en\": \"get/set burst delay\"\n    },\n    {\n      \"action_name\": \"auto-burst_period\",\n      \"description\": \"获取/设置突发周期\",\n      \"description_en\": \"get/set burst period\"\n    },\n    {\n      \"action_name\": \"auto-display\",\n      \"description\": \"获取/设置前面板显示模式\",\n      \"description_en\": \"get/set front-panel display mode\"\n    },\n    {\n      \"action_name\": \"auto-enable_adv_triggering\",\n      \"description\": \"获取/设置高级触发启用状态\",\n      \"description_en\": \"get/set advanced triggering enable state\"\n    },\n    {\n      \"action_name\": \"auto-enable_burst_mode\",\n      \"description\": \"获取/设置突发模式启用状态\",\n      \"description_en\": \"get/set burst mode enable state\"\n    },\n    {\n      \"action_name\": \"auto-enable_burst_t0_first\",\n      \"description\": \"获取/设置突发模式下T0仅首个周期输出状态\",\n      \"description_en\": \"get/set T0-first behavior in burst mode\"\n    },\n    {\n      \"action_name\": \"auto-holdoff\",\n      \"description\": \"获取/设置触发保持时间\",\n      \"description_en\": \"get/set trigger holdoff time\"\n    },\n    {\n      \"action_name\": \"auto-trigger_rate\",\n      \"description\": \"获取/设置内部触发速率\",\n      \"description_en\": \"get/set internal trigger rate\"\n    },\n    {\n      \"action_name\": \"auto-trigger_source\",\n      \"description\": \"获取/设置触发源\",\n      \"description_en\": \"get/set trigger source\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取指定通道\",\n      \"description_en\": \"get specified channel\"\n    },\n    {\n      \"action_name\": \"auto-output\",\n      \"description\": \"获取指定输出端口\",\n      \"description_en\": \"get specified output port\"\n    },\n    {\n      \"action_name\": \"auto-idx\",\n      \"description\": \"获取通道或输出编号\",\n      \"description_en\": \"get channel or output index\"\n    },\n    {\n      \"action_name\": \"auto-delay\",\n      \"description\": \"获取/设置通道延迟\",\n      \"description_en\": \"get/set channel delay\"\n    },\n    {\n      \"action_name\": \"auto-polarity\",\n      \"description\": \"获取/设置输出极性\",\n      \"description_en\": \"get/set output polarity\"\n    },\n    {\n      \"action_name\": \"auto-level_amplitude\",\n      \"description\": \"获取/设置输出幅度\",\n      \"description_en\": \"get/set output amplitude\"\n    },\n    {\n      \"action_name\": \"auto-level_offset\",\n      \"description\": \"获取/设置输出偏置\",\n      \"description_en\": \"get/set output offset\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1925,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1965,
+      "output_tokens_details": {
+        "reasoning_tokens": 1034
+      },
+      "total_tokens": 3890
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1925,
+      "output_token_count": 1965,
+      "predict_time": 30.586993905
+    }
+  },
+  "output_text": "{\n  \"name\": \"DG645数字延迟发生器\",\n  \"name_en\": \"DG645 Digital Delay Generator\",\n  \"manufacturer\": \"Stanford Research Systems\",\n  \"description\": \"这是一台数字延迟发生器，用于在触发事件后输出具有可编程时间延迟的定时脉冲。该设备可配置延迟通道、触发源与触发速率、触发保持时间、突发模式，以及输出极性、幅度和偏置，常用于激光同步、时序分配和通用实验触发控制。\",\n  \"description_en\": \"This is a digital delay generator used to produce precisely timed pulses with programmable delays relative to a trigger event. It supports configuration of delay channels, trigger source and rate, trigger holdoff, burst mode, and output polarity, amplitude, and offset, making it useful for laser synchronization, timing distribution, and general experimental trigger control.\",\n  \"tag_hints\": [\n    \"digital delay generator\",\n    \"pulse timing\",\n    \"trigger control\",\n    \"burst mode\",\n    \"laser synchronization\",\n    \"SCPI instrument\",\n    \"programmable delay\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-burst_count\",\n      \"description\": \"获取/设置突发计数\",\n      \"description_en\": \"get/set burst count\"\n    },\n    {\n      \"action_name\": \"auto-burst_delay\",\n      \"description\": \"获取/设置突发延迟\",\n      \"description_en\": \"get/set burst delay\"\n    },\n    {\n      \"action_name\": \"auto-burst_period\",\n      \"description\": \"获取/设置突发周期\",\n      \"description_en\": \"get/set burst period\"\n    },\n    {\n      \"action_name\": \"auto-display\",\n      \"description\": \"获取/设置前面板显示模式\",\n      \"description_en\": \"get/set front-panel display mode\"\n    },\n    {\n      \"action_name\": \"auto-enable_adv_triggering\",\n      \"description\": \"获取/设置高级触发启用状态\",\n      \"description_en\": \"get/set advanced triggering enable state\"\n    },\n    {\n      \"action_name\": \"auto-enable_burst_mode\",\n      \"description\": \"获取/设置突发模式启用状态\",\n      \"description_en\": \"get/set burst mode enable state\"\n    },\n    {\n      \"action_name\": \"auto-enable_burst_t0_first\",\n      \"description\": \"获取/设置突发模式下T0仅首个周期输出状态\",\n      \"description_en\": \"get/set T0-first behavior in burst mode\"\n    },\n    {\n      \"action_name\": \"auto-holdoff\",\n      \"description\": \"获取/设置触发保持时间\",\n      \"description_en\": \"get/set trigger holdoff time\"\n    },\n    {\n      \"action_name\": \"auto-trigger_rate\",\n      \"description\": \"获取/设置内部触发速率\",\n      \"description_en\": \"get/set internal trigger rate\"\n    },\n    {\n      \"action_name\": \"auto-trigger_source\",\n      \"description\": \"获取/设置触发源\",\n      \"description_en\": \"get/set trigger source\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取指定通道\",\n      \"description_en\": \"get specified channel\"\n    },\n    {\n      \"action_name\": \"auto-output\",\n      \"description\": \"获取指定输出端口\",\n      \"description_en\": \"get specified output port\"\n    },\n    {\n      \"action_name\": \"auto-idx\",\n      \"description\": \"获取通道或输出编号\",\n      \"description_en\": \"get channel or output index\"\n    },\n    {\n      \"action_name\": \"auto-delay\",\n      \"description\": \"获取/设置通道延迟\",\n      \"description_en\": \"get/set channel delay\"\n    },\n    {\n      \"action_name\": \"auto-polarity\",\n      \"description\": \"获取/设置输出极性\",\n      \"description_en\": \"get/set output polarity\"\n    },\n    {\n      \"action_name\": \"auto-level_amplitude\",\n      \"description\": \"获取/设置输出幅度\",\n      \"description_en\": \"get/set output amplitude\"\n    },\n    {\n      \"action_name\": \"auto-level_offset\",\n      \"description\": \"获取/设置输出偏置\",\n      \"description_en\": \"get/set output offset\"\n    }\n  ]\n}"
+}

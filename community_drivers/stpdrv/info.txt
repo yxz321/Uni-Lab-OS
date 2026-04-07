@@ -1,49 +1,127 @@
-Device: stpdrv
-Registry Key: stpdrv
-Short Description: Stpdrv是一款实验执行&合成设备，主要功能包括停止、归零、设备连接。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (13):
-- auto-acceleration -> acceleration [UniLabJsonCommand] goal_params: acceleration
-- auto-address -> address [UniLabJsonCommand] goal_params: address
-- auto-estop -> estop [UniLabJsonCommand] goal_params: none
-- auto-get_position -> get_position [UniLabJsonCommand] goal_params: none
-- auto-goto -> goto [UniLabJsonCommand] goal_params: debug_prints, target, timeout
-- auto-home -> home [UniLabJsonCommand] goal_params: allowed_deviation, expected_lengths, procedure, timeout
-- auto-idn -> idn [UniLabJsonCommand] goal_params: none
-- auto-len_axes_mm -> len_axes_mm [UniLabJsonCommand] goal_params: none
-- auto-mm_to_steps -> mm_to_steps [UniLabJsonCommand] goal_params: distance
-- auto-motion_timeout -> motion_timeout [UniLabJsonCommand] goal_params: motion_timeout
-- auto-resource_kwargs -> resource_kwargs [UniLabJsonCommand] goal_params: none
-- auto-speed -> speed [UniLabJsonCommand] goal_params: speed
-- auto-steps_to_mm -> steps_to_mm [UniLabJsonCommand] goal_params: steps
-
-Driver Functions (23):
-- Stpdrv.__enter__(self) (line 93)
-- Stpdrv.__exit__(self, exc_type, exc_value, traceback) (line 98)
-- Stpdrv.__init__(self, address, steps_per_mm, motion_timeout, speed, acceleration, limit_offset, resource_kwargs) (line 106)
-- Stpdrv.address(self) (line 178)
-- Stpdrv.address(self, address) (line 190)
-- Stpdrv.resource_kwargs(self) (line 205)
-- Stpdrv.motion_timeout(self) (line 220)
-- Stpdrv.motion_timeout(self, motion_timeout) (line 235)
-- Stpdrv.speed(self) (line 254)
-- Stpdrv.speed(self, speed) (line 269)
-- Stpdrv.acceleration(self) (line 284)
-- Stpdrv.acceleration(self, acceleration) (line 299)
-- Stpdrv.connect(self) (line 313)
-- Stpdrv.disconnect(self) (line 353)
-- Stpdrv._query(self, cmd) (line 360)
-- Stpdrv.mm_to_steps(self, distance) (line 391)
-- Stpdrv.steps_to_mm(self, steps) (line 407)
-- Stpdrv.idn(self) (line 424)
-- Stpdrv.len_axes_mm(self) (line 436)
-- Stpdrv.goto(self, target, timeout, debug_prints) (line 450)
-- Stpdrv.home(self, procedure, timeout, expected_lengths, allowed_deviation) (line 469)
-- Stpdrv.estop(self) (line 506)
-- Stpdrv.get_position(self) (line 511)
+stpdrv:
+  name: Ark Metrica步进电机线性位移控制器
+  name_en: Ark Metrica Stepper Motor Linear Motion Controller
+  manufacturer: Ark Metrica
+  category:
+  - 步进电机控制器
+  - 电动直线位移台
+  tags:
+  - 实验执行&合成设备
+  - 物流/机械
+  - 精密定位与运动控制
+  - 样品/探针定位与运动控制
+  - 步进电机控制器
+  - 电动直线位移台
+  description: 用于控制步进电机驱动的线性位移机构或位移台。该设备通过串口/VISA通信，支持连接识别、速度与加速度设置、回零、按目标位置移动、位置读取以及急停，适合实验中的样品或探头直线定位任务。
+  description_en: A stepper-motor-based linear motion controller for a linear actuator
+    or positioning stage. It communicates over serial/VISA and supports device identification,
+    speed and acceleration settings, homing, moving to a target position, position
+    readback, and emergency stop for laboratory sample or probe positioning tasks.
+  class:
+    action_value_mappings:
+      auto-address:
+        schema:
+          description: 获取/设置设备资源地址
+          description_en: Get/set the device resource address.
+      auto-resource_kwargs:
+        schema:
+          description: 获取资源连接参数
+          description_en: Get the resource connection parameters.
+      auto-motion_timeout:
+        schema:
+          description: 获取/设置运动超时时间
+          description_en: Get/set the motion timeout.
+      auto-speed:
+        schema:
+          description: 获取/设置线性执行器速度
+          description_en: Get/set the linear actuator speed.
+      auto-acceleration:
+        schema:
+          description: 获取/设置线性执行器加速度
+          description_en: Get/set the linear actuator acceleration.
+      auto-mm_to_steps:
+        schema:
+          description: 将毫米距离转换为电机步数
+          description_en: Convert a distance in millimeters to motor steps.
+      auto-steps_to_mm:
+        schema:
+          description: 将电机步数转换为毫米距离
+          description_en: Convert motor steps to a distance in millimeters.
+      auto-idn:
+        schema:
+          description: 读取控制器身份信息
+          description_en: Read the controller identity string.
+      auto-len_axes_mm:
+        schema:
+          description: 获取各轴的行程长度（毫米）
+          description_en: Get the travel length of each axis in millimeters.
+      auto-goto:
+        schema:
+          description: 移动到目标位置
+          description_en: Move to the target position.
+      auto-home:
+        schema:
+          description: 执行回零/归位
+          description_en: Perform a homing operation.
+      auto-estop:
+        schema:
+          description: 执行急停
+          description_en: Request an emergency stop.
+      auto-get_position:
+        schema:
+          description: 读取当前位置（毫米）
+          description_en: Read the current position in millimeters.
+auto_annotation_metadata:
+  registry_key: stpdrv
+  annotation_workflow_version: v4
+  tag_hints:
+  - stepper motor control
+  - linear actuator
+  - positioning stage
+  - homing
+  - serial motion controller
+  - emergency stop
+  - position readback
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该控制器在实验中执行回零、定位和移动命令，直接参与实验过程控制。
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 设备本质上是步进电机驱动的机械位移控制器。
+  - id: P-1009
+    name: 精密定位与运动控制
+    name_en: Precision Positioning & Motion Control
+    type: experimental_domain
+    rationale: 描述明确为线性位移机构/位移台控制，属于精密运动控制域。
+  - id: P-0038
+    name: 样品/探针定位与运动控制
+    name_en: Sample / Probe Positioning & Motion Control
+    type: experimental_scene
+    rationale: 其用途明确写为样品或探头的直线定位任务。
+  - id: P-2011
+    name: 步进电机控制器
+    name_en: Stepper Motor Controller
+    type: device_template_tag
+    rationale: 设备核心功能是通过步进电机完成速度、加速度、回零和目标位移控制。
+  - id: P-0039
+    name: 电动直线位移台
+    name_en: Motorized Linear Translation Stage
+    type: device_template_tag
+    rationale: 其控制对象是线性位移机构/位移台，和电动直线位移台模板高度匹配。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

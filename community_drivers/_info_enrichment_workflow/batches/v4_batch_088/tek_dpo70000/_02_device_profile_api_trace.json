@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: tek_dpo70000\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/tektronix/tekdpo70000.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.oscilloscope.tek_dpo70000:TekDPO70000\n\nClass: TekDPO70000 (focal)\n  Bases: ['SCPIInstrument', 'Oscilloscope']\n  Docstring: The Tektronix DPO70000 series  is a multi-channel oscilloscope with analog\nbandwidths ranging up to 33GHz.\n\nThis class inherits from `~instruments.generic_scpi.SCPIInstrument`.\n\nExample usage:\n\n>>> import instruments as ik\n>>> tek = ik.tektronix.TekDPO70000.open_tcpip(\"192.168.0.2\", 8888)\n>>> [x, y] = tek.channel[0].read_waveform()\n\nFocal class methods:\n  [status_getter] channel(self)\n  [status_getter] math(self)\n  [status_getter] ref(self)\n  [status_getter] data_source(self)\n    comment: Gets/sets the data source for the oscilloscope. This will return\n        the actual Channel/Math/DataSource object as if it was accessed\n        through the usual `TekDPO70000.channel`, `TekDPO70000.m...\n  [status_setter] data_source(self, newval)\n    comment: Some Tek scopes require this after the DAT:SOU command, or else\n    comment: they will stop responding.\n  [command] select_fastest_encoding(self)\n    comment: METHODS #\n    comment: Sets the encoding for data returned by this instrument to be the\n        fastest encoding method consistent with the current data source.\n  [command] force_trigger(self)\n    comment: Forces a trigger event to happen for the oscilloscope.\n  [command] run(self)\n    comment: TODO: consider moving the next few methods to Oscilloscope.\n    comment: Enables the trigger for the oscilloscope.\n  [command] stop(self)\n    comment: Disables the trigger for the oscilloscope.\n\nRegistry actions:\n  auto-acquire_enhanced_enob (from acquire_enhanced_enob())\n  auto-acquire_enhanced_state (from acquire_enhanced_state())\n  auto-acquire_interp_8bit (from acquire_interp_8bit())\n  auto-acquire_magnivu (from acquire_magnivu())\n  auto-acquire_mode (from acquire_mode())\n  auto-acquire_num_avgs (from acquire_num_avgs())\n  auto-acquire_num_envelop (from acquire_num_envelop())\n  auto-acquire_num_samples (from acquire_num_samples())\n  auto-acquire_sampling_mode (from acquire_sampling_mode())\n  auto-acquire_state (from acquire_state())\n  auto-acquire_stop_after (from acquire_stop_after())\n  auto-data_framestart (from data_framestart())\n  auto-data_framestop (from data_framestop())\n  auto-data_source (from data_source())\n  auto-data_start (from data_start())\n  auto-data_stop (from data_stop())\n  auto-data_sync_sources (from data_sync_sources())\n  auto-force_trigger (from force_trigger())\n  auto-horiz_delay_mode (from horiz_delay_mode())\n  auto-horiz_delay_pos (from horiz_delay_pos())\n  auto-horiz_delay_time (from horiz_delay_time())\n  auto-horiz_main_pos (from horiz_main_pos())\n  auto-horiz_mode (from horiz_mode())\n  auto-horiz_pos (from horiz_pos())\n  auto-horiz_record_length (from horiz_record_length())\n  auto-horiz_record_length_lim (from horiz_record_length_lim())\n  auto-horiz_roll (from horiz_roll())\n  auto-horiz_sample_rate (from horiz_sample_rate())\n  auto-horiz_scale (from horiz_scale())\n  auto-horiz_unit (from horiz_unit())\n  auto-outgoing_binary_format (from outgoing_binary_format())\n  auto-outgoing_byte_order (from outgoing_byte_order())\n  auto-outgoing_n_bytes (from outgoing_n_bytes())\n  auto-outgoing_waveform_encoding (from outgoing_waveform_encoding())\n  auto-run (from run())\n  auto-select_fastest_encoding (from select_fastest_encoding())\n  auto-stop (from stop())\n  auto-trigger_state (from trigger_state())\n  auto-channel (from channel())\n  auto-math (from math())\n  auto-ref (from ref())\n  auto-name (from name())\n  auto-read_waveform (from read_waveform())\n  auto-sendcmd (from sendcmd())\n  auto-query (from query())\n\nRequired output action ids:\n  auto-acquire_enhanced_enob\n  auto-acquire_enhanced_state\n  auto-acquire_interp_8bit\n  auto-acquire_magnivu\n  auto-acquire_mode\n  auto-acquire_num_avgs\n  auto-acquire_num_envelop\n  auto-acquire_num_samples\n  auto-acquire_sampling_mode\n  auto-acquire_state\n  auto-acquire_stop_after\n  auto-data_framestart\n  auto-data_framestop\n  auto-data_source\n  auto-data_start\n  auto-data_stop\n  auto-data_sync_sources\n  auto-force_trigger\n  auto-horiz_delay_mode\n  auto-horiz_delay_pos\n  auto-horiz_delay_time\n  auto-horiz_main_pos\n  auto-horiz_mode\n  auto-horiz_pos\n  auto-horiz_record_length\n  auto-horiz_record_length_lim\n  auto-horiz_roll\n  auto-horiz_sample_rate\n  auto-horiz_scale\n  auto-horiz_unit\n  auto-outgoing_binary_format\n  auto-outgoing_byte_order\n  auto-outgoing_n_bytes\n  auto-outgoing_waveform_encoding\n  auto-run\n  auto-select_fastest_encoding\n  auto-stop\n  auto-trigger_state\n  auto-channel\n  auto-math\n  auto-ref\n  auto-name\n  auto-read_waveform\n  auto-sendcmd\n  auto-query"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_03d4b3cacf94b0cd0069d566713f1c819381b0c80eb17ca6d3",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5908,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 12911,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_03d4b3cacf94b0cd0069d56671b2c48193bb00ea1a233ac917",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_03d4b3cacf94b0cd0069d56684448c8193bec658a8e65d3bcf",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"泰克 DPO70000 系列示波器\",\n  \"name_en\": \"Tektronix DPO70000 Series Oscilloscope\",\n  \"manufacturer\": \"Tektronix\",\n  \"description\": \"泰克 DPO70000 系列是一类多通道高带宽数字荧光示波器，适用于高速电子与射频信号的采集、触发、时基配置、波形读取和分析。根据类文档，其模拟带宽最高可达约 33 GHz。\",\n  \"description_en\": \"The Tektronix DPO70000 series is a family of multi-channel high-bandwidth digital phosphor oscilloscopes used for high-speed electronic and RF signal acquisition, triggering, timebase configuration, waveform readout, and analysis. According to the class docstring, analog bandwidth reaches up to about 33 GHz.\",\n  \"tag_hints\": [\n    \"high-bandwidth oscilloscope\",\n    \"waveform acquisition\",\n    \"trigger control\",\n    \"timebase configuration\",\n    \"Tektronix DPO70000\",\n    \"SCPI control\",\n    \"high-speed signal analysis\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-acquire_enhanced_enob\",\n      \"description\": \"获取/设置增强 ENOB 采集选项。\",\n      \"description_en\": \"Get/set the enhanced ENOB acquisition option.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_enhanced_state\",\n      \"description\": \"获取/设置增强采集状态。\",\n      \"description_en\": \"Get/set the enhanced acquisition state.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_interp_8bit\",\n      \"description\": \"获取/设置 8 位插值模式。\",\n      \"description_en\": \"Get/set the 8-bit interpolation mode.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_magnivu\",\n      \"description\": \"获取/设置 MagniVu 采集模式。\",\n      \"description_en\": \"Get/set the MagniVu acquisition mode.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_mode\",\n      \"description\": \"获取/设置采集模式。\",\n      \"description_en\": \"Get/set the acquisition mode.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_num_avgs\",\n      \"description\": \"获取/设置平均次数。\",\n      \"description_en\": \"Get/set the number of averages.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_num_envelop\",\n      \"description\": \"获取/设置包络次数。\",\n      \"description_en\": \"Get/set the number of envelopes.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_num_samples\",\n      \"description\": \"获取/设置采样点数。\",\n      \"description_en\": \"Get/set the number of acquisition samples.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_sampling_mode\",\n      \"description\": \"获取/设置采样模式。\",\n      \"description_en\": \"Get/set the sampling mode.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_state\",\n      \"description\": \"获取/设置采集状态。\",\n      \"description_en\": \"Get/set the acquisition state.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_stop_after\",\n      \"description\": \"获取/设置采集停止条件。\",\n      \"description_en\": \"Get/set the acquisition stop-after condition.\"\n    },\n    {\n      \"action_name\": \"auto-data_framestart\",\n      \"description\": \"获取/设置波形帧起始位置。\",\n      \"description_en\": \"Get/set the waveform frame start position.\"\n    },\n    {\n      \"action_name\": \"auto-data_framestop\",\n      \"description\": \"获取/设置波形帧结束位置。\",\n      \"description_en\": \"Get/set the waveform frame stop position.\"\n    },\n    {\n      \"action_name\": \"auto-data_source\",\n      \"description\": \"获取/设置波形数据源。\",\n      \"description_en\": \"Get/set the waveform data source.\"\n    },\n    {\n      \"action_name\": \"auto-data_start\",\n      \"description\": \"获取/设置波形数据起始点。\",\n      \"description_en\": \"Get/set the waveform data start point.\"\n    },\n    {\n      \"action_name\": \"auto-data_stop\",\n      \"description\": \"获取/设置波形数据结束点。\",\n      \"description_en\": \"Get/set the waveform data stop point.\"\n    },\n    {\n      \"action_name\": \"auto-data_sync_sources\",\n      \"description\": \"获取/设置数据源同步选项。\",\n      \"description_en\": \"Get/set the data source synchronization option.\"\n    },\n    {\n      \"action_name\": \"auto-force_trigger\",\n      \"description\": \"强制产生一次触发事件。\",\n      \"description_en\": \"Force a trigger event.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_delay_mode\",\n      \"description\": \"获取/设置水平延迟模式。\",\n      \"description_en\": \"Get/set the horizontal delay mode.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_delay_pos\",\n      \"description\": \"获取/设置水平延迟位置。\",\n      \"description_en\": \"Get/set the horizontal delay position.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_delay_time\",\n      \"description\": \"获取/设置水平延迟时间。\",\n      \"description_en\": \"Get/set the horizontal delay time.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_main_pos\",\n      \"description\": \"获取/设置主时基水平位置。\",\n      \"description_en\": \"Get/set the main horizontal position.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_mode\",\n      \"description\": \"获取/设置水平时基模式。\",\n      \"description_en\": \"Get/set the horizontal timebase mode.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_pos\",\n      \"description\": \"获取/设置水平位置。\",\n      \"description_en\": \"Get/set the horizontal position.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_record_length\",\n      \"description\": \"获取/设置记录长度。\",\n      \"description_en\": \"Get/set the record length.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_record_length_lim\",\n      \"description\": \"获取/设置记录长度限制。\",\n      \"description_en\": \"Get/set the record length limit.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_roll\",\n      \"description\": \"获取/设置滚动模式。\",\n      \"description_en\": \"Get/set the roll mode.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_sample_rate\",\n      \"description\": \"获取/设置采样率。\",\n      \"description_en\": \"Get/set the sample rate.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_scale\",\n      \"description\": \"获取/设置水平刻度。\",\n      \"description_en\": \"Get/set the horizontal scale.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_unit\",\n      \"description\": \"获取/设置水平单位。\",\n      \"description_en\": \"Get/set the horizontal unit.\"\n    },\n    {\n      \"action_name\": \"auto-outgoing_binary_format\",\n      \"description\": \"获取/设置输出二进制格式。\",\n      \"description_en\": \"Get/set the outgoing binary format.\"\n    },\n    {\n      \"action_name\": \"auto-outgoing_byte_order\",\n      \"description\": \"获取/设置输出字节序。\",\n      \"description_en\": \"Get/set the outgoing byte order.\"\n    },\n    {\n      \"action_name\": \"auto-outgoing_n_bytes\",\n      \"description\": \"获取/设置每个输出数据点的字节数。\",\n      \"description_en\": \"Get/set the number of bytes per outgoing data point.\"\n    },\n    {\n      \"action_name\": \"auto-outgoing_waveform_encoding\",\n      \"description\": \"获取/设置输出波形编码。\",\n      \"description_en\": \"Get/set the outgoing waveform encoding.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"启动示波器采集并使能触发。\",\n      \"description_en\": \"Start oscilloscope acquisition and enable triggering.\"\n    },\n    {\n      \"action_name\": \"auto-select_fastest_encoding\",\n      \"description\": \"选择与当前数据源兼容的最快波形传输编码。\",\n      \"description_en\": \"Select the fastest waveform transfer encoding compatible with the current data source.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止示波器采集并禁用触发。\",\n      \"description_en\": \"Stop oscilloscope acquisition and disable triggering.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_state\",\n      \"description\": \"获取触发状态。\",\n      \"description_en\": \"Get the trigger state.\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取通道对象。\",\n      \"description_en\": \"Get the channel objects.\"\n    },\n    {\n      \"action_name\": \"auto-math\",\n      \"description\": \"获取数学波形对象。\",\n      \"description_en\": \"Get the math waveform objects.\"\n    },\n    {\n      \"action_name\": \"auto-ref\",\n      \"description\": \"获取参考波形对象。\",\n      \"description_en\": \"Get the reference waveform objects.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取/设置仪器名称。\",\n      \"description_en\": \"Get/set the instrument name.\"\n    },\n    {\n      \"action_name\": \"auto-read_waveform\",\n      \"description\": \"从当前数据源读取波形数据。\",\n      \"description_en\": \"Read waveform data from the current data source.\"\n    },\n    {\n      \"action_name\": \"auto-sendcmd\",\n      \"description\": \"向示波器发送原始 SCPI 命令。\",\n      \"description_en\": \"Send a raw SCPI command to the oscilloscope.\"\n    },\n    {\n      \"action_name\": \"auto-query\",\n      \"description\": \"向示波器发送原始 SCPI 查询并返回响应。\",\n      \"description_en\": \"Send a raw SCPI query to the oscilloscope and return the response.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1933,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3284,
+      "output_tokens_details": {
+        "reasoning_tokens": 1112
+      },
+      "total_tokens": 5217
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1933,
+      "output_token_count": 3284,
+      "predict_time": 43.929919144
+    }
+  },
+  "output_text": "{\n  \"name\": \"泰克 DPO70000 系列示波器\",\n  \"name_en\": \"Tektronix DPO70000 Series Oscilloscope\",\n  \"manufacturer\": \"Tektronix\",\n  \"description\": \"泰克 DPO70000 系列是一类多通道高带宽数字荧光示波器，适用于高速电子与射频信号的采集、触发、时基配置、波形读取和分析。根据类文档，其模拟带宽最高可达约 33 GHz。\",\n  \"description_en\": \"The Tektronix DPO70000 series is a family of multi-channel high-bandwidth digital phosphor oscilloscopes used for high-speed electronic and RF signal acquisition, triggering, timebase configuration, waveform readout, and analysis. According to the class docstring, analog bandwidth reaches up to about 33 GHz.\",\n  \"tag_hints\": [\n    \"high-bandwidth oscilloscope\",\n    \"waveform acquisition\",\n    \"trigger control\",\n    \"timebase configuration\",\n    \"Tektronix DPO70000\",\n    \"SCPI control\",\n    \"high-speed signal analysis\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-acquire_enhanced_enob\",\n      \"description\": \"获取/设置增强 ENOB 采集选项。\",\n      \"description_en\": \"Get/set the enhanced ENOB acquisition option.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_enhanced_state\",\n      \"description\": \"获取/设置增强采集状态。\",\n      \"description_en\": \"Get/set the enhanced acquisition state.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_interp_8bit\",\n      \"description\": \"获取/设置 8 位插值模式。\",\n      \"description_en\": \"Get/set the 8-bit interpolation mode.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_magnivu\",\n      \"description\": \"获取/设置 MagniVu 采集模式。\",\n      \"description_en\": \"Get/set the MagniVu acquisition mode.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_mode\",\n      \"description\": \"获取/设置采集模式。\",\n      \"description_en\": \"Get/set the acquisition mode.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_num_avgs\",\n      \"description\": \"获取/设置平均次数。\",\n      \"description_en\": \"Get/set the number of averages.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_num_envelop\",\n      \"description\": \"获取/设置包络次数。\",\n      \"description_en\": \"Get/set the number of envelopes.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_num_samples\",\n      \"description\": \"获取/设置采样点数。\",\n      \"description_en\": \"Get/set the number of acquisition samples.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_sampling_mode\",\n      \"description\": \"获取/设置采样模式。\",\n      \"description_en\": \"Get/set the sampling mode.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_state\",\n      \"description\": \"获取/设置采集状态。\",\n      \"description_en\": \"Get/set the acquisition state.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_stop_after\",\n      \"description\": \"获取/设置采集停止条件。\",\n      \"description_en\": \"Get/set the acquisition stop-after condition.\"\n    },\n    {\n      \"action_name\": \"auto-data_framestart\",\n      \"description\": \"获取/设置波形帧起始位置。\",\n      \"description_en\": \"Get/set the waveform frame start position.\"\n    },\n    {\n      \"action_name\": \"auto-data_framestop\",\n      \"description\": \"获取/设置波形帧结束位置。\",\n      \"description_en\": \"Get/set the waveform frame stop position.\"\n    },\n    {\n      \"action_name\": \"auto-data_source\",\n      \"description\": \"获取/设置波形数据源。\",\n      \"description_en\": \"Get/set the waveform data source.\"\n    },\n    {\n      \"action_name\": \"auto-data_start\",\n      \"description\": \"获取/设置波形数据起始点。\",\n      \"description_en\": \"Get/set the waveform data start point.\"\n    },\n    {\n      \"action_name\": \"auto-data_stop\",\n      \"description\": \"获取/设置波形数据结束点。\",\n      \"description_en\": \"Get/set the waveform data stop point.\"\n    },\n    {\n      \"action_name\": \"auto-data_sync_sources\",\n      \"description\": \"获取/设置数据源同步选项。\",\n      \"description_en\": \"Get/set the data source synchronization option.\"\n    },\n    {\n      \"action_name\": \"auto-force_trigger\",\n      \"description\": \"强制产生一次触发事件。\",\n      \"description_en\": \"Force a trigger event.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_delay_mode\",\n      \"description\": \"获取/设置水平延迟模式。\",\n      \"description_en\": \"Get/set the horizontal delay mode.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_delay_pos\",\n      \"description\": \"获取/设置水平延迟位置。\",\n      \"description_en\": \"Get/set the horizontal delay position.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_delay_time\",\n      \"description\": \"获取/设置水平延迟时间。\",\n      \"description_en\": \"Get/set the horizontal delay time.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_main_pos\",\n      \"description\": \"获取/设置主时基水平位置。\",\n      \"description_en\": \"Get/set the main horizontal position.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_mode\",\n      \"description\": \"获取/设置水平时基模式。\",\n      \"description_en\": \"Get/set the horizontal timebase mode.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_pos\",\n      \"description\": \"获取/设置水平位置。\",\n      \"description_en\": \"Get/set the horizontal position.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_record_length\",\n      \"description\": \"获取/设置记录长度。\",\n      \"description_en\": \"Get/set the record length.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_record_length_lim\",\n      \"description\": \"获取/设置记录长度限制。\",\n      \"description_en\": \"Get/set the record length limit.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_roll\",\n      \"description\": \"获取/设置滚动模式。\",\n      \"description_en\": \"Get/set the roll mode.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_sample_rate\",\n      \"description\": \"获取/设置采样率。\",\n      \"description_en\": \"Get/set the sample rate.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_scale\",\n      \"description\": \"获取/设置水平刻度。\",\n      \"description_en\": \"Get/set the horizontal scale.\"\n    },\n    {\n      \"action_name\": \"auto-horiz_unit\",\n      \"description\": \"获取/设置水平单位。\",\n      \"description_en\": \"Get/set the horizontal unit.\"\n    },\n    {\n      \"action_name\": \"auto-outgoing_binary_format\",\n      \"description\": \"获取/设置输出二进制格式。\",\n      \"description_en\": \"Get/set the outgoing binary format.\"\n    },\n    {\n      \"action_name\": \"auto-outgoing_byte_order\",\n      \"description\": \"获取/设置输出字节序。\",\n      \"description_en\": \"Get/set the outgoing byte order.\"\n    },\n    {\n      \"action_name\": \"auto-outgoing_n_bytes\",\n      \"description\": \"获取/设置每个输出数据点的字节数。\",\n      \"description_en\": \"Get/set the number of bytes per outgoing data point.\"\n    },\n    {\n      \"action_name\": \"auto-outgoing_waveform_encoding\",\n      \"description\": \"获取/设置输出波形编码。\",\n      \"description_en\": \"Get/set the outgoing waveform encoding.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"启动示波器采集并使能触发。\",\n      \"description_en\": \"Start oscilloscope acquisition and enable triggering.\"\n    },\n    {\n      \"action_name\": \"auto-select_fastest_encoding\",\n      \"description\": \"选择与当前数据源兼容的最快波形传输编码。\",\n      \"description_en\": \"Select the fastest waveform transfer encoding compatible with the current data source.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止示波器采集并禁用触发。\",\n      \"description_en\": \"Stop oscilloscope acquisition and disable triggering.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_state\",\n      \"description\": \"获取触发状态。\",\n      \"description_en\": \"Get the trigger state.\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取通道对象。\",\n      \"description_en\": \"Get the channel objects.\"\n    },\n    {\n      \"action_name\": \"auto-math\",\n      \"description\": \"获取数学波形对象。\",\n      \"description_en\": \"Get the math waveform objects.\"\n    },\n    {\n      \"action_name\": \"auto-ref\",\n      \"description\": \"获取参考波形对象。\",\n      \"description_en\": \"Get the reference waveform objects.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取/设置仪器名称。\",\n      \"description_en\": \"Get/set the instrument name.\"\n    },\n    {\n      \"action_name\": \"auto-read_waveform\",\n      \"description\": \"从当前数据源读取波形数据。\",\n      \"description_en\": \"Read waveform data from the current data source.\"\n    },\n    {\n      \"action_name\": \"auto-sendcmd\",\n      \"description\": \"向示波器发送原始 SCPI 命令。\",\n      \"description_en\": \"Send a raw SCPI command to the oscilloscope.\"\n    },\n    {\n      \"action_name\": \"auto-query\",\n      \"description\": \"向示波器发送原始 SCPI 查询并返回响应。\",\n      \"description_en\": \"Send a raw SCPI query to the oscilloscope and return the response.\"\n    }\n  ]\n}"
+}

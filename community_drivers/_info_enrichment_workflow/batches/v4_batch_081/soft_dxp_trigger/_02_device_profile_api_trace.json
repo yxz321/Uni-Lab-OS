@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: soft_dxp_trigger\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: ophyd/mca.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.soft_dxp_trigger.soft_dxp_trigger:SoftDXPTrigger\n\nClass: ROI \n  Bases: ['Device']\n\nClass: EpicsMCARecord \n  Bases: ['Device']\n  Docstring: SynApps MCA Record interface\n\nClass: EpicsMCA \n  Bases: ['EpicsMCARecord']\n  Docstring: mca records with extras from mca.db\n\nClass: EpicsMCAReadNotify \n  Bases: ['EpicsMCARecord']\n  Docstring: mca record with extras from mcaReadNotify.db\n\nClass: EpicsMCACallback \n  Bases: ['Device']\n  Docstring: Callback-related signals for MCA devices\n\nClass: EpicsDXP \n  Bases: ['Device']\n  Docstring: All high-level DXP parameters for each channel\n\nClass: EpicsDXPLowLevelParameter \n  Bases: ['Device']\n\nClass: EpicsDXPLowLevel \n  Bases: ['Device']\n\nClass: EpicsDXPMapping \n  Bases: ['Device']\n\nClass: EpicsDXPBaseSystem \n  Bases: ['Device']\n\nClass: EpicsDXPMultiElementSystem \n  Bases: ['EpicsDXPBaseSystem']\n\nClass: SaturnMCA \n  Bases: ['EpicsMCA', 'EpicsMCACallback']\n\nClass: SaturnDXP \n  Bases: ['EpicsDXP', 'EpicsDXPLowLevel']\n\nClass: Saturn \n  Bases: ['EpicsDXPBaseSystem']\n  Docstring: DXP Saturn with 1 channel example\n\nClass: MercuryDXP \n  Bases: ['EpicsDXP', 'EpicsDXPLowLevel']\n\nClass: Mercury1 \n  Bases: ['EpicsDXPMultiElementSystem']\n  Docstring: DXP Mercury with 1 channel example\n\nClass: SoftDXPTrigger (focal)\n  Bases: ['Device']\n  Docstring: Simple soft trigger for DXP devices\n\nParameters\n----------\ncount_signal : str, optional\n    Signal to set acquisition time (default: 'preset_real_time')\npreset_mode : str, optional\n    Default preset mode for the stage signals (default: 'Real time')\nmode_signal : str, optional\n    Preset mode signal attribute (default 'preset_mode')\nstop_signal : str, optional\n    Stop signal attribute (default 'stop_all')\n\nFocal class methods:\n  [command] stage(self)\n    comment: remove count_time from the stage signals if count_time unset\n\nRegistry actions:\n  auto-get_low_level_parameter (from get_low_level_parameter())\n  auto-stage (from stage())\n\nRequired output action ids:\n  auto-get_low_level_parameter\n  auto-stage"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_09737188eb5d07010069d55f930afc81978c540a138db267f4",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3220,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3301,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_09737188eb5d07010069d55f93873081979cbf2ef648977f79",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_09737188eb5d07010069d55f9bc5108197bd3cc568d1e5a86b",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"DXP软触发组件\",\n  \"name_en\": \"DXP Soft Trigger Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于 DXP/MCA 采集系统的非实体软件触发组件。它在实验中负责为关联的 EPICS DXP 设备准备软触发采集流程、设置预设计数相关信号，并在进入 stage 时整理采集时间等阶段参数。\",\n  \"description_en\": \"A non-physical software trigger component for DXP/MCA acquisition systems. In laboratory use, it prepares soft-triggered acquisition for associated EPICS DXP devices, configures preset counting-related signals, and organizes staged acquisition parameters such as count time during staging.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-get_low_level_parameter\",\n      \"description\": \"获取关联 DXP 设备的底层参数值。\",\n      \"description_en\": \"Get a low-level parameter value from the associated DXP device.\"\n    },\n    {\n      \"action_name\": \"auto-stage\",\n      \"description\": \"为软触发采集进行预备配置，并在需要时整理阶段中的计数时间等设置信号。\",\n      \"description_en\": \"Prepare the soft-triggered acquisition configuration and manage staged settings such as count-time-related signals when needed.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"software trigger\",\n    \"DXP acquisition\",\n    \"EPICS MCA\",\n    \"staging control\",\n    \"preset mode\",\n    \"count time setup\",\n    \"X-ray spectroscopy\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1272,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 752,
+      "output_tokens_details": {
+        "reasoning_tokens": 415
+      },
+      "total_tokens": 2024
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1272,
+      "output_token_count": 752,
+      "predict_time": 15.937507445
+    }
+  },
+  "output_text": "{\n  \"name\": \"DXP软触发组件\",\n  \"name_en\": \"DXP Soft Trigger Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于 DXP/MCA 采集系统的非实体软件触发组件。它在实验中负责为关联的 EPICS DXP 设备准备软触发采集流程、设置预设计数相关信号，并在进入 stage 时整理采集时间等阶段参数。\",\n  \"description_en\": \"A non-physical software trigger component for DXP/MCA acquisition systems. In laboratory use, it prepares soft-triggered acquisition for associated EPICS DXP devices, configures preset counting-related signals, and organizes staged acquisition parameters such as count time during staging.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-get_low_level_parameter\",\n      \"description\": \"获取关联 DXP 设备的底层参数值。\",\n      \"description_en\": \"Get a low-level parameter value from the associated DXP device.\"\n    },\n    {\n      \"action_name\": \"auto-stage\",\n      \"description\": \"为软触发采集进行预备配置，并在需要时整理阶段中的计数时间等设置信号。\",\n      \"description_en\": \"Prepare the soft-triggered acquisition configuration and manage staged settings such as count-time-related signals when needed.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"software trigger\",\n    \"DXP acquisition\",\n    \"EPICS MCA\",\n    \"staging control\",\n    \"preset mode\",\n    \"count time setup\",\n    \"X-ray spectroscopy\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: socket_communicator\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/abstract_instruments/comm/socket_communicator.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.communication_layer.socket_communicator:SocketCommunicator\n\nClass: SocketCommunicator (focal)\n  Bases: ['io.IOBase', 'AbstractCommunicator']\n  Docstring: Communicates with a socket and makes it look like a `file`. Note that this\nis used instead of `socket.makefile`, as that method does not support\ntimeouts. We do not support all features of `file`-like objects here, but\nenough to make `~instrument.Instrument` happy.\n\nFocal class methods:\n  [status_getter] address(self)\n    comment: Returns the socket peer address information as a tuple.\n  [status_setter] address(self, newval)\n  [status_getter] terminator(self)\n  [status_setter] terminator(self, newval)\n  [status_getter] timeout(self)\n    comment: Gets/sets the connection timeout of the socket comm channel.\n\n        :type: `~pint.Quantity`\n        :units: As specified or assumed to be of units ``seconds``\n  [status_setter] timeout(self, newval)\n  [command] close(self)\n    comment: FILE-LIKE METHODS #\n    comment: Shutdown and close the `socket.socket` connection.\n  [command] read_raw(self, size=-1)\n    comment: Read bytes in from the socket connection.\n\n        :param int size: The number of bytes to read in from the socket\n            connection.\n        :return: The read bytes\n        :rtype: `bytes`\n  [command] write_raw(self, msg)\n    comment: Write bytes to the `socket.socket` connection object.\n\n        :param bytes msg: Bytes to be sent to the instrument over the socket\n            connection.\n  [command] seek(self, offset)\n    comment: Go to a specific offset for the input data source.\n\n        Not implemented for socket communicator.\n  [command] tell(self)\n    comment: Get the current positional offset for the input data source.\n\n        Not implemented for socket communicator.\n  [command] flush_input(self)\n    comment: Instruct the communicator to flush the input buffer, discarding the\n        entirety of its contents.\n\nRegistry actions:\n  auto-address (from address())\n  auto-close (from close())\n  auto-flush_input (from flush_input())\n  auto-read_raw (from read_raw())\n  auto-seek (from seek())\n  auto-tell (from tell())\n  auto-terminator (from terminator())\n  auto-timeout (from timeout())\n  auto-write_raw (from write_raw())\n\nRequired output action ids:\n  auto-address\n  auto-close\n  auto-flush_input\n  auto-read_raw\n  auto-seek\n  auto-tell\n  auto-terminator\n  auto-timeout\n  auto-write_raw"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0a6a1498b6c6e1440069d55f8811c48190bff5312146b87df4",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3649,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4096,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0a6a1498b6c6e1440069d55f887dd08190909baae1883d879b",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0a6a1498b6c6e1440069d55f91683081908ed70fc4351da349",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"套接字通信器\",\n  \"name_en\": \"Socket Communicator\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件通信组件，用于把网络套接字封装成类似文件的读写接口，方便实验控制框架通过套接字与仪器或远程服务交换原始字节数据，并管理地址、终止符、超时、输入缓冲区和连接关闭等通信属性。\",\n  \"description_en\": \"This is a non-physical software communication component that wraps a network socket as a file-like I/O interface, allowing a laboratory control framework to exchange raw byte data with instruments or remote services over sockets while managing address, terminator, timeout, input buffer flushing, and connection closure.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-address\",\n      \"description\": \"获取/设置套接字对端地址\",\n      \"description_en\": \"get/set socket peer address\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭套接字连接\",\n      \"description_en\": \"close the socket connection\"\n    },\n    {\n      \"action_name\": \"auto-flush_input\",\n      \"description\": \"清空输入缓冲区\",\n      \"description_en\": \"flush the input buffer\"\n    },\n    {\n      \"action_name\": \"auto-read_raw\",\n      \"description\": \"从套接字读取原始字节数据\",\n      \"description_en\": \"read raw bytes from the socket\"\n    },\n    {\n      \"action_name\": \"auto-seek\",\n      \"description\": \"移动输入数据源位置（此通信器未实现）\",\n      \"description_en\": \"seek the input data source position (not implemented for this communicator)\"\n    },\n    {\n      \"action_name\": \"auto-tell\",\n      \"description\": \"获取当前输入数据位置（此通信器未实现）\",\n      \"description_en\": \"get the current input data position (not implemented for this communicator)\"\n    },\n    {\n      \"action_name\": \"auto-terminator\",\n      \"description\": \"获取/设置消息终止符\",\n      \"description_en\": \"get/set message terminator\"\n    },\n    {\n      \"action_name\": \"auto-timeout\",\n      \"description\": \"获取/设置套接字通信超时\",\n      \"description_en\": \"get/set socket communication timeout\"\n    },\n    {\n      \"action_name\": \"auto-write_raw\",\n      \"description\": \"向套接字写入原始字节数据\",\n      \"description_en\": \"write raw bytes to the socket\"\n    }\n  ],\n  \"tag_hints\": [\n    \"socket communication\",\n    \"TCP/IP instrument control\",\n    \"file-like I/O\",\n    \"raw byte stream\",\n    \"timeout handling\",\n    \"input buffer flushing\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1306,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1071,
+      "output_tokens_details": {
+        "reasoning_tokens": 466
+      },
+      "total_tokens": 2377
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1306,
+      "output_token_count": 1071,
+      "predict_time": 17.936179355
+    }
+  },
+  "output_text": "{\n  \"name\": \"套接字通信器\",\n  \"name_en\": \"Socket Communicator\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件通信组件，用于把网络套接字封装成类似文件的读写接口，方便实验控制框架通过套接字与仪器或远程服务交换原始字节数据，并管理地址、终止符、超时、输入缓冲区和连接关闭等通信属性。\",\n  \"description_en\": \"This is a non-physical software communication component that wraps a network socket as a file-like I/O interface, allowing a laboratory control framework to exchange raw byte data with instruments or remote services over sockets while managing address, terminator, timeout, input buffer flushing, and connection closure.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-address\",\n      \"description\": \"获取/设置套接字对端地址\",\n      \"description_en\": \"get/set socket peer address\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭套接字连接\",\n      \"description_en\": \"close the socket connection\"\n    },\n    {\n      \"action_name\": \"auto-flush_input\",\n      \"description\": \"清空输入缓冲区\",\n      \"description_en\": \"flush the input buffer\"\n    },\n    {\n      \"action_name\": \"auto-read_raw\",\n      \"description\": \"从套接字读取原始字节数据\",\n      \"description_en\": \"read raw bytes from the socket\"\n    },\n    {\n      \"action_name\": \"auto-seek\",\n      \"description\": \"移动输入数据源位置（此通信器未实现）\",\n      \"description_en\": \"seek the input data source position (not implemented for this communicator)\"\n    },\n    {\n      \"action_name\": \"auto-tell\",\n      \"description\": \"获取当前输入数据位置（此通信器未实现）\",\n      \"description_en\": \"get the current input data position (not implemented for this communicator)\"\n    },\n    {\n      \"action_name\": \"auto-terminator\",\n      \"description\": \"获取/设置消息终止符\",\n      \"description_en\": \"get/set message terminator\"\n    },\n    {\n      \"action_name\": \"auto-timeout\",\n      \"description\": \"获取/设置套接字通信超时\",\n      \"description_en\": \"get/set socket communication timeout\"\n    },\n    {\n      \"action_name\": \"auto-write_raw\",\n      \"description\": \"向套接字写入原始字节数据\",\n      \"description_en\": \"write raw bytes to the socket\"\n    }\n  ],\n  \"tag_hints\": [\n    \"socket communication\",\n    \"TCP/IP instrument control\",\n    \"file-like I/O\",\n    \"raw byte stream\",\n    \"timeout handling\",\n    \"input buffer flushing\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: srs830\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/srs/srs830.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.lock_in_amplifier.srs830:SRS830\n\nClass: SRS830 (focal)\n  Bases: ['SCPIInstrument']\n  Docstring: Communicates with a Stanford Research Systems 830 Lock-In Amplifier.\n\nExample usage:\n\n>>> import instruments as ik\n>>> import instruments.units as u\n>>> srs = ik.srs.SRS830.open_gpibusb('/dev/ttyUSB0', 1)\n>>> srs.frequency = 1000 * u.hertz # Lock-In frequency\n>>> data = srs.take_measurement(1, 10) # 1Hz sample rate, 10 samples total\n\nFocal class methods:\n  [status_getter] sample_rate(self)\n    comment: Gets/sets the data sampling rate of the lock-in.\n\n        Acceptable set values are :math:`2^n` where :math:`n \\in \\{-4...+9\\}` or\n        the string `trigger`.\n\n        :type: `~pint.Quantity` with u...\n  [status_setter] sample_rate(self, newval)\n  [status_getter] num_data_points(self)\n    comment: Gets the number of data sets in the SRS830 buffer.\n\n        :type: `int`\n  [command] auto_offset(self, mode)\n    comment: AUTO- METHODS #\n    comment: Sets a specific channel mode to auto offset. This is the same as\n        pressing the auto offset key on the display.\n\n        It sets the offset of the mode specified to zero.\n\n        :param mode: T...\n  [command] auto_phase(self)\n    comment: Sets the lock-in to auto phase.\n        This does the same thing as pushing the auto phase button.\n\n        Do not send this message again without waiting the correct amount\n        of time for the lo...\n  [command] init(self, sample_rate, buffer_mode)\n    comment: META-METHODS #\n    comment: Wrapper function to prepare the SRS830 for measurement.\n        Sets both the data sampling rate and the end of buffer mode\n\n        :param sample_rate: The desired sampling\n            rate. Acceptab...\n  [command] start_data_transfer(self)\n    comment: Wrapper function to start the actual data transfer.\n        Sets the transfer mode to FAST2, and triggers the data transfer\n        to start after a delay of 0.5 seconds.\n  [command] take_measurement(self, sample_rate, num_samples)\n    comment: The following should fail. We do this to force the instrument\n    comment: to flush its internal buffers.\n    comment: Note that this causes a redundant transmission, and should be fixed\n    comment: in future versions.\n    comment: Wrapper function that allows you to easily take measurements with a\n        specified sample rate and number of desired samples.\n\n        Function will call time.sleep() for the required amount of tim...\n  [command] set_offset_expand(self, mode, offset, expand)\n    comment: OTHER METHODS #\n    comment: Sets the channel offset and expand parameters.\n        Offset is a percentage, and expand is given as a multiplication\n        factor of 1, 10, or 100.\n\n        :param mode: The channel mode that you ...\n  [command] start_scan(self)\n    comment: After setting the data transfer on via the dataTransfer function,\n        this is used to start the scan. The scan starts after a delay of\n        0.5 seconds.\n  [command] pause(self)\n    comment: Has the instrument pause data capture.\n  [command] data_snap(self, mode1, mode2)\n    comment: Takes a snapshot of the current parameters are defined by variables\n        mode1 and mode2.\n\n        For combinations (X,Y) and (R,THETA), they are taken at the same\n        instant. All other combin...\n  [command] read_data_buffer(self, channel)\n    comment: Query device for entire buffer, returning in ASCII, then\n    comment: converting to a list of floats before returning to the\n    comment: calling method\n    comment: Reads the entire data buffer for a specific channel.\n        Transfer is done in ASCII mode. Although binary would be faster,\n        this is not currently implemented.\n\n        Returns a list of floa...\n  [command] clear_data_buffer(self)\n    comment: Clears the data buffer of the SRS830.\n  [command] set_channel_display(self, channel, display, ratio)\n    comment: Sets the display of the two channels.\n        Channel 1 can display X, R, X Noise, Aux In 1, Aux In 2\n        Channel 2 can display Y, Theta, Y Noise, Aux In 3, Aux In 4\n\n        Channel 1 can have ra...\n\nRegistry actions:\n  auto-amplitude (from amplitude())\n  auto-auto_offset (from auto_offset())\n  auto-auto_phase (from auto_phase())\n  auto-buffer_mode (from buffer_mode())\n  auto-clear_data_buffer (from clear_data_buffer())\n  auto-coupling (from coupling())\n  auto-data_snap (from data_snap())\n  auto-data_transfer (from data_transfer())\n  auto-frequency (from frequency())\n  auto-frequency_source (from frequency_source())\n  auto-init (from init())\n  auto-input_shield_ground (from input_shield_ground())\n  auto-pause (from pause())\n  auto-phase (from phase())\n  auto-read_data_buffer (from read_data_buffer())\n  auto-sample_rate (from sample_rate())\n  auto-set_channel_display (from set_channel_display())\n  auto-set_offset_expand (from set_offset_expand())\n  auto-start_data_transfer (from start_data_transfer())\n  auto-start_scan (from start_scan())\n  auto-take_measurement (from take_measurement())\n  auto-num_data_points (from num_data_points())\n\nRequired output action ids:\n  auto-amplitude\n  auto-auto_offset\n  auto-auto_phase\n  auto-buffer_mode\n  auto-clear_data_buffer\n  auto-coupling\n  auto-data_snap\n  auto-data_transfer\n  auto-frequency\n  auto-frequency_source\n  auto-init\n  auto-input_shield_ground\n  auto-pause\n  auto-phase\n  auto-read_data_buffer\n  auto-sample_rate\n  auto-set_channel_display\n  auto-set_offset_expand\n  auto-start_data_transfer\n  auto-start_scan\n  auto-take_measurement\n  auto-num_data_points"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0605817b7aaa52420069d561486ec08195859cbc4657ab8e41",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6785,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 8961,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0605817b7aaa52420069d56148faf8819599fd4d7eb3cbf932",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0605817b7aaa52420069d56159d5548195b7f699f229955f64",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"SRS830 锁相放大器\",\n  \"name_en\": \"SRS830 Lock-In Amplifier\",\n  \"manufacturer\": \"Stanford Research Systems\",\n  \"description\": \"Stanford Research Systems 的 SRS830 锁相放大器，用于相敏检测与弱信号测量。该设备可设置参考频率、相位、输入耦合和采样参数，并支持 X、Y、R、θ 等量的缓冲采集、快照读取与自动调零/调相。\",\n  \"description_en\": \"The SRS830 from Stanford Research Systems is a lock-in amplifier for phase-sensitive detection and weak-signal measurements. It supports control of reference frequency, phase, input coupling, and sampling parameters, and provides buffered acquisition, snapshot readout, and auto offset/auto phase functions for quantities such as X, Y, R, and theta.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-amplitude\",\n      \"description\": \"获取/设置参考输出幅度。\",\n      \"description_en\": \"Get/set the reference output amplitude.\"\n    },\n    {\n      \"action_name\": \"auto-auto_offset\",\n      \"description\": \"对选定测量模式自动调零偏置。\",\n      \"description_en\": \"Automatically zero the offset for the selected measurement mode.\"\n    },\n    {\n      \"action_name\": \"auto-auto_phase\",\n      \"description\": \"自动调整锁相相位。\",\n      \"description_en\": \"Automatically adjust the lock-in phase.\"\n    },\n    {\n      \"action_name\": \"auto-buffer_mode\",\n      \"description\": \"获取/设置数据缓冲模式。\",\n      \"description_en\": \"Get/set the data buffer mode.\"\n    },\n    {\n      \"action_name\": \"auto-clear_data_buffer\",\n      \"description\": \"清空内部数据缓冲区。\",\n      \"description_en\": \"Clear the internal data buffer.\"\n    },\n    {\n      \"action_name\": \"auto-coupling\",\n      \"description\": \"获取/设置输入耦合方式。\",\n      \"description_en\": \"Get/set the input coupling mode.\"\n    },\n    {\n      \"action_name\": \"auto-data_snap\",\n      \"description\": \"同时抓取两个选定参数的瞬时值。\",\n      \"description_en\": \"Capture an instantaneous snapshot of two selected parameters.\"\n    },\n    {\n      \"action_name\": \"auto-data_transfer\",\n      \"description\": \"获取/设置数据传输模式。\",\n      \"description_en\": \"Get/set the data transfer mode.\"\n    },\n    {\n      \"action_name\": \"auto-frequency\",\n      \"description\": \"获取/设置参考频率。\",\n      \"description_en\": \"Get/set the reference frequency.\"\n    },\n    {\n      \"action_name\": \"auto-frequency_source\",\n      \"description\": \"获取/设置参考频率源。\",\n      \"description_en\": \"Get/set the reference frequency source.\"\n    },\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化测量参数，包括采样率和缓冲模式。\",\n      \"description_en\": \"Initialize measurement settings, including sample rate and buffer mode.\"\n    },\n    {\n      \"action_name\": \"auto-input_shield_ground\",\n      \"description\": \"获取/设置输入屏蔽接地方式。\",\n      \"description_en\": \"Get/set the input shield grounding mode.\"\n    },\n    {\n      \"action_name\": \"auto-pause\",\n      \"description\": \"暂停数据采集。\",\n      \"description_en\": \"Pause data acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-phase\",\n      \"description\": \"获取/设置参考相位。\",\n      \"description_en\": \"Get/set the reference phase.\"\n    },\n    {\n      \"action_name\": \"auto-read_data_buffer\",\n      \"description\": \"读取指定通道的整个数据缓冲区。\",\n      \"description_en\": \"Read the entire data buffer for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-sample_rate\",\n      \"description\": \"获取/设置数据采样率。\",\n      \"description_en\": \"Get/set the data sampling rate.\"\n    },\n    {\n      \"action_name\": \"auto-set_channel_display\",\n      \"description\": \"设置通道显示量及比值显示方式。\",\n      \"description_en\": \"Set the displayed quantity and ratio mode for a channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_offset_expand\",\n      \"description\": \"设置通道偏置和扩展倍数。\",\n      \"description_en\": \"Set the channel offset and expand factor.\"\n    },\n    {\n      \"action_name\": \"auto-start_data_transfer\",\n      \"description\": \"启动缓冲数据传输。\",\n      \"description_en\": \"Start buffered data transfer.\"\n    },\n    {\n      \"action_name\": \"auto-start_scan\",\n      \"description\": \"开始扫描/采集过程。\",\n      \"description_en\": \"Start the scan or acquisition process.\"\n    },\n    {\n      \"action_name\": \"auto-take_measurement\",\n      \"description\": \"按指定采样率和样本数执行一次缓冲测量。\",\n      \"description_en\": \"Perform a buffered measurement with the specified sample rate and number of samples.\"\n    },\n    {\n      \"action_name\": \"auto-num_data_points\",\n      \"description\": \"获取缓冲区中的数据点数量。\",\n      \"description_en\": \"Get the number of data points in the buffer.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"lock-in amplifier\",\n    \"phase-sensitive detection\",\n    \"weak signal measurement\",\n    \"reference frequency control\",\n    \"buffered acquisition\",\n    \"X Y R theta readout\",\n    \"SCPI instrument\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2039,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2149,
+      "output_tokens_details": {
+        "reasoning_tokens": 953
+      },
+      "total_tokens": 4188
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2039,
+      "output_token_count": 2149,
+      "predict_time": 34.955472
+    }
+  },
+  "output_text": "{\n  \"name\": \"SRS830 锁相放大器\",\n  \"name_en\": \"SRS830 Lock-In Amplifier\",\n  \"manufacturer\": \"Stanford Research Systems\",\n  \"description\": \"Stanford Research Systems 的 SRS830 锁相放大器，用于相敏检测与弱信号测量。该设备可设置参考频率、相位、输入耦合和采样参数，并支持 X、Y、R、θ 等量的缓冲采集、快照读取与自动调零/调相。\",\n  \"description_en\": \"The SRS830 from Stanford Research Systems is a lock-in amplifier for phase-sensitive detection and weak-signal measurements. It supports control of reference frequency, phase, input coupling, and sampling parameters, and provides buffered acquisition, snapshot readout, and auto offset/auto phase functions for quantities such as X, Y, R, and theta.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-amplitude\",\n      \"description\": \"获取/设置参考输出幅度。\",\n      \"description_en\": \"Get/set the reference output amplitude.\"\n    },\n    {\n      \"action_name\": \"auto-auto_offset\",\n      \"description\": \"对选定测量模式自动调零偏置。\",\n      \"description_en\": \"Automatically zero the offset for the selected measurement mode.\"\n    },\n    {\n      \"action_name\": \"auto-auto_phase\",\n      \"description\": \"自动调整锁相相位。\",\n      \"description_en\": \"Automatically adjust the lock-in phase.\"\n    },\n    {\n      \"action_name\": \"auto-buffer_mode\",\n      \"description\": \"获取/设置数据缓冲模式。\",\n      \"description_en\": \"Get/set the data buffer mode.\"\n    },\n    {\n      \"action_name\": \"auto-clear_data_buffer\",\n      \"description\": \"清空内部数据缓冲区。\",\n      \"description_en\": \"Clear the internal data buffer.\"\n    },\n    {\n      \"action_name\": \"auto-coupling\",\n      \"description\": \"获取/设置输入耦合方式。\",\n      \"description_en\": \"Get/set the input coupling mode.\"\n    },\n    {\n      \"action_name\": \"auto-data_snap\",\n      \"description\": \"同时抓取两个选定参数的瞬时值。\",\n      \"description_en\": \"Capture an instantaneous snapshot of two selected parameters.\"\n    },\n    {\n      \"action_name\": \"auto-data_transfer\",\n      \"description\": \"获取/设置数据传输模式。\",\n      \"description_en\": \"Get/set the data transfer mode.\"\n    },\n    {\n      \"action_name\": \"auto-frequency\",\n      \"description\": \"获取/设置参考频率。\",\n      \"description_en\": \"Get/set the reference frequency.\"\n    },\n    {\n      \"action_name\": \"auto-frequency_source\",\n      \"description\": \"获取/设置参考频率源。\",\n      \"description_en\": \"Get/set the reference frequency source.\"\n    },\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化测量参数，包括采样率和缓冲模式。\",\n      \"description_en\": \"Initialize measurement settings, including sample rate and buffer mode.\"\n    },\n    {\n      \"action_name\": \"auto-input_shield_ground\",\n      \"description\": \"获取/设置输入屏蔽接地方式。\",\n      \"description_en\": \"Get/set the input shield grounding mode.\"\n    },\n    {\n      \"action_name\": \"auto-pause\",\n      \"description\": \"暂停数据采集。\",\n      \"description_en\": \"Pause data acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-phase\",\n      \"description\": \"获取/设置参考相位。\",\n      \"description_en\": \"Get/set the reference phase.\"\n    },\n    {\n      \"action_name\": \"auto-read_data_buffer\",\n      \"description\": \"读取指定通道的整个数据缓冲区。\",\n      \"description_en\": \"Read the entire data buffer for the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-sample_rate\",\n      \"description\": \"获取/设置数据采样率。\",\n      \"description_en\": \"Get/set the data sampling rate.\"\n    },\n    {\n      \"action_name\": \"auto-set_channel_display\",\n      \"description\": \"设置通道显示量及比值显示方式。\",\n      \"description_en\": \"Set the displayed quantity and ratio mode for a channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_offset_expand\",\n      \"description\": \"设置通道偏置和扩展倍数。\",\n      \"description_en\": \"Set the channel offset and expand factor.\"\n    },\n    {\n      \"action_name\": \"auto-start_data_transfer\",\n      \"description\": \"启动缓冲数据传输。\",\n      \"description_en\": \"Start buffered data transfer.\"\n    },\n    {\n      \"action_name\": \"auto-start_scan\",\n      \"description\": \"开始扫描/采集过程。\",\n      \"description_en\": \"Start the scan or acquisition process.\"\n    },\n    {\n      \"action_name\": \"auto-take_measurement\",\n      \"description\": \"按指定采样率和样本数执行一次缓冲测量。\",\n      \"description_en\": \"Perform a buffered measurement with the specified sample rate and number of samples.\"\n    },\n    {\n      \"action_name\": \"auto-num_data_points\",\n      \"description\": \"获取缓冲区中的数据点数量。\",\n      \"description_en\": \"Get the number of data points in the buffer.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"lock-in amplifier\",\n    \"phase-sensitive detection\",\n    \"weak signal measurement\",\n    \"reference frequency control\",\n    \"buffered acquisition\",\n    \"X Y R theta readout\",\n    \"SCPI instrument\"\n  ]\n}"
+}

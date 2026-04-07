@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: temp_dir_collection\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: PYME/cluster/webdav.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.webdav.webdav_tempdir_collection:TempDirCollection\n\nClass: Member \n  Bases: []\n\nClass: Collection \n  Bases: ['Member']\n\nClass: FileMember \n  Bases: ['Member']\n\nClass: DummyFileMember \n  Bases: ['FileMember']\n\nClass: DirCollection \n  Bases: ['FileMember', 'Collection']\n\nClass: TempDirCollection (focal)\n  Bases: ['DirCollection']\n  Docstring: Temporary directories do not exist on disk. They are held in\nmemory on the server to provide a mechanism for creating new\ndirectories with the create + rename/move mechanism used by most OSs\n\nClass: Tag \n  Bases: []\n\nClass: XMLDict_Parser \n  Bases: []\n\nClass: DAVRequestHandler \n  Bases: ['BaseHTTPRequestHandler']\n\nClass: BufWriter \n  Bases: []\n\nClass: DAVServer \n  Bases: ['ThreadingMixIn', 'HTTPServer']\n\nFocal class methods:\n  [command] getProperties(self)\n    comment: st = os.stat(self.fsname)\n    comment: Member.M_COLLECTION\n    comment: Return dictionary with WebDAV properties. Values shold be\n        formatted according to the WebDAV specs.\n  [command] getMembers(self)\n    comment: temporary directory is at this level\n  [command] findMember(self, name)\n  [command] recvMember(self, rfile, name, size, req)\n    comment: actually create the directory\n    comment: makedirs_safe(self.fsname)\n    comment: _temporary_directories.remove(self.fsname.rstrip('/'))\n\nRegistry actions:\n  auto-getProperties (from getProperties())\n  auto-getMembers (from getMembers())\n  auto-findMember (from findMember())\n  auto-recvMember (from recvMember())\n\nRequired output action ids:\n  auto-getProperties\n  auto-getMembers\n  auto-findMember\n  auto-recvMember"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0c6908fcf11f2dd20069d566873504819493abf5511cc576f7",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2808,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4011,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0c6908fcf11f2dd20069d56688edec81948ad5851934ad7fd7",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0c6908fcf11f2dd20069d566934b248194bc93914573917a7f",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"WebDAV 临时目录集合\",\n  \"name_en\": \"WebDAV Temporary Directory Collection\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于 WebDAV 服务器中表示仅保存在内存中的临时目录集合。这些临时目录在真正落盘前用于支持常见的“创建后再重命名/移动”目录创建流程，适合实验数据目录的暂存、属性查询和成员管理。\",\n  \"description_en\": \"This is a non-physical software component that represents an in-memory temporary directory collection in a WebDAV server. These temporary directories are used to support the common create-then-rename/move workflow before a directory is materialized on disk, for tasks such as staging experimental data folders, querying properties, and managing members.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-getProperties\",\n      \"description\": \"获取该 WebDAV 临时目录集合的属性。\",\n      \"description_en\": \"Get the properties of this WebDAV temporary directory collection.\"\n    },\n    {\n      \"action_name\": \"auto-getMembers\",\n      \"description\": \"获取该 WebDAV 临时目录集合中的成员项。\",\n      \"description_en\": \"Get the members contained in this WebDAV temporary directory collection.\"\n    },\n    {\n      \"action_name\": \"auto-findMember\",\n      \"description\": \"按名称查找该 WebDAV 临时目录集合中的成员项。\",\n      \"description_en\": \"Find a member in this WebDAV temporary directory collection by name.\"\n    },\n    {\n      \"action_name\": \"auto-recvMember\",\n      \"description\": \"接收并创建该 WebDAV 临时目录集合中的成员目录。\",\n      \"description_en\": \"Receive and create a member directory in this WebDAV temporary directory collection.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"WebDAV\",\n    \"temporary directory\",\n    \"in-memory collection\",\n    \"directory staging\",\n    \"file server\",\n    \"experimental data storage\",\n    \"member lookup\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1112,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 954,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2066
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1112,
+      "output_token_count": 954,
+      "predict_time": 20.567210934
+    }
+  },
+  "output_text": "{\n  \"name\": \"WebDAV 临时目录集合\",\n  \"name_en\": \"WebDAV Temporary Directory Collection\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于 WebDAV 服务器中表示仅保存在内存中的临时目录集合。这些临时目录在真正落盘前用于支持常见的“创建后再重命名/移动”目录创建流程，适合实验数据目录的暂存、属性查询和成员管理。\",\n  \"description_en\": \"This is a non-physical software component that represents an in-memory temporary directory collection in a WebDAV server. These temporary directories are used to support the common create-then-rename/move workflow before a directory is materialized on disk, for tasks such as staging experimental data folders, querying properties, and managing members.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-getProperties\",\n      \"description\": \"获取该 WebDAV 临时目录集合的属性。\",\n      \"description_en\": \"Get the properties of this WebDAV temporary directory collection.\"\n    },\n    {\n      \"action_name\": \"auto-getMembers\",\n      \"description\": \"获取该 WebDAV 临时目录集合中的成员项。\",\n      \"description_en\": \"Get the members contained in this WebDAV temporary directory collection.\"\n    },\n    {\n      \"action_name\": \"auto-findMember\",\n      \"description\": \"按名称查找该 WebDAV 临时目录集合中的成员项。\",\n      \"description_en\": \"Find a member in this WebDAV temporary directory collection by name.\"\n    },\n    {\n      \"action_name\": \"auto-recvMember\",\n      \"description\": \"接收并创建该 WebDAV 临时目录集合中的成员目录。\",\n      \"description_en\": \"Receive and create a member directory in this WebDAV temporary directory collection.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"WebDAV\",\n    \"temporary directory\",\n    \"in-memory collection\",\n    \"directory staging\",\n    \"file server\",\n    \"experimental data storage\",\n    \"member lookup\"\n  ]\n}"
+}

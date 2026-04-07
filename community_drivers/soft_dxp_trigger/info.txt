@@ -1,23 +1,79 @@
-Device: soft_dxp_trigger
-Registry Key: soft_dxp_trigger
-Short Description: XIA软件数字脉冲处理器(DXP)触发控制模块，用于X射线荧光探测器。
-
-Categories:
-- X射线衍射仪
-
-Related Tags (from tag 标签列表.csv):
-- [4362] X射线衍射仪 / X-Ray Diffractometer (device_template_tag)
-
-Atom Actions (2):
-- auto-get_low_level_parameter -> get_low_level_parameter [UniLabJsonCommand] goal_params: index
-- auto-stage -> stage [UniLabJsonCommand] goal_params: none
-
-Driver Functions (8):
-- ROI.__init__(self, prefix, *, read_attrs, configuration_attrs, name, parent, **kwargs) (line 87)
-- add_rois(range_, **kwargs) (line 108)
-- EpicsMCARecord.__init__(self, *args, **kwargs) (line 148)
-- EpicsMCARecord.stop(self, *, success) (line 155)
-- EpicsDXPLowLevel.__init__(self, *args, **kwargs) (line 281)
-- EpicsDXPLowLevel.get_low_level_parameter(self, index) (line 285)
-- SoftDXPTrigger.__init__(self, *args, count_signal, stop_signal, mode_signal, preset_mode, **kwargs) (line 456)
-- SoftDXPTrigger.stage(self) (line 476)
+soft_dxp_trigger:
+  name: DXP软触发组件
+  name_en: DXP Soft Trigger Component
+  manufacturer: ''
+  category:
+  - 数字脉冲处理器
+  tags:
+  - 表征设备
+  - 智慧表征与检测中心
+  - X射线与辐射能谱测量
+  - 同步计数与探测器通道监测
+  - 数字脉冲处理器
+  description: 用于 DXP/MCA 采集系统的非实体软件触发组件。它在实验中负责为关联的 EPICS DXP 设备准备软触发采集流程、设置预设计数相关信号，并在进入
+    stage 时整理采集时间等阶段参数。
+  description_en: A non-physical software trigger component for DXP/MCA acquisition
+    systems. In laboratory use, it prepares soft-triggered acquisition for associated
+    EPICS DXP devices, configures preset counting-related signals, and organizes staged
+    acquisition parameters such as count time during staging.
+  class:
+    action_value_mappings:
+      auto-get_low_level_parameter:
+        schema:
+          description: 获取关联 DXP 设备的底层参数值。
+          description_en: Get a low-level parameter value from the associated DXP
+            device.
+      auto-stage:
+        schema:
+          description: 为软触发采集进行预备配置，并在需要时整理阶段中的计数时间等设置信号。
+          description_en: Prepare the soft-triggered acquisition configuration and
+            manage staged settings such as count-time-related signals when needed.
+auto_annotation_metadata:
+  registry_key: soft_dxp_trigger
+  annotation_workflow_version: v4
+  tag_hints:
+  - software trigger
+  - DXP acquisition
+  - EPICS MCA
+  - staging control
+  - preset mode
+  - count time setup
+  - X-ray spectroscopy
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该组件服务于DXP/MCA采集流程配置，明显属于表征采集链路。
+  - id: '4325'
+    name: 智慧表征与检测中心
+    name_en: Intelligent Characterization & Testing Center
+    type: experimental_domain
+    rationale: 其用途是为探测采集系统准备软触发与计数参数，适用于表征检测域。
+  - id: P-2009
+    name: X射线与辐射能谱测量
+    name_en: X-Ray & Radiation Spectroscopy
+    type: experimental_scene
+    rationale: 描述涉及DXP/MCA与预设计数模式，符合X射线/辐射能谱采集场景。
+  - id: P-12006
+    name: 同步计数与探测器通道监测
+    name_en: Synchronized Counting & Detector Channel Monitoring
+    type: experimental_scene
+    rationale: 组件会整理count time和预设计数相关信号，符合同步计数监测场景。
+  - id: P-12001
+    name: 数字脉冲处理器
+    name_en: Digital Pulse Processor
+    type: device_template_tag
+    rationale: DXP系统通常对应数字脉冲处理采集体系，该软触发组件直接面向这类设备。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

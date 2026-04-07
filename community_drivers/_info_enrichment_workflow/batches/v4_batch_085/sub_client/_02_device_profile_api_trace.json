@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: sub_client\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: instrumentserver/client/proxy.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.network_client.sub_client:SubClient\n\nClass: ProxyMixin \n  Bases: []\n  Docstring: A simple mixin class for proxy objects.\n\nClass: ProxyParameter \n  Bases: ['ProxyMixin', 'Parameter']\n  Docstring: Proxy for parameters.\n\n:param cli: Instance of `Client`.\n:param name: The parameter name.\n:param host: The name of the host where the server lives.\n:param port: The port number of the server.\n:param remotePath: Path of the remote object on the server.\n:param bluePrint: The blue print to construct the proxy parameter.\n    If `remotePath` and `bluePrint` are both supplied, the blue print takes\n    priority.\n\nClass: ProxyInstrumentModule \n  Bases: ['ProxyMixin', 'InstrumentBase']\n  Docstring: Construct a proxy module using the given blueprint. Each proxy\ninstantiation represents a virtual module (instrument of submodule of\ninstrument).\n\n:param bluePrint: The blueprint that the describes the module.\n:param host: The name of the host where the server lives.\n:param port: The port number of the server.\n\nClass: Client \n  Bases: ['BaseClient']\n  Docstring: Client with common server requests as convenience functions.\n\nClass: SubClient (focal)\n  Bases: ['QtCore.QObject']\n  Docstring: Specific subscription client used for real-time parameter updates.\n\nClass: _QtAdapter \n  Bases: ['QtCore.QObject']\n\nClass: QtClient \n  Bases: ['_QtAdapter', 'Client']\n\nClass: ClientStation \n  Bases: []\n\nFocal class methods:\n  [command] connect(self)\n    comment: subscribe to the specified instruments\n    comment: Make recv interruptible so we can stop gracefully\n    comment: timeout -> loop to check _stop\n    comment: Connects the subscription client with the broadcast\n        and runs an infinite loop to check for updates.\n\n        It should always be run on a separate thread or the program will get stuck in the l...\n  [command] stop(self)\n    comment: Stops the listener gracefully.\n  [command] disconnect(self)\n    comment: Alias for stop() for backwards compatibility.\n\nRegistry actions:\n  auto-connect (from connect())\n  auto-stop (from stop())\n  auto-disconnect (from disconnect())\n  auto-initKwargsFromBluePrint (from initKwargsFromBluePrint())\n  auto-askServer (from askServer())\n  auto-get_snapshot (from get_snapshot())\n  auto-update (from update())\n  auto-set_parameters (from set_parameters())\n  auto-add_parameter (from add_parameter())\n  auto-remove_parameter (from remove_parameter())\n  auto-list_instruments (from list_instruments())\n  auto-find_or_create_instrument (from find_or_create_instrument())\n  auto-close_instrument (from close_instrument())\n  auto-call (from call())\n  auto-get_instrument (from get_instrument())\n  auto-getBluePrint (from getBluePrint())\n  auto-invalidateBlueprint (from invalidateBlueprint())\n  auto-getParamDict (from getParamDict())\n  auto-paramsToFile (from paramsToFile())\n  auto-setParameters (from setParameters())\n  auto-paramsFromFile (from paramsFromFile())\n  auto-get_parameters (from get_parameters())\n  auto-save_parameters (from save_parameters())\n  auto-load_parameters (from load_parameters())\n\nRequired output action ids:\n  auto-connect\n  auto-stop\n  auto-disconnect\n  auto-initKwargsFromBluePrint\n  auto-askServer\n  auto-get_snapshot\n  auto-update\n  auto-set_parameters\n  auto-add_parameter\n  auto-remove_parameter\n  auto-list_instruments\n  auto-find_or_create_instrument\n  auto-close_instrument\n  auto-call\n  auto-get_instrument\n  auto-getBluePrint\n  auto-invalidateBlueprint\n  auto-getParamDict\n  auto-paramsToFile\n  auto-setParameters\n  auto-paramsFromFile\n  auto-get_parameters\n  auto-save_parameters\n  auto-load_parameters"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0b0ef843c06d0ee80069d562aa6820819798d59ce6d9d6a183",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1781,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 8201,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0b0ef843c06d0ee80069d562aacee48197962e35655e20752e",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0b0ef843c06d0ee80069d562b922248197bb1e830646fb6fa6",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"仪器服务器订阅客户端\",\n  \"name_en\": \"Instrument Server Subscription Client\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非实体的软件客户端组件，用于实验控制系统中连接远程仪器服务器、订阅实时参数更新，并通过代理对象访问远程仪器、模块和参数。它主要用于参数监视、快照获取、远程调用以及参数配置的保存与加载，而不是直接驱动物理仪器硬件。\",\n  \"description_en\": \"This is a non-physical software client component for connecting to a remote instrument server, subscribing to real-time parameter updates, and accessing remote instruments, modules, and parameters through proxy objects. It is mainly used for parameter monitoring, snapshot retrieval, remote calls, and saving/loading parameter configurations, rather than directly controlling physical hardware.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"连接到服务器广播通道并开始订阅指定仪器的实时参数更新。\",\n      \"description_en\": \"Connect to the server broadcast channel and start subscribing to real-time parameter updates for specified instruments.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止订阅监听循环并优雅地结束客户端监听。\",\n      \"description_en\": \"Stop the subscription listener loop and gracefully terminate client listening.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开订阅客户端连接；为停止监听提供兼容别名。\",\n      \"description_en\": \"Disconnect the subscription client; a backward-compatible alias for stopping the listener.\"\n    },\n    {\n      \"action_name\": \"auto-initKwargsFromBluePrint\",\n      \"description\": \"根据远程对象蓝图初始化代理对象所需的构造参数。\",\n      \"description_en\": \"Initialize proxy-construction keyword arguments from a remote object blueprint.\"\n    },\n    {\n      \"action_name\": \"auto-askServer\",\n      \"description\": \"向服务器发送通用请求并获取响应。\",\n      \"description_en\": \"Send a generic request to the server and receive a response.\"\n    },\n    {\n      \"action_name\": \"auto-get_snapshot\",\n      \"description\": \"获取远程仪器、模块或参数对象的当前快照信息。\",\n      \"description_en\": \"Retrieve a current snapshot of a remote instrument, module, or parameter object.\"\n    },\n    {\n      \"action_name\": \"auto-update\",\n      \"description\": \"更新本地代理中的远程状态或参数信息。\",\n      \"description_en\": \"Update remote state or parameter information in the local proxy.\"\n    },\n    {\n      \"action_name\": \"auto-set_parameters\",\n      \"description\": \"批量设置远程参数的值。\",\n      \"description_en\": \"Set multiple remote parameter values in a batch.\"\n    },\n    {\n      \"action_name\": \"auto-add_parameter\",\n      \"description\": \"向远程对象或代理结构中添加参数。\",\n      \"description_en\": \"Add a parameter to a remote object or proxy structure.\"\n    },\n    {\n      \"action_name\": \"auto-remove_parameter\",\n      \"description\": \"从远程对象或代理结构中移除参数。\",\n      \"description_en\": \"Remove a parameter from a remote object or proxy structure.\"\n    },\n    {\n      \"action_name\": \"auto-list_instruments\",\n      \"description\": \"列出服务器上可用的远程仪器对象。\",\n      \"description_en\": \"List available remote instrument objects on the server.\"\n    },\n    {\n      \"action_name\": \"auto-find_or_create_instrument\",\n      \"description\": \"查找已有远程仪器，或在服务器上创建新的仪器对象。\",\n      \"description_en\": \"Find an existing remote instrument or create a new instrument object on the server.\"\n    },\n    {\n      \"action_name\": \"auto-close_instrument\",\n      \"description\": \"关闭服务器上的远程仪器对象。\",\n      \"description_en\": \"Close a remote instrument object on the server.\"\n    },\n    {\n      \"action_name\": \"auto-call\",\n      \"description\": \"调用远程对象的方法。\",\n      \"description_en\": \"Call a method on a remote object.\"\n    },\n    {\n      \"action_name\": \"auto-get_instrument\",\n      \"description\": \"获取指定远程仪器的代理对象。\",\n      \"description_en\": \"Get a proxy object for a specified remote instrument.\"\n    },\n    {\n      \"action_name\": \"auto-getBluePrint\",\n      \"description\": \"获取远程仪器或模块的蓝图描述信息。\",\n      \"description_en\": \"Get the blueprint description of a remote instrument or module.\"\n    },\n    {\n      \"action_name\": \"auto-invalidateBlueprint\",\n      \"description\": \"使缓存的蓝图失效，以便重新获取最新结构信息。\",\n      \"description_en\": \"Invalidate a cached blueprint so the latest structural information can be fetched again.\"\n    },\n    {\n      \"action_name\": \"auto-getParamDict\",\n      \"description\": \"获取参数字典形式的配置或当前值信息。\",\n      \"description_en\": \"Get parameter information as a dictionary of configuration or current values.\"\n    },\n    {\n      \"action_name\": \"auto-paramsToFile\",\n      \"description\": \"将参数配置导出到文件。\",\n      \"description_en\": \"Export parameter configurations to a file.\"\n    },\n    {\n      \"action_name\": \"auto-setParameters\",\n      \"description\": \"通过兼容接口批量设置远程参数。\",\n      \"description_en\": \"Set multiple remote parameters through a compatibility-style interface.\"\n    },\n    {\n      \"action_name\": \"auto-paramsFromFile\",\n      \"description\": \"从文件读取参数配置并导入到远程对象或代理中。\",\n      \"description_en\": \"Read parameter configurations from a file and import them into a remote object or proxy.\"\n    },\n    {\n      \"action_name\": \"auto-get_parameters\",\n      \"description\": \"获取一个或多个远程参数的当前信息。\",\n      \"description_en\": \"Get current information for one or more remote parameters.\"\n    },\n    {\n      \"action_name\": \"auto-save_parameters\",\n      \"description\": \"保存参数配置，便于后续恢复或复现实验设置。\",\n      \"description_en\": \"Save parameter configurations for later restoration or experiment reproduction.\"\n    },\n    {\n      \"action_name\": \"auto-load_parameters\",\n      \"description\": \"加载已保存的参数配置并应用到远程对象。\",\n      \"description_en\": \"Load saved parameter configurations and apply them to remote objects.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"instrument server client\",\n    \"real-time parameter subscription\",\n    \"remote instrument proxy\",\n    \"Qt client\",\n    \"snapshot retrieval\",\n    \"parameter configuration persistence\",\n    \"networked lab control\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1542,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2154,
+      "output_tokens_details": {
+        "reasoning_tokens": 721
+      },
+      "total_tokens": 3696
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1542,
+      "output_token_count": 2154,
+      "predict_time": 35.419578169
+    }
+  },
+  "output_text": "{\n  \"name\": \"仪器服务器订阅客户端\",\n  \"name_en\": \"Instrument Server Subscription Client\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非实体的软件客户端组件，用于实验控制系统中连接远程仪器服务器、订阅实时参数更新，并通过代理对象访问远程仪器、模块和参数。它主要用于参数监视、快照获取、远程调用以及参数配置的保存与加载，而不是直接驱动物理仪器硬件。\",\n  \"description_en\": \"This is a non-physical software client component for connecting to a remote instrument server, subscribing to real-time parameter updates, and accessing remote instruments, modules, and parameters through proxy objects. It is mainly used for parameter monitoring, snapshot retrieval, remote calls, and saving/loading parameter configurations, rather than directly controlling physical hardware.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"连接到服务器广播通道并开始订阅指定仪器的实时参数更新。\",\n      \"description_en\": \"Connect to the server broadcast channel and start subscribing to real-time parameter updates for specified instruments.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止订阅监听循环并优雅地结束客户端监听。\",\n      \"description_en\": \"Stop the subscription listener loop and gracefully terminate client listening.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开订阅客户端连接；为停止监听提供兼容别名。\",\n      \"description_en\": \"Disconnect the subscription client; a backward-compatible alias for stopping the listener.\"\n    },\n    {\n      \"action_name\": \"auto-initKwargsFromBluePrint\",\n      \"description\": \"根据远程对象蓝图初始化代理对象所需的构造参数。\",\n      \"description_en\": \"Initialize proxy-construction keyword arguments from a remote object blueprint.\"\n    },\n    {\n      \"action_name\": \"auto-askServer\",\n      \"description\": \"向服务器发送通用请求并获取响应。\",\n      \"description_en\": \"Send a generic request to the server and receive a response.\"\n    },\n    {\n      \"action_name\": \"auto-get_snapshot\",\n      \"description\": \"获取远程仪器、模块或参数对象的当前快照信息。\",\n      \"description_en\": \"Retrieve a current snapshot of a remote instrument, module, or parameter object.\"\n    },\n    {\n      \"action_name\": \"auto-update\",\n      \"description\": \"更新本地代理中的远程状态或参数信息。\",\n      \"description_en\": \"Update remote state or parameter information in the local proxy.\"\n    },\n    {\n      \"action_name\": \"auto-set_parameters\",\n      \"description\": \"批量设置远程参数的值。\",\n      \"description_en\": \"Set multiple remote parameter values in a batch.\"\n    },\n    {\n      \"action_name\": \"auto-add_parameter\",\n      \"description\": \"向远程对象或代理结构中添加参数。\",\n      \"description_en\": \"Add a parameter to a remote object or proxy structure.\"\n    },\n    {\n      \"action_name\": \"auto-remove_parameter\",\n      \"description\": \"从远程对象或代理结构中移除参数。\",\n      \"description_en\": \"Remove a parameter from a remote object or proxy structure.\"\n    },\n    {\n      \"action_name\": \"auto-list_instruments\",\n      \"description\": \"列出服务器上可用的远程仪器对象。\",\n      \"description_en\": \"List available remote instrument objects on the server.\"\n    },\n    {\n      \"action_name\": \"auto-find_or_create_instrument\",\n      \"description\": \"查找已有远程仪器，或在服务器上创建新的仪器对象。\",\n      \"description_en\": \"Find an existing remote instrument or create a new instrument object on the server.\"\n    },\n    {\n      \"action_name\": \"auto-close_instrument\",\n      \"description\": \"关闭服务器上的远程仪器对象。\",\n      \"description_en\": \"Close a remote instrument object on the server.\"\n    },\n    {\n      \"action_name\": \"auto-call\",\n      \"description\": \"调用远程对象的方法。\",\n      \"description_en\": \"Call a method on a remote object.\"\n    },\n    {\n      \"action_name\": \"auto-get_instrument\",\n      \"description\": \"获取指定远程仪器的代理对象。\",\n      \"description_en\": \"Get a proxy object for a specified remote instrument.\"\n    },\n    {\n      \"action_name\": \"auto-getBluePrint\",\n      \"description\": \"获取远程仪器或模块的蓝图描述信息。\",\n      \"description_en\": \"Get the blueprint description of a remote instrument or module.\"\n    },\n    {\n      \"action_name\": \"auto-invalidateBlueprint\",\n      \"description\": \"使缓存的蓝图失效，以便重新获取最新结构信息。\",\n      \"description_en\": \"Invalidate a cached blueprint so the latest structural information can be fetched again.\"\n    },\n    {\n      \"action_name\": \"auto-getParamDict\",\n      \"description\": \"获取参数字典形式的配置或当前值信息。\",\n      \"description_en\": \"Get parameter information as a dictionary of configuration or current values.\"\n    },\n    {\n      \"action_name\": \"auto-paramsToFile\",\n      \"description\": \"将参数配置导出到文件。\",\n      \"description_en\": \"Export parameter configurations to a file.\"\n    },\n    {\n      \"action_name\": \"auto-setParameters\",\n      \"description\": \"通过兼容接口批量设置远程参数。\",\n      \"description_en\": \"Set multiple remote parameters through a compatibility-style interface.\"\n    },\n    {\n      \"action_name\": \"auto-paramsFromFile\",\n      \"description\": \"从文件读取参数配置并导入到远程对象或代理中。\",\n      \"description_en\": \"Read parameter configurations from a file and import them into a remote object or proxy.\"\n    },\n    {\n      \"action_name\": \"auto-get_parameters\",\n      \"description\": \"获取一个或多个远程参数的当前信息。\",\n      \"description_en\": \"Get current information for one or more remote parameters.\"\n    },\n    {\n      \"action_name\": \"auto-save_parameters\",\n      \"description\": \"保存参数配置，便于后续恢复或复现实验设置。\",\n      \"description_en\": \"Save parameter configurations for later restoration or experiment reproduction.\"\n    },\n    {\n      \"action_name\": \"auto-load_parameters\",\n      \"description\": \"加载已保存的参数配置并应用到远程对象。\",\n      \"description_en\": \"Load saved parameter configurations and apply them to remote objects.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"instrument server client\",\n    \"real-time parameter subscription\",\n    \"remote instrument proxy\",\n    \"Qt client\",\n    \"snapshot retrieval\",\n    \"parameter configuration persistence\",\n    \"networked lab control\"\n  ]\n}"
+}

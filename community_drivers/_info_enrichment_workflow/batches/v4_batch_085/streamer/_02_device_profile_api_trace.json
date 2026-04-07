@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: streamer\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: ble2lsl/ble2lsl.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.universal.streamer:Streamer\n\nClass: BaseStreamer \n  Bases: []\n  Docstring: Base class for streaming data through an LSL outlet.\n\nPrepares `pylsl.StreamInfo` and `pylsl.StreamOutlet` objects as well as\ndata buffers for handling of incoming chunks.\n\nSubclasses must implement `start` and `stop` methods for stream control.\n\nTODO:\n    * Public access to outlets and stream info?\n    * Push chunks, not samples (have to generate intra-chunk timestamps anyway)\n\nClass: Streamer (focal)\n  Bases: ['BaseStreamer']\n  Docstring: Streams data to an LSL outlet from a BLE device.\n\nTODO:\n    * Try built-in LSL features for intra-chunk timestamps (StreamOutlet)\n    * initialize_timestamping: should indices be reset to 0 mid-streaming?\n\nClass: Dummy \n  Bases: ['BaseStreamer']\n  Docstring: Mimicks a device and pushes local data into an LSL outlet.\n\nTODO:\n    * verify timestamps/delays (seems too fast in plot.Lines)\n\nClass: ChunkIterator \n  Bases: []\n  Docstring: Generator object (i.e. iterator) that yields chunks.\n\nPlaceholder until I figure out how this might work as a base class.\n\nClass: NoisySinusoids \n  Bases: ['ChunkIterator']\n  Docstring: Iterator class to provide noisy sinusoidal chunks of data.\n\nFocal class methods:\n  [command] start(self)\n    comment: Start streaming by writing to the send characteristic.\n  [command] stop(self)\n    comment: Stop streaming by writing to the send characteristic.\n  [command] send_command(self, value)\n    comment: Write some value to the send characteristic.\n  [command] disconnect(self)\n    comment: Disconnect from the BLE device and stop the adapter.\n\n        Note:\n            After disconnection, `start` will not resume streaming.\n\n        TODO:\n            * enable device reconnect with `conne...\n  [command] connect(self, max_attempts=20)\n    comment: dongle not connected\n    comment: \"device not configured\"\n    comment: NOTE: some of these may be raised (apparently harmlessly) by\n    comment: the self._adapter._receiver thread, which can't be captured\n    comment: here; maybe there is a way to prevent writing to stdout though\n    comment: \"couldn't open port\"\n    comment: adapter not connected?\n    comment: get the device address if none was provided\n    comment: initialize LSL outlets and packet handler\n    comment: subscribe to receive characteristic notifications\n    comment: Establish connection to BLE device (prior to `start`).\n\n        Starts the `pygatt` adapter, resolves the device address if necessary,\n        connects to the device, and subscribes to the channels sp...\n  [status_getter] backend(self)\n    comment: The name of the `pygatt` backend used by the instance.\n  [status_getter] address(self)\n    comment: The MAC address of the device.\n\nRegistry actions:\n  auto-start (from start())\n  auto-stop (from stop())\n  auto-send_command (from send_command())\n  auto-disconnect (from disconnect())\n  auto-connect (from connect())\n  auto-backend (from backend())\n  auto-address (from address())\n  auto-subscriptions (from subscriptions())\n  auto-make_chunk (from make_chunk())\n\nRequired output action ids:\n  auto-start\n  auto-stop\n  auto-send_command\n  auto-disconnect\n  auto-connect\n  auto-backend\n  auto-address\n  auto-subscriptions\n  auto-make_chunk"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_00311322eaf66e880069d5629e0d90819097552b052ebd9fc7",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4463,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5819,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_00311322eaf66e880069d5629e839881909da2efe13a90455c",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_00311322eaf66e880069d562abda7481909f4e5ab470cdc111",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"BLE到LSL数据流组件\",\n  \"name_en\": \"BLE-to-LSL Streamer\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于连接蓝牙低功耗（BLE）设备，订阅其通知数据，将收到的样本整理为数据块并发布到 Lab Streaming Layer（LSL）输出流中，供实验中的实时采集、同步和显示使用。\",\n  \"description_en\": \"This is a non-physical software component that connects to a Bluetooth Low Energy (BLE) device, subscribes to its notifications, organizes incoming samples into chunks, and publishes them to a Lab Streaming Layer (LSL) outlet for real-time acquisition, synchronization, and visualization in experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"开始通过 LSL 输出来自 BLE 设备的数据流。\",\n      \"description_en\": \"Start streaming data from the BLE device to the LSL outlet.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止通过 LSL 输出数据流。\",\n      \"description_en\": \"Stop streaming data to the LSL outlet.\"\n    },\n    {\n      \"action_name\": \"auto-send_command\",\n      \"description\": \"向 BLE 设备的发送特征写入命令值。\",\n      \"description_en\": \"Write a command value to the BLE device's send characteristic.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开 BLE 设备连接并停止适配器。\",\n      \"description_en\": \"Disconnect from the BLE device and stop the adapter.\"\n    },\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"连接 BLE 设备，初始化 LSL 输出，并订阅接收特征通知。\",\n      \"description_en\": \"Connect to the BLE device, initialize the LSL outlet, and subscribe to notifications on the receive characteristic.\"\n    },\n    {\n      \"action_name\": \"auto-backend\",\n      \"description\": \"获取 pygatt 后端名称。\",\n      \"description_en\": \"get the name of the pygatt backend\"\n    },\n    {\n      \"action_name\": \"auto-address\",\n      \"description\": \"获取设备的 MAC 地址。\",\n      \"description_en\": \"get the device MAC address\"\n    },\n    {\n      \"action_name\": \"auto-subscriptions\",\n      \"description\": \"获取已配置的 BLE 订阅通道。\",\n      \"description_en\": \"Get the configured BLE subscription channels.\"\n    },\n    {\n      \"action_name\": \"auto-make_chunk\",\n      \"description\": \"生成用于 LSL 输出的数据块。\",\n      \"description_en\": \"Create a data chunk for LSL output.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Lab Streaming Layer (LSL)\",\n    \"BLE data streaming\",\n    \"real-time experiment synchronization\",\n    \"Bluetooth Low Energy\",\n    \"pygatt\",\n    \"biosignal data acquisition\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1468,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1435,
+      "output_tokens_details": {
+        "reasoning_tokens": 797
+      },
+      "total_tokens": 2903
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1468,
+      "output_token_count": 1435,
+      "predict_time": 23.288143476
+    }
+  },
+  "output_text": "{\n  \"name\": \"BLE到LSL数据流组件\",\n  \"name_en\": \"BLE-to-LSL Streamer\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于连接蓝牙低功耗（BLE）设备，订阅其通知数据，将收到的样本整理为数据块并发布到 Lab Streaming Layer（LSL）输出流中，供实验中的实时采集、同步和显示使用。\",\n  \"description_en\": \"This is a non-physical software component that connects to a Bluetooth Low Energy (BLE) device, subscribes to its notifications, organizes incoming samples into chunks, and publishes them to a Lab Streaming Layer (LSL) outlet for real-time acquisition, synchronization, and visualization in experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"开始通过 LSL 输出来自 BLE 设备的数据流。\",\n      \"description_en\": \"Start streaming data from the BLE device to the LSL outlet.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止通过 LSL 输出数据流。\",\n      \"description_en\": \"Stop streaming data to the LSL outlet.\"\n    },\n    {\n      \"action_name\": \"auto-send_command\",\n      \"description\": \"向 BLE 设备的发送特征写入命令值。\",\n      \"description_en\": \"Write a command value to the BLE device's send characteristic.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开 BLE 设备连接并停止适配器。\",\n      \"description_en\": \"Disconnect from the BLE device and stop the adapter.\"\n    },\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"连接 BLE 设备，初始化 LSL 输出，并订阅接收特征通知。\",\n      \"description_en\": \"Connect to the BLE device, initialize the LSL outlet, and subscribe to notifications on the receive characteristic.\"\n    },\n    {\n      \"action_name\": \"auto-backend\",\n      \"description\": \"获取 pygatt 后端名称。\",\n      \"description_en\": \"get the name of the pygatt backend\"\n    },\n    {\n      \"action_name\": \"auto-address\",\n      \"description\": \"获取设备的 MAC 地址。\",\n      \"description_en\": \"get the device MAC address\"\n    },\n    {\n      \"action_name\": \"auto-subscriptions\",\n      \"description\": \"获取已配置的 BLE 订阅通道。\",\n      \"description_en\": \"Get the configured BLE subscription channels.\"\n    },\n    {\n      \"action_name\": \"auto-make_chunk\",\n      \"description\": \"生成用于 LSL 输出的数据块。\",\n      \"description_en\": \"Create a data chunk for LSL output.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Lab Streaming Layer (LSL)\",\n    \"BLE data streaming\",\n    \"real-time experiment synchronization\",\n    \"Bluetooth Low Energy\",\n    \"pygatt\",\n    \"biosignal data acquisition\"\n  ]\n}"
+}

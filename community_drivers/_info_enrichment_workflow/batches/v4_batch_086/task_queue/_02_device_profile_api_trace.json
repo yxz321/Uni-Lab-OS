@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: task_queue\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: PYME/ParallelTasks/taskQueue.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.common.task_queue:TaskQueue\n\nClass: TaskQueue (focal)\n  Bases: []\n\nClass: TaskQueueWithData \n  Bases: ['TaskQueue']\n\nFocal class methods:\n  [command] postTask(self, task)\n  [command] postTasks(self, tasks)\n    comment: print '[%s] - Recieved new task' % self.queueID\n  [command] getTask(self, workerN=0, NWorkers=1)\n    comment: print '[%s] - Recieved %d new tasks' % (self.queueID, len(tasks))\n    comment: print 'Task requested'\n    comment: print '[%s] - Task given to worker' % self.queueID\n    comment: get task from front of list, blocks\n  [command] getTasks(self, workerN=0, NWorkers=1)\n  [command] returnCompletedTask(self, taskResult)\n  [command] returnCompletedTasks(self, taskResults)\n    comment: for taskResult in taskResults:\n    comment: allow this to be over-ridden\n  [command] fileResults(self, taskResults)\n    comment: allow this to be over-ridden in derived classes to file multiple results at once\n  [command] fileResult(self, taskResult)\n  [command] getCompletedTask(self)\n  [command] checkTimeouts(self)\n  [command] getNumberOpenTasks(self, exact=True)\n  [command] getNumberTasksInProgress(self)\n  [command] getNumberTasksCompleted(self)\n  [command] cleanup(self)\n  [command] purge(self)\n  [command] setPopFcn(self, fcn)\n    comment: sets the function which determines which task to give a worker\n\nRegistry actions:\n  auto-postTask (from postTask())\n  auto-postTasks (from postTasks())\n  auto-getTask (from getTask())\n  auto-getTasks (from getTasks())\n  auto-returnCompletedTask (from returnCompletedTask())\n  auto-returnCompletedTasks (from returnCompletedTasks())\n  auto-fileResults (from fileResults())\n  auto-fileResult (from fileResult())\n  auto-getCompletedTask (from getCompletedTask())\n  auto-checkTimeouts (from checkTimeouts())\n  auto-getNumberOpenTasks (from getNumberOpenTasks())\n  auto-getNumberTasksInProgress (from getNumberTasksInProgress())\n  auto-getNumberTasksCompleted (from getNumberTasksCompleted())\n  auto-cleanup (from cleanup())\n  auto-purge (from purge())\n  auto-setPopFcn (from setPopFcn())\n\nRequired output action ids:\n  auto-postTask\n  auto-postTasks\n  auto-getTask\n  auto-getTasks\n  auto-returnCompletedTask\n  auto-returnCompletedTasks\n  auto-fileResults\n  auto-fileResult\n  auto-getCompletedTask\n  auto-checkTimeouts\n  auto-getNumberOpenTasks\n  auto-getNumberTasksInProgress\n  auto-getNumberTasksCompleted\n  auto-cleanup\n  auto-purge\n  auto-setPopFcn"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0c914ecc0ae6e7480069d564c02ca88196859bb64a96a3dae7",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1799,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6524,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0c914ecc0ae6e7480069d564c0d3708196bf4b91d7f2032a0f",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0c914ecc0ae6e7480069d564cfc9c08196a32a040d46cc64e5",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"并行任务队列\",\n  \"name_en\": \"Parallel Task Queue\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于实验相关的并行计算与数据处理流程。它负责向工作进程分发任务、接收已完成结果、归档结果，并统计开放、进行中和已完成的任务数量。\",\n  \"description_en\": \"This is a non-physical software component used in experiment-related parallel computation and data-processing workflows. It distributes tasks to workers, receives completed results, files results, and tracks open, in-progress, and completed task counts.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-postTask\",\n      \"description\": \"向队列提交单个任务。\",\n      \"description_en\": \"Submit a single task to the queue.\"\n    },\n    {\n      \"action_name\": \"auto-postTasks\",\n      \"description\": \"向队列批量提交多个任务。\",\n      \"description_en\": \"Submit multiple tasks to the queue.\"\n    },\n    {\n      \"action_name\": \"auto-getTask\",\n      \"description\": \"为工作进程获取一个待处理任务。\",\n      \"description_en\": \"Retrieve one pending task for a worker.\"\n    },\n    {\n      \"action_name\": \"auto-getTasks\",\n      \"description\": \"为工作进程获取一批待处理任务。\",\n      \"description_en\": \"Retrieve a batch of pending tasks for a worker.\"\n    },\n    {\n      \"action_name\": \"auto-returnCompletedTask\",\n      \"description\": \"提交单个已完成任务的结果。\",\n      \"description_en\": \"Return the result of one completed task.\"\n    },\n    {\n      \"action_name\": \"auto-returnCompletedTasks\",\n      \"description\": \"批量提交多个已完成任务的结果。\",\n      \"description_en\": \"Return the results of multiple completed tasks.\"\n    },\n    {\n      \"action_name\": \"auto-fileResults\",\n      \"description\": \"归档一批任务结果。\",\n      \"description_en\": \"File a batch of task results.\"\n    },\n    {\n      \"action_name\": \"auto-fileResult\",\n      \"description\": \"归档单个任务结果。\",\n      \"description_en\": \"File a single task result.\"\n    },\n    {\n      \"action_name\": \"auto-getCompletedTask\",\n      \"description\": \"获取一个已完成任务的结果。\",\n      \"description_en\": \"Get one completed task result.\"\n    },\n    {\n      \"action_name\": \"auto-checkTimeouts\",\n      \"description\": \"检查并处理超时任务。\",\n      \"description_en\": \"Check for and handle timed-out tasks.\"\n    },\n    {\n      \"action_name\": \"auto-getNumberOpenTasks\",\n      \"description\": \"获取当前开放任务数量。\",\n      \"description_en\": \"Get the current number of open tasks.\"\n    },\n    {\n      \"action_name\": \"auto-getNumberTasksInProgress\",\n      \"description\": \"获取当前进行中任务数量。\",\n      \"description_en\": \"Get the current number of tasks in progress.\"\n    },\n    {\n      \"action_name\": \"auto-getNumberTasksCompleted\",\n      \"description\": \"获取当前已完成任务数量。\",\n      \"description_en\": \"Get the current number of completed tasks.\"\n    },\n    {\n      \"action_name\": \"auto-cleanup\",\n      \"description\": \"清理队列相关资源和状态。\",\n      \"description_en\": \"Clean up queue-related resources and state.\"\n    },\n    {\n      \"action_name\": \"auto-purge\",\n      \"description\": \"清空队列中的任务和结果。\",\n      \"description_en\": \"Purge tasks and results from the queue.\"\n    },\n    {\n      \"action_name\": \"auto-setPopFcn\",\n      \"description\": \"设置任务弹出或分配策略函数。\",\n      \"description_en\": \"Set the task pop or dispatch selection function.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"task scheduling\",\n    \"parallel processing\",\n    \"worker queue\",\n    \"result collection\",\n    \"distributed computation\",\n    \"experiment workflow\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1347,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1672,
+      "output_tokens_details": {
+        "reasoning_tokens": 812
+      },
+      "total_tokens": 3019
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1347,
+      "output_token_count": 1672,
+      "predict_time": 27.719537184
+    }
+  },
+  "output_text": "{\n  \"name\": \"并行任务队列\",\n  \"name_en\": \"Parallel Task Queue\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于实验相关的并行计算与数据处理流程。它负责向工作进程分发任务、接收已完成结果、归档结果，并统计开放、进行中和已完成的任务数量。\",\n  \"description_en\": \"This is a non-physical software component used in experiment-related parallel computation and data-processing workflows. It distributes tasks to workers, receives completed results, files results, and tracks open, in-progress, and completed task counts.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-postTask\",\n      \"description\": \"向队列提交单个任务。\",\n      \"description_en\": \"Submit a single task to the queue.\"\n    },\n    {\n      \"action_name\": \"auto-postTasks\",\n      \"description\": \"向队列批量提交多个任务。\",\n      \"description_en\": \"Submit multiple tasks to the queue.\"\n    },\n    {\n      \"action_name\": \"auto-getTask\",\n      \"description\": \"为工作进程获取一个待处理任务。\",\n      \"description_en\": \"Retrieve one pending task for a worker.\"\n    },\n    {\n      \"action_name\": \"auto-getTasks\",\n      \"description\": \"为工作进程获取一批待处理任务。\",\n      \"description_en\": \"Retrieve a batch of pending tasks for a worker.\"\n    },\n    {\n      \"action_name\": \"auto-returnCompletedTask\",\n      \"description\": \"提交单个已完成任务的结果。\",\n      \"description_en\": \"Return the result of one completed task.\"\n    },\n    {\n      \"action_name\": \"auto-returnCompletedTasks\",\n      \"description\": \"批量提交多个已完成任务的结果。\",\n      \"description_en\": \"Return the results of multiple completed tasks.\"\n    },\n    {\n      \"action_name\": \"auto-fileResults\",\n      \"description\": \"归档一批任务结果。\",\n      \"description_en\": \"File a batch of task results.\"\n    },\n    {\n      \"action_name\": \"auto-fileResult\",\n      \"description\": \"归档单个任务结果。\",\n      \"description_en\": \"File a single task result.\"\n    },\n    {\n      \"action_name\": \"auto-getCompletedTask\",\n      \"description\": \"获取一个已完成任务的结果。\",\n      \"description_en\": \"Get one completed task result.\"\n    },\n    {\n      \"action_name\": \"auto-checkTimeouts\",\n      \"description\": \"检查并处理超时任务。\",\n      \"description_en\": \"Check for and handle timed-out tasks.\"\n    },\n    {\n      \"action_name\": \"auto-getNumberOpenTasks\",\n      \"description\": \"获取当前开放任务数量。\",\n      \"description_en\": \"Get the current number of open tasks.\"\n    },\n    {\n      \"action_name\": \"auto-getNumberTasksInProgress\",\n      \"description\": \"获取当前进行中任务数量。\",\n      \"description_en\": \"Get the current number of tasks in progress.\"\n    },\n    {\n      \"action_name\": \"auto-getNumberTasksCompleted\",\n      \"description\": \"获取当前已完成任务数量。\",\n      \"description_en\": \"Get the current number of completed tasks.\"\n    },\n    {\n      \"action_name\": \"auto-cleanup\",\n      \"description\": \"清理队列相关资源和状态。\",\n      \"description_en\": \"Clean up queue-related resources and state.\"\n    },\n    {\n      \"action_name\": \"auto-purge\",\n      \"description\": \"清空队列中的任务和结果。\",\n      \"description_en\": \"Purge tasks and results from the queue.\"\n    },\n    {\n      \"action_name\": \"auto-setPopFcn\",\n      \"description\": \"设置任务弹出或分配策略函数。\",\n      \"description_en\": \"Set the task pop or dispatch selection function.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"task scheduling\",\n    \"parallel processing\",\n    \"worker queue\",\n    \"result collection\",\n    \"distributed computation\",\n    \"experiment workflow\"\n  ]\n}"
+}

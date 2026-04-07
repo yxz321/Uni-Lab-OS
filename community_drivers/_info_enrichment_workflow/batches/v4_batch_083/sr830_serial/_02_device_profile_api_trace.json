@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: sr830_serial\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: lantz/drivers/legacy/stanford/sr830.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.lock_in_amplifier.stanford_sr830_serial:SR830Serial\n\nClass: _SR830 \n  Bases: ['object']\n\nClass: SR830GPIB \n  Bases: ['_SR830', 'GPIBVisaDriver']\n\nClass: SR830Serial (focal)\n  Bases: ['_SR830', 'SerialDriver']\n\nRegistry actions:\n  auto-auto_gain_async_async (from auto_gain_async_async())\n  auto-auto_offset_async_async (from auto_offset_async_async())\n  auto-auto_phase_async_async (from auto_phase_async_async())\n  auto-auto_reserve_async_async (from auto_reserve_async_async())\n  auto-measure_async (from measure_async())\n  auto-pause_data_storage_async (from pause_data_storage_async())\n  auto-read_buffer_async (from read_buffer_async())\n  auto-recall_state_async (from recall_state_async())\n  auto-reset_data_storage_async (from reset_data_storage_async())\n  auto-save_state_async (from save_state_async())\n  auto-start_data_storage_async (from start_data_storage_async())\n  auto-trigger_async (from trigger_async())\n  auto-reference_phase_shift (from reference_phase_shift())\n  auto-reference_internal (from reference_internal())\n  auto-frequency (from frequency())\n  auto-reference_trigger (from reference_trigger())\n  auto-harmonic (from harmonic())\n  auto-sine_output_amplitude (from sine_output_amplitude())\n  auto-input_configuration (from input_configuration())\n  auto-input_shield (from input_shield())\n  auto-input_coupling (from input_coupling())\n  auto-input_filter (from input_filter())\n  auto-sensitivity (from sensitivity())\n  auto-reserve_mode (from reserve_mode())\n  auto-time_constants (from time_constants())\n  auto-filter_db_per_oct (from filter_db_per_oct())\n  auto-sync_filter (from sync_filter())\n  auto-display (from display())\n  auto-front_output (from front_output())\n  auto-analog_input (from analog_input())\n  auto-analog_output (from analog_output())\n  auto-remote (from remote())\n  auto-key_click_enabled (from key_click_enabled())\n  auto-alarm_enabled (from alarm_enabled())\n  auto-recall_state (from recall_state())\n  auto-save_state (from save_state())\n  auto-wait_bit1 (from wait_bit1())\n  auto-auto_gain_async (from auto_gain_async())\n  auto-auto_gain (from auto_gain())\n  auto-auto_reserve_async (from auto_reserve_async())\n  auto-auto_reserve (from auto_reserve())\n  auto-auto_phase_async (from auto_phase_async())\n  auto-auto_phase (from auto_phase())\n  auto-auto_offset_async (from auto_offset_async())\n  auto-auto_offset (from auto_offset())\n  auto-sample_rate (from sample_rate())\n  auto-single_shot (from single_shot())\n  auto-trigger (from trigger())\n  auto-trigger_start_mode (from trigger_start_mode())\n  auto-start_data_storage (from start_data_storage())\n  auto-pause_data_storage (from pause_data_storage())\n  auto-reset_data_storage (from reset_data_storage())\n  auto-analog_value (from analog_value())\n  auto-measure (from measure())\n  auto-buffer_length (from buffer_length())\n  auto-read_buffer (from read_buffer())\n\nRequired output action ids:\n  auto-auto_gain_async_async\n  auto-auto_offset_async_async\n  auto-auto_phase_async_async\n  auto-auto_reserve_async_async\n  auto-measure_async\n  auto-pause_data_storage_async\n  auto-read_buffer_async\n  auto-recall_state_async\n  auto-reset_data_storage_async\n  auto-save_state_async\n  auto-start_data_storage_async\n  auto-trigger_async\n  auto-reference_phase_shift\n  auto-reference_internal\n  auto-frequency\n  auto-reference_trigger\n  auto-harmonic\n  auto-sine_output_amplitude\n  auto-input_configuration\n  auto-input_shield\n  auto-input_coupling\n  auto-input_filter\n  auto-sensitivity\n  auto-reserve_mode\n  auto-time_constants\n  auto-filter_db_per_oct\n  auto-sync_filter\n  auto-display\n  auto-front_output\n  auto-analog_input\n  auto-analog_output\n  auto-remote\n  auto-key_click_enabled\n  auto-alarm_enabled\n  auto-recall_state\n  auto-save_state\n  auto-wait_bit1\n  auto-auto_gain_async\n  auto-auto_gain\n  auto-auto_reserve_async\n  auto-auto_reserve\n  auto-auto_phase_async\n  auto-auto_phase\n  auto-auto_offset_async\n  auto-auto_offset\n  auto-sample_rate\n  auto-single_shot\n  auto-trigger\n  auto-trigger_start_mode\n  auto-start_data_storage\n  auto-pause_data_storage\n  auto-reset_data_storage\n  auto-analog_value\n  auto-measure\n  auto-buffer_length\n  auto-read_buffer"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_03447bfdacbe78d60069d5611b3d88819585e15b2a9fbfa388",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1797,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 17518,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_03447bfdacbe78d60069d5611ba0fc8195955a3f6a2b7c8a63",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_03447bfdacbe78d60069d5613cce1481958f35bb2b4db3c7b8",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"SR830 锁相放大器\",\n  \"name_en\": \"SR830 Lock-in Amplifier\",\n  \"manufacturer\": \"Stanford Research Systems\",\n  \"description\": \"用于相敏检测的数字锁相放大器。该设备可提供内部参考正弦输出，配置输入模式、灵敏度、时间常数、滤波与储存参数，并读取测量值、辅助模拟量和缓冲区数据，常用于弱信号与噪声环境下的精密测量。\",\n  \"description_en\": \"A digital lock-in amplifier for phase-sensitive detection. It can provide an internal sine reference, configure input mode, sensitivity, time constant, filtering, and storage settings, and read measured values, auxiliary analog signals, and buffered data for precision weak-signal measurements in noisy experiments.\",\n  \"tag_hints\": [\n    \"lock-in amplifier\",\n    \"phase-sensitive detection\",\n    \"weak signal measurement\",\n    \"harmonic detection\",\n    \"aux analog I/O\",\n    \"buffered acquisition\",\n    \"SRS SR830\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-auto_gain_async_async\",\n      \"description\": \"异步启动自动增益调整。\",\n      \"description_en\": \"Asynchronously start automatic gain adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_offset_async_async\",\n      \"description\": \"异步启动自动偏置调整。\",\n      \"description_en\": \"Asynchronously start automatic offset adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_phase_async_async\",\n      \"description\": \"异步启动自动相位调整。\",\n      \"description_en\": \"Asynchronously start automatic phase adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_reserve_async_async\",\n      \"description\": \"异步启动自动储备模式调整。\",\n      \"description_en\": \"Asynchronously start automatic reserve-mode adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-measure_async\",\n      \"description\": \"异步读取测量量。\",\n      \"description_en\": \"Asynchronously read measured quantities.\"\n    },\n    {\n      \"action_name\": \"auto-pause_data_storage_async\",\n      \"description\": \"异步暂停数据存储。\",\n      \"description_en\": \"Asynchronously pause data storage.\"\n    },\n    {\n      \"action_name\": \"auto-read_buffer_async\",\n      \"description\": \"异步读取缓冲区数据。\",\n      \"description_en\": \"Asynchronously read buffered data.\"\n    },\n    {\n      \"action_name\": \"auto-recall_state_async\",\n      \"description\": \"异步调用已保存的仪器状态。\",\n      \"description_en\": \"Asynchronously recall a saved instrument state.\"\n    },\n    {\n      \"action_name\": \"auto-reset_data_storage_async\",\n      \"description\": \"异步重置数据存储。\",\n      \"description_en\": \"Asynchronously reset data storage.\"\n    },\n    {\n      \"action_name\": \"auto-save_state_async\",\n      \"description\": \"异步保存仪器状态。\",\n      \"description_en\": \"Asynchronously save the instrument state.\"\n    },\n    {\n      \"action_name\": \"auto-start_data_storage_async\",\n      \"description\": \"异步启动数据存储。\",\n      \"description_en\": \"Asynchronously start data storage.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_async\",\n      \"description\": \"异步发送触发命令。\",\n      \"description_en\": \"Asynchronously send a trigger command.\"\n    },\n    {\n      \"action_name\": \"auto-reference_phase_shift\",\n      \"description\": \"获取或设置参考相位偏移。\",\n      \"description_en\": \"Get or set the reference phase shift.\"\n    },\n    {\n      \"action_name\": \"auto-reference_internal\",\n      \"description\": \"获取或设置是否使用内部参考源。\",\n      \"description_en\": \"Get or set whether the internal reference source is used.\"\n    },\n    {\n      \"action_name\": \"auto-frequency\",\n      \"description\": \"获取或设置参考频率。\",\n      \"description_en\": \"Get or set the reference frequency.\"\n    },\n    {\n      \"action_name\": \"auto-reference_trigger\",\n      \"description\": \"获取或设置参考触发模式。\",\n      \"description_en\": \"Get or set the reference trigger mode.\"\n    },\n    {\n      \"action_name\": \"auto-harmonic\",\n      \"description\": \"获取或设置谐波检测阶数。\",\n      \"description_en\": \"Get or set the harmonic detection number.\"\n    },\n    {\n      \"action_name\": \"auto-sine_output_amplitude\",\n      \"description\": \"获取或设置内部正弦输出幅度。\",\n      \"description_en\": \"Get or set the internal sine output amplitude.\"\n    },\n    {\n      \"action_name\": \"auto-input_configuration\",\n      \"description\": \"获取或设置输入配置。\",\n      \"description_en\": \"Get or set the input configuration.\"\n    },\n    {\n      \"action_name\": \"auto-input_shield\",\n      \"description\": \"获取或设置输入屏蔽方式。\",\n      \"description_en\": \"Get or set the input shield mode.\"\n    },\n    {\n      \"action_name\": \"auto-input_coupling\",\n      \"description\": \"获取或设置输入耦合方式。\",\n      \"description_en\": \"Get or set the input coupling mode.\"\n    },\n    {\n      \"action_name\": \"auto-input_filter\",\n      \"description\": \"获取或设置输入滤波选项。\",\n      \"description_en\": \"Get or set the input filter option.\"\n    },\n    {\n      \"action_name\": \"auto-sensitivity\",\n      \"description\": \"获取或设置测量灵敏度。\",\n      \"description_en\": \"Get or set the measurement sensitivity.\"\n    },\n    {\n      \"action_name\": \"auto-reserve_mode\",\n      \"description\": \"获取或设置储备模式。\",\n      \"description_en\": \"Get or set the reserve mode.\"\n    },\n    {\n      \"action_name\": \"auto-time_constants\",\n      \"description\": \"获取或设置时间常数。\",\n      \"description_en\": \"Get or set the time constant.\"\n    },\n    {\n      \"action_name\": \"auto-filter_db_per_oct\",\n      \"description\": \"获取或设置低通滤波器滚降斜率。\",\n      \"description_en\": \"Get or set the low-pass filter roll-off.\"\n    },\n    {\n      \"action_name\": \"auto-sync_filter\",\n      \"description\": \"获取或设置同步滤波功能。\",\n      \"description_en\": \"Get or set the synchronous filter setting.\"\n    },\n    {\n      \"action_name\": \"auto-display\",\n      \"description\": \"获取或设置显示通道内容。\",\n      \"description_en\": \"Get or set the display channel content.\"\n    },\n    {\n      \"action_name\": \"auto-front_output\",\n      \"description\": \"获取或设置前面板输出内容。\",\n      \"description_en\": \"Get or set the front-panel output assignment.\"\n    },\n    {\n      \"action_name\": \"auto-analog_input\",\n      \"description\": \"读取辅助模拟输入通道。\",\n      \"description_en\": \"Read an auxiliary analog input channel.\"\n    },\n    {\n      \"action_name\": \"auto-analog_output\",\n      \"description\": \"获取或设置辅助模拟输出通道。\",\n      \"description_en\": \"Get or set an auxiliary analog output channel.\"\n    },\n    {\n      \"action_name\": \"auto-remote\",\n      \"description\": \"获取或设置远程控制状态。\",\n      \"description_en\": \"Get or set the remote-control state.\"\n    },\n    {\n      \"action_name\": \"auto-key_click_enabled\",\n      \"description\": \"获取或设置按键提示音开关。\",\n      \"description_en\": \"Get or set whether key click is enabled.\"\n    },\n    {\n      \"action_name\": \"auto-alarm_enabled\",\n      \"description\": \"获取或设置报警功能开关。\",\n      \"description_en\": \"Get or set whether the alarm is enabled.\"\n    },\n    {\n      \"action_name\": \"auto-recall_state\",\n      \"description\": \"调用已保存的仪器状态。\",\n      \"description_en\": \"Recall a saved instrument state.\"\n    },\n    {\n      \"action_name\": \"auto-save_state\",\n      \"description\": \"保存当前仪器状态。\",\n      \"description_en\": \"Save the current instrument state.\"\n    },\n    {\n      \"action_name\": \"auto-wait_bit1\",\n      \"description\": \"等待状态位 1 满足条件。\",\n      \"description_en\": \"Wait for status bit 1 to meet its condition.\"\n    },\n    {\n      \"action_name\": \"auto-auto_gain_async\",\n      \"description\": \"异步启动自动增益调整。\",\n      \"description_en\": \"Asynchronously start automatic gain adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_gain\",\n      \"description\": \"启动自动增益调整。\",\n      \"description_en\": \"Start automatic gain adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_reserve_async\",\n      \"description\": \"异步启动自动储备模式调整。\",\n      \"description_en\": \"Asynchronously start automatic reserve-mode adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_reserve\",\n      \"description\": \"启动自动储备模式调整。\",\n      \"description_en\": \"Start automatic reserve-mode adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_phase_async\",\n      \"description\": \"异步启动自动相位调整。\",\n      \"description_en\": \"Asynchronously start automatic phase adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_phase\",\n      \"description\": \"启动自动相位调整。\",\n      \"description_en\": \"Start automatic phase adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_offset_async\",\n      \"description\": \"异步启动自动偏置调整。\",\n      \"description_en\": \"Asynchronously start automatic offset adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_offset\",\n      \"description\": \"启动自动偏置调整。\",\n      \"description_en\": \"Start automatic offset adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-sample_rate\",\n      \"description\": \"获取或设置采样速率。\",\n      \"description_en\": \"Get or set the sample rate.\"\n    },\n    {\n      \"action_name\": \"auto-single_shot\",\n      \"description\": \"获取或设置单次采集模式。\",\n      \"description_en\": \"Get or set the single-shot acquisition mode.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"发送触发命令。\",\n      \"description_en\": \"Send a trigger command.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_start_mode\",\n      \"description\": \"获取或设置触发启动模式。\",\n      \"description_en\": \"Get or set the trigger-start mode.\"\n    },\n    {\n      \"action_name\": \"auto-start_data_storage\",\n      \"description\": \"启动数据存储。\",\n      \"description_en\": \"Start data storage.\"\n    },\n    {\n      \"action_name\": \"auto-pause_data_storage\",\n      \"description\": \"暂停数据存储。\",\n      \"description_en\": \"Pause data storage.\"\n    },\n    {\n      \"action_name\": \"auto-reset_data_storage\",\n      \"description\": \"重置数据存储。\",\n      \"description_en\": \"Reset data storage.\"\n    },\n    {\n      \"action_name\": \"auto-analog_value\",\n      \"description\": \"读取选定的测量输出值。\",\n      \"description_en\": \"Read a selected measurement output value.\"\n    },\n    {\n      \"action_name\": \"auto-measure\",\n      \"description\": \"读取测量量。\",\n      \"description_en\": \"Read measured quantities.\"\n    },\n    {\n      \"action_name\": \"auto-buffer_length\",\n      \"description\": \"获取缓冲区数据长度。\",\n      \"description_en\": \"Get the buffered data length.\"\n    },\n    {\n      \"action_name\": \"auto-read_buffer\",\n      \"description\": \"读取缓冲区数据。\",\n      \"description_en\": \"Read buffered data.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1726,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 4162,
+      "output_tokens_details": {
+        "reasoning_tokens": 1631
+      },
+      "total_tokens": 5888
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1726,
+      "output_token_count": 4162,
+      "predict_time": 66.021457138
+    }
+  },
+  "output_text": "{\n  \"name\": \"SR830 锁相放大器\",\n  \"name_en\": \"SR830 Lock-in Amplifier\",\n  \"manufacturer\": \"Stanford Research Systems\",\n  \"description\": \"用于相敏检测的数字锁相放大器。该设备可提供内部参考正弦输出，配置输入模式、灵敏度、时间常数、滤波与储存参数，并读取测量值、辅助模拟量和缓冲区数据，常用于弱信号与噪声环境下的精密测量。\",\n  \"description_en\": \"A digital lock-in amplifier for phase-sensitive detection. It can provide an internal sine reference, configure input mode, sensitivity, time constant, filtering, and storage settings, and read measured values, auxiliary analog signals, and buffered data for precision weak-signal measurements in noisy experiments.\",\n  \"tag_hints\": [\n    \"lock-in amplifier\",\n    \"phase-sensitive detection\",\n    \"weak signal measurement\",\n    \"harmonic detection\",\n    \"aux analog I/O\",\n    \"buffered acquisition\",\n    \"SRS SR830\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-auto_gain_async_async\",\n      \"description\": \"异步启动自动增益调整。\",\n      \"description_en\": \"Asynchronously start automatic gain adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_offset_async_async\",\n      \"description\": \"异步启动自动偏置调整。\",\n      \"description_en\": \"Asynchronously start automatic offset adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_phase_async_async\",\n      \"description\": \"异步启动自动相位调整。\",\n      \"description_en\": \"Asynchronously start automatic phase adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_reserve_async_async\",\n      \"description\": \"异步启动自动储备模式调整。\",\n      \"description_en\": \"Asynchronously start automatic reserve-mode adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-measure_async\",\n      \"description\": \"异步读取测量量。\",\n      \"description_en\": \"Asynchronously read measured quantities.\"\n    },\n    {\n      \"action_name\": \"auto-pause_data_storage_async\",\n      \"description\": \"异步暂停数据存储。\",\n      \"description_en\": \"Asynchronously pause data storage.\"\n    },\n    {\n      \"action_name\": \"auto-read_buffer_async\",\n      \"description\": \"异步读取缓冲区数据。\",\n      \"description_en\": \"Asynchronously read buffered data.\"\n    },\n    {\n      \"action_name\": \"auto-recall_state_async\",\n      \"description\": \"异步调用已保存的仪器状态。\",\n      \"description_en\": \"Asynchronously recall a saved instrument state.\"\n    },\n    {\n      \"action_name\": \"auto-reset_data_storage_async\",\n      \"description\": \"异步重置数据存储。\",\n      \"description_en\": \"Asynchronously reset data storage.\"\n    },\n    {\n      \"action_name\": \"auto-save_state_async\",\n      \"description\": \"异步保存仪器状态。\",\n      \"description_en\": \"Asynchronously save the instrument state.\"\n    },\n    {\n      \"action_name\": \"auto-start_data_storage_async\",\n      \"description\": \"异步启动数据存储。\",\n      \"description_en\": \"Asynchronously start data storage.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_async\",\n      \"description\": \"异步发送触发命令。\",\n      \"description_en\": \"Asynchronously send a trigger command.\"\n    },\n    {\n      \"action_name\": \"auto-reference_phase_shift\",\n      \"description\": \"获取或设置参考相位偏移。\",\n      \"description_en\": \"Get or set the reference phase shift.\"\n    },\n    {\n      \"action_name\": \"auto-reference_internal\",\n      \"description\": \"获取或设置是否使用内部参考源。\",\n      \"description_en\": \"Get or set whether the internal reference source is used.\"\n    },\n    {\n      \"action_name\": \"auto-frequency\",\n      \"description\": \"获取或设置参考频率。\",\n      \"description_en\": \"Get or set the reference frequency.\"\n    },\n    {\n      \"action_name\": \"auto-reference_trigger\",\n      \"description\": \"获取或设置参考触发模式。\",\n      \"description_en\": \"Get or set the reference trigger mode.\"\n    },\n    {\n      \"action_name\": \"auto-harmonic\",\n      \"description\": \"获取或设置谐波检测阶数。\",\n      \"description_en\": \"Get or set the harmonic detection number.\"\n    },\n    {\n      \"action_name\": \"auto-sine_output_amplitude\",\n      \"description\": \"获取或设置内部正弦输出幅度。\",\n      \"description_en\": \"Get or set the internal sine output amplitude.\"\n    },\n    {\n      \"action_name\": \"auto-input_configuration\",\n      \"description\": \"获取或设置输入配置。\",\n      \"description_en\": \"Get or set the input configuration.\"\n    },\n    {\n      \"action_name\": \"auto-input_shield\",\n      \"description\": \"获取或设置输入屏蔽方式。\",\n      \"description_en\": \"Get or set the input shield mode.\"\n    },\n    {\n      \"action_name\": \"auto-input_coupling\",\n      \"description\": \"获取或设置输入耦合方式。\",\n      \"description_en\": \"Get or set the input coupling mode.\"\n    },\n    {\n      \"action_name\": \"auto-input_filter\",\n      \"description\": \"获取或设置输入滤波选项。\",\n      \"description_en\": \"Get or set the input filter option.\"\n    },\n    {\n      \"action_name\": \"auto-sensitivity\",\n      \"description\": \"获取或设置测量灵敏度。\",\n      \"description_en\": \"Get or set the measurement sensitivity.\"\n    },\n    {\n      \"action_name\": \"auto-reserve_mode\",\n      \"description\": \"获取或设置储备模式。\",\n      \"description_en\": \"Get or set the reserve mode.\"\n    },\n    {\n      \"action_name\": \"auto-time_constants\",\n      \"description\": \"获取或设置时间常数。\",\n      \"description_en\": \"Get or set the time constant.\"\n    },\n    {\n      \"action_name\": \"auto-filter_db_per_oct\",\n      \"description\": \"获取或设置低通滤波器滚降斜率。\",\n      \"description_en\": \"Get or set the low-pass filter roll-off.\"\n    },\n    {\n      \"action_name\": \"auto-sync_filter\",\n      \"description\": \"获取或设置同步滤波功能。\",\n      \"description_en\": \"Get or set the synchronous filter setting.\"\n    },\n    {\n      \"action_name\": \"auto-display\",\n      \"description\": \"获取或设置显示通道内容。\",\n      \"description_en\": \"Get or set the display channel content.\"\n    },\n    {\n      \"action_name\": \"auto-front_output\",\n      \"description\": \"获取或设置前面板输出内容。\",\n      \"description_en\": \"Get or set the front-panel output assignment.\"\n    },\n    {\n      \"action_name\": \"auto-analog_input\",\n      \"description\": \"读取辅助模拟输入通道。\",\n      \"description_en\": \"Read an auxiliary analog input channel.\"\n    },\n    {\n      \"action_name\": \"auto-analog_output\",\n      \"description\": \"获取或设置辅助模拟输出通道。\",\n      \"description_en\": \"Get or set an auxiliary analog output channel.\"\n    },\n    {\n      \"action_name\": \"auto-remote\",\n      \"description\": \"获取或设置远程控制状态。\",\n      \"description_en\": \"Get or set the remote-control state.\"\n    },\n    {\n      \"action_name\": \"auto-key_click_enabled\",\n      \"description\": \"获取或设置按键提示音开关。\",\n      \"description_en\": \"Get or set whether key click is enabled.\"\n    },\n    {\n      \"action_name\": \"auto-alarm_enabled\",\n      \"description\": \"获取或设置报警功能开关。\",\n      \"description_en\": \"Get or set whether the alarm is enabled.\"\n    },\n    {\n      \"action_name\": \"auto-recall_state\",\n      \"description\": \"调用已保存的仪器状态。\",\n      \"description_en\": \"Recall a saved instrument state.\"\n    },\n    {\n      \"action_name\": \"auto-save_state\",\n      \"description\": \"保存当前仪器状态。\",\n      \"description_en\": \"Save the current instrument state.\"\n    },\n    {\n      \"action_name\": \"auto-wait_bit1\",\n      \"description\": \"等待状态位 1 满足条件。\",\n      \"description_en\": \"Wait for status bit 1 to meet its condition.\"\n    },\n    {\n      \"action_name\": \"auto-auto_gain_async\",\n      \"description\": \"异步启动自动增益调整。\",\n      \"description_en\": \"Asynchronously start automatic gain adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_gain\",\n      \"description\": \"启动自动增益调整。\",\n      \"description_en\": \"Start automatic gain adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_reserve_async\",\n      \"description\": \"异步启动自动储备模式调整。\",\n      \"description_en\": \"Asynchronously start automatic reserve-mode adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_reserve\",\n      \"description\": \"启动自动储备模式调整。\",\n      \"description_en\": \"Start automatic reserve-mode adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_phase_async\",\n      \"description\": \"异步启动自动相位调整。\",\n      \"description_en\": \"Asynchronously start automatic phase adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_phase\",\n      \"description\": \"启动自动相位调整。\",\n      \"description_en\": \"Start automatic phase adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_offset_async\",\n      \"description\": \"异步启动自动偏置调整。\",\n      \"description_en\": \"Asynchronously start automatic offset adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-auto_offset\",\n      \"description\": \"启动自动偏置调整。\",\n      \"description_en\": \"Start automatic offset adjustment.\"\n    },\n    {\n      \"action_name\": \"auto-sample_rate\",\n      \"description\": \"获取或设置采样速率。\",\n      \"description_en\": \"Get or set the sample rate.\"\n    },\n    {\n      \"action_name\": \"auto-single_shot\",\n      \"description\": \"获取或设置单次采集模式。\",\n      \"description_en\": \"Get or set the single-shot acquisition mode.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"发送触发命令。\",\n      \"description_en\": \"Send a trigger command.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_start_mode\",\n      \"description\": \"获取或设置触发启动模式。\",\n      \"description_en\": \"Get or set the trigger-start mode.\"\n    },\n    {\n      \"action_name\": \"auto-start_data_storage\",\n      \"description\": \"启动数据存储。\",\n      \"description_en\": \"Start data storage.\"\n    },\n    {\n      \"action_name\": \"auto-pause_data_storage\",\n      \"description\": \"暂停数据存储。\",\n      \"description_en\": \"Pause data storage.\"\n    },\n    {\n      \"action_name\": \"auto-reset_data_storage\",\n      \"description\": \"重置数据存储。\",\n      \"description_en\": \"Reset data storage.\"\n    },\n    {\n      \"action_name\": \"auto-analog_value\",\n      \"description\": \"读取选定的测量输出值。\",\n      \"description_en\": \"Read a selected measurement output value.\"\n    },\n    {\n      \"action_name\": \"auto-measure\",\n      \"description\": \"读取测量量。\",\n      \"description_en\": \"Read measured quantities.\"\n    },\n    {\n      \"action_name\": \"auto-buffer_length\",\n      \"description\": \"获取缓冲区数据长度。\",\n      \"description_en\": \"Get the buffered data length.\"\n    },\n    {\n      \"action_name\": \"auto-read_buffer\",\n      \"description\": \"读取缓冲区数据。\",\n      \"description_en\": \"Read buffered data.\"\n    }\n  ]\n}"
+}

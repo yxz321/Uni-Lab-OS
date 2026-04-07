@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: static_dds\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: labscript/outputs.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.general.static_dds:StaticDDS\n\nClass: Output \n  Bases: ['Device']\n  Docstring: Base class for all output classes.\n\nClass: AnalogQuantity \n  Bases: ['Output']\n  Docstring: Base class for :obj:`AnalogOut`.\n\nIt is also used internally by :obj:`DDS`. You should never instantiate this\nclass directly.\n\nClass: AnalogOut \n  Bases: ['AnalogQuantity']\n  Docstring: Analog Output class for use with all devices that support timed analog outputs.\n\nClass: StaticAnalogQuantity \n  Bases: ['Output']\n  Docstring: Base class for :obj:`StaticAnalogOut`.\n\nIt can also be used internally by other more complex output types.\n\nClass: StaticAnalogOut \n  Bases: ['StaticAnalogQuantity']\n  Docstring: Static Analog Output class for use with all devices that have constant outputs.\n\nClass: DigitalQuantity \n  Bases: ['Output']\n  Docstring: Base class for :obj:`DigitalOut`.\n\nIt is also used internally by other, more complex, output types.\n\nClass: DigitalOut \n  Bases: ['DigitalQuantity']\n  Docstring: Digital output class for use with all devices.\n\nClass: StaticDigitalQuantity \n  Bases: ['DigitalQuantity']\n  Docstring: Base class for :obj:`StaticDigitalOut`.\n\nIt can also be used internally by other, more complex, output types.\n\nClass: StaticDigitalOut \n  Bases: ['StaticDigitalQuantity']\n  Docstring: Static Digital Output class for use with all devices that have constant outputs.\n\nClass: Shutter \n  Bases: ['DigitalOut']\n  Docstring: Customized version of :obj:`DigitalOut` that accounts for the open/close\ndelay of a shutter automatically.\n\nWhen using the methods :meth:`open` and :meth:`close`, the shutter open\nand close times are precise without haveing to track the delays. Note:\ndelays can be set using runmanager globals and periodically updated\nvia a calibration.\n\n.. Warning:: \n\n    If the shutter is asked to do something at `t=0`, it cannot start\n    moving earlier than that. This means the initial shutter states\n    will have imprecise timing.\n\nClass: Trigger \n  Bases: ['DigitalOut']\n  Docstring: Customized version of :obj:`DigitalOut` that tracks edge type.\n    \n\nClass: DDSQuantity \n  Bases: ['Device']\n  Docstring: Used to define a DDS output. \n\nIt is a container class, with properties that allow access to a frequency,\namplitude, and phase of the output as :obj:`AnalogQuantity`. \nIt can also have a gate, which provides enable/disable control of the output \nas :obj:`DigitalOut`.\n\nThis class instantiates channels for frequency/amplitude/phase (and optionally the\ngate) itself. \n\nClass: DDS \n  Bases: ['DDSQuantity']\n  Docstring: DDS class for use with all devices that have DDS-like outputs.\n\nClass: StaticDDS (focal)\n  Bases: ['Device']\n  Docstring: Static DDS class for use with all devices that have static DDS-like outputs.\n\nFocal class methods:\n  [command] setamp(self, value, units=None)\n    comment: Set the static amplitude of the output.\n\n        Args:\n            value (float): Amplitude to set to.\n            units: Units that the value is defined in.\n  [command] setfreq(self, value, units=None)\n    comment: Set the static frequency of the output.\n\n        Args:\n            value (float): Frequency to set to.\n            units: Units that the value is defined in.\n  [command] setphase(self, value, units=None)\n    comment: Set the static phase of the output.\n\n        Args:\n            value (float): Phase to set to.\n            units: Units that the value is defined in.\n  [command] enable(self, t=None)\n    comment: Enable the Output.\n\n        Args:\n            t (float, optional): Time, in seconds, to enable the output at.\n\n        Raises:\n            LabscriptError: If the DDS is not instantiated with a digital...\n  [command] disable(self, t=None)\n    comment: Disable the Output.\n\n        Args:\n            t (float, optional): Time, in seconds, to disable the output at.\n\n        Raises:\n            LabscriptError: If the DDS is not instantiated with a digit...\n\nRegistry actions:\n  auto-disable (from disable())\n  auto-enable (from enable())\n  auto-setamp (from setamp())\n  auto-setfreq (from setfreq())\n  auto-setphase (from setphase())\n  auto-clock_limit (from clock_limit())\n  auto-trigger_delay (from trigger_delay())\n  auto-wait_delay (from wait_delay())\n  auto-get_all_outputs (from get_all_outputs())\n  auto-apply_calibration (from apply_calibration())\n  auto-instruction_to_string (from instruction_to_string())\n  auto-add_instruction (from add_instruction())\n  auto-do_checks (from do_checks())\n  auto-offset_instructions_from_trigger (from offset_instructions_from_trigger())\n  auto-get_change_times (from get_change_times())\n  auto-get_ramp_times (from get_ramp_times())\n  auto-make_timeseries (from make_timeseries())\n  auto-expand_timeseries (from expand_timeseries())\n  auto-ramp (from ramp())\n  auto-sine (from sine())\n  auto-sine_ramp (from sine_ramp())\n  auto-sine4_ramp (from sine4_ramp())\n  auto-sine4_reverse_ramp (from sine4_reverse_ramp())\n  auto-exp_ramp (from exp_ramp())\n  auto-exp_ramp_t (from exp_ramp_t())\n  auto-piecewise_accel_ramp (from piecewise_accel_ramp())\n  auto-square_wave (from square_wave())\n  auto-square_wave_levels (from square_wave_levels())\n  auto-customramp (from customramp())\n  auto-constant (from constant())\n  auto-static_value (from static_value())\n  auto-go_high (from go_high())\n  auto-go_low (from go_low())\n  auto-repeat_pulse_sequence (from repeat_pulse_sequence())\n  auto-generate_code (from generate_code())\n  auto-trigger (from trigger())\n  auto-add_device (from add_device())\n  auto-pulse (from pulse())\n\nRequired output action ids:\n  auto-disable\n  auto-enable\n  auto-setamp\n  auto-setfreq\n  auto-setphase\n  auto-clock_limit\n  auto-trigger_delay\n  auto-wait_delay\n  auto-get_all_outputs\n  auto-apply_calibration\n  auto-instruction_to_string\n  auto-add_instruction\n  auto-do_checks\n  auto-offset_instructions_from_trigger\n  auto-get_change_times\n  auto-get_ramp_times\n  auto-make_timeseries\n  auto-expand_timeseries\n  auto-ramp\n  auto-sine\n  auto-sine_ramp\n  auto-sine4_ramp\n  auto-sine4_reverse_ramp\n  auto-exp_ramp\n  auto-exp_ramp_t\n  auto-piecewise_accel_ramp\n  auto-square_wave\n  auto-square_wave_levels\n  auto-customramp\n  auto-constant\n  auto-static_value\n  auto-go_high\n  auto-go_low\n  auto-repeat_pulse_sequence\n  auto-generate_code\n  auto-trigger\n  auto-add_device\n  auto-pulse"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_077f7176744125600069d561581ca08197bf4d7b2eccfdc04c",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7625,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 9360,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_077f7176744125600069d5615890848197b7eca031db5a28eb",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_077f7176744125600069d56162d7ec8197b258963c86aca080",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"静态DDS输出组件\",\n  \"name_en\": \"Static DDS Output Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于在实验控制程序中定义和管理静态DDS样输出通道。它用于设置频率、幅度、相位以及可选的门控开关，并在实验时序中生成、检查和展开相关指令，而不是直接对应某一特定厂商的实体仪器。\",\n  \"description_en\": \"This is a non-physical software component used to define and manage static DDS-like output channels in an experiment control program. It is used to set frequency, amplitude, phase, and optional gate control, and to generate, validate, and expand timing instructions for experiments rather than representing a specific physical instrument from a particular manufacturer.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-disable\",\n      \"description\": \"禁用静态DDS输出。\",\n      \"description_en\": \"Disable the static DDS output.\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"启用静态DDS输出。\",\n      \"description_en\": \"Enable the static DDS output.\"\n    },\n    {\n      \"action_name\": \"auto-setamp\",\n      \"description\": \"设置静态DDS输出的幅度。\",\n      \"description_en\": \"Set the amplitude of the static DDS output.\"\n    },\n    {\n      \"action_name\": \"auto-setfreq\",\n      \"description\": \"设置静态DDS输出的频率。\",\n      \"description_en\": \"Set the frequency of the static DDS output.\"\n    },\n    {\n      \"action_name\": \"auto-setphase\",\n      \"description\": \"设置静态DDS输出的相位。\",\n      \"description_en\": \"Set the phase of the static DDS output.\"\n    },\n    {\n      \"action_name\": \"auto-clock_limit\",\n      \"description\": \"获取或定义该输出相关的时钟限制。\",\n      \"description_en\": \"Get or define the clock limit associated with this output.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_delay\",\n      \"description\": \"获取或定义触发延迟。\",\n      \"description_en\": \"Get or define the trigger delay.\"\n    },\n    {\n      \"action_name\": \"auto-wait_delay\",\n      \"description\": \"获取或定义等待延迟。\",\n      \"description_en\": \"Get or define the wait delay.\"\n    },\n    {\n      \"action_name\": \"auto-get_all_outputs\",\n      \"description\": \"获取关联的全部输出对象。\",\n      \"description_en\": \"Get all associated output objects.\"\n    },\n    {\n      \"action_name\": \"auto-apply_calibration\",\n      \"description\": \"对输出值应用校准换算。\",\n      \"description_en\": \"Apply calibration conversion to output values.\"\n    },\n    {\n      \"action_name\": \"auto-instruction_to_string\",\n      \"description\": \"将指令转换为字符串表示。\",\n      \"description_en\": \"Convert an instruction to a string representation.\"\n    },\n    {\n      \"action_name\": \"auto-add_instruction\",\n      \"description\": \"向时序中添加输出指令。\",\n      \"description_en\": \"Add an output instruction to the timing sequence.\"\n    },\n    {\n      \"action_name\": \"auto-do_checks\",\n      \"description\": \"执行输出配置和时序检查。\",\n      \"description_en\": \"Perform output configuration and timing checks.\"\n    },\n    {\n      \"action_name\": \"auto-offset_instructions_from_trigger\",\n      \"description\": \"根据触发时间偏移输出指令。\",\n      \"description_en\": \"Offset output instructions relative to the trigger time.\"\n    },\n    {\n      \"action_name\": \"auto-get_change_times\",\n      \"description\": \"获取输出发生变化的时间点。\",\n      \"description_en\": \"Get the times at which the output changes.\"\n    },\n    {\n      \"action_name\": \"auto-get_ramp_times\",\n      \"description\": \"获取斜坡变化的时间区间。\",\n      \"description_en\": \"Get the time intervals of ramp changes.\"\n    },\n    {\n      \"action_name\": \"auto-make_timeseries\",\n      \"description\": \"生成输出时间序列。\",\n      \"description_en\": \"Generate an output time series.\"\n    },\n    {\n      \"action_name\": \"auto-expand_timeseries\",\n      \"description\": \"展开输出时间序列到具体采样点。\",\n      \"description_en\": \"Expand the output time series into concrete sample points.\"\n    },\n    {\n      \"action_name\": \"auto-ramp\",\n      \"description\": \"定义斜坡变化输出。\",\n      \"description_en\": \"Define a ramped output change.\"\n    },\n    {\n      \"action_name\": \"auto-sine\",\n      \"description\": \"定义正弦波输出。\",\n      \"description_en\": \"Define a sine-wave output.\"\n    },\n    {\n      \"action_name\": \"auto-sine_ramp\",\n      \"description\": \"定义正弦型斜坡输出。\",\n      \"description_en\": \"Define a sine-shaped ramp output.\"\n    },\n    {\n      \"action_name\": \"auto-sine4_ramp\",\n      \"description\": \"定义四次正弦型斜坡输出。\",\n      \"description_en\": \"Define a sine-to-the-fourth ramp output.\"\n    },\n    {\n      \"action_name\": \"auto-sine4_reverse_ramp\",\n      \"description\": \"定义反向四次正弦型斜坡输出。\",\n      \"description_en\": \"Define a reverse sine-to-the-fourth ramp output.\"\n    },\n    {\n      \"action_name\": \"auto-exp_ramp\",\n      \"description\": \"定义指数斜坡输出。\",\n      \"description_en\": \"Define an exponential ramp output.\"\n    },\n    {\n      \"action_name\": \"auto-exp_ramp_t\",\n      \"description\": \"定义带时间参数的指数斜坡输出。\",\n      \"description_en\": \"Define an exponential ramp output with time parameterization.\"\n    },\n    {\n      \"action_name\": \"auto-piecewise_accel_ramp\",\n      \"description\": \"定义分段加速度斜坡输出。\",\n      \"description_en\": \"Define a piecewise-acceleration ramp output.\"\n    },\n    {\n      \"action_name\": \"auto-square_wave\",\n      \"description\": \"定义方波输出。\",\n      \"description_en\": \"Define a square-wave output.\"\n    },\n    {\n      \"action_name\": \"auto-square_wave_levels\",\n      \"description\": \"定义具有指定电平的方波输出。\",\n      \"description_en\": \"Define a square-wave output with specified levels.\"\n    },\n    {\n      \"action_name\": \"auto-customramp\",\n      \"description\": \"定义自定义函数斜坡输出。\",\n      \"description_en\": \"Define a custom-function ramp output.\"\n    },\n    {\n      \"action_name\": \"auto-constant\",\n      \"description\": \"定义恒定输出值。\",\n      \"description_en\": \"Define a constant output value.\"\n    },\n    {\n      \"action_name\": \"auto-static_value\",\n      \"description\": \"定义静态输出值。\",\n      \"description_en\": \"Define a static output value.\"\n    },\n    {\n      \"action_name\": \"auto-go_high\",\n      \"description\": \"将数字输出设为高电平。\",\n      \"description_en\": \"Set the digital output high.\"\n    },\n    {\n      \"action_name\": \"auto-go_low\",\n      \"description\": \"将数字输出设为低电平。\",\n      \"description_en\": \"Set the digital output low.\"\n    },\n    {\n      \"action_name\": \"auto-repeat_pulse_sequence\",\n      \"description\": \"定义重复脉冲序列。\",\n      \"description_en\": \"Define a repeated pulse sequence.\"\n    },\n    {\n      \"action_name\": \"auto-generate_code\",\n      \"description\": \"生成实验控制代码或指令数据。\",\n      \"description_en\": \"Generate experiment control code or instruction data.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"定义触发事件或触发输出。\",\n      \"description_en\": \"Define a trigger event or trigger output.\"\n    },\n    {\n      \"action_name\": \"auto-add_device\",\n      \"description\": \"添加关联设备或子输出对象。\",\n      \"description_en\": \"Add an associated device or child output object.\"\n    },\n    {\n      \"action_name\": \"auto-pulse\",\n      \"description\": \"定义脉冲输出。\",\n      \"description_en\": \"Define a pulse output.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"DDS control\",\n    \"static RF output\",\n    \"frequency amplitude phase setting\",\n    \"gated output\",\n    \"labscript experiment sequencing\",\n    \"timing instruction generation\",\n    \"software-defined output\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2246,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2359,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 4605
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2246,
+      "output_token_count": 2359,
+      "predict_time": 36.639763703
+    }
+  },
+  "output_text": "{\n  \"name\": \"静态DDS输出组件\",\n  \"name_en\": \"Static DDS Output Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于在实验控制程序中定义和管理静态DDS样输出通道。它用于设置频率、幅度、相位以及可选的门控开关，并在实验时序中生成、检查和展开相关指令，而不是直接对应某一特定厂商的实体仪器。\",\n  \"description_en\": \"This is a non-physical software component used to define and manage static DDS-like output channels in an experiment control program. It is used to set frequency, amplitude, phase, and optional gate control, and to generate, validate, and expand timing instructions for experiments rather than representing a specific physical instrument from a particular manufacturer.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-disable\",\n      \"description\": \"禁用静态DDS输出。\",\n      \"description_en\": \"Disable the static DDS output.\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"启用静态DDS输出。\",\n      \"description_en\": \"Enable the static DDS output.\"\n    },\n    {\n      \"action_name\": \"auto-setamp\",\n      \"description\": \"设置静态DDS输出的幅度。\",\n      \"description_en\": \"Set the amplitude of the static DDS output.\"\n    },\n    {\n      \"action_name\": \"auto-setfreq\",\n      \"description\": \"设置静态DDS输出的频率。\",\n      \"description_en\": \"Set the frequency of the static DDS output.\"\n    },\n    {\n      \"action_name\": \"auto-setphase\",\n      \"description\": \"设置静态DDS输出的相位。\",\n      \"description_en\": \"Set the phase of the static DDS output.\"\n    },\n    {\n      \"action_name\": \"auto-clock_limit\",\n      \"description\": \"获取或定义该输出相关的时钟限制。\",\n      \"description_en\": \"Get or define the clock limit associated with this output.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_delay\",\n      \"description\": \"获取或定义触发延迟。\",\n      \"description_en\": \"Get or define the trigger delay.\"\n    },\n    {\n      \"action_name\": \"auto-wait_delay\",\n      \"description\": \"获取或定义等待延迟。\",\n      \"description_en\": \"Get or define the wait delay.\"\n    },\n    {\n      \"action_name\": \"auto-get_all_outputs\",\n      \"description\": \"获取关联的全部输出对象。\",\n      \"description_en\": \"Get all associated output objects.\"\n    },\n    {\n      \"action_name\": \"auto-apply_calibration\",\n      \"description\": \"对输出值应用校准换算。\",\n      \"description_en\": \"Apply calibration conversion to output values.\"\n    },\n    {\n      \"action_name\": \"auto-instruction_to_string\",\n      \"description\": \"将指令转换为字符串表示。\",\n      \"description_en\": \"Convert an instruction to a string representation.\"\n    },\n    {\n      \"action_name\": \"auto-add_instruction\",\n      \"description\": \"向时序中添加输出指令。\",\n      \"description_en\": \"Add an output instruction to the timing sequence.\"\n    },\n    {\n      \"action_name\": \"auto-do_checks\",\n      \"description\": \"执行输出配置和时序检查。\",\n      \"description_en\": \"Perform output configuration and timing checks.\"\n    },\n    {\n      \"action_name\": \"auto-offset_instructions_from_trigger\",\n      \"description\": \"根据触发时间偏移输出指令。\",\n      \"description_en\": \"Offset output instructions relative to the trigger time.\"\n    },\n    {\n      \"action_name\": \"auto-get_change_times\",\n      \"description\": \"获取输出发生变化的时间点。\",\n      \"description_en\": \"Get the times at which the output changes.\"\n    },\n    {\n      \"action_name\": \"auto-get_ramp_times\",\n      \"description\": \"获取斜坡变化的时间区间。\",\n      \"description_en\": \"Get the time intervals of ramp changes.\"\n    },\n    {\n      \"action_name\": \"auto-make_timeseries\",\n      \"description\": \"生成输出时间序列。\",\n      \"description_en\": \"Generate an output time series.\"\n    },\n    {\n      \"action_name\": \"auto-expand_timeseries\",\n      \"description\": \"展开输出时间序列到具体采样点。\",\n      \"description_en\": \"Expand the output time series into concrete sample points.\"\n    },\n    {\n      \"action_name\": \"auto-ramp\",\n      \"description\": \"定义斜坡变化输出。\",\n      \"description_en\": \"Define a ramped output change.\"\n    },\n    {\n      \"action_name\": \"auto-sine\",\n      \"description\": \"定义正弦波输出。\",\n      \"description_en\": \"Define a sine-wave output.\"\n    },\n    {\n      \"action_name\": \"auto-sine_ramp\",\n      \"description\": \"定义正弦型斜坡输出。\",\n      \"description_en\": \"Define a sine-shaped ramp output.\"\n    },\n    {\n      \"action_name\": \"auto-sine4_ramp\",\n      \"description\": \"定义四次正弦型斜坡输出。\",\n      \"description_en\": \"Define a sine-to-the-fourth ramp output.\"\n    },\n    {\n      \"action_name\": \"auto-sine4_reverse_ramp\",\n      \"description\": \"定义反向四次正弦型斜坡输出。\",\n      \"description_en\": \"Define a reverse sine-to-the-fourth ramp output.\"\n    },\n    {\n      \"action_name\": \"auto-exp_ramp\",\n      \"description\": \"定义指数斜坡输出。\",\n      \"description_en\": \"Define an exponential ramp output.\"\n    },\n    {\n      \"action_name\": \"auto-exp_ramp_t\",\n      \"description\": \"定义带时间参数的指数斜坡输出。\",\n      \"description_en\": \"Define an exponential ramp output with time parameterization.\"\n    },\n    {\n      \"action_name\": \"auto-piecewise_accel_ramp\",\n      \"description\": \"定义分段加速度斜坡输出。\",\n      \"description_en\": \"Define a piecewise-acceleration ramp output.\"\n    },\n    {\n      \"action_name\": \"auto-square_wave\",\n      \"description\": \"定义方波输出。\",\n      \"description_en\": \"Define a square-wave output.\"\n    },\n    {\n      \"action_name\": \"auto-square_wave_levels\",\n      \"description\": \"定义具有指定电平的方波输出。\",\n      \"description_en\": \"Define a square-wave output with specified levels.\"\n    },\n    {\n      \"action_name\": \"auto-customramp\",\n      \"description\": \"定义自定义函数斜坡输出。\",\n      \"description_en\": \"Define a custom-function ramp output.\"\n    },\n    {\n      \"action_name\": \"auto-constant\",\n      \"description\": \"定义恒定输出值。\",\n      \"description_en\": \"Define a constant output value.\"\n    },\n    {\n      \"action_name\": \"auto-static_value\",\n      \"description\": \"定义静态输出值。\",\n      \"description_en\": \"Define a static output value.\"\n    },\n    {\n      \"action_name\": \"auto-go_high\",\n      \"description\": \"将数字输出设为高电平。\",\n      \"description_en\": \"Set the digital output high.\"\n    },\n    {\n      \"action_name\": \"auto-go_low\",\n      \"description\": \"将数字输出设为低电平。\",\n      \"description_en\": \"Set the digital output low.\"\n    },\n    {\n      \"action_name\": \"auto-repeat_pulse_sequence\",\n      \"description\": \"定义重复脉冲序列。\",\n      \"description_en\": \"Define a repeated pulse sequence.\"\n    },\n    {\n      \"action_name\": \"auto-generate_code\",\n      \"description\": \"生成实验控制代码或指令数据。\",\n      \"description_en\": \"Generate experiment control code or instruction data.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"定义触发事件或触发输出。\",\n      \"description_en\": \"Define a trigger event or trigger output.\"\n    },\n    {\n      \"action_name\": \"auto-add_device\",\n      \"description\": \"添加关联设备或子输出对象。\",\n      \"description_en\": \"Add an associated device or child output object.\"\n    },\n    {\n      \"action_name\": \"auto-pulse\",\n      \"description\": \"定义脉冲输出。\",\n      \"description_en\": \"Define a pulse output.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"DDS control\",\n    \"static RF output\",\n    \"frequency amplitude phase setting\",\n    \"gated output\",\n    \"labscript experiment sequencing\",\n    \"timing instruction generation\",\n    \"software-defined output\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: tf_mini\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: donkeycar/parts/tfmini.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.distance_sensor.tfmini:TFMini\n\nClass: TFMini (focal)\n  Bases: []\n  Docstring: Class for TFMini and TFMini-Plus distance sensors.\nSee wiring and installation instructions at https://github.com/TFmini/TFmini-RaspberryPi\n\nReturns distance in centimeters. \n\nFocal class methods:\n  [command] update(self)\n  [command] poll(self)\n  [command] run_threaded(self)\n  [command] run(self)\n  [command] shutdown(self)\n\nRegistry actions:\n  auto-update (from update())\n  auto-poll (from poll())\n  auto-run_threaded (from run_threaded())\n  auto-run (from run())\n  auto-shutdown (from shutdown())\n\nRequired output action ids:\n  auto-update\n  auto-poll\n  auto-run_threaded\n  auto-run\n  auto-shutdown"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_06005b7099da2d360069d5669e2df48196b7fcc9cdab2eabd5",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1850,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4064,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_06005b7099da2d360069d5669e8a8481969c6fe62a4a7c07fd",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_06005b7099da2d360069d566aae0b08196a843cd360461ffd4",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"TFMini 距离传感器\",\n  \"name_en\": \"TFMini distance sensor\",\n  \"manufacturer\": \"\",\n  \"description\": \"TFMini/TFMini-Plus 距离传感器，用于在实验装置或移动平台中测量目标距离，并输出以厘米为单位的距离读数。该设备支持轮询、持续更新、线程化读取和安全关闭连接。\",\n  \"description_en\": \"A TFMini/TFMini-Plus distance sensor used to measure target distance in lab setups or mobile platforms, returning distance readings in centimeters. The device supports polling, continuous updating, threaded reading, and safe shutdown of the connection.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-update\",\n      \"description\": \"持续更新传感器的距离读数。\",\n      \"description_en\": \"Continuously update the sensor distance reading.\"\n    },\n    {\n      \"action_name\": \"auto-poll\",\n      \"description\": \"轮询传感器并获取当前距离。\",\n      \"description_en\": \"Poll the sensor and obtain the current distance.\"\n    },\n    {\n      \"action_name\": \"auto-run_threaded\",\n      \"description\": \"在线程模式下返回最近一次距离读数。\",\n      \"description_en\": \"Return the most recent distance reading in threaded mode.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"读取并返回当前距离测量值。\",\n      \"description_en\": \"Read and return the current distance measurement.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭传感器连接。\",\n      \"description_en\": \"Shut down the sensor connection.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"distance sensing\",\n    \"rangefinding\",\n    \"TFMini\",\n    \"TFMini-Plus\",\n    \"centimeter distance output\",\n    \"serial sensor\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 905,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1048,
+      "output_tokens_details": {
+        "reasoning_tokens": 635
+      },
+      "total_tokens": 1953
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 905,
+      "output_token_count": 1048,
+      "predict_time": 21.536548703
+    }
+  },
+  "output_text": "{\n  \"name\": \"TFMini 距离传感器\",\n  \"name_en\": \"TFMini distance sensor\",\n  \"manufacturer\": \"\",\n  \"description\": \"TFMini/TFMini-Plus 距离传感器，用于在实验装置或移动平台中测量目标距离，并输出以厘米为单位的距离读数。该设备支持轮询、持续更新、线程化读取和安全关闭连接。\",\n  \"description_en\": \"A TFMini/TFMini-Plus distance sensor used to measure target distance in lab setups or mobile platforms, returning distance readings in centimeters. The device supports polling, continuous updating, threaded reading, and safe shutdown of the connection.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-update\",\n      \"description\": \"持续更新传感器的距离读数。\",\n      \"description_en\": \"Continuously update the sensor distance reading.\"\n    },\n    {\n      \"action_name\": \"auto-poll\",\n      \"description\": \"轮询传感器并获取当前距离。\",\n      \"description_en\": \"Poll the sensor and obtain the current distance.\"\n    },\n    {\n      \"action_name\": \"auto-run_threaded\",\n      \"description\": \"在线程模式下返回最近一次距离读数。\",\n      \"description_en\": \"Return the most recent distance reading in threaded mode.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"读取并返回当前距离测量值。\",\n      \"description_en\": \"Read and return the current distance measurement.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭传感器连接。\",\n      \"description_en\": \"Shut down the sensor connection.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"distance sensing\",\n    \"rangefinding\",\n    \"TFMini\",\n    \"TFMini-Plus\",\n    \"centimeter distance output\",\n    \"serial sensor\"\n  ]\n}"
+}

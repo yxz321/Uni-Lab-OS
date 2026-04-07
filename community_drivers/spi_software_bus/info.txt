@@ -1,35 +1,80 @@
-Device: spi_software_bus
-Registry Key: spi_software_bus
-Short Description: SPI Software Bus SPI软件总线驱动是由复纳科学仪器（上海）有限公司生产的专业实验设备。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (3):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-closed -> closed [UniLabJsonCommand] goal_params: none
-- auto-transfer -> transfer [UniLabJsonCommand] goal_params: bits_per_word, clock_phase, data, lsb_first
-
-Driver Functions (19):
-- SPISoftware.__init__(self, clock_pin, mosi_pin, miso_pin, select_pin, *, pin_factory) (line 101)
-- SPISoftware._conflicts_with(self, other) (line 121)
-- SPISoftware.close(self) (line 127)
-- SPISoftware.closed(self) (line 137)
-- SPISoftware.__repr__(self) (line 140)
-- SPISoftware.transfer(self, data) (line 151)
-- SPISoftware._get_clock_mode(self) (line 161)
-- SPISoftware._set_clock_mode(self, value) (line 165)
-- SPISoftware._get_lsb_first(self) (line 172)
-- SPISoftware._set_lsb_first(self, value) (line 175)
-- SPISoftware._get_bits_per_word(self) (line 178)
-- SPISoftware._set_bits_per_word(self, value) (line 181)
-- SPISoftware._get_select_high(self) (line 186)
-- SPISoftware._set_select_high(self, value) (line 189)
-- SPISoftwareBus.__init__(self, clock_pin, mosi_pin, miso_pin, *, pin_factory) (line 207)
-- SPISoftwareBus.close(self) (line 228)
-- SPISoftwareBus.closed(self) (line 245)
-- SPISoftwareBus._shared_key(cls, clock_pin, mosi_pin, miso_pin, *, pin_factory) (line 250)
-- SPISoftwareBus.transfer(self, data, clock_phase, lsb_first, bits_per_word) (line 254)
+spi_software_bus:
+  name: 软件 SPI 总线组件
+  name_en: Software SPI Bus Component
+  manufacturer: ''
+  category:
+  - 软件SPI接口
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 电子与电气测试
+  - 嵌入式总线通信与外设控制
+  - 软件SPI接口
+  description: 一个非物理的软件组件，用 GPIO 引脚以位操作方式实现本地 SPI 总线通信。它为实验中的 SPI 外设提供基础数据传输、总线共享与关闭状态管理，但本身不是具体仪器。
+  description_en: A non-physical software component that implements local SPI bus
+    communication by bit-banging GPIO pins. It provides basic data transfer, shared
+    bus handling, and closed-state management for SPI peripherals used in experiments,
+    but it is not a physical instrument itself.
+  class:
+    action_value_mappings:
+      auto-close:
+        schema:
+          description: 关闭软件 SPI 总线。
+          description_en: Close the software SPI bus.
+      auto-transfer:
+        schema:
+          description: 通过软件 SPI 总线传输数据，并返回读取到的数据。
+          description_en: Transfer data through the software SPI bus and return the
+            data read back.
+      auto-closed:
+        schema:
+          description: 获取总线是否已关闭。
+          description_en: Get whether the bus is closed.
+auto_annotation_metadata:
+  registry_key: spi_software_bus
+  annotation_workflow_version: v4
+  tag_hints:
+  - software SPI
+  - bit-banged SPI
+  - GPIO communication
+  - local SPI bus
+  - SPI data transfer
+  - shared bus interface
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该总线组件在实验中承担实际SPI收发与总线共享管理，属于执行层通信组件。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它为实验中的SPI外设提供基础总线能力，属于自动化控制中的接口集成组件。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: 软件SPI总线依赖GPIO位操作实现本地通信，符合实验电子接口控制范畴。
+  - id: P-60010
+    name: 嵌入式总线通信与外设控制
+    name_en: Embedded Bus Communication & Peripheral Control
+    type: experimental_scene
+    rationale: 该组件面向共享式本地SPI总线的数据传输与关闭状态管理，符合嵌入式总线控制场景。
+  proposed_new_tags:
+  - id: P-600203
+    name: 软件SPI接口
+    name_en: Software SPI Interface
+    type: device_template_tag
+    rationale: 该组件体现的是可复用的软件SPI总线/接口实现，而非独立物理仪器。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

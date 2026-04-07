@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: spi\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: basil/HL/spi.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.spi:spi\n\nClass: spi (focal)\n  Bases: ['RegisterHardwareLayer']\n  Docstring: Implement serial programming interface (SPI) driver.\n    \n\nFocal class methods:\n  [command] init(self)\n  [command] reset(self)\n    comment: Soft reset the module.\n  [command] start(self)\n    comment: Starts the shifting data\n  [command] set_size(self, value)\n    comment: Number of clock cycles for shifting in data\n        ex. length of matrix shift register (number of pixels daisy chained)\n  [command] get_size(self)\n    comment: Get size of shift register length\n  [command] set_wait(self, value)\n    comment: Sets time delay between repetitions in clock cycles\n  [command] get_wait(self)\n    comment: Gets time delay between repetitions in clock cycles\n  [command] set_repeat(self, value)\n    comment: If 0: Repeat sequence forever\n        Other: Number of repetitions of sequence with delay 'wait'\n  [command] get_repeat(self)\n    comment: Gets Number of repetitions of sequence with delay 'wait' (if 0 --> repeat forever)\n  [command] set_en(self, value)\n    comment: Enable start on external EXT_START signal (inside FPGA)\n  [command] get_en(self)\n    comment: Gets state of enable.\n  [command] is_done(self)\n    comment: Get the status of transfer/sequence.\n  [command] is_ready(self)\n  [command] get_mem_size(self)\n  [command] set_data(self, data, addr=0)\n    comment: Sets data for outgoing stream\n  [command] get_data(self, size=None, addr=None)\n    comment: This needs to be changed to return written value\n    comment: readback memory offset\n    comment: Gets data for incoming stream\n\nRegistry actions:\n  auto-init (from init())\n  auto-reset (from reset())\n  auto-start (from start())\n  auto-set_size (from set_size())\n  auto-get_size (from get_size())\n  auto-set_wait (from set_wait())\n  auto-get_wait (from get_wait())\n  auto-set_repeat (from set_repeat())\n  auto-get_repeat (from get_repeat())\n  auto-set_en (from set_en())\n  auto-get_en (from get_en())\n  auto-is_done (from is_done())\n  auto-is_ready (from is_ready())\n  auto-get_mem_size (from get_mem_size())\n  auto-set_data (from set_data())\n  auto-get_data (from get_data())\n\nRequired output action ids:\n  auto-init\n  auto-reset\n  auto-start\n  auto-set_size\n  auto-get_size\n  auto-set_wait\n  auto-get_wait\n  auto-set_repeat\n  auto-get_repeat\n  auto-set_en\n  auto-get_en\n  auto-is_done\n  auto-is_ready\n  auto-get_mem_size\n  auto-set_data\n  auto-get_data"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0948ccf92beb12dd0069d55f8c181481949cbba4ec2121e7cd",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3613,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5948,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0948ccf92beb12dd0069d55f8c986481948f65c3efcc7703fa",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0948ccf92beb12dd0069d55f962bc8819494aa1f684b25e105",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"SPI串行接口控制模块\",\n  \"name_en\": \"SPI Serial Interface Control Module\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的通用SPI串行通信控制组件，用于在实验电子系统中通过寄存器硬件层配置移位长度、重复次数、等待周期和外部触发，并读写发送/接收数据缓冲区。它更像是FPGA或底层电子学中的SPI传输控制单元，而不是独立实验仪器。\",\n  \"description_en\": \"A non-physical generic SPI serial communication control component used through a register-based hardware layer to configure shift length, repetition count, wait cycles, and external triggering, and to read/write transmit and receive data buffers in laboratory electronics. It appears to represent an SPI transfer control block in FPGA or low-level electronics rather than a standalone lab instrument.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化SPI串行接口控制模块。\",\n      \"description_en\": \"Initialize the SPI serial interface control module.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"软复位模块。\",\n      \"description_en\": \"Soft reset the module.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"开始移位传输数据序列。\",\n      \"description_en\": \"Start shifting the data sequence.\"\n    },\n    {\n      \"action_name\": \"auto-set_size\",\n      \"description\": \"设置数据移位的时钟周期数。\",\n      \"description_en\": \"Set the number of clock cycles for data shifting.\"\n    },\n    {\n      \"action_name\": \"auto-get_size\",\n      \"description\": \"获取数据移位的时钟周期数。\",\n      \"description_en\": \"Get the number of clock cycles for data shifting.\"\n    },\n    {\n      \"action_name\": \"auto-set_wait\",\n      \"description\": \"设置重复之间的等待时钟周期数。\",\n      \"description_en\": \"Set the delay between repetitions in clock cycles.\"\n    },\n    {\n      \"action_name\": \"auto-get_wait\",\n      \"description\": \"获取重复之间的等待时钟周期数。\",\n      \"description_en\": \"Get the delay between repetitions in clock cycles.\"\n    },\n    {\n      \"action_name\": \"auto-set_repeat\",\n      \"description\": \"设置序列重复次数。\",\n      \"description_en\": \"Set the number of sequence repetitions.\"\n    },\n    {\n      \"action_name\": \"auto-get_repeat\",\n      \"description\": \"获取序列重复次数。\",\n      \"description_en\": \"Get the number of sequence repetitions.\"\n    },\n    {\n      \"action_name\": \"auto-set_en\",\n      \"description\": \"设置外部启动信号使能状态。\",\n      \"description_en\": \"Set the external start enable state.\"\n    },\n    {\n      \"action_name\": \"auto-get_en\",\n      \"description\": \"获取外部启动信号使能状态。\",\n      \"description_en\": \"Get the external start enable state.\"\n    },\n    {\n      \"action_name\": \"auto-is_done\",\n      \"description\": \"获取传输或序列完成状态。\",\n      \"description_en\": \"Get the transfer or sequence completion status.\"\n    },\n    {\n      \"action_name\": \"auto-is_ready\",\n      \"description\": \"获取就绪状态。\",\n      \"description_en\": \"Get the ready status.\"\n    },\n    {\n      \"action_name\": \"auto-get_mem_size\",\n      \"description\": \"获取数据缓冲存储区大小。\",\n      \"description_en\": \"Get the data buffer memory size.\"\n    },\n    {\n      \"action_name\": \"auto-set_data\",\n      \"description\": \"设置发送数据流内容。\",\n      \"description_en\": \"Set the outgoing data stream.\"\n    },\n    {\n      \"action_name\": \"auto-get_data\",\n      \"description\": \"获取接收数据流内容。\",\n      \"description_en\": \"Get the incoming data stream.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"SPI communication\",\n    \"FPGA control block\",\n    \"register hardware layer\",\n    \"serial data shifting\",\n    \"external trigger enable\",\n    \"buffered data transfer\",\n    \"digital electronics\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1328,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1414,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2742
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1328,
+      "output_token_count": 1414,
+      "predict_time": 24.828201543
+    }
+  },
+  "output_text": "{\n  \"name\": \"SPI串行接口控制模块\",\n  \"name_en\": \"SPI Serial Interface Control Module\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的通用SPI串行通信控制组件，用于在实验电子系统中通过寄存器硬件层配置移位长度、重复次数、等待周期和外部触发，并读写发送/接收数据缓冲区。它更像是FPGA或底层电子学中的SPI传输控制单元，而不是独立实验仪器。\",\n  \"description_en\": \"A non-physical generic SPI serial communication control component used through a register-based hardware layer to configure shift length, repetition count, wait cycles, and external triggering, and to read/write transmit and receive data buffers in laboratory electronics. It appears to represent an SPI transfer control block in FPGA or low-level electronics rather than a standalone lab instrument.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化SPI串行接口控制模块。\",\n      \"description_en\": \"Initialize the SPI serial interface control module.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"软复位模块。\",\n      \"description_en\": \"Soft reset the module.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"开始移位传输数据序列。\",\n      \"description_en\": \"Start shifting the data sequence.\"\n    },\n    {\n      \"action_name\": \"auto-set_size\",\n      \"description\": \"设置数据移位的时钟周期数。\",\n      \"description_en\": \"Set the number of clock cycles for data shifting.\"\n    },\n    {\n      \"action_name\": \"auto-get_size\",\n      \"description\": \"获取数据移位的时钟周期数。\",\n      \"description_en\": \"Get the number of clock cycles for data shifting.\"\n    },\n    {\n      \"action_name\": \"auto-set_wait\",\n      \"description\": \"设置重复之间的等待时钟周期数。\",\n      \"description_en\": \"Set the delay between repetitions in clock cycles.\"\n    },\n    {\n      \"action_name\": \"auto-get_wait\",\n      \"description\": \"获取重复之间的等待时钟周期数。\",\n      \"description_en\": \"Get the delay between repetitions in clock cycles.\"\n    },\n    {\n      \"action_name\": \"auto-set_repeat\",\n      \"description\": \"设置序列重复次数。\",\n      \"description_en\": \"Set the number of sequence repetitions.\"\n    },\n    {\n      \"action_name\": \"auto-get_repeat\",\n      \"description\": \"获取序列重复次数。\",\n      \"description_en\": \"Get the number of sequence repetitions.\"\n    },\n    {\n      \"action_name\": \"auto-set_en\",\n      \"description\": \"设置外部启动信号使能状态。\",\n      \"description_en\": \"Set the external start enable state.\"\n    },\n    {\n      \"action_name\": \"auto-get_en\",\n      \"description\": \"获取外部启动信号使能状态。\",\n      \"description_en\": \"Get the external start enable state.\"\n    },\n    {\n      \"action_name\": \"auto-is_done\",\n      \"description\": \"获取传输或序列完成状态。\",\n      \"description_en\": \"Get the transfer or sequence completion status.\"\n    },\n    {\n      \"action_name\": \"auto-is_ready\",\n      \"description\": \"获取就绪状态。\",\n      \"description_en\": \"Get the ready status.\"\n    },\n    {\n      \"action_name\": \"auto-get_mem_size\",\n      \"description\": \"获取数据缓冲存储区大小。\",\n      \"description_en\": \"Get the data buffer memory size.\"\n    },\n    {\n      \"action_name\": \"auto-set_data\",\n      \"description\": \"设置发送数据流内容。\",\n      \"description_en\": \"Set the outgoing data stream.\"\n    },\n    {\n      \"action_name\": \"auto-get_data\",\n      \"description\": \"获取接收数据流内容。\",\n      \"description_en\": \"Get the incoming data stream.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"SPI communication\",\n    \"FPGA control block\",\n    \"register hardware layer\",\n    \"serial data shifting\",\n    \"external trigger enable\",\n    \"buffered data transfer\",\n    \"digital electronics\"\n  ]\n}"
+}

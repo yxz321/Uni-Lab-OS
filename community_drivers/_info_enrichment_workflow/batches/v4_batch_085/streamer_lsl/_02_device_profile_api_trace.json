@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: streamer_lsl\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: lib/streamerlsl.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.streamer_lsl:StreamerLSL\n\nClass: StreamerLSL (focal)\n  Bases: ['QThread if GUI == True else object']\n\nFocal class methods:\n  [command] initialize_board(self, autodetect=False, port=None, daisy=None)\n  [command] init_board_settings(self)\n    comment: set default board configuration\n    comment: default to 16 channels initially\n  [command] set_board_settings(self)\n  [command] send(self, sample)\n  [command] create_lsl(self, default=True, stream1=None, stream2=None)\n    comment: default parameters\n    comment: create StreamInfo\n    comment: user input parameters\n    comment: create StreamInfo\n    comment: channel locations\n    comment: additional Meta Data\n    comment: create StreamOutlet\n  [command] cleanUp()\n  [command] start_streaming(self)\n  [command] stop_streaming(self)\n    comment: clean up any leftover bytes from serial port\n    comment: self.board.ser.reset_input_buffer()\n    comment: print(\"doing this thing\")\n  [command] begin(self)\n    comment: Init board state\n    comment: s: stop board streaming; v: soft reset of the 32-bit board (no effect with 8bit board)\n    comment: Tell the board to enable or not daisy module\n    comment: d: Channels settings back to default\n    comment: Send char and wait for registers to set\n    comment: read silently incoming packet if set (used when stream is stopped)\n    comment: start streaming in a separate thread so we could always send commands in here\n    comment: Take user input\n    comment: s = input('--> ')\n  [command] change_locations(self, locs)\n    comment: create StreamOutlet\n\nRegistry actions:\n  auto-initialize_board (from initialize_board())\n  auto-init_board_settings (from init_board_settings())\n  auto-set_board_settings (from set_board_settings())\n  auto-send (from send())\n  auto-create_lsl (from create_lsl())\n  auto-cleanUp (from cleanUp())\n  auto-start_streaming (from start_streaming())\n  auto-stop_streaming (from stop_streaming())\n  auto-begin (from begin())\n  auto-change_locations (from change_locations())\n\nRequired output action ids:\n  auto-initialize_board\n  auto-init_board_settings\n  auto-set_board_settings\n  auto-send\n  auto-create_lsl\n  auto-cleanUp\n  auto-start_streaming\n  auto-stop_streaming\n  auto-begin\n  auto-change_locations"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0c3d1173fc5aff9e0069d5629d3bd881979095dfdd2b9c864c",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3440,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7201,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0c3d1173fc5aff9e0069d5629e9958819790704e4834c5e502",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0c3d1173fc5aff9e0069d562b27d0c81978cc7d3d8853f71d7",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"OpenBCI 生物电采集板（LSL流输出）\",\n  \"name_en\": \"OpenBCI biosignal acquisition board with LSL streaming\",\n  \"manufacturer\": \"OpenBCI\",\n  \"description\": \"用于初始化和控制 OpenBCI 生物电采集板，并将采集到的多通道数据通过 Lab Streaming Layer（LSL）发布。代码证据显示其可进行串口板卡初始化、默认通道配置、菊花链接入设置、开始/停止采集以及通道位置信息管理，适合脑电等生理信号实验的数据采集与实时流传输。\",\n  \"description_en\": \"Used to initialize and control an OpenBCI biosignal acquisition board and publish multichannel data through Lab Streaming Layer (LSL). The evidence shows serial board initialization, default channel configuration, daisy-module handling, start/stop acquisition, and channel location metadata management, making it suitable for EEG and related biosignal experiments with real-time streaming.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-initialize_board\",\n      \"description\": \"初始化采集板，并设置自动检测、端口或菊花链等参数。\",\n      \"description_en\": \"Initialize the acquisition board and set options such as autodetection, port, or daisy expansion.\"\n    },\n    {\n      \"action_name\": \"auto-init_board_settings\",\n      \"description\": \"设置采集板的默认配置，如初始通道数等。\",\n      \"description_en\": \"Set the default board configuration, such as the initial channel count.\"\n    },\n    {\n      \"action_name\": \"auto-set_board_settings\",\n      \"description\": \"将当前板卡配置应用到设备。\",\n      \"description_en\": \"Apply the current board settings to the device.\"\n    },\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"发送一帧采样数据到流输出。\",\n      \"description_en\": \"Send one sample frame to the stream output.\"\n    },\n    {\n      \"action_name\": \"auto-create_lsl\",\n      \"description\": \"创建 LSL 流信息与输出通道，并设置元数据和通道信息。\",\n      \"description_en\": \"Create the LSL stream information and outlet, including metadata and channel information.\"\n    },\n    {\n      \"action_name\": \"auto-cleanUp\",\n      \"description\": \"清理采集与流输出相关资源。\",\n      \"description_en\": \"Clean up resources related to acquisition and stream output.\"\n    },\n    {\n      \"action_name\": \"auto-start_streaming\",\n      \"description\": \"开始从采集板采集并输出实时数据流。\",\n      \"description_en\": \"Start acquiring from the board and output a real-time data stream.\"\n    },\n    {\n      \"action_name\": \"auto-stop_streaming\",\n      \"description\": \"停止数据流，并清理串口缓冲等残留状态。\",\n      \"description_en\": \"Stop the data stream and clear leftover state such as serial input buffers.\"\n    },\n    {\n      \"action_name\": \"auto-begin\",\n      \"description\": \"初始化板卡状态，执行基础控制命令，并启动采集流程。\",\n      \"description_en\": \"Initialize the board state, issue basic control commands, and start the acquisition process.\"\n    },\n    {\n      \"action_name\": \"auto-change_locations\",\n      \"description\": \"修改通道位置信息，用于更新流中的电极位置元数据。\",\n      \"description_en\": \"Change channel location information to update electrode position metadata in the stream.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"OpenBCI\",\n    \"biosignal acquisition\",\n    \"EEG streaming\",\n    \"LSL\",\n    \"serial board control\",\n    \"16-channel daisy expansion\",\n    \"channel location metadata\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1256,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1850,
+      "output_tokens_details": {
+        "reasoning_tokens": 1034
+      },
+      "total_tokens": 3106
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1256,
+      "output_token_count": 1850,
+      "predict_time": 33.381894835
+    }
+  },
+  "output_text": "{\n  \"name\": \"OpenBCI 生物电采集板（LSL流输出）\",\n  \"name_en\": \"OpenBCI biosignal acquisition board with LSL streaming\",\n  \"manufacturer\": \"OpenBCI\",\n  \"description\": \"用于初始化和控制 OpenBCI 生物电采集板，并将采集到的多通道数据通过 Lab Streaming Layer（LSL）发布。代码证据显示其可进行串口板卡初始化、默认通道配置、菊花链接入设置、开始/停止采集以及通道位置信息管理，适合脑电等生理信号实验的数据采集与实时流传输。\",\n  \"description_en\": \"Used to initialize and control an OpenBCI biosignal acquisition board and publish multichannel data through Lab Streaming Layer (LSL). The evidence shows serial board initialization, default channel configuration, daisy-module handling, start/stop acquisition, and channel location metadata management, making it suitable for EEG and related biosignal experiments with real-time streaming.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-initialize_board\",\n      \"description\": \"初始化采集板，并设置自动检测、端口或菊花链等参数。\",\n      \"description_en\": \"Initialize the acquisition board and set options such as autodetection, port, or daisy expansion.\"\n    },\n    {\n      \"action_name\": \"auto-init_board_settings\",\n      \"description\": \"设置采集板的默认配置，如初始通道数等。\",\n      \"description_en\": \"Set the default board configuration, such as the initial channel count.\"\n    },\n    {\n      \"action_name\": \"auto-set_board_settings\",\n      \"description\": \"将当前板卡配置应用到设备。\",\n      \"description_en\": \"Apply the current board settings to the device.\"\n    },\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"发送一帧采样数据到流输出。\",\n      \"description_en\": \"Send one sample frame to the stream output.\"\n    },\n    {\n      \"action_name\": \"auto-create_lsl\",\n      \"description\": \"创建 LSL 流信息与输出通道，并设置元数据和通道信息。\",\n      \"description_en\": \"Create the LSL stream information and outlet, including metadata and channel information.\"\n    },\n    {\n      \"action_name\": \"auto-cleanUp\",\n      \"description\": \"清理采集与流输出相关资源。\",\n      \"description_en\": \"Clean up resources related to acquisition and stream output.\"\n    },\n    {\n      \"action_name\": \"auto-start_streaming\",\n      \"description\": \"开始从采集板采集并输出实时数据流。\",\n      \"description_en\": \"Start acquiring from the board and output a real-time data stream.\"\n    },\n    {\n      \"action_name\": \"auto-stop_streaming\",\n      \"description\": \"停止数据流，并清理串口缓冲等残留状态。\",\n      \"description_en\": \"Stop the data stream and clear leftover state such as serial input buffers.\"\n    },\n    {\n      \"action_name\": \"auto-begin\",\n      \"description\": \"初始化板卡状态，执行基础控制命令，并启动采集流程。\",\n      \"description_en\": \"Initialize the board state, issue basic control commands, and start the acquisition process.\"\n    },\n    {\n      \"action_name\": \"auto-change_locations\",\n      \"description\": \"修改通道位置信息，用于更新流中的电极位置元数据。\",\n      \"description_en\": \"Change channel location information to update electrode position metadata in the stream.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"OpenBCI\",\n    \"biosignal acquisition\",\n    \"EEG streaming\",\n    \"LSL\",\n    \"serial board control\",\n    \"16-channel daisy expansion\",\n    \"channel location metadata\"\n  ]\n}"
+}

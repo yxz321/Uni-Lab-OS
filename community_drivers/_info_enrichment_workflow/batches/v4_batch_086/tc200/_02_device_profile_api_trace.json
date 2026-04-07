@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: tc200\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/thorlabs/tc200.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.temperature_controller.tc200:TC200\n\nClass: TC200 (focal)\n  Bases: ['Instrument']\n  Docstring: The TC200 is is a controller for the voltage across a heating element.\nIt can also read in the temperature off of a thermistor and implements\na PID control to keep the temperature at a set value.\n\nThe user manual can be found here:\nhttp://www.thorlabs.com/thorcat/12500/TC200-Manual.pdf\n\nFocal class methods:\n  [command] name(self)\n    comment: PROPERTIES #\n    comment: Gets the name and version number of the device\n\n        :return: the name string of the device\n        :rtype: str\n  [status_getter] mode(self)\n    comment: Gets/sets the output mode of the TC200\n\n        :type: `TC200.Mode`\n  [status_setter] mode(self, newval)\n    comment: there is an issue with the TC200; it responds with a spurious\n    comment: Command Error on mode=normal. Thus, the sendcmd() method cannot\n    comment: be used.\n  [status_getter] enable(self)\n    comment: Gets/sets the heater enable status.\n\n        If output enable is on (`True`), there is a voltage on the output.\n\n        :type: `bool`\n  [status_setter] enable(self, newval)\n    comment: the \"ens\" command is a toggle, we need to track two different cases,\n    comment: when it should be on and it is off, and when it is off and\n    comment: should be on\n    comment: if no sensor is attached, the unit will respond with an error.\n    comment: There is no current error handling in the way that thorlabs\n    comment: responds with errors\n  [status_getter] status(self)\n    comment: Gets the the status code of the TC200\n\n        :rtype: `int`\n  [status_getter] temperature_set(self)\n    comment: Gets/sets the actual temperature of the sensor\n\n        :units: As specified (if a `~pint.Quantity`) or assumed\n            to be of units degrees C.\n        :type: `~pint.Quantity` or `int`\n        :...\n  [status_setter] temperature_set(self, newval)\n    comment: the set temperature is always in celsius\n  [status_getter] p(self)\n    comment: Gets/sets the p-gain. Valid numbers are [1,250].\n\n        :return: the p-gain (in nnn)\n        :rtype: `int`\n  [status_setter] p(self, newval)\n  [status_getter] i(self)\n    comment: Gets/sets the i-gain. Valid numbers are [1,250]\n\n        :return: the i-gain (in nnn)\n        :rtype: `int`\n  [status_setter] i(self, newval)\n  [status_getter] d(self)\n    comment: Gets/sets the d-gain. Valid numbers are [0, 250]\n\n        :return: the d-gain (in nnn)\n        :type: `int`\n  [status_setter] d(self, newval)\n  [status_getter] pid(self)\n    comment: Gets/sets all three PID values at the same time. See `TC200.p`,\n        `TC200.i`, and `TC200.d` for individual restrictions.\n\n        If `None` is specified then the corresponding PID value is not ch...\n  [status_setter] pid(self, newval)\n  [status_getter] degrees(self)\n    comment: Gets/sets the units of the temperature measurement.\n\n        :return: The temperature units (degC/F/K) the TC200 is measuring in\n        :type: `~pint.Unit`\n  [status_setter] degrees(self, newval)\n\nRegistry actions:\n  auto-beta (from beta())\n  auto-d (from d())\n  auto-degrees (from degrees())\n  auto-enable (from enable())\n  auto-i (from i())\n  auto-max_power (from max_power())\n  auto-max_temperature (from max_temperature())\n  auto-mode (from mode())\n  auto-name (from name())\n  auto-p (from p())\n  auto-pid (from pid())\n  auto-sensor (from sensor())\n  auto-temperature_set (from temperature_set())\n  auto-status (from status())\n\nRequired output action ids:\n  auto-beta\n  auto-d\n  auto-degrees\n  auto-enable\n  auto-i\n  auto-max_power\n  auto-max_temperature\n  auto-mode\n  auto-name\n  auto-p\n  auto-pid\n  auto-sensor\n  auto-temperature_set\n  auto-status"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0e9cf213af1176cc0069d564e017008195a5911ee2115db50c",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4934,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7154,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0e9cf213af1176cc0069d564e097788195bdf2d800291a616f",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0e9cf213af1176cc0069d564f08be08195aff9eefa39f2ab86",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"TC200温度控制器\",\n  \"name_en\": \"TC200 Temperature Controller\",\n  \"manufacturer\": \"Thorlabs\",\n  \"description\": \"Thorlabs TC200 是一款实验室温度控制器，用于驱动加热元件输出电压、读取热敏电阻温度，并通过 PID 调节将温度稳定在设定值。适用于样品加热、光学或机电实验中的温度稳定与热管理。\",\n  \"description_en\": \"The Thorlabs TC200 is a laboratory temperature controller that drives a heating element, reads temperature from a thermistor, and uses PID regulation to hold the temperature at a setpoint. It is used for sample heating, thermal stabilization, and temperature management in optical or electromechanical experiments.\",\n  \"tag_hints\": [\n    \"temperature control\",\n    \"PID heater control\",\n    \"thermistor sensing\",\n    \"laboratory heating\",\n    \"temperature stabilization\",\n    \"Thorlabs TC200\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-beta\",\n      \"description\": \"获取/设置/定义热敏电阻 Beta 参数\",\n      \"description_en\": \"get/set/define the thermistor beta parameter\"\n    },\n    {\n      \"action_name\": \"auto-d\",\n      \"description\": \"获取/设置/定义 D 增益\",\n      \"description_en\": \"get/set/define the D gain\"\n    },\n    {\n      \"action_name\": \"auto-degrees\",\n      \"description\": \"获取/设置/定义温度单位\",\n      \"description_en\": \"get/set/define the temperature units\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"获取/设置/定义加热输出使能状态\",\n      \"description_en\": \"get/set/define the heater output enable state\"\n    },\n    {\n      \"action_name\": \"auto-i\",\n      \"description\": \"获取/设置/定义 I 增益\",\n      \"description_en\": \"get/set/define the I gain\"\n    },\n    {\n      \"action_name\": \"auto-max_power\",\n      \"description\": \"获取/设置/定义最大输出功率\",\n      \"description_en\": \"get/set/define the maximum output power\"\n    },\n    {\n      \"action_name\": \"auto-max_temperature\",\n      \"description\": \"获取/设置/定义最高允许温度\",\n      \"description_en\": \"get/set/define the maximum allowed temperature\"\n    },\n    {\n      \"action_name\": \"auto-mode\",\n      \"description\": \"获取/设置/定义输出模式\",\n      \"description_en\": \"get/set/define the output mode\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"读取设备名称和版本信息\",\n      \"description_en\": \"read the device name and version information\"\n    },\n    {\n      \"action_name\": \"auto-p\",\n      \"description\": \"获取/设置/定义 P 增益\",\n      \"description_en\": \"get/set/define the P gain\"\n    },\n    {\n      \"action_name\": \"auto-pid\",\n      \"description\": \"获取/设置/定义 PID 参数\",\n      \"description_en\": \"get/set/define the PID parameters\"\n    },\n    {\n      \"action_name\": \"auto-sensor\",\n      \"description\": \"获取/设置/定义温度传感器配置\",\n      \"description_en\": \"get/set/define the temperature sensor configuration\"\n    },\n    {\n      \"action_name\": \"auto-temperature_set\",\n      \"description\": \"获取/设置/定义目标温度\",\n      \"description_en\": \"get/set/define the target temperature\"\n    },\n    {\n      \"action_name\": \"auto-status\",\n      \"description\": \"获取状态代码\",\n      \"description_en\": \"get the status code\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1719,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1783,
+      "output_tokens_details": {
+        "reasoning_tokens": 964
+      },
+      "total_tokens": 3502
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1719,
+      "output_token_count": 1783,
+      "predict_time": 28.95786513
+    }
+  },
+  "output_text": "{\n  \"name\": \"TC200温度控制器\",\n  \"name_en\": \"TC200 Temperature Controller\",\n  \"manufacturer\": \"Thorlabs\",\n  \"description\": \"Thorlabs TC200 是一款实验室温度控制器，用于驱动加热元件输出电压、读取热敏电阻温度，并通过 PID 调节将温度稳定在设定值。适用于样品加热、光学或机电实验中的温度稳定与热管理。\",\n  \"description_en\": \"The Thorlabs TC200 is a laboratory temperature controller that drives a heating element, reads temperature from a thermistor, and uses PID regulation to hold the temperature at a setpoint. It is used for sample heating, thermal stabilization, and temperature management in optical or electromechanical experiments.\",\n  \"tag_hints\": [\n    \"temperature control\",\n    \"PID heater control\",\n    \"thermistor sensing\",\n    \"laboratory heating\",\n    \"temperature stabilization\",\n    \"Thorlabs TC200\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-beta\",\n      \"description\": \"获取/设置/定义热敏电阻 Beta 参数\",\n      \"description_en\": \"get/set/define the thermistor beta parameter\"\n    },\n    {\n      \"action_name\": \"auto-d\",\n      \"description\": \"获取/设置/定义 D 增益\",\n      \"description_en\": \"get/set/define the D gain\"\n    },\n    {\n      \"action_name\": \"auto-degrees\",\n      \"description\": \"获取/设置/定义温度单位\",\n      \"description_en\": \"get/set/define the temperature units\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"获取/设置/定义加热输出使能状态\",\n      \"description_en\": \"get/set/define the heater output enable state\"\n    },\n    {\n      \"action_name\": \"auto-i\",\n      \"description\": \"获取/设置/定义 I 增益\",\n      \"description_en\": \"get/set/define the I gain\"\n    },\n    {\n      \"action_name\": \"auto-max_power\",\n      \"description\": \"获取/设置/定义最大输出功率\",\n      \"description_en\": \"get/set/define the maximum output power\"\n    },\n    {\n      \"action_name\": \"auto-max_temperature\",\n      \"description\": \"获取/设置/定义最高允许温度\",\n      \"description_en\": \"get/set/define the maximum allowed temperature\"\n    },\n    {\n      \"action_name\": \"auto-mode\",\n      \"description\": \"获取/设置/定义输出模式\",\n      \"description_en\": \"get/set/define the output mode\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"读取设备名称和版本信息\",\n      \"description_en\": \"read the device name and version information\"\n    },\n    {\n      \"action_name\": \"auto-p\",\n      \"description\": \"获取/设置/定义 P 增益\",\n      \"description_en\": \"get/set/define the P gain\"\n    },\n    {\n      \"action_name\": \"auto-pid\",\n      \"description\": \"获取/设置/定义 PID 参数\",\n      \"description_en\": \"get/set/define the PID parameters\"\n    },\n    {\n      \"action_name\": \"auto-sensor\",\n      \"description\": \"获取/设置/定义温度传感器配置\",\n      \"description_en\": \"get/set/define the temperature sensor configuration\"\n    },\n    {\n      \"action_name\": \"auto-temperature_set\",\n      \"description\": \"获取/设置/定义目标温度\",\n      \"description_en\": \"get/set/define the target temperature\"\n    },\n    {\n      \"action_name\": \"auto-status\",\n      \"description\": \"获取状态代码\",\n      \"description_en\": \"get the status code\"\n    }\n  ]\n}"
+}

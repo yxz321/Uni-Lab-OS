@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: tcp_serve_value\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: donkeycar/parts/network.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.tcp_serve_value:TCPServeValue\n\nClass: ZMQValuePub \n  Bases: ['object']\n  Docstring: Use Zero Message Queue (zmq) to publish values\n\nClass: ZMQValueSub \n  Bases: ['object']\n  Docstring: Use Zero Message Queue (zmq) to subscribe to value messages from a remote publisher\n\nClass: UDPValuePub \n  Bases: ['object']\n  Docstring: Use udp to broadcast values on local network\n\nClass: UDPValueSub \n  Bases: ['object']\n  Docstring: Use UDP to listen for broadcase packets\n\nClass: TCPServeValue (focal)\n  Bases: ['object']\n  Docstring: Use tcp to serve values on local network\n\nClass: TCPClientValue \n  Bases: ['object']\n  Docstring: Use tcp to get values on local network\n\nClass: MQTTValuePub \n  Bases: ['object']\n  Docstring: Use MQTT to send values on network\npip install paho-mqtt\n\nClass: MQTTValueSub \n  Bases: ['object']\n  Docstring: Use MQTT to recv values on network\npip install paho-mqtt\n\nFocal class methods:\n  [command] send(self, sock, msg)\n  [command] run(self, values)\n    comment: print(\"sent\", len(msg), \"bytes\")\n  [command] shutdown(self)\n\nRegistry actions:\n  auto-send (from send())\n  auto-run (from run())\n  auto-shutdown (from shutdown())\n\nRequired output action ids:\n  auto-send\n  auto-run\n  auto-shutdown"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0839d188319864500069d564bc648081938a75af43640ea0e9",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2429,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2061,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0839d188319864500069d564bcd35c8193bb3eef625dc459c2",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0839d188319864500069d564c131b48193aa83eec8c0e37c8b",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"TCP数值服务组件\",\n  \"name_en\": \"TCP Value Serving Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件网络组件，用于在本地网络上通过 TCP 对外提供数值或消息，便于实验系统中的不同进程或设备之间共享实时数据。\",\n  \"description_en\": \"A non-physical software networking component that serves values or messages over TCP on a local network, enabling real-time data sharing between processes or devices in an experimental system.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"通过指定的套接字发送消息数据。\",\n      \"description_en\": \"Send message data through a specified socket.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"运行 TCP 数值服务，将给定数值在本地网络上持续对外提供。\",\n      \"description_en\": \"Run the TCP value service and continuously make the provided values available on the local network.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭 TCP 数值服务并停止网络通信。\",\n      \"description_en\": \"Shut down the TCP value service and stop network communication.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"TCP networking\",\n    \"value serving\",\n    \"local network data sharing\",\n    \"inter-process communication\",\n    \"telemetry streaming\",\n    \"experiment software component\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1052,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 513,
+      "output_tokens_details": {
+        "reasoning_tokens": 194
+      },
+      "total_tokens": 1565
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1052,
+      "output_token_count": 513,
+      "predict_time": 10.938367969
+    }
+  },
+  "output_text": "{\n  \"name\": \"TCP数值服务组件\",\n  \"name_en\": \"TCP Value Serving Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件网络组件，用于在本地网络上通过 TCP 对外提供数值或消息，便于实验系统中的不同进程或设备之间共享实时数据。\",\n  \"description_en\": \"A non-physical software networking component that serves values or messages over TCP on a local network, enabling real-time data sharing between processes or devices in an experimental system.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"通过指定的套接字发送消息数据。\",\n      \"description_en\": \"Send message data through a specified socket.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"运行 TCP 数值服务，将给定数值在本地网络上持续对外提供。\",\n      \"description_en\": \"Run the TCP value service and continuously make the provided values available on the local network.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭 TCP 数值服务并停止网络通信。\",\n      \"description_en\": \"Shut down the TCP value service and stop network communication.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"TCP networking\",\n    \"value serving\",\n    \"local network data sharing\",\n    \"inter-process communication\",\n    \"telemetry streaming\",\n    \"experiment software component\"\n  ]\n}"
+}

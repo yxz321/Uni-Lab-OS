@@ -1,37 +1,99 @@
-Device: socket_communicator
-Registry Key: socket_communicator
-Short Description: Socket Communicator驱动，支持address/close/flush input/read raw/seek等9个操作。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (9):
-- auto-address -> address [UniLabJsonCommand] goal_params: newval
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-flush_input -> flush_input [UniLabJsonCommand] goal_params: none
-- auto-read_raw -> read_raw [UniLabJsonCommand] goal_params: size
-- auto-seek -> seek [UniLabJsonCommand] goal_params: offset
-- auto-tell -> tell [UniLabJsonCommand] goal_params: none
-- auto-terminator -> terminator [UniLabJsonCommand] goal_params: newval
-- auto-timeout -> timeout [UniLabJsonCommand] goal_params: newval
-- auto-write_raw -> write_raw [UniLabJsonCommand] goal_params: msg
-
-Driver Functions (15):
-- SocketCommunicator.__init__(self, conn) (line 97)
-- SocketCommunicator.address(self) (line 114)
-- SocketCommunicator.address(self, newval) (line 122)
-- SocketCommunicator.terminator(self) (line 127)
-- SocketCommunicator.terminator(self, newval) (line 132)
-- SocketCommunicator.timeout(self) (line 144)
-- SocketCommunicator.timeout(self, newval) (line 155)
-- SocketCommunicator.close(self) (line 162)
-- SocketCommunicator.read_raw(self, size) (line 172)
-- SocketCommunicator.write_raw(self, msg) (line 198)
-- SocketCommunicator.seek(self, offset) (line 208)
-- SocketCommunicator.tell(self) (line 216)
-- SocketCommunicator.flush_input(self) (line 224)
-- SocketCommunicator._sendcmd(self, msg) (line 234)
-- SocketCommunicator._query(self, msg, size) (line 247)
+socket_communicator:
+  name: 套接字通信器
+  name_en: Socket Communicator
+  manufacturer: ''
+  category:
+  - 通用字节流仪器通信接口
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验仪器通信与驱动集成
+  - 通用字节流仪器通信接口
+  description: 这是一个非物理的软件通信组件，用于把网络套接字封装成类似文件的读写接口，方便实验控制框架通过套接字与仪器或远程服务交换原始字节数据，并管理地址、终止符、超时、输入缓冲区和连接关闭等通信属性。
+  description_en: This is a non-physical software communication component that wraps
+    a network socket as a file-like I/O interface, allowing a laboratory control framework
+    to exchange raw byte data with instruments or remote services over sockets while
+    managing address, terminator, timeout, input buffer flushing, and connection closure.
+  class:
+    action_value_mappings:
+      auto-address:
+        schema:
+          description: 获取/设置套接字对端地址
+          description_en: get/set socket peer address
+      auto-close:
+        schema:
+          description: 关闭套接字连接
+          description_en: close the socket connection
+      auto-flush_input:
+        schema:
+          description: 清空输入缓冲区
+          description_en: flush the input buffer
+      auto-read_raw:
+        schema:
+          description: 从套接字读取原始字节数据
+          description_en: read raw bytes from the socket
+      auto-seek:
+        schema:
+          description: 移动输入数据源位置（此通信器未实现）
+          description_en: seek the input data source position (not implemented for
+            this communicator)
+      auto-tell:
+        schema:
+          description: 获取当前输入数据位置（此通信器未实现）
+          description_en: get the current input data position (not implemented for
+            this communicator)
+      auto-terminator:
+        schema:
+          description: 获取/设置消息终止符
+          description_en: get/set message terminator
+      auto-timeout:
+        schema:
+          description: 获取/设置套接字通信超时
+          description_en: get/set socket communication timeout
+      auto-write_raw:
+        schema:
+          description: 向套接字写入原始字节数据
+          description_en: write raw bytes to the socket
+auto_annotation_metadata:
+  registry_key: socket_communicator
+  annotation_workflow_version: v4
+  tag_hints:
+  - socket communication
+  - TCP/IP instrument control
+  - file-like I/O
+  - raw byte stream
+  - timeout handling
+  - input buffer flushing
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该通信器在实验控制框架中承担与仪器或远程服务的实时数据交换。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它把网络套接字封装进实验控制框架，是典型的仪器集成基础组件。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 其功能集中在地址、超时、终止符、缓冲区和原始读写管理，符合驱动通信封装场景。
+  - id: P-21001
+    name: 通用字节流仪器通信接口
+    name_en: Generic Byte-Stream Instrument Communication Interface
+    type: device_template_tag
+    rationale: 该组件以文件式I/O封装原始socket字节流，适合作为通用字节流通信接口标签。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

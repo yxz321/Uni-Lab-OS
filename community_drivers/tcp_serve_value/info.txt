@@ -1,53 +1,85 @@
-Device: tcp_serve_value
-Registry Key: tcp_serve_value
-Short Description: TCP Serve Value是由Open Standard生产的实验执行&合成设备，主要功能包括复位、设备连接、读取数据、运行。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (3):
-- auto-run -> run [UniLabJsonCommand] goal_params: values
-- auto-send -> send [UniLabJsonCommand] goal_params: msg, sock
-- auto-shutdown -> shutdown [UniLabJsonCommand] goal_params: none
-
-Driver Functions (37):
-- ZMQValuePub.__init__(self, name, port, hwm) (line 78)
-- ZMQValuePub.run(self, values) (line 85)
-- ZMQValuePub.shutdown(self) (line 91)
-- ZMQValueSub.__init__(self, name, ip, port, hwm, return_last) (line 101)
-- ZMQValueSub.run(self) (line 111)
-- ZMQValueSub.shutdown(self) (line 135)
-- UDPValuePub.__init__(self, name, port) (line 144)
-- UDPValuePub.run(self, values) (line 152)
-- UDPValuePub.shutdown(self) (line 159)
-- UDPValueSub.__init__(self, name, port, def_value) (line 166)
-- UDPValueSub.run(self) (line 175)
-- UDPValueSub.run_threaded(self) (line 179)
-- UDPValueSub.update(self) (line 182)
-- UDPValueSub.poll(self) (line 186)
-- UDPValueSub.shutdown(self) (line 197)
-- TCPServeValue.__init__(self, name, port) (line 207)
-- TCPServeValue.send(self, sock, msg) (line 220)
-- TCPServeValue.run(self, values) (line 230)
-- TCPServeValue.shutdown(self) (line 261)
-- TCPClientValue.__init__(self, name, host, port) (line 270)
-- TCPClientValue.connect(self) (line 279)
-- TCPClientValue.is_connected(self) (line 293)
-- TCPClientValue.read(self, sock) (line 296)
-- TCPClientValue.reset(self) (line 321)
-- TCPClientValue.run(self) (line 327)
-- TCPClientValue.shutdown(self) (line 374)
-- MQTTValuePub.__init__(self, name, broker) (line 382)
-- MQTTValuePub.run(self, values) (line 393)
-- MQTTValuePub.shutdown(self) (line 399)
-- MQTTValueSub.__init__(self, name, broker, def_value) (line 409)
-- MQTTValueSub.on_message(self, client, userdata, message) (line 423)
-- MQTTValueSub.run(self) (line 426)
-- MQTTValueSub.shutdown(self) (line 440)
-- test_pub_sub(ip) (line 445)
-- test_udp_broadcast(ip) (line 470)
-- test_tcp_client_server(ip) (line 497)
-- test_mqtt_pub_sub(ip) (line 517)
+tcp_serve_value:
+  name: TCP数值服务组件
+  name_en: TCP Value Serving Component
+  manufacturer: ''
+  category:
+  - 系统状态监测伪设备
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验数据管理与记录
+  - 实验仪器数据采集与联机控制
+  - 过程变量监测与日志记录
+  - 系统状态监测伪设备
+  description: 一个非物理的软件网络组件，用于在本地网络上通过 TCP 对外提供数值或消息，便于实验系统中的不同进程或设备之间共享实时数据。
+  description_en: A non-physical software networking component that serves values
+    or messages over TCP on a local network, enabling real-time data sharing between
+    processes or devices in an experimental system.
+  class:
+    action_value_mappings:
+      auto-send:
+        schema:
+          description: 通过指定的套接字发送消息数据。
+          description_en: Send message data through a specified socket.
+      auto-run:
+        schema:
+          description: 运行 TCP 数值服务，将给定数值在本地网络上持续对外提供。
+          description_en: Run the TCP value service and continuously make the provided
+            values available on the local network.
+      auto-shutdown:
+        schema:
+          description: 关闭 TCP 数值服务并停止网络通信。
+          description_en: Shut down the TCP value service and stop network communication.
+auto_annotation_metadata:
+  registry_key: tcp_serve_value
+  annotation_workflow_version: v4
+  tag_hints:
+  - TCP networking
+  - value serving
+  - local network data sharing
+  - inter-process communication
+  - telemetry streaming
+  - experiment software component
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件在实验系统运行时持续对外提供实时数值或消息，服务于实验执行过程中的联机数据交换。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它用于不同进程或设备之间共享实时数据，是实验自动化系统集成中的常见软件部件。
+  - id: P-9103
+    name: 实验数据管理与记录
+    name_en: Experimental Data Management & Logging
+    type: experimental_domain
+    rationale: 该服务对外提供实时数值/消息，本质上属于实验数据在系统内的组织与分发。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 通过 TCP 在本地网络上持续发布可读数值，适合联机控制与在线数据共享场景。
+  - id: P-600101
+    name: 过程变量监测与日志记录
+    name_en: Process Variable Monitoring & Logging
+    type: experimental_scene
+    rationale: 其提供的就是实验过程中的实时数值/消息流，接近过程变量共享与监测用途。
+  - id: P-50001
+    name: 系统状态监测伪设备
+    name_en: System State Monitoring Pseudo-Device
+    type: device_template_tag
+    rationale: 该组件是非物理服务型模块，对外暴露实时值，符合伪设备式状态/数值发布单元。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

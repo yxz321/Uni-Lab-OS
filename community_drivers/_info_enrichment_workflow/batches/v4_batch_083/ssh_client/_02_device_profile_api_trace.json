@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: ssh_client\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: artiq/remoting.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.ssh_client:SSHClient\n\nClass: Client \n  Bases: []\n\nClass: LocalClient \n  Bases: ['Client']\n\nClass: SSHClient (focal)\n  Bases: ['Client']\n\nFocal class methods:\n  [command] get_ssh(self)\n  [command] get_transport(self)\n  [command] get_sftp(self)\n  [command] upload(self, filename, rewriter=lambda x: x)\n    comment: Avoid a race condition by writing into a temporary file\n    comment: and atomically replacing\n    comment: Either it already exists (this is OK) or something else\n    comment: happened (this isn't) and we need to re-raise\n  [command] prepare_download(self, filename)\n  [command] download(self)\n  [command] spawn_command(self, cmd, get_pty=False, **kws)\n    comment: Wrap command in a bash login shell\n  [command] drain(self, chan)\n  [command] run_command(self, cmd, **kws)\n\nRegistry actions:\n  auto-get_ssh (from get_ssh())\n  auto-get_transport (from get_transport())\n  auto-get_sftp (from get_sftp())\n  auto-upload (from upload())\n  auto-prepare_download (from prepare_download())\n  auto-download (from download())\n  auto-spawn_command (from spawn_command())\n  auto-drain (from drain())\n  auto-run_command (from run_command())\n\nRequired output action ids:\n  auto-get_ssh\n  auto-get_transport\n  auto-get_sftp\n  auto-upload\n  auto-prepare_download\n  auto-download\n  auto-spawn_command\n  auto-drain\n  auto-run_command"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0162fe1f0dc628f60069d56152f22c8197ba1421f27bb953a3",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2521,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4613,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0162fe1f0dc628f60069d56154ee848197b39c3937f5c8a519",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0162fe1f0dc628f60069d5615ccf5481979f09dabd8262e59f",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"SSH远程客户端\",\n  \"name_en\": \"SSH Remote Client\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非实体的软件组件，用于在实验系统中通过 SSH 和 SFTP 与远程主机通信。它可获取连接与传输会话、上传和下载文件、启动远程命令，并读取命令通道输出，常用于实验控制计算机、远程节点或数据处理主机之间的自动化交互。\",\n  \"description_en\": \"A non-physical software component for communicating with remote hosts over SSH and SFTP in laboratory systems. It can obtain connection and transport sessions, upload and download files, start remote commands, and read command-channel output, commonly used for automation between experiment controllers, remote nodes, and data-processing hosts.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-get_ssh\",\n      \"description\": \"获取 SSH 连接对象。\",\n      \"description_en\": \"Get the SSH connection object.\"\n    },\n    {\n      \"action_name\": \"auto-get_transport\",\n      \"description\": \"获取 SSH 传输层会话对象。\",\n      \"description_en\": \"Get the SSH transport session object.\"\n    },\n    {\n      \"action_name\": \"auto-get_sftp\",\n      \"description\": \"获取 SFTP 会话对象。\",\n      \"description_en\": \"Get the SFTP session object.\"\n    },\n    {\n      \"action_name\": \"auto-upload\",\n      \"description\": \"上传文件到远程主机，并通过临时文件后原子替换方式降低竞争条件风险。\",\n      \"description_en\": \"Upload a file to the remote host, using a temporary file and atomic replacement to reduce race-condition risk.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_download\",\n      \"description\": \"准备远程文件下载。\",\n      \"description_en\": \"Prepare a remote file for download.\"\n    },\n    {\n      \"action_name\": \"auto-download\",\n      \"description\": \"下载已准备好的远程文件。\",\n      \"description_en\": \"Download the prepared remote file.\"\n    },\n    {\n      \"action_name\": \"auto-spawn_command\",\n      \"description\": \"在远程主机上启动命令，可选择通过登录 shell 和伪终端运行。\",\n      \"description_en\": \"Spawn a command on the remote host, optionally using a login shell and pseudo-terminal.\"\n    },\n    {\n      \"action_name\": \"auto-drain\",\n      \"description\": \"读取并清空通信通道中的输出数据。\",\n      \"description_en\": \"Read and drain output data from a communication channel.\"\n    },\n    {\n      \"action_name\": \"auto-run_command\",\n      \"description\": \"执行远程命令并处理其运行结果。\",\n      \"description_en\": \"Run a remote command and handle its execution result.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"SSH remote execution\",\n    \"SFTP file transfer\",\n    \"remote experiment control\",\n    \"command channel handling\",\n    \"upload/download automation\",\n    \"login shell execution\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1070,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1142,
+      "output_tokens_details": {
+        "reasoning_tokens": 492
+      },
+      "total_tokens": 2212
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1070,
+      "output_token_count": 1142,
+      "predict_time": 20.234083157
+    }
+  },
+  "output_text": "{\n  \"name\": \"SSH远程客户端\",\n  \"name_en\": \"SSH Remote Client\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非实体的软件组件，用于在实验系统中通过 SSH 和 SFTP 与远程主机通信。它可获取连接与传输会话、上传和下载文件、启动远程命令，并读取命令通道输出，常用于实验控制计算机、远程节点或数据处理主机之间的自动化交互。\",\n  \"description_en\": \"A non-physical software component for communicating with remote hosts over SSH and SFTP in laboratory systems. It can obtain connection and transport sessions, upload and download files, start remote commands, and read command-channel output, commonly used for automation between experiment controllers, remote nodes, and data-processing hosts.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-get_ssh\",\n      \"description\": \"获取 SSH 连接对象。\",\n      \"description_en\": \"Get the SSH connection object.\"\n    },\n    {\n      \"action_name\": \"auto-get_transport\",\n      \"description\": \"获取 SSH 传输层会话对象。\",\n      \"description_en\": \"Get the SSH transport session object.\"\n    },\n    {\n      \"action_name\": \"auto-get_sftp\",\n      \"description\": \"获取 SFTP 会话对象。\",\n      \"description_en\": \"Get the SFTP session object.\"\n    },\n    {\n      \"action_name\": \"auto-upload\",\n      \"description\": \"上传文件到远程主机，并通过临时文件后原子替换方式降低竞争条件风险。\",\n      \"description_en\": \"Upload a file to the remote host, using a temporary file and atomic replacement to reduce race-condition risk.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_download\",\n      \"description\": \"准备远程文件下载。\",\n      \"description_en\": \"Prepare a remote file for download.\"\n    },\n    {\n      \"action_name\": \"auto-download\",\n      \"description\": \"下载已准备好的远程文件。\",\n      \"description_en\": \"Download the prepared remote file.\"\n    },\n    {\n      \"action_name\": \"auto-spawn_command\",\n      \"description\": \"在远程主机上启动命令，可选择通过登录 shell 和伪终端运行。\",\n      \"description_en\": \"Spawn a command on the remote host, optionally using a login shell and pseudo-terminal.\"\n    },\n    {\n      \"action_name\": \"auto-drain\",\n      \"description\": \"读取并清空通信通道中的输出数据。\",\n      \"description_en\": \"Read and drain output data from a communication channel.\"\n    },\n    {\n      \"action_name\": \"auto-run_command\",\n      \"description\": \"执行远程命令并处理其运行结果。\",\n      \"description_en\": \"Run a remote command and handle its execution result.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"SSH remote execution\",\n    \"SFTP file transfer\",\n    \"remote experiment control\",\n    \"command channel handling\",\n    \"upload/download automation\",\n    \"login shell execution\"\n  ]\n}"
+}

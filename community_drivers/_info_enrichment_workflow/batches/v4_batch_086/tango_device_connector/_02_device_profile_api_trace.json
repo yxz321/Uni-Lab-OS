@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: tango_device_connector\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/ophyd_async/tango/core/_base_device.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.tango.connector:TangoDeviceConnector\n\nClass: TangoDevice \n  Bases: ['Device']\n  Docstring: General class for TangoDevices.\n\nExtends Device to provide attributes for Tango devices.\n\n:param trl: Tango resource locator, typically of the device server.\n    An asynchronous DeviceProxy object will be created using the\n    trl and awaited when the device is connected.\n\nClass: TangoPolling \n  Bases: ['Generic[T]']\n\nClass: TangoDeviceConnector (focal)\n  Bases: ['DeviceConnector']\n\nFocal class methods:\n  [command] set_trl(self, trl)\n  [command] create_children_from_annotations(self, device)\n  [command] connect_mock(self, device, mock)\n    comment: Make 2 entries for each DeviceVector\n    comment: Set the name of the device to name all children\n  [command] connect_real(self, device, timeout, force_reconnect)\n    comment: If auto_fill_signals is True, fill all children inferred from the device\n    comment: else fill only the children that are annotated\n    comment: TODO: strip attribute name\n    comment: don't overlaod datatype if provided by annotation\n    comment: Check that all the requested children have been filled\n    comment: Set the name of the device to name all children\n\nRegistry actions:\n  auto-set_trl (from set_trl())\n  auto-create_children_from_annotations (from create_children_from_annotations())\n  auto-connect_mock (from connect_mock())\n  auto-connect_real (from connect_real())\n\nRequired output action ids:\n  auto-set_trl\n  auto-create_children_from_annotations\n  auto-connect_mock\n  auto-connect_real"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_073e7888c4a2e07a0069d564c00c7c819399f8109b4b9ccbd3",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1793,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3549,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_073e7888c4a2e07a0069d564c219148193b711a0ca98ab6b13",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_073e7888c4a2e07a0069d564c904e48193987d7cf65afa719a",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Tango设备连接器\",\n  \"name_en\": \"Tango Device Connector\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个用于实验控制软件的非物理组件，用来依据 Tango 资源定位符连接 Tango 设备服务器，并按类型注解自动创建子设备或信号。它支持真实连接与模拟连接，适合将基于 Tango Controls 的实验仪器统一接入异步控制流程。\",\n  \"description_en\": \"A non-physical software component for laboratory control systems that connects to Tango device servers using a Tango resource locator and can automatically create child devices or signals from annotations. It supports both real and mock connections, helping integrate Tango Controls-based instruments into an asynchronous experiment workflow.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_trl\",\n      \"description\": \"设置 Tango 资源定位符（TRL）。\",\n      \"description_en\": \"Set the Tango resource locator (TRL).\"\n    },\n    {\n      \"action_name\": \"auto-create_children_from_annotations\",\n      \"description\": \"根据类型注解创建子设备或信号。\",\n      \"description_en\": \"Create child devices or signals from type annotations.\"\n    },\n    {\n      \"action_name\": \"auto-connect_mock\",\n      \"description\": \"连接到模拟 Tango 设备，并为子项建立模拟连接结构。\",\n      \"description_en\": \"Connect to a mock Tango device and create the mock child connection structure.\"\n    },\n    {\n      \"action_name\": \"auto-connect_real\",\n      \"description\": \"连接到真实 Tango 设备服务器，并按需要自动填充子设备或信号。\",\n      \"description_en\": \"Connect to a real Tango device server and auto-populate child devices or signals as needed.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Tango Controls\",\n    \"device connection\",\n    \"Tango resource locator\",\n    \"annotation-based child creation\",\n    \"mock device connection\",\n    \"async device proxy\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1070,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 834,
+      "output_tokens_details": {
+        "reasoning_tokens": 412
+      },
+      "total_tokens": 1904
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1070,
+      "output_token_count": 834,
+      "predict_time": 16.352797038
+    }
+  },
+  "output_text": "{\n  \"name\": \"Tango设备连接器\",\n  \"name_en\": \"Tango Device Connector\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个用于实验控制软件的非物理组件，用来依据 Tango 资源定位符连接 Tango 设备服务器，并按类型注解自动创建子设备或信号。它支持真实连接与模拟连接，适合将基于 Tango Controls 的实验仪器统一接入异步控制流程。\",\n  \"description_en\": \"A non-physical software component for laboratory control systems that connects to Tango device servers using a Tango resource locator and can automatically create child devices or signals from annotations. It supports both real and mock connections, helping integrate Tango Controls-based instruments into an asynchronous experiment workflow.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_trl\",\n      \"description\": \"设置 Tango 资源定位符（TRL）。\",\n      \"description_en\": \"Set the Tango resource locator (TRL).\"\n    },\n    {\n      \"action_name\": \"auto-create_children_from_annotations\",\n      \"description\": \"根据类型注解创建子设备或信号。\",\n      \"description_en\": \"Create child devices or signals from type annotations.\"\n    },\n    {\n      \"action_name\": \"auto-connect_mock\",\n      \"description\": \"连接到模拟 Tango 设备，并为子项建立模拟连接结构。\",\n      \"description_en\": \"Connect to a mock Tango device and create the mock child connection structure.\"\n    },\n    {\n      \"action_name\": \"auto-connect_real\",\n      \"description\": \"连接到真实 Tango 设备服务器，并按需要自动填充子设备或信号。\",\n      \"description_en\": \"Connect to a real Tango device server and auto-populate child devices or signals as needed.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Tango Controls\",\n    \"device connection\",\n    \"Tango resource locator\",\n    \"annotation-based child creation\",\n    \"mock device connection\",\n    \"async device proxy\"\n  ]\n}"
+}

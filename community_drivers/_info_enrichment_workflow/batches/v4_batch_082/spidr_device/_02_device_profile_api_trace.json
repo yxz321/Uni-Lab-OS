@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: spidr_device\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pymepix/SPIDR/spidrdevice.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.timepix3.spidr_device:SpidrDevice\n\nClass: SpidrDevice (focal)\n  Bases: ['Logger']\n  Docstring: Object that interfaces with a specific device (Timepix/Medipix) connect to SPIDR\n\nThis object handles communication and management of a specific device. There is no need\nto create this object directly as :class:`SpidrController` automatically creates it for you\nand is accessed by its [] getter methods\n\nParameters\n----------\nspidr_ctrl: :class:`SpidrController`\n    SPIDR controller object the device belongs to\ndevice_num:\n    Device index from SPIDR (Starts from 1)\n\nFocal class methods:\n  [command] clearPixelConfig(self)\n  [status_getter] deviceId(self)\n    comment: Returns unique device Id\n\n        Parameters\n        ----------\n        spidr_ctrl: :class:`SpidrController`\n            SPIDR controller object the device belongs to\n        device_num:\n            D...\n  [status_getter] headerFilter(self)\n  [command] setHeaderFilter(self, eth_mask, cpu_mask)\n  [command] reset(self)\n  [command] reinitDevice(self)\n  [command] setSenseDac(self, dac_code)\n  [command] setExternalDac(self, dac_code, dac_val)\n  [command] getDac(self, dac_code)\n  [command] setDac(self, dac_code, dac_val)\n  [command] setDacDefault(self)\n  [status_getter] genConfig(self)\n  [status_setter] genConfig(self, value)\n  [status_getter] pllConfig(self)\n  [status_setter] pllConfig(self, value)\n  [status_getter] outBlockConfig(self)\n  [status_setter] outBlockConfig(self, value)\n  [command] setOutputMask(self, value)\n  [status_getter] readoutSpeed(self)\n  [status_setter] readoutSpeed(self, mbits)\n  [status_getter] linkStatus(self)\n  [status_getter] slaveConfig(self)\n  [status_setter] slaveConfig(self, value)\n  [status_getter] powerPulseConfig(self)\n  [status_setter] powerPulseConfig(self, value)\n  [command] uploadPacket(self, packet)\n  [status_getter] TpPeriodPhase(self)\n  [command] setTpPeriodPhase(self, period, phase)\n  [status_getter] tpNumber(self)\n  [status_setter] tpNumber(self, value)\n  [status_getter] columnTestPulseRegister(self)\n    comment: Store it locally for use\n  [status_setter] columnTestPulseRegister(self, _cptr)\n  [command] getPixelConfig(self)\n    comment: print('Requested row {}'.format(y))\n    comment: print ('Column : {} Pixels: {}'.format(row,pixelcolumn))\n  [command] resetPixels(self)\n    comment: self._pixel_config[self._pixel_idx][column,:] = pixelrow[:]\n  [command] resetPixelConfig(self, index=-1, all_pixels=False)\n  [command] setSinglePixelThreshold(self, x, y, threshold)\n  [command] setPixelThreshold(self, threshold)\n    comment: self._pixel_config[self._pixel_idx][x,y] =~0x01E\n    comment: self._pixel_config[self._pixel_idx][x,y] |= threshold<<1\n  [command] setSinglePixelMask(self, x, y, mask)\n  [command] setPixelMask(self, mask)\n  [command] setSinglePixelTestBit(self, x, y, val)\n  [command] setPixelTestBit(self, test)\n  [command] uploadPixelConfig(self, formatted=True, columns_per_packet=1)\n  [status_getter] timer(self)\n  [status_setter] timer(self, time)\n  [status_getter] shutterStart(self)\n  [status_getter] shutterEnd(self)\n  [command] t0Sync(self)\n  [status_getter] pixelPacketCounter(self)\n  [command] getDacOut(self, nr_samples)\n  [status_getter] ipAddrSrc(self)\n  [status_setter] ipAddrSrc(self, ipaddr)\n  [status_getter] ipAddrDest(self)\n  [status_setter] ipAddrDest(self, ipaddr)\n  [status_getter] devicePort(self)\n  [status_getter] serverPort(self)\n  [status_setter] serverPort(self, value)\n\nRegistry actions:\n  auto-clearPixelConfig (from clearPixelConfig())\n  auto-setHeaderFilter (from setHeaderFilter())\n  auto-reset (from reset())\n  auto-reinitDevice (from reinitDevice())\n  auto-setSenseDac (from setSenseDac())\n  auto-setExternalDac (from setExternalDac())\n  auto-getDac (from getDac())\n  auto-setDac (from setDac())\n  auto-setDacDefault (from setDacDefault())\n  auto-genConfig (from genConfig())\n  auto-pllConfig (from pllConfig())\n  auto-outBlockConfig (from outBlockConfig())\n  auto-setOutputMask (from setOutputMask())\n  auto-readoutSpeed (from readoutSpeed())\n  auto-slaveConfig (from slaveConfig())\n  auto-powerPulseConfig (from powerPulseConfig())\n  auto-uploadPacket (from uploadPacket())\n  auto-setTpPeriodPhase (from setTpPeriodPhase())\n  auto-tpNumber (from tpNumber())\n  auto-columnTestPulseRegister (from columnTestPulseRegister())\n  auto-getPixelConfig (from getPixelConfig())\n  auto-resetPixels (from resetPixels())\n  auto-resetPixelConfig (from resetPixelConfig())\n  auto-setSinglePixelThreshold (from setSinglePixelThreshold())\n  auto-setPixelThreshold (from setPixelThreshold())\n  auto-setSinglePixelMask (from setSinglePixelMask())\n  auto-setPixelMask (from setPixelMask())\n  auto-setSinglePixelTestBit (from setSinglePixelTestBit())\n  auto-setPixelTestBit (from setPixelTestBit())\n  auto-uploadPixelConfig (from uploadPixelConfig())\n  auto-timer (from timer())\n  auto-t0Sync (from t0Sync())\n  auto-getDacOut (from getDacOut())\n  auto-ipAddrSrc (from ipAddrSrc())\n  auto-ipAddrDest (from ipAddrDest())\n  auto-serverPort (from serverPort())\n\nRequired output action ids:\n  auto-clearPixelConfig\n  auto-setHeaderFilter\n  auto-reset\n  auto-reinitDevice\n  auto-setSenseDac\n  auto-setExternalDac\n  auto-getDac\n  auto-setDac\n  auto-setDacDefault\n  auto-genConfig\n  auto-pllConfig\n  auto-outBlockConfig\n  auto-setOutputMask\n  auto-readoutSpeed\n  auto-slaveConfig\n  auto-powerPulseConfig\n  auto-uploadPacket\n  auto-setTpPeriodPhase\n  auto-tpNumber\n  auto-columnTestPulseRegister\n  auto-getPixelConfig\n  auto-resetPixels\n  auto-resetPixelConfig\n  auto-setSinglePixelThreshold\n  auto-setPixelThreshold\n  auto-setSinglePixelMask\n  auto-setPixelMask\n  auto-setSinglePixelTestBit\n  auto-setPixelTestBit\n  auto-uploadPixelConfig\n  auto-timer\n  auto-t0Sync\n  auto-getDacOut\n  auto-ipAddrSrc\n  auto-ipAddrDest\n  auto-serverPort"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0c7f3d60a1853acf0069d55f9be0908195807cf8c99f93216b",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7097,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 12691,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0c7f3d60a1853acf0069d55f9c53a08195905006003e1d4eeb",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0c7f3d60a1853acf0069d55fb63674819586570cadcb1d9369",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"SPIDR连接的Timepix/Medipix像素探测器\",\n  \"name_en\": \"SPIDR-Connected Timepix/Medipix Pixel Detector\",\n  \"manufacturer\": \"\",\n  \"description\": \"通过SPIDR读出系统连接的Timepix/Medipix像素探测器设备，用于配置像素矩阵、DAC、测试脉冲、时序和网络读出参数，服务于粒子、辐射或高速成像实验的数据采集。\",\n  \"description_en\": \"A Timepix/Medipix pixel detector connected through the SPIDR readout system, used to configure the pixel matrix, DACs, test pulses, timing, and network readout parameters for data acquisition in particle, radiation, or fast imaging experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-clearPixelConfig\",\n      \"description\": \"清除像素配置。\",\n      \"description_en\": \"Clear the pixel configuration.\"\n    },\n    {\n      \"action_name\": \"auto-setHeaderFilter\",\n      \"description\": \"设置数据包头过滤掩码。\",\n      \"description_en\": \"Set the packet header filter masks.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"复位探测器设备。\",\n      \"description_en\": \"Reset the detector device.\"\n    },\n    {\n      \"action_name\": \"auto-reinitDevice\",\n      \"description\": \"重新初始化探测器设备。\",\n      \"description_en\": \"Reinitialize the detector device.\"\n    },\n    {\n      \"action_name\": \"auto-setSenseDac\",\n      \"description\": \"设置Sense DAC代码。\",\n      \"description_en\": \"Set the sense DAC code.\"\n    },\n    {\n      \"action_name\": \"auto-setExternalDac\",\n      \"description\": \"设置外部DAC代码和值。\",\n      \"description_en\": \"Set the external DAC code and value.\"\n    },\n    {\n      \"action_name\": \"auto-getDac\",\n      \"description\": \"读取DAC设置。\",\n      \"description_en\": \"Get a DAC setting.\"\n    },\n    {\n      \"action_name\": \"auto-setDac\",\n      \"description\": \"设置DAC值。\",\n      \"description_en\": \"Set a DAC value.\"\n    },\n    {\n      \"action_name\": \"auto-setDacDefault\",\n      \"description\": \"恢复默认DAC设置。\",\n      \"description_en\": \"Restore default DAC settings.\"\n    },\n    {\n      \"action_name\": \"auto-genConfig\",\n      \"description\": \"获取/设置通用配置。\",\n      \"description_en\": \"Get/set the general configuration.\"\n    },\n    {\n      \"action_name\": \"auto-pllConfig\",\n      \"description\": \"获取/设置PLL配置。\",\n      \"description_en\": \"Get/set the PLL configuration.\"\n    },\n    {\n      \"action_name\": \"auto-outBlockConfig\",\n      \"description\": \"获取/设置输出块配置。\",\n      \"description_en\": \"Get/set the output block configuration.\"\n    },\n    {\n      \"action_name\": \"auto-setOutputMask\",\n      \"description\": \"设置输出掩码。\",\n      \"description_en\": \"Set the output mask.\"\n    },\n    {\n      \"action_name\": \"auto-readoutSpeed\",\n      \"description\": \"获取/设置读出速度。\",\n      \"description_en\": \"Get/set the readout speed.\"\n    },\n    {\n      \"action_name\": \"auto-slaveConfig\",\n      \"description\": \"获取/设置从设备配置。\",\n      \"description_en\": \"Get/set the slave configuration.\"\n    },\n    {\n      \"action_name\": \"auto-powerPulseConfig\",\n      \"description\": \"获取/设置电源脉冲配置。\",\n      \"description_en\": \"Get/set the power pulse configuration.\"\n    },\n    {\n      \"action_name\": \"auto-uploadPacket\",\n      \"description\": \"上传配置数据包到设备。\",\n      \"description_en\": \"Upload a configuration packet to the device.\"\n    },\n    {\n      \"action_name\": \"auto-setTpPeriodPhase\",\n      \"description\": \"设置测试脉冲周期和相位。\",\n      \"description_en\": \"Set the test-pulse period and phase.\"\n    },\n    {\n      \"action_name\": \"auto-tpNumber\",\n      \"description\": \"获取/设置测试脉冲数量。\",\n      \"description_en\": \"Get/set the number of test pulses.\"\n    },\n    {\n      \"action_name\": \"auto-columnTestPulseRegister\",\n      \"description\": \"获取/设置列测试脉冲寄存器。\",\n      \"description_en\": \"Get/set the column test-pulse register.\"\n    },\n    {\n      \"action_name\": \"auto-getPixelConfig\",\n      \"description\": \"读取像素配置。\",\n      \"description_en\": \"Get the pixel configuration.\"\n    },\n    {\n      \"action_name\": \"auto-resetPixels\",\n      \"description\": \"重置像素阵列设置。\",\n      \"description_en\": \"Reset the pixel array settings.\"\n    },\n    {\n      \"action_name\": \"auto-resetPixelConfig\",\n      \"description\": \"重置像素配置缓冲。\",\n      \"description_en\": \"Reset the pixel configuration buffer.\"\n    },\n    {\n      \"action_name\": \"auto-setSinglePixelThreshold\",\n      \"description\": \"设置单个像素阈值。\",\n      \"description_en\": \"Set the threshold for a single pixel.\"\n    },\n    {\n      \"action_name\": \"auto-setPixelThreshold\",\n      \"description\": \"设置全部像素阈值。\",\n      \"description_en\": \"Set the threshold for all pixels.\"\n    },\n    {\n      \"action_name\": \"auto-setSinglePixelMask\",\n      \"description\": \"设置单个像素掩码。\",\n      \"description_en\": \"Set the mask for a single pixel.\"\n    },\n    {\n      \"action_name\": \"auto-setPixelMask\",\n      \"description\": \"设置全部像素掩码。\",\n      \"description_en\": \"Set the mask for all pixels.\"\n    },\n    {\n      \"action_name\": \"auto-setSinglePixelTestBit\",\n      \"description\": \"设置单个像素测试位。\",\n      \"description_en\": \"Set the test bit for a single pixel.\"\n    },\n    {\n      \"action_name\": \"auto-setPixelTestBit\",\n      \"description\": \"设置全部像素测试位。\",\n      \"description_en\": \"Set the test bit for all pixels.\"\n    },\n    {\n      \"action_name\": \"auto-uploadPixelConfig\",\n      \"description\": \"将像素配置上传到设备。\",\n      \"description_en\": \"Upload the pixel configuration to the device.\"\n    },\n    {\n      \"action_name\": \"auto-timer\",\n      \"description\": \"获取/设置定时器值。\",\n      \"description_en\": \"Get/set the timer value.\"\n    },\n    {\n      \"action_name\": \"auto-t0Sync\",\n      \"description\": \"同步T0时基。\",\n      \"description_en\": \"Synchronize the T0 timing reference.\"\n    },\n    {\n      \"action_name\": \"auto-getDacOut\",\n      \"description\": \"读取DAC输出采样值。\",\n      \"description_en\": \"Read DAC output samples.\"\n    },\n    {\n      \"action_name\": \"auto-ipAddrSrc\",\n      \"description\": \"获取/设置源IP地址。\",\n      \"description_en\": \"Get/set the source IP address.\"\n    },\n    {\n      \"action_name\": \"auto-ipAddrDest\",\n      \"description\": \"获取/设置目标IP地址。\",\n      \"description_en\": \"Get/set the destination IP address.\"\n    },\n    {\n      \"action_name\": \"auto-serverPort\",\n      \"description\": \"获取/设置服务器端口。\",\n      \"description_en\": \"Get/set the server port.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Timepix3 pixel detector\",\n    \"Medipix detector control\",\n    \"SPIDR readout\",\n    \"pixel matrix configuration\",\n    \"DAC bias control\",\n    \"test pulse injection\",\n    \"high-speed detector readout\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2298,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3216,
+      "output_tokens_details": {
+        "reasoning_tokens": 1528
+      },
+      "total_tokens": 5514
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2298,
+      "output_token_count": 3216,
+      "predict_time": 47.691175802
+    }
+  },
+  "output_text": "{\n  \"name\": \"SPIDR连接的Timepix/Medipix像素探测器\",\n  \"name_en\": \"SPIDR-Connected Timepix/Medipix Pixel Detector\",\n  \"manufacturer\": \"\",\n  \"description\": \"通过SPIDR读出系统连接的Timepix/Medipix像素探测器设备，用于配置像素矩阵、DAC、测试脉冲、时序和网络读出参数，服务于粒子、辐射或高速成像实验的数据采集。\",\n  \"description_en\": \"A Timepix/Medipix pixel detector connected through the SPIDR readout system, used to configure the pixel matrix, DACs, test pulses, timing, and network readout parameters for data acquisition in particle, radiation, or fast imaging experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-clearPixelConfig\",\n      \"description\": \"清除像素配置。\",\n      \"description_en\": \"Clear the pixel configuration.\"\n    },\n    {\n      \"action_name\": \"auto-setHeaderFilter\",\n      \"description\": \"设置数据包头过滤掩码。\",\n      \"description_en\": \"Set the packet header filter masks.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"复位探测器设备。\",\n      \"description_en\": \"Reset the detector device.\"\n    },\n    {\n      \"action_name\": \"auto-reinitDevice\",\n      \"description\": \"重新初始化探测器设备。\",\n      \"description_en\": \"Reinitialize the detector device.\"\n    },\n    {\n      \"action_name\": \"auto-setSenseDac\",\n      \"description\": \"设置Sense DAC代码。\",\n      \"description_en\": \"Set the sense DAC code.\"\n    },\n    {\n      \"action_name\": \"auto-setExternalDac\",\n      \"description\": \"设置外部DAC代码和值。\",\n      \"description_en\": \"Set the external DAC code and value.\"\n    },\n    {\n      \"action_name\": \"auto-getDac\",\n      \"description\": \"读取DAC设置。\",\n      \"description_en\": \"Get a DAC setting.\"\n    },\n    {\n      \"action_name\": \"auto-setDac\",\n      \"description\": \"设置DAC值。\",\n      \"description_en\": \"Set a DAC value.\"\n    },\n    {\n      \"action_name\": \"auto-setDacDefault\",\n      \"description\": \"恢复默认DAC设置。\",\n      \"description_en\": \"Restore default DAC settings.\"\n    },\n    {\n      \"action_name\": \"auto-genConfig\",\n      \"description\": \"获取/设置通用配置。\",\n      \"description_en\": \"Get/set the general configuration.\"\n    },\n    {\n      \"action_name\": \"auto-pllConfig\",\n      \"description\": \"获取/设置PLL配置。\",\n      \"description_en\": \"Get/set the PLL configuration.\"\n    },\n    {\n      \"action_name\": \"auto-outBlockConfig\",\n      \"description\": \"获取/设置输出块配置。\",\n      \"description_en\": \"Get/set the output block configuration.\"\n    },\n    {\n      \"action_name\": \"auto-setOutputMask\",\n      \"description\": \"设置输出掩码。\",\n      \"description_en\": \"Set the output mask.\"\n    },\n    {\n      \"action_name\": \"auto-readoutSpeed\",\n      \"description\": \"获取/设置读出速度。\",\n      \"description_en\": \"Get/set the readout speed.\"\n    },\n    {\n      \"action_name\": \"auto-slaveConfig\",\n      \"description\": \"获取/设置从设备配置。\",\n      \"description_en\": \"Get/set the slave configuration.\"\n    },\n    {\n      \"action_name\": \"auto-powerPulseConfig\",\n      \"description\": \"获取/设置电源脉冲配置。\",\n      \"description_en\": \"Get/set the power pulse configuration.\"\n    },\n    {\n      \"action_name\": \"auto-uploadPacket\",\n      \"description\": \"上传配置数据包到设备。\",\n      \"description_en\": \"Upload a configuration packet to the device.\"\n    },\n    {\n      \"action_name\": \"auto-setTpPeriodPhase\",\n      \"description\": \"设置测试脉冲周期和相位。\",\n      \"description_en\": \"Set the test-pulse period and phase.\"\n    },\n    {\n      \"action_name\": \"auto-tpNumber\",\n      \"description\": \"获取/设置测试脉冲数量。\",\n      \"description_en\": \"Get/set the number of test pulses.\"\n    },\n    {\n      \"action_name\": \"auto-columnTestPulseRegister\",\n      \"description\": \"获取/设置列测试脉冲寄存器。\",\n      \"description_en\": \"Get/set the column test-pulse register.\"\n    },\n    {\n      \"action_name\": \"auto-getPixelConfig\",\n      \"description\": \"读取像素配置。\",\n      \"description_en\": \"Get the pixel configuration.\"\n    },\n    {\n      \"action_name\": \"auto-resetPixels\",\n      \"description\": \"重置像素阵列设置。\",\n      \"description_en\": \"Reset the pixel array settings.\"\n    },\n    {\n      \"action_name\": \"auto-resetPixelConfig\",\n      \"description\": \"重置像素配置缓冲。\",\n      \"description_en\": \"Reset the pixel configuration buffer.\"\n    },\n    {\n      \"action_name\": \"auto-setSinglePixelThreshold\",\n      \"description\": \"设置单个像素阈值。\",\n      \"description_en\": \"Set the threshold for a single pixel.\"\n    },\n    {\n      \"action_name\": \"auto-setPixelThreshold\",\n      \"description\": \"设置全部像素阈值。\",\n      \"description_en\": \"Set the threshold for all pixels.\"\n    },\n    {\n      \"action_name\": \"auto-setSinglePixelMask\",\n      \"description\": \"设置单个像素掩码。\",\n      \"description_en\": \"Set the mask for a single pixel.\"\n    },\n    {\n      \"action_name\": \"auto-setPixelMask\",\n      \"description\": \"设置全部像素掩码。\",\n      \"description_en\": \"Set the mask for all pixels.\"\n    },\n    {\n      \"action_name\": \"auto-setSinglePixelTestBit\",\n      \"description\": \"设置单个像素测试位。\",\n      \"description_en\": \"Set the test bit for a single pixel.\"\n    },\n    {\n      \"action_name\": \"auto-setPixelTestBit\",\n      \"description\": \"设置全部像素测试位。\",\n      \"description_en\": \"Set the test bit for all pixels.\"\n    },\n    {\n      \"action_name\": \"auto-uploadPixelConfig\",\n      \"description\": \"将像素配置上传到设备。\",\n      \"description_en\": \"Upload the pixel configuration to the device.\"\n    },\n    {\n      \"action_name\": \"auto-timer\",\n      \"description\": \"获取/设置定时器值。\",\n      \"description_en\": \"Get/set the timer value.\"\n    },\n    {\n      \"action_name\": \"auto-t0Sync\",\n      \"description\": \"同步T0时基。\",\n      \"description_en\": \"Synchronize the T0 timing reference.\"\n    },\n    {\n      \"action_name\": \"auto-getDacOut\",\n      \"description\": \"读取DAC输出采样值。\",\n      \"description_en\": \"Read DAC output samples.\"\n    },\n    {\n      \"action_name\": \"auto-ipAddrSrc\",\n      \"description\": \"获取/设置源IP地址。\",\n      \"description_en\": \"Get/set the source IP address.\"\n    },\n    {\n      \"action_name\": \"auto-ipAddrDest\",\n      \"description\": \"获取/设置目标IP地址。\",\n      \"description_en\": \"Get/set the destination IP address.\"\n    },\n    {\n      \"action_name\": \"auto-serverPort\",\n      \"description\": \"获取/设置服务器端口。\",\n      \"description_en\": \"Get/set the server port.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Timepix3 pixel detector\",\n    \"Medipix detector control\",\n    \"SPIDR readout\",\n    \"pixel matrix configuration\",\n    \"DAC bias control\",\n    \"test pulse injection\",\n    \"high-speed detector readout\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: spectr_acq3\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: horiba_sdk/devices/single_devices/spectracq3.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.spectrometer.spectr_acq3:SpectrAcq3\n\nClass: BaseResults \n  Bases: ['BaseModel']\n\nClass: Signal \n  Bases: ['BaseModel']\n\nClass: DataPoint \n  Bases: ['BaseModel']\n\nClass: AvailableDataResults \n  Bases: ['BaseModel']\n\nClass: AcqSetResults \n  Bases: ['BaseResults']\n\nClass: SpectrAcq3 (focal)\n  Bases: ['AbstractDevice']\n  Docstring: SpectrAcq3 device class.\n\nThis class represents the SpectrAcq3 - Single Channel Detector Interface. It provides methods to open and close\nthe device connection and retrieve the device's serial number. The focus is on ensuring reliable communication\nwith the device and handling any potential errors gracefully.\n\nFocal class methods:\n  [command] open(self)\n    comment: Open a connection to the SpectrAcq3 device.\n\n        This method sends a command to the device to establish a connection. It is crucial to ensure that the device\n        is ready for communication bef...\n  [command] close(self)\n    comment: Close the connection to the SpectrAcq3 device.\n\n        This method sends a command to safely terminate the connection with the device. Properly closing the connection\n        helps in freeing up reso...\n  [command] is_open(self)\n    comment: Check if the connection to the SpectrAcq3 device is open.\n\n        This method checks the status of the device connection to determine if it is open or closed. It is useful for\n        verifying the d...\n  [command] is_busy(self)\n    comment: Check if the device is busy.\n\n        Returns:\n            bool: True if the device is busy, False otherwise.\n  [status_getter] get_serial_number(self)\n    comment: Retrieve the serial number of the SpectrAcq3 device.\n\n        This method sends a command to the device to fetch its serial number. Knowing the serial number is essential\n        for device identifica...\n  [status_getter] get_firmware_version(self)\n    comment: Get the firmware version of the device.\n\n        This method sends a command to the device to fetch its firmware version.\n\n        Returns:\n            str: The firmware version of the device.\n  [status_getter] get_fpga_version(self)\n    comment: Get the FPGA version of the device.\n\n        This method sends a command to the device to fetch its FPGA version.\n\n        Returns:\n            str: The FPGA version of the device.\n  [status_getter] get_board_revision(self)\n    comment: Get the board revision of the device.\n\n        This method sends a command to the device to fetch its board revision.\n\n        Returns:\n            str: The board revision of the device.\n  [status_setter] set_hv_bias_voltage(self, bias_voltage)\n    comment: Set the high bias voltage.\n\n        This method sends a command to the device to set the high bias voltage.\n\n        Args:\n            bias_voltage (int): The high bias voltage in volts.\n  [status_getter] get_hv_bias_voltage(self)\n    comment: Get the high bias voltage that was previously set.\n\n        This method sends a command to the device to fetch the high bias voltage.\n\n        Returns:\n            int: The high bias voltage in volts.\n  [status_getter] get_max_hv_voltage_allowed(self)\n    comment: Get the maximum high bias voltage allowed.\n\n        This method sends a command to the device to fetch the maximum high bias voltage allowed.\n\n        Returns:\n            int: The maximum high bias v...\n  [status_setter] set_acq_set(self, scan_count, time_step, integration_time, external_param)\n    comment: Define the acquisition set parameters.\n\n        This method sends a command to the device to define the acquisition set parameters.\n\n        Args:\n            scan_count (int): Number of acquisitions ...\n  [status_getter] get_acq_set(self)\n    comment: Get the acquisition set parameters.\n\n        This method sends a command to the device to fetch the acquisition set parameters.\n\n        Returns:\n            dict: The acquisition set parameters.\n  [command] acq_start(self, trigger)\n    comment: Start the acquisition.\n\n        Trigger Modes:\n        >| Mode  | description   |\n        >|1| 1st data started on Start command, all subsequent data acquired based on interval time|\n        >|2| 1st ...\n  [command] acq_stop(self)\n    comment: Stop the current acquisition.\n\n        This method sends a command to the device to stop the current acquisition.\n  [command] acq_pause(self)\n    comment: Pause the active acquisition.\n\n        This method sends a command to the device to pause the active acquisition.\n  [command] acq_continue(self)\n    comment: Continue a paused acquisition.\n\n        This method sends a command to the device to continue a paused acquisition.\n  [command] is_data_available(self)\n    comment: Check whether the acquired data is available.\n\n        This method sends a command to the device to check if the acquired data is available.\n\n        Returns:\n            bool: True if data is availab...\n  [status_getter] get_available_data(self, channels)\n    comment: Retrieve the acquired data that is available so far.\n\n        This method sends a command to the device to retrieve the acquired data.\n\n        Returns:\n            list: The acquired data.\n  [command] force_trigger(self)\n    comment: Force a software trigger.\n\n        This method sends a command to the device to force a software trigger.\n  [status_setter] set_trigger_in_polarity(self, polarity)\n    comment: Set the input trigger polarity.\n\n        Args:\n            polarity (TriggerInputPolarity): Input trigger polarity (ACTIVE_LOW or ACTIVE_HIGH).\n  [status_getter] get_trigger_in_polarity(self)\n    comment: Get the input trigger polarity.\n\n        Returns:\n            int: Input trigger polarity (0: Active Low, 1: Active High).\n  [command] set_in_trigger_mode(self, mode)\n    comment: Set the hardware trigger pin mode.\n\n        This method sends a command to the device to set the hardware trigger pin mode.\n\n        Args:\n            mode (int): Mode of hardware trigger pin.\n  [status_getter] get_trigger_mode(self)\n    comment: Get the trigger mode.\n\n        This method sends a command to the device to fetch the trigger mode.\n\n        Returns:\n            dict: The trigger mode settings.\n  [status_getter] get_last_error(self)\n    comment: Get the last error.\n\n        This method sends a command to the device to fetch the last error.\n\n        Returns:\n            str: The last error message.\n  [status_getter] get_error_log(self)\n    comment: Get the error log.\n\n        This method sends a command to the device to fetch the error log.\n\n        Returns:\n            str: The error log.\n  [command] clear_error_log(self)\n    comment: Clear all the errors in the log.\n\n        This method sends a command to the device to clear the error log.\n\nRegistry actions:\n  auto-open (from open())\n  auto-close (from close())\n  auto-is_open (from is_open())\n  auto-is_busy (from is_busy())\n  auto-set_hv_bias_voltage (from set_hv_bias_voltage())\n  auto-set_acq_set (from set_acq_set())\n  auto-acq_start (from acq_start())\n  auto-acq_stop (from acq_stop())\n  auto-acq_pause (from acq_pause())\n  auto-acq_continue (from acq_continue())\n  auto-is_data_available (from is_data_available())\n  auto-force_trigger (from force_trigger())\n  auto-set_trigger_in_polarity (from set_trigger_in_polarity())\n  auto-set_in_trigger_mode (from set_in_trigger_mode())\n  auto-clear_error_log (from clear_error_log())\n\nRequired output action ids:\n  auto-open\n  auto-close\n  auto-is_open\n  auto-is_busy\n  auto-set_hv_bias_voltage\n  auto-set_acq_set\n  auto-acq_start\n  auto-acq_stop\n  auto-acq_pause\n  auto-acq_continue\n  auto-is_data_available\n  auto-force_trigger\n  auto-set_trigger_in_polarity\n  auto-set_in_trigger_mode\n  auto-clear_error_log"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_03b2c7ee9d84f77a0069d55f9abe748194aae44200c9a223cc",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 9028,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6219,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_03b2c7ee9d84f77a0069d55f9b388c81949f9543b1820bba45",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_03b2c7ee9d84f77a0069d55fac447881948a775baf30829f00",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"SpectrAcq3 单通道探测器采集接口\",\n  \"name_en\": \"SpectrAcq3 Single-Channel Detector Interface\",\n  \"manufacturer\": \"HORIBA\",\n  \"description\": \"用于单通道光谱探测器的数据采集设备，可进行连接管理、设置高压偏置、电气触发与采集参数配置，并控制采集启动、暂停、继续和停止，适用于光谱信号采集与触发测量实验。\",\n  \"description_en\": \"A data acquisition device for single-channel spectroscopy detectors. It supports connection control, high-voltage bias configuration, electrical trigger setup, acquisition parameter definition, and start/pause/continue/stop of acquisitions for spectroscopy signal collection and triggered measurements.\",\n  \"tag_hints\": [\n    \"spectroscopy\",\n    \"single-channel detector\",\n    \"triggered acquisition\",\n    \"HV bias control\",\n    \"time-series data acquisition\",\n    \"HORIBA spectrometer\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开与设备的连接。\",\n      \"description_en\": \"Open the connection to the device.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭与设备的连接。\",\n      \"description_en\": \"Close the connection to the device.\"\n    },\n    {\n      \"action_name\": \"auto-is_open\",\n      \"description\": \"检查设备连接是否已打开。\",\n      \"description_en\": \"Check whether the device connection is open.\"\n    },\n    {\n      \"action_name\": \"auto-is_busy\",\n      \"description\": \"检查设备是否忙碌。\",\n      \"description_en\": \"Check whether the device is busy.\"\n    },\n    {\n      \"action_name\": \"auto-set_hv_bias_voltage\",\n      \"description\": \"设置高压偏置电压。\",\n      \"description_en\": \"Set the high-voltage bias.\"\n    },\n    {\n      \"action_name\": \"auto-set_acq_set\",\n      \"description\": \"定义采集参数。\",\n      \"description_en\": \"Define acquisition set parameters.\"\n    },\n    {\n      \"action_name\": \"auto-acq_start\",\n      \"description\": \"按所选触发方式启动采集。\",\n      \"description_en\": \"Start acquisition using the selected trigger mode.\"\n    },\n    {\n      \"action_name\": \"auto-acq_stop\",\n      \"description\": \"停止当前采集。\",\n      \"description_en\": \"Stop the current acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-acq_pause\",\n      \"description\": \"暂停当前采集。\",\n      \"description_en\": \"Pause the active acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-acq_continue\",\n      \"description\": \"继续已暂停的采集。\",\n      \"description_en\": \"Continue a paused acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-is_data_available\",\n      \"description\": \"检查是否有可用采集数据。\",\n      \"description_en\": \"Check whether acquired data is available.\"\n    },\n    {\n      \"action_name\": \"auto-force_trigger\",\n      \"description\": \"发送软件强制触发。\",\n      \"description_en\": \"Force a software trigger.\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_in_polarity\",\n      \"description\": \"设置输入触发极性。\",\n      \"description_en\": \"Set input trigger polarity.\"\n    },\n    {\n      \"action_name\": \"auto-set_in_trigger_mode\",\n      \"description\": \"设置硬件触发输入模式。\",\n      \"description_en\": \"Set the hardware trigger input mode.\"\n    },\n    {\n      \"action_name\": \"auto-clear_error_log\",\n      \"description\": \"清除错误日志。\",\n      \"description_en\": \"Clear the error log.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2440,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1668,
+      "output_tokens_details": {
+        "reasoning_tokens": 860
+      },
+      "total_tokens": 4108
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2440,
+      "output_token_count": 1668,
+      "predict_time": 28.86388444
+    }
+  },
+  "output_text": "{\n  \"name\": \"SpectrAcq3 单通道探测器采集接口\",\n  \"name_en\": \"SpectrAcq3 Single-Channel Detector Interface\",\n  \"manufacturer\": \"HORIBA\",\n  \"description\": \"用于单通道光谱探测器的数据采集设备，可进行连接管理、设置高压偏置、电气触发与采集参数配置，并控制采集启动、暂停、继续和停止，适用于光谱信号采集与触发测量实验。\",\n  \"description_en\": \"A data acquisition device for single-channel spectroscopy detectors. It supports connection control, high-voltage bias configuration, electrical trigger setup, acquisition parameter definition, and start/pause/continue/stop of acquisitions for spectroscopy signal collection and triggered measurements.\",\n  \"tag_hints\": [\n    \"spectroscopy\",\n    \"single-channel detector\",\n    \"triggered acquisition\",\n    \"HV bias control\",\n    \"time-series data acquisition\",\n    \"HORIBA spectrometer\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开与设备的连接。\",\n      \"description_en\": \"Open the connection to the device.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭与设备的连接。\",\n      \"description_en\": \"Close the connection to the device.\"\n    },\n    {\n      \"action_name\": \"auto-is_open\",\n      \"description\": \"检查设备连接是否已打开。\",\n      \"description_en\": \"Check whether the device connection is open.\"\n    },\n    {\n      \"action_name\": \"auto-is_busy\",\n      \"description\": \"检查设备是否忙碌。\",\n      \"description_en\": \"Check whether the device is busy.\"\n    },\n    {\n      \"action_name\": \"auto-set_hv_bias_voltage\",\n      \"description\": \"设置高压偏置电压。\",\n      \"description_en\": \"Set the high-voltage bias.\"\n    },\n    {\n      \"action_name\": \"auto-set_acq_set\",\n      \"description\": \"定义采集参数。\",\n      \"description_en\": \"Define acquisition set parameters.\"\n    },\n    {\n      \"action_name\": \"auto-acq_start\",\n      \"description\": \"按所选触发方式启动采集。\",\n      \"description_en\": \"Start acquisition using the selected trigger mode.\"\n    },\n    {\n      \"action_name\": \"auto-acq_stop\",\n      \"description\": \"停止当前采集。\",\n      \"description_en\": \"Stop the current acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-acq_pause\",\n      \"description\": \"暂停当前采集。\",\n      \"description_en\": \"Pause the active acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-acq_continue\",\n      \"description\": \"继续已暂停的采集。\",\n      \"description_en\": \"Continue a paused acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-is_data_available\",\n      \"description\": \"检查是否有可用采集数据。\",\n      \"description_en\": \"Check whether acquired data is available.\"\n    },\n    {\n      \"action_name\": \"auto-force_trigger\",\n      \"description\": \"发送软件强制触发。\",\n      \"description_en\": \"Force a software trigger.\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_in_polarity\",\n      \"description\": \"设置输入触发极性。\",\n      \"description_en\": \"Set input trigger polarity.\"\n    },\n    {\n      \"action_name\": \"auto-set_in_trigger_mode\",\n      \"description\": \"设置硬件触发输入模式。\",\n      \"description_en\": \"Set the hardware trigger input mode.\"\n    },\n    {\n      \"action_name\": \"auto-clear_error_log\",\n      \"description\": \"清除错误日志。\",\n      \"description_en\": \"Clear the error log.\"\n    }\n  ]\n}"
+}

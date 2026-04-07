@@ -1,26 +1,94 @@
-Device: sync_unix_client
-Registry Key: sync_unix_client
-Short Description: Sync Unix Client是由Open Standard生产的专业实验设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (6):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-connect -> connect [UniLabJsonCommand] goal_params: none
-- auto-is_connected -> is_connected [UniLabJsonCommand] goal_params: none
-- auto-recv_message -> recv_message [UniLabJsonCommand] goal_params: timeout
-- auto-send_and_receive -> send_and_receive [UniLabJsonCommand] goal_params: msg, timeout
-- auto-send_message -> send_message [UniLabJsonCommand] goal_params: msg
-
-Driver Functions (7):
-- SyncUnixClient.__init__(self, socket_path) (line 80)
-- SyncUnixClient.is_connected(self) (line 85)
-- SyncUnixClient.connect(self) (line 92)
-- SyncUnixClient.send_message(self, msg) (line 107)
-- SyncUnixClient.recv_message(self, timeout) (line 120)
-- SyncUnixClient.send_and_receive(self, msg, timeout) (line 159)
-- SyncUnixClient.close(self) (line 208)
+sync_unix_client:
+  name: 同步 Unix 套接字客户端
+  name_en: Synchronous Unix Socket Client
+  manufacturer: ''
+  category:
+  - 通用字节流仪器通信接口
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验仪器通信与驱动集成
+  - 实验仪器数据采集与联机控制
+  - 通用字节流仪器通信接口
+  description: 用于实验软件系统中的非物理通信组件，通过 Unix 域套接字与本机服务进程建立同步连接、发送消息并接收响应，适合本地控制服务、进程间通信和命令转发场景。
+  description_en: A non-physical communication component used in laboratory software
+    systems. It establishes synchronous connections to a local service process over
+    a Unix domain socket, sends messages, and receives responses for local control
+    services, inter-process communication, and command forwarding.
+  class:
+    action_value_mappings:
+      auto-close:
+        schema:
+          description: 关闭与 Unix 套接字服务器的连接。
+          description_en: Close the connection to the Unix socket server.
+      auto-connect:
+        schema:
+          description: 连接到 Unix 套接字服务器。
+          description_en: Connect to the Unix socket server.
+      auto-is_connected:
+        schema:
+          description: 检查是否已连接到 Unix 套接字服务器。
+          description_en: Check whether the client is connected to the Unix socket
+            server.
+      auto-recv_message:
+        schema:
+          description: 从服务器接收一条完整消息。
+          description_en: Receive a complete message from the server.
+      auto-send_and_receive:
+        schema:
+          description: 以同步且互斥的方式发送消息并接收响应，避免线程间收发交错。
+          description_en: Send a message and receive the response atomically with
+            mutual exclusion, preventing interleaved send/receive operations across
+            threads.
+      auto-send_message:
+        schema:
+          description: 向服务器发送一条消息。
+          description_en: Send a message to the server.
+auto_annotation_metadata:
+  registry_key: sync_unix_client
+  annotation_workflow_version: v4
+  tag_hints:
+  - Unix domain socket
+  - synchronous IPC
+  - local server communication
+  - message transport
+  - thread-safe request-response
+  - lab software integration
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该客户端在实验软件运行时负责本地控制服务通信和命令转发。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它是实验软件系统中的本地IPC通信部件，用于连接控制服务进程。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 虽然基于Unix域套接字，但本质是实验控制系统中的通信集成层。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 其同步请求-响应模式适合本地联机控制和命令收发。
+  - id: P-21001
+    name: 通用字节流仪器通信接口
+    name_en: Generic Byte-Stream Instrument Communication Interface
+    type: device_template_tag
+    rationale: 该组件通过Unix套接字发送和接收消息，属于通用字节流通信接口。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

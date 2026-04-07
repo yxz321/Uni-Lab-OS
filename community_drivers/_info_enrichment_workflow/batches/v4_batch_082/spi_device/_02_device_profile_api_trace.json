@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: spi_device\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: wasatch/SPIDevice.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.custom.spi_device:SPIDevice\n\nClass: CommandTuple \n  Bases: []\n\nClass: SPIDevice (focal)\n  Bases: ['InterfaceDevice']\n  Docstring: This implements SPI communication via the FT232H usb converter.\n\nThis class adopts the external device interface structure.\nThis involves receiving a request through the handle_request function.\nA request is processed based on the key in the request.\nThe processing function passes the commands to the requested device.\nOnce it receives a response from the connected device it then passes that\nback up the chain.\n\n@verbatim\n                           Enlighten Request\n                                   |\n                            handle_requests\n                                   |\n                             ------------\n                            /   /  |  \\  \\ \n         { get_laser status, acquire, set_laser_watchdog, etc....}\n                            \\   \\  |  /  /\n                             ------------\n                                   |\n                     {self.driver.some_spi_call}\n@endverbatim\n\n@see https://github.com/WasatchPhotonics/Python-USB-WP-Raman-Examples/blob/master/SPI/spi_console.py\n\nFocal class methods:\n  [command] connect(self)\n    comment: initialize all settings -- this ensures no setting is uninitialized\n  [command] init_eeprom(self)\n    comment: @returns True on success\n    comment: copy startup values from EEPROM into our local command table so they\n    comment: get initialized properly\n  [command] disconnect(self)\n  [command] acquire_data(self)\n    comment: perform the 2x2 bin software side\n    comment: average all except the last value, which is just appended as is\n    comment: reset for next average\n    comment: if averaging isn't enabled...then a single reading is the\n    comment: \"averaged\" final measurement (check reading.sum_count to confirm)\n  [command] set_integration_time_ms(self, value)\n  [command] set_gain(self, value)\n  [command] change_setting(self, setting, value)\n  [command] to_hex(self, values)\n    comment: format a list or bytearray as \"[ 0x00, 0x0a, 0xff ]\"\n  [command] check_crc(self, crc_received, data)\n    comment: confirm the received CRC matches our computed CRC for the list or bytearray \"data\"\n  [command] compute_crc(self, data)\n    comment: given a list or bytearray of data elements, return the checksum\n  [command] fix_crc(self, cmd)\n    comment: \n    comment: given a formatted SPI command of the form [START, L0, L1, ADDR, ...DATA..., CRC, END],\n    comment: return command with CRC replaced with the computed checksum of [L0..DATA] as bytearray\n    comment: log.debug(f\"fix_crc: cmd {self.to_hex(cmd)} -> result {self.to_hex(result)}\")\n  [command] errorcode_to_string(self, code)\n    comment: @see ENG-0150-C section 3.2, \"Configuration Set Response Packet\"\n  [command] validate_write_response(self, response)\n    comment: @param response (Input): the last 3 bytes of the device's response to a SPI write command\n  [command] buffer_bytearray(self, orig, size)\n    comment: \n    comment: Given an existing list or bytearray, copy the contents into a new bytearray of\n    comment: the specified size. This is used to generate the \"command\" argument of a\n    comment: SPI.write_readinto(cmd, response) call, as both buffers are expected to be of\n    comment: the same size.\n    comment: \n    comment: @see https://docs.circuitpython.org/en/latest/shared-bindings/busio/#busio.SPI.write_readinto\n  [command] decode_read_response(self, unbuffered_cmd, buffered_response, name=None, missing_echo_len=0)\n    comment: \n    comment: Given an unbuffered \"read\" command (just the bytes we wanted to write, without\n    comment: trailing zeros for the read response), and the complete (buffered) response\n    comment: read back (including leading junk from the command/write phase), parse out the\n    comment: actual response data and validate checksum.\n    comment: \n    comment: @par Example (reading FPGA version number)\n    comment: @verbatim\n    comment: offset:    0     1     2     3     4     5     6     7     8     9    10    11    12    13    14    15    16    17\n    comment: explanation:    <    (_length_)  ADDR   >     <    (_length_)  ADDR  '0'   '2'   '.'   '1'   '.'   '2'   '3'   CRC    >\n    comment: unbuffered_command: [ 0x3c, 0x00, 0x01, 0x10, 0x3e ]\n    comment: buffered_command: [ 0x3c, 0x00, 0x01, 0x10, 0x3e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ]\n    comment: buffered_response: [  ?? ,  ?? ,  ?? ,  ?? ,  ?? , 0x3c, 0x00, 0x08, 0x10, 0x30, 0x32, 0x2e, 0x31, 0x2e, 0x32, 0x33, 0x83, 0x3e ]\n    comment: unbuffered_response:                               [ 0x3c, 0x00, 0x08, 0x10, 0x30, 0x32, 0x2e, 0x31, 0x2e, 0x32, 0x33, 0x83, 0x3e ]\n    comment: crc_data:                                     [ 0x00, 0x08, 0x10, 0x30, 0x32, 0x2e, 0x31, 0x2e, 0x32, 0x33 ]\n    comment: response_data:                                                       [ 0x30, 0x32, 0x2e, 0x31, 0x2e, 0x32, 0x33 ]\n    comment: @endverbatim\n    comment: \n    comment: @returns array of response payload bytes (everything after ADDR but before CRC)\n    comment: @note only used for SPI \"read\" commands (\"write\" commands are much simpler)\n    comment: \n    comment: @param unbuffered_cmd: the START..END read command sent to the device (but\n    comment: not the empty \"buffer\" bytes at the end, written while reading the response)\n    comment: @param buffered_response: the complete sequence of bytes read from the\n    comment: device, including the echoed unbuffered command\n    comment: @param name: for debugging\n    comment: @param missing_echo_len: in proper SPI, if I write 5 bytes, with an\n    comment: expected response of 13 bytes, then I should actually read 18 bytes:\n    comment: the \"echoes\" of the 5 written bytes, then the 13 actual response\n    comment: bytes. Buggy FW may lead to some \"echo\" bytes missing from the\n    comment: response stream; this value can allow the client to stay in sync.\n    comment: In the current design, this occurs when reading EEPROM pages.\n  [command] send_command(self, cmd)\n    comment: MZ: the -1 at the end was added as a kludge, because otherwise we find\n    comment: a redundant '>' in the last byte.  This seems a bug, due to the\n    comment: fact that only 7 of the 8 unbuffered_cmd bytes are echoed back into\n    comment: the read buffer.\n  [command] flush_input_buffer(self)\n    comment: @returns False if SPI communication hosed. This can happen for instance if your SPI_PIN_READY isn't set.\n  [command] wait_for_data_ready(self)\n  [command] gain_to_ff(self, gain)\n    comment: \n    comment: Convert a (potentially) floating-point value into the big-endian 16-bit \"Funky\n    comment: Float\" used for detector gain in the FPGA on both Hamamatsu and IMX sensors.\n    comment: \n    comment: @see https://wasatchphotonics.com/api/Wasatch.NET/class_wasatch_n_e_t_1_1_funky_float.html\n  [command] read_page(self, page)\n    comment: send 0xb0 command to tell FPGA to load EEPROM page into FPGA buffer\n    comment: MZ: API says \"wait for SPEC_BUSY to be deasserted...why aren't we doing that?\n    comment: send 0x31 command to read the buffered page from the FPGA\n  [status_getter] get_spectrum(self)\n    comment: Trigger Acquisition\n    comment: send trigger via the FT232H\n    comment: Read the spectrum (MZ: big-endian, seriously?)\n    comment: log.debug(f\"get_spectrum: reading block of {bytes_this_read} bytes\")\n    comment: There is latency associated with this call, so call it as\n    comment: few times as possible (with the largest possible block\n    comment: size).  Basically, I'm assuming each call requires a full\n    comment: 64-byte USB control packet to the FT232H (and response).\n    comment: log.debug(f\"get_spectrum: read block of {len(buf)} bytes\")\n    comment: post-process spectrum\n    comment: demarshall big-endian\n\nRegistry actions:\n  auto-connect (from connect())\n  auto-init_eeprom (from init_eeprom())\n  auto-disconnect (from disconnect())\n  auto-acquire_data (from acquire_data())\n  auto-set_integration_time_ms (from set_integration_time_ms())\n  auto-set_gain (from set_gain())\n  auto-change_setting (from change_setting())\n  auto-to_hex (from to_hex())\n  auto-check_crc (from check_crc())\n  auto-compute_crc (from compute_crc())\n  auto-fix_crc (from fix_crc())\n  auto-errorcode_to_string (from errorcode_to_string())\n  auto-validate_write_response (from validate_write_response())\n  auto-buffer_bytearray (from buffer_bytearray())\n  auto-decode_read_response (from decode_read_response())\n  auto-send_command (from send_command())\n  auto-flush_input_buffer (from flush_input_buffer())\n  auto-wait_for_data_ready (from wait_for_data_ready())\n  auto-gain_to_ff (from gain_to_ff())\n  auto-read_page (from read_page())\n  auto-get_spectrum (from get_spectrum())\n\nRequired output action ids:\n  auto-connect\n  auto-init_eeprom\n  auto-disconnect\n  auto-acquire_data\n  auto-set_integration_time_ms\n  auto-set_gain\n  auto-change_setting\n  auto-to_hex\n  auto-check_crc\n  auto-compute_crc\n  auto-fix_crc\n  auto-errorcode_to_string\n  auto-validate_write_response\n  auto-buffer_bytearray\n  auto-decode_read_response\n  auto-send_command\n  auto-flush_input_buffer\n  auto-wait_for_data_ready\n  auto-gain_to_ff\n  auto-read_page\n  auto-get_spectrum"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0d71af671d2917c10069d55f8d01808193bc5f33426c2fb07b",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1821,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 8531,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0d71af671d2917c10069d55f8d70048193b824ea27ff9a06d5",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0d71af671d2917c10069d55f9f1ecc8193a2c3c0d1103db222",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Wasatch SPI光谱仪\",\n  \"name_en\": \"Wasatch SPI Spectrometer\",\n  \"manufacturer\": \"Wasatch Photonics\",\n  \"description\": \"通过 FT232H USB 转 SPI 转换器通信的 Wasatch 光谱仪，用于触发采集、读取光谱数据，并设置积分时间、探测器增益及 EEPROM/FPGA 相关参数，常用于拉曼或通用光谱测量系统。\",\n  \"description_en\": \"A Wasatch spectrometer controlled through an FT232H USB-to-SPI interface. It is used to trigger acquisitions, read spectral data, and configure integration time, detector gain, and EEPROM/FPGA-related settings in Raman or general spectroscopy setups.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"初始化并连接 SPI 光谱仪通信。\",\n      \"description_en\": \"Initialize and connect communication with the SPI spectrometer.\"\n    },\n    {\n      \"action_name\": \"auto-init_eeprom\",\n      \"description\": \"从 EEPROM 读取启动参数并初始化本地设置。\",\n      \"description_en\": \"Load startup parameters from EEPROM and initialize local settings.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开与光谱仪的连接。\",\n      \"description_en\": \"Disconnect from the spectrometer.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_data\",\n      \"description\": \"执行一次数据采集，并按需要进行软件平均或 2x2 bin 处理。\",\n      \"description_en\": \"Perform one data acquisition, with optional software averaging or 2x2 binning.\"\n    },\n    {\n      \"action_name\": \"auto-set_integration_time_ms\",\n      \"description\": \"设置积分时间（毫秒）。\",\n      \"description_en\": \"Set the integration time in milliseconds.\"\n    },\n    {\n      \"action_name\": \"auto-set_gain\",\n      \"description\": \"设置探测器增益。\",\n      \"description_en\": \"Set the detector gain.\"\n    },\n    {\n      \"action_name\": \"auto-change_setting\",\n      \"description\": \"更改指定设备设置。\",\n      \"description_en\": \"Change a specified device setting.\"\n    },\n    {\n      \"action_name\": \"auto-to_hex\",\n      \"description\": \"将字节数据格式化为十六进制文本。\",\n      \"description_en\": \"Format byte data as hexadecimal text.\"\n    },\n    {\n      \"action_name\": \"auto-check_crc\",\n      \"description\": \"校验数据的 CRC 校验和。\",\n      \"description_en\": \"Verify the CRC checksum of data.\"\n    },\n    {\n      \"action_name\": \"auto-compute_crc\",\n      \"description\": \"计算数据的 CRC 校验和。\",\n      \"description_en\": \"Compute the CRC checksum of data.\"\n    },\n    {\n      \"action_name\": \"auto-fix_crc\",\n      \"description\": \"重新计算并替换 SPI 命令中的 CRC。\",\n      \"description_en\": \"Recompute and replace the CRC in an SPI command.\"\n    },\n    {\n      \"action_name\": \"auto-errorcode_to_string\",\n      \"description\": \"将设备错误码转换为文本说明。\",\n      \"description_en\": \"Convert a device error code to a text description.\"\n    },\n    {\n      \"action_name\": \"auto-validate_write_response\",\n      \"description\": \"验证 SPI 写命令响应是否有效。\",\n      \"description_en\": \"Validate whether an SPI write-command response is valid.\"\n    },\n    {\n      \"action_name\": \"auto-buffer_bytearray\",\n      \"description\": \"生成适用于 SPI 读写的定长缓冲区。\",\n      \"description_en\": \"Create a fixed-size buffer for SPI read/write operations.\"\n    },\n    {\n      \"action_name\": \"auto-decode_read_response\",\n      \"description\": \"解析并校验 SPI 读取响应数据。\",\n      \"description_en\": \"Decode and validate SPI read-response data.\"\n    },\n    {\n      \"action_name\": \"auto-send_command\",\n      \"description\": \"向设备发送 SPI 命令并读取响应。\",\n      \"description_en\": \"Send an SPI command to the device and read the response.\"\n    },\n    {\n      \"action_name\": \"auto-flush_input_buffer\",\n      \"description\": \"清空 SPI 输入缓冲区。\",\n      \"description_en\": \"Flush the SPI input buffer.\"\n    },\n    {\n      \"action_name\": \"auto-wait_for_data_ready\",\n      \"description\": \"等待设备数据就绪信号。\",\n      \"description_en\": \"Wait for the device data-ready signal.\"\n    },\n    {\n      \"action_name\": \"auto-gain_to_ff\",\n      \"description\": \"将增益值转换为设备使用的 16 位 Funky Float 格式。\",\n      \"description_en\": \"Convert a gain value to the 16-bit Funky Float format used by the device.\"\n    },\n    {\n      \"action_name\": \"auto-read_page\",\n      \"description\": \"读取 EEPROM 页面数据。\",\n      \"description_en\": \"Read an EEPROM page.\"\n    },\n    {\n      \"action_name\": \"auto-get_spectrum\",\n      \"description\": \"获取光谱。\",\n      \"description_en\": \"Get spectrum.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Raman spectroscopy\",\n    \"spectral acquisition\",\n    \"SPI communication via FT232H\",\n    \"integration time control\",\n    \"detector gain control\",\n    \"EEPROM configuration\",\n    \"FPGA-based spectrometer\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 3232,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2200,
+      "output_tokens_details": {
+        "reasoning_tokens": 1034
+      },
+      "total_tokens": 5432
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 3232,
+      "output_token_count": 2200,
+      "predict_time": 33.650293395
+    }
+  },
+  "output_text": "{\n  \"name\": \"Wasatch SPI光谱仪\",\n  \"name_en\": \"Wasatch SPI Spectrometer\",\n  \"manufacturer\": \"Wasatch Photonics\",\n  \"description\": \"通过 FT232H USB 转 SPI 转换器通信的 Wasatch 光谱仪，用于触发采集、读取光谱数据，并设置积分时间、探测器增益及 EEPROM/FPGA 相关参数，常用于拉曼或通用光谱测量系统。\",\n  \"description_en\": \"A Wasatch spectrometer controlled through an FT232H USB-to-SPI interface. It is used to trigger acquisitions, read spectral data, and configure integration time, detector gain, and EEPROM/FPGA-related settings in Raman or general spectroscopy setups.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"初始化并连接 SPI 光谱仪通信。\",\n      \"description_en\": \"Initialize and connect communication with the SPI spectrometer.\"\n    },\n    {\n      \"action_name\": \"auto-init_eeprom\",\n      \"description\": \"从 EEPROM 读取启动参数并初始化本地设置。\",\n      \"description_en\": \"Load startup parameters from EEPROM and initialize local settings.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开与光谱仪的连接。\",\n      \"description_en\": \"Disconnect from the spectrometer.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_data\",\n      \"description\": \"执行一次数据采集，并按需要进行软件平均或 2x2 bin 处理。\",\n      \"description_en\": \"Perform one data acquisition, with optional software averaging or 2x2 binning.\"\n    },\n    {\n      \"action_name\": \"auto-set_integration_time_ms\",\n      \"description\": \"设置积分时间（毫秒）。\",\n      \"description_en\": \"Set the integration time in milliseconds.\"\n    },\n    {\n      \"action_name\": \"auto-set_gain\",\n      \"description\": \"设置探测器增益。\",\n      \"description_en\": \"Set the detector gain.\"\n    },\n    {\n      \"action_name\": \"auto-change_setting\",\n      \"description\": \"更改指定设备设置。\",\n      \"description_en\": \"Change a specified device setting.\"\n    },\n    {\n      \"action_name\": \"auto-to_hex\",\n      \"description\": \"将字节数据格式化为十六进制文本。\",\n      \"description_en\": \"Format byte data as hexadecimal text.\"\n    },\n    {\n      \"action_name\": \"auto-check_crc\",\n      \"description\": \"校验数据的 CRC 校验和。\",\n      \"description_en\": \"Verify the CRC checksum of data.\"\n    },\n    {\n      \"action_name\": \"auto-compute_crc\",\n      \"description\": \"计算数据的 CRC 校验和。\",\n      \"description_en\": \"Compute the CRC checksum of data.\"\n    },\n    {\n      \"action_name\": \"auto-fix_crc\",\n      \"description\": \"重新计算并替换 SPI 命令中的 CRC。\",\n      \"description_en\": \"Recompute and replace the CRC in an SPI command.\"\n    },\n    {\n      \"action_name\": \"auto-errorcode_to_string\",\n      \"description\": \"将设备错误码转换为文本说明。\",\n      \"description_en\": \"Convert a device error code to a text description.\"\n    },\n    {\n      \"action_name\": \"auto-validate_write_response\",\n      \"description\": \"验证 SPI 写命令响应是否有效。\",\n      \"description_en\": \"Validate whether an SPI write-command response is valid.\"\n    },\n    {\n      \"action_name\": \"auto-buffer_bytearray\",\n      \"description\": \"生成适用于 SPI 读写的定长缓冲区。\",\n      \"description_en\": \"Create a fixed-size buffer for SPI read/write operations.\"\n    },\n    {\n      \"action_name\": \"auto-decode_read_response\",\n      \"description\": \"解析并校验 SPI 读取响应数据。\",\n      \"description_en\": \"Decode and validate SPI read-response data.\"\n    },\n    {\n      \"action_name\": \"auto-send_command\",\n      \"description\": \"向设备发送 SPI 命令并读取响应。\",\n      \"description_en\": \"Send an SPI command to the device and read the response.\"\n    },\n    {\n      \"action_name\": \"auto-flush_input_buffer\",\n      \"description\": \"清空 SPI 输入缓冲区。\",\n      \"description_en\": \"Flush the SPI input buffer.\"\n    },\n    {\n      \"action_name\": \"auto-wait_for_data_ready\",\n      \"description\": \"等待设备数据就绪信号。\",\n      \"description_en\": \"Wait for the device data-ready signal.\"\n    },\n    {\n      \"action_name\": \"auto-gain_to_ff\",\n      \"description\": \"将增益值转换为设备使用的 16 位 Funky Float 格式。\",\n      \"description_en\": \"Convert a gain value to the 16-bit Funky Float format used by the device.\"\n    },\n    {\n      \"action_name\": \"auto-read_page\",\n      \"description\": \"读取 EEPROM 页面数据。\",\n      \"description_en\": \"Read an EEPROM page.\"\n    },\n    {\n      \"action_name\": \"auto-get_spectrum\",\n      \"description\": \"获取光谱。\",\n      \"description_en\": \"Get spectrum.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Raman spectroscopy\",\n    \"spectral acquisition\",\n    \"SPI communication via FT232H\",\n    \"integration time control\",\n    \"detector gain control\",\n    \"EEPROM configuration\",\n    \"FPGA-based spectrometer\"\n  ]\n}"
+}

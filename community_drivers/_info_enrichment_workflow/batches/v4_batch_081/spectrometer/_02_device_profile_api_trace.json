@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: spectrometer\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: hardwarelibrary/spectrometers/base.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.spectroscopy.spectrometer:Spectrometer\n\nClass: NoSpectrometerConnected \n  Bases: ['RuntimeError']\n\nClass: UnableToInitialize \n  Bases: ['RuntimeError']\n\nClass: UnableToCommunicate \n  Bases: ['RuntimeError']\n\nClass: SpectrumRequestTimeoutError \n  Bases: ['RuntimeError']\n\nClass: Spectrometer (focal)\n  Bases: ['PhysicalDevice']\n\nFocal class methods:\n  [command] getSerialNumber(self)\n  [command] getSpectrum(self)\n  [command] display(self)\n    comment: Display the spectrum with the SpectraViewer class.\n  [command] getIntegrationTime(self)\n  [command] setIntegrationTime(self, value)\n  [command] saveSpectrum(self, filepath, spectrum=None, whiteReference=None, darkReference=None)\n    comment: Save a spectrum to disk as a comma-separated variable file.\n        If no spectrum is provided, request one from the spectrometer withoout\n        changing the integration time.\n\n        Parameters\n  ...\n  [command] supportedClasses(cls)\n  [command] supportedClassNames(cls)\n  [command] showHelp(cls, err=None)\n    comment: Well, how about that? This does not work in Windows\n    comment: https://stackoverflow.com/questions/2330245/python-change-text-color-in-shell\n    comment: if sys.stdout.isatty:\n    comment: err = '\\x1b[{0}m{1}\\x1b[0m'.format(';'.join(['33','1']), err)\n  [command] displayAny(cls)\n  [command] any(cls)\n    comment: Return the first supported spectrometer found as a Python object\n        that can be used immediately.\n\n        Returns\n        -------\n        device: subclass of Spectrometer\n            An instance...\n  [command] connectedUSBDevices(cls, idProduct=None, serialNumber=None)\n    comment: Return a list of supported USB devices that are currently connected.\n        If idProduct is provided, match only these products. If a serial\n        number is provided, return the matching device oth...\n  [command] matchUniqueUSBDevice(cls, idProduct=None, serialNumber=None)\n    comment: No serial number provided, just take the first one\n    comment: No devices with criteria provided\n    comment: A class method to find a unique device that matches the criteria provided. If there\n        is a single device connected, then the default parameters will make it return\n        that single device. Th...\n\nRegistry actions:\n  auto-getSerialNumber (from getSerialNumber())\n  auto-getSpectrum (from getSpectrum())\n  auto-display (from display())\n  auto-getIntegrationTime (from getIntegrationTime())\n  auto-setIntegrationTime (from setIntegrationTime())\n  auto-saveSpectrum (from saveSpectrum())\n\nRequired output action ids:\n  auto-getSerialNumber\n  auto-getSpectrum\n  auto-display\n  auto-getIntegrationTime\n  auto-setIntegrationTime\n  auto-saveSpectrum"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_08cc0d2f05f643ca0069d55fa35d6881938b3a0cba416c2c24",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3907,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3599,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_08cc0d2f05f643ca0069d55fa3d99081938f90e957bb460089",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_08cc0d2f05f643ca0069d55fadbab88193a88c39b51e289978",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"光谱仪\",\n  \"name_en\": \"Spectrometer\",\n  \"manufacturer\": \"\",\n  \"description\": \"通用光谱仪设备，用于采集光谱数据、读取序列号、查询或设置积分时间，并可将光谱显示或保存到磁盘。\",\n  \"description_en\": \"A generic spectrometer used to acquire spectral data, read the serial number, get or set integration time, and display or save spectra to disk.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-getSerialNumber\",\n      \"description\": \"获取光谱仪序列号。\",\n      \"description_en\": \"Get the spectrometer serial number.\"\n    },\n    {\n      \"action_name\": \"auto-getSpectrum\",\n      \"description\": \"采集光谱数据。\",\n      \"description_en\": \"Acquire a spectrum.\"\n    },\n    {\n      \"action_name\": \"auto-display\",\n      \"description\": \"显示当前光谱数据。\",\n      \"description_en\": \"Display the current spectrum.\"\n    },\n    {\n      \"action_name\": \"auto-getIntegrationTime\",\n      \"description\": \"获取积分时间设置。\",\n      \"description_en\": \"Get the integration time setting.\"\n    },\n    {\n      \"action_name\": \"auto-setIntegrationTime\",\n      \"description\": \"设置积分时间。\",\n      \"description_en\": \"Set the integration time.\"\n    },\n    {\n      \"action_name\": \"auto-saveSpectrum\",\n      \"description\": \"将光谱数据保存为文件。\",\n      \"description_en\": \"Save spectrum data to a file.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"spectroscopy\",\n    \"spectral acquisition\",\n    \"integration time control\",\n    \"USB spectrometer\",\n    \"spectrum visualization\",\n    \"CSV export\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1332,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 850,
+      "output_tokens_details": {
+        "reasoning_tokens": 470
+      },
+      "total_tokens": 2182
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1332,
+      "output_token_count": 850,
+      "predict_time": 14.978471876
+    }
+  },
+  "output_text": "{\n  \"name\": \"光谱仪\",\n  \"name_en\": \"Spectrometer\",\n  \"manufacturer\": \"\",\n  \"description\": \"通用光谱仪设备，用于采集光谱数据、读取序列号、查询或设置积分时间，并可将光谱显示或保存到磁盘。\",\n  \"description_en\": \"A generic spectrometer used to acquire spectral data, read the serial number, get or set integration time, and display or save spectra to disk.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-getSerialNumber\",\n      \"description\": \"获取光谱仪序列号。\",\n      \"description_en\": \"Get the spectrometer serial number.\"\n    },\n    {\n      \"action_name\": \"auto-getSpectrum\",\n      \"description\": \"采集光谱数据。\",\n      \"description_en\": \"Acquire a spectrum.\"\n    },\n    {\n      \"action_name\": \"auto-display\",\n      \"description\": \"显示当前光谱数据。\",\n      \"description_en\": \"Display the current spectrum.\"\n    },\n    {\n      \"action_name\": \"auto-getIntegrationTime\",\n      \"description\": \"获取积分时间设置。\",\n      \"description_en\": \"Get the integration time setting.\"\n    },\n    {\n      \"action_name\": \"auto-setIntegrationTime\",\n      \"description\": \"设置积分时间。\",\n      \"description_en\": \"Set the integration time.\"\n    },\n    {\n      \"action_name\": \"auto-saveSpectrum\",\n      \"description\": \"将光谱数据保存为文件。\",\n      \"description_en\": \"Save spectrum data to a file.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"spectroscopy\",\n    \"spectral acquisition\",\n    \"integration time control\",\n    \"USB spectrometer\",\n    \"spectrum visualization\",\n    \"CSV export\"\n  ]\n}"
+}

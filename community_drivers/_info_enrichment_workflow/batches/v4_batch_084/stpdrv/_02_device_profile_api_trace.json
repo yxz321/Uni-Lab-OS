@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: stpdrv\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/centralcontrol/stpdrv.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.stpdrv:Stpdrv\n\nClass: Stpdrv (focal)\n  Bases: []\n  Docstring: Ark Metrica Stepper Motor Controller.\n\nFocal class methods:\n  [command] address(self)\n    comment: Get the resource name.\n\n        Returns\n        -------\n        address : str\n            VISA resource name.\n  [command] address(self, address)\n    comment: Set the resource name if instrument isn't connected.\n\n        Parameters\n        ----------\n        address : str\n            VISA resource name.\n  [command] resource_kwargs(self)\n    comment: Get the resource kwargs.\n\n        This is a read-only property. The keyword arguments cannot be changed safely\n        after the object is initialised.\n\n        Returns\n        -------\n        resourc...\n  [command] motion_timeout(self)\n    comment: Get the motion timeout.\n\n        Returns\n        -------\n        motion_timeout : float\n            Time in ms to wait before aborting a motion command.\n  [command] motion_timeout(self, motion_timeout)\n    comment: set comms timeout to be slightly longer than homing timeout\n    comment: set firmware timeout\n    comment: Set the motion timeout.\n\n        Parameters\n        ----------\n        motion_timeout : int\n            Time in s to wait before aborting a motion command.\n  [command] speed(self)\n    comment: Get the speed.\n\n        Returns\n        -------\n        speed : float\n            Linear actuator speed in mm/s.\n  [command] speed(self, speed)\n    comment: Set the linear actuator speed.\n\n        Parameters\n        ----------\n        speed : float\n            Linear actuator speed in mm/s.\n  [command] acceleration(self)\n    comment: Get the acceleration.\n\n        Returns\n        -------\n        acceleration : float\n            Linear actuator acceleration in mm/s^2.\n  [command] acceleration(self, acceleration)\n    comment: Set the linear actuator acceleration.\n\n        Parameters\n        ----------\n        acceleration : float\n            Linear actuator acceleration in mm/s^2.\n  [command] connect(self)\n    comment: self.instr = serial.Serial(self.address, **self.resource_kwargs)\n    comment: set initialisation comms timeout\n    comment: synchronise communications by sending an invalid command until the correct\n    comment: response is received\n    comment: initialise firmware parameters\n    comment: TODO: self.limit_offset = self._limit_offset\n    comment: Connect to the instrument.\n\n        Parameters\n        ----------\n\n        resource_manager : pyvisa.ResourceManager, optional\n            Resource manager used to create new connection. If `None`, cr...\n  [command] disconnect(self)\n    comment: Disconnect instrument.\n  [command] mm_to_steps(self, distance)\n    comment: Convert a distance in mm to a number of steps.\n\n        Parameters\n        ----------\n        distance : float\n            Distance in mm to convert.\n\n        Returns\n        -------\n        steps : i...\n  [command] steps_to_mm(self, steps)\n    comment: Convert a number of steps into an equivalent distance in mm.\n\n        Parameters\n        ----------\n        steps : int or float\n            Number of steps to convert.\n\n        Returns\n        ------...\n  [command] idn(self)\n    comment: Get identity string of the controller.\n\n        Returns\n        -------\n        idn : str\n            Identity string of the controller board.\n  [command] len_axes_mm(self)\n    comment: Get the axis length in mm.\n\n        Returns a dictionary for compatibility with centralcontrol.\n\n        Returns\n        -------\n        len_axes_mm : Dict\n  [command] goto(self, target, timeout=120, debug_prints=True)\n    comment: Go to a target position.\n\n        Uses dictionaries for target, include timeout arg, and include debug_prints arg\n        for compatibility with centralcontrol.\n\n        Parameters\n        ----------\n...\n  [command] home(self, procedure='default', timeout=120, expected_lengths=None, allowed_deviation=None)\n    comment: homing takes two motions so divide timeout by 2\n    comment: moving away from limits won't be counted\n    comment: request homing\n    comment: check if length is as expected if details are provided\n    comment: Home the stage.\n\n        Arguments are for compatibility with centralcontrol.\n\n        Parameters\n        ----------\n        procedure : str\n            Ignored.\n        timeout : float\n            Ho...\n  [command] estop(self)\n    comment: Request emergency stop.\n  [command] get_position(self)\n    comment: Get current position in mm.\n\n        Returns a dictionary for compatibility with central control.\n\n        Returns\n        -------\n        pos : dict\n            Dictionary with axes as keys and curre...\n\nRegistry actions:\n  auto-address (from address())\n  auto-resource_kwargs (from resource_kwargs())\n  auto-motion_timeout (from motion_timeout())\n  auto-speed (from speed())\n  auto-acceleration (from acceleration())\n  auto-mm_to_steps (from mm_to_steps())\n  auto-steps_to_mm (from steps_to_mm())\n  auto-idn (from idn())\n  auto-len_axes_mm (from len_axes_mm())\n  auto-goto (from goto())\n  auto-home (from home())\n  auto-estop (from estop())\n  auto-get_position (from get_position())\n\nRequired output action ids:\n  auto-address\n  auto-resource_kwargs\n  auto-motion_timeout\n  auto-speed\n  auto-acceleration\n  auto-mm_to_steps\n  auto-steps_to_mm\n  auto-idn\n  auto-len_axes_mm\n  auto-goto\n  auto-home\n  auto-estop\n  auto-get_position"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0efe9094b1cce8ee0069d5617cbcd48196a66710dc4acbd0b2",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6700,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5073,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0efe9094b1cce8ee0069d5617d439c8196830da9fdee9e0db9",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0efe9094b1cce8ee0069d56187a58c8196ae8c2771575209b4",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Ark Metrica步进电机线性位移控制器\",\n  \"name_en\": \"Ark Metrica Stepper Motor Linear Motion Controller\",\n  \"manufacturer\": \"Ark Metrica\",\n  \"description\": \"用于控制步进电机驱动的线性位移机构或位移台。该设备通过串口/VISA通信，支持连接识别、速度与加速度设置、回零、按目标位置移动、位置读取以及急停，适合实验中的样品或探头直线定位任务。\",\n  \"description_en\": \"A stepper-motor-based linear motion controller for a linear actuator or positioning stage. It communicates over serial/VISA and supports device identification, speed and acceleration settings, homing, moving to a target position, position readback, and emergency stop for laboratory sample or probe positioning tasks.\",\n  \"tag_hints\": [\n    \"stepper motor control\",\n    \"linear actuator\",\n    \"positioning stage\",\n    \"homing\",\n    \"serial motion controller\",\n    \"emergency stop\",\n    \"position readback\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-address\",\n      \"description\": \"获取/设置设备资源地址\",\n      \"description_en\": \"Get/set the device resource address.\"\n    },\n    {\n      \"action_name\": \"auto-resource_kwargs\",\n      \"description\": \"获取资源连接参数\",\n      \"description_en\": \"Get the resource connection parameters.\"\n    },\n    {\n      \"action_name\": \"auto-motion_timeout\",\n      \"description\": \"获取/设置运动超时时间\",\n      \"description_en\": \"Get/set the motion timeout.\"\n    },\n    {\n      \"action_name\": \"auto-speed\",\n      \"description\": \"获取/设置线性执行器速度\",\n      \"description_en\": \"Get/set the linear actuator speed.\"\n    },\n    {\n      \"action_name\": \"auto-acceleration\",\n      \"description\": \"获取/设置线性执行器加速度\",\n      \"description_en\": \"Get/set the linear actuator acceleration.\"\n    },\n    {\n      \"action_name\": \"auto-mm_to_steps\",\n      \"description\": \"将毫米距离转换为电机步数\",\n      \"description_en\": \"Convert a distance in millimeters to motor steps.\"\n    },\n    {\n      \"action_name\": \"auto-steps_to_mm\",\n      \"description\": \"将电机步数转换为毫米距离\",\n      \"description_en\": \"Convert motor steps to a distance in millimeters.\"\n    },\n    {\n      \"action_name\": \"auto-idn\",\n      \"description\": \"读取控制器身份信息\",\n      \"description_en\": \"Read the controller identity string.\"\n    },\n    {\n      \"action_name\": \"auto-len_axes_mm\",\n      \"description\": \"获取各轴的行程长度（毫米）\",\n      \"description_en\": \"Get the travel length of each axis in millimeters.\"\n    },\n    {\n      \"action_name\": \"auto-goto\",\n      \"description\": \"移动到目标位置\",\n      \"description_en\": \"Move to the target position.\"\n    },\n    {\n      \"action_name\": \"auto-home\",\n      \"description\": \"执行回零/归位\",\n      \"description_en\": \"Perform a homing operation.\"\n    },\n    {\n      \"action_name\": \"auto-estop\",\n      \"description\": \"执行急停\",\n      \"description_en\": \"Request an emergency stop.\"\n    },\n    {\n      \"action_name\": \"auto-get_position\",\n      \"description\": \"读取当前位置（毫米）\",\n      \"description_en\": \"Read the current position in millimeters.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1860,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1284,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 3144
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1860,
+      "output_token_count": 1284,
+      "predict_time": 24.153544389
+    }
+  },
+  "output_text": "{\n  \"name\": \"Ark Metrica步进电机线性位移控制器\",\n  \"name_en\": \"Ark Metrica Stepper Motor Linear Motion Controller\",\n  \"manufacturer\": \"Ark Metrica\",\n  \"description\": \"用于控制步进电机驱动的线性位移机构或位移台。该设备通过串口/VISA通信，支持连接识别、速度与加速度设置、回零、按目标位置移动、位置读取以及急停，适合实验中的样品或探头直线定位任务。\",\n  \"description_en\": \"A stepper-motor-based linear motion controller for a linear actuator or positioning stage. It communicates over serial/VISA and supports device identification, speed and acceleration settings, homing, moving to a target position, position readback, and emergency stop for laboratory sample or probe positioning tasks.\",\n  \"tag_hints\": [\n    \"stepper motor control\",\n    \"linear actuator\",\n    \"positioning stage\",\n    \"homing\",\n    \"serial motion controller\",\n    \"emergency stop\",\n    \"position readback\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-address\",\n      \"description\": \"获取/设置设备资源地址\",\n      \"description_en\": \"Get/set the device resource address.\"\n    },\n    {\n      \"action_name\": \"auto-resource_kwargs\",\n      \"description\": \"获取资源连接参数\",\n      \"description_en\": \"Get the resource connection parameters.\"\n    },\n    {\n      \"action_name\": \"auto-motion_timeout\",\n      \"description\": \"获取/设置运动超时时间\",\n      \"description_en\": \"Get/set the motion timeout.\"\n    },\n    {\n      \"action_name\": \"auto-speed\",\n      \"description\": \"获取/设置线性执行器速度\",\n      \"description_en\": \"Get/set the linear actuator speed.\"\n    },\n    {\n      \"action_name\": \"auto-acceleration\",\n      \"description\": \"获取/设置线性执行器加速度\",\n      \"description_en\": \"Get/set the linear actuator acceleration.\"\n    },\n    {\n      \"action_name\": \"auto-mm_to_steps\",\n      \"description\": \"将毫米距离转换为电机步数\",\n      \"description_en\": \"Convert a distance in millimeters to motor steps.\"\n    },\n    {\n      \"action_name\": \"auto-steps_to_mm\",\n      \"description\": \"将电机步数转换为毫米距离\",\n      \"description_en\": \"Convert motor steps to a distance in millimeters.\"\n    },\n    {\n      \"action_name\": \"auto-idn\",\n      \"description\": \"读取控制器身份信息\",\n      \"description_en\": \"Read the controller identity string.\"\n    },\n    {\n      \"action_name\": \"auto-len_axes_mm\",\n      \"description\": \"获取各轴的行程长度（毫米）\",\n      \"description_en\": \"Get the travel length of each axis in millimeters.\"\n    },\n    {\n      \"action_name\": \"auto-goto\",\n      \"description\": \"移动到目标位置\",\n      \"description_en\": \"Move to the target position.\"\n    },\n    {\n      \"action_name\": \"auto-home\",\n      \"description\": \"执行回零/归位\",\n      \"description_en\": \"Perform a homing operation.\"\n    },\n    {\n      \"action_name\": \"auto-estop\",\n      \"description\": \"执行急停\",\n      \"description_en\": \"Request an emergency stop.\"\n    },\n    {\n      \"action_name\": \"auto-get_position\",\n      \"description\": \"读取当前位置（毫米）\",\n      \"description_en\": \"Read the current position in millimeters.\"\n    }\n  ]\n}"
+}

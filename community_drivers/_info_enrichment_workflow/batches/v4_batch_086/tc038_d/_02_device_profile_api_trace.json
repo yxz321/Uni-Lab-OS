@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: tc038_d\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/hcp/tc038d.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.temperature_controller.tc038d:TC038D\n\nClass: TC038D (focal)\n  Bases: ['Instrument']\n  Docstring: Communication with the HCP TC038D oven.\n\nThis is the newer version with DC heating.\n\nThe temperature controller is on default set to modbus communication.\nThe oven expects raw bytes written, no ascii code, and sends raw bytes.\nFor the variables are two or four-byte modes available. We use the\nfour-byte mode addresses, so do we. In that case element count has to be\ndouble the variables read.\n\nFocal class methods:\n  [command] CRC16(data)\n    comment: Calculate the CRC16 checksum for the data byte array.\n  [command] readRegister(self, address, count=1)\n    comment: Count has to be double the number of elements in 4-byte-mode.\n    comment: Slave address, function, length\n    comment: data length, 2 Byte CRC\n    comment: Read count variables from start address on.\n  [command] writeMultiple(self, address, values)\n    comment: slave address, function\n    comment: start address, number elements, CRC; each 2 Bytes long\n    comment: Write multiple variables.\n  [status_getter] setpoint(self)\n    comment: Get the current setpoint in °C.\n  [status_setter] setpoint(self, value)\n    comment: Set the setpoint in °C.\n  [status_getter] temperature(self)\n    comment: Get the current temperature in °C.\n\nRegistry actions:\n  auto-readRegister (from readRegister())\n  auto-setpoint (from setpoint())\n  auto-writeMultiple (from writeMultiple())\n  auto-CRC16 (from CRC16())\n  auto-temperature (from temperature())\n\nRequired output action ids:\n  auto-readRegister\n  auto-setpoint\n  auto-writeMultiple\n  auto-CRC16\n  auto-temperature"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_04f08a7a404050990069d564db6d4c8195b952332a15256372",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1796,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3273,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_04f08a7a404050990069d564dbc2288195b083191c29e6dfd5",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_04f08a7a404050990069d564e293bc81959dc28234f9ccec70",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"TC038D烘箱温控器\",\n  \"name_en\": \"TC038D Oven Temperature Controller\",\n  \"manufacturer\": \"HCP\",\n  \"description\": \"用于控制HCP TC038D烘箱的温度控制器，可通过Modbus原始字节通信读取寄存器、写入参数、设置温度设定值并监测当前温度，适用于实验中的加热与恒温控制。\",\n  \"description_en\": \"A temperature controller for the HCP TC038D oven. It communicates via Modbus raw bytes to read registers, write parameters, set the temperature setpoint, and monitor the current temperature for laboratory heating and temperature regulation.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-readRegister\",\n      \"description\": \"读取指定地址开始的寄存器数据。\",\n      \"description_en\": \"Read register data starting from the specified address.\"\n    },\n    {\n      \"action_name\": \"auto-setpoint\",\n      \"description\": \"获取/设置温度设定值。\",\n      \"description_en\": \"Get/set the temperature setpoint.\"\n    },\n    {\n      \"action_name\": \"auto-writeMultiple\",\n      \"description\": \"向指定地址写入多个寄存器值。\",\n      \"description_en\": \"Write multiple register values to the specified address.\"\n    },\n    {\n      \"action_name\": \"auto-CRC16\",\n      \"description\": \"计算数据字节数组的CRC16校验值。\",\n      \"description_en\": \"Calculate the CRC16 checksum for a byte array.\"\n    },\n    {\n      \"action_name\": \"auto-temperature\",\n      \"description\": \"获取当前温度。\",\n      \"description_en\": \"Get the current temperature.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"oven temperature control\",\n    \"Modbus RTU communication\",\n    \"temperature setpoint\",\n    \"process temperature monitoring\",\n    \"DC heating\",\n    \"laboratory oven\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1118,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 796,
+      "output_tokens_details": {
+        "reasoning_tokens": 375
+      },
+      "total_tokens": 1914
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1118,
+      "output_token_count": 796,
+      "predict_time": 14.100556971
+    }
+  },
+  "output_text": "{\n  \"name\": \"TC038D烘箱温控器\",\n  \"name_en\": \"TC038D Oven Temperature Controller\",\n  \"manufacturer\": \"HCP\",\n  \"description\": \"用于控制HCP TC038D烘箱的温度控制器，可通过Modbus原始字节通信读取寄存器、写入参数、设置温度设定值并监测当前温度，适用于实验中的加热与恒温控制。\",\n  \"description_en\": \"A temperature controller for the HCP TC038D oven. It communicates via Modbus raw bytes to read registers, write parameters, set the temperature setpoint, and monitor the current temperature for laboratory heating and temperature regulation.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-readRegister\",\n      \"description\": \"读取指定地址开始的寄存器数据。\",\n      \"description_en\": \"Read register data starting from the specified address.\"\n    },\n    {\n      \"action_name\": \"auto-setpoint\",\n      \"description\": \"获取/设置温度设定值。\",\n      \"description_en\": \"Get/set the temperature setpoint.\"\n    },\n    {\n      \"action_name\": \"auto-writeMultiple\",\n      \"description\": \"向指定地址写入多个寄存器值。\",\n      \"description_en\": \"Write multiple register values to the specified address.\"\n    },\n    {\n      \"action_name\": \"auto-CRC16\",\n      \"description\": \"计算数据字节数组的CRC16校验值。\",\n      \"description_en\": \"Calculate the CRC16 checksum for a byte array.\"\n    },\n    {\n      \"action_name\": \"auto-temperature\",\n      \"description\": \"获取当前温度。\",\n      \"description_en\": \"Get the current temperature.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"oven temperature control\",\n    \"Modbus RTU communication\",\n    \"temperature setpoint\",\n    \"process temperature monitoring\",\n    \"DC heating\",\n    \"laboratory oven\"\n  ]\n}"
+}

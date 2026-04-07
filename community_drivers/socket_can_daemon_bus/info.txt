@@ -1,26 +1,69 @@
-Device: socket_can_daemon_bus
-Registry Key: socket_can_daemon_bus
-Short Description: Socket CAN Daemon BUS是由Open Standard生产的专业实验设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (2):
-- auto-send -> send [UniLabJsonCommand] goal_params: msg, timeout
-- auto-shutdown -> shutdown [UniLabJsonCommand] goal_params: none
-
-Driver Functions (11):
-- detect_beacon(timeout_ms) (line 97)
-- convert_ascii_message_to_can_message(ascii_msg) (line 194)
-- convert_can_message_to_ascii_message(can_message) (line 244)
-- connect_to_server(s, host, port) (line 259)
-- SocketCanDaemonBus.__init__(self, channel, host, port, tcp_tune, can_filters, **kwargs) (line 276)
-- SocketCanDaemonBus._recv_internal(self, timeout) (line 332)
-- SocketCanDaemonBus._tcp_send(self, msg) (line 410)
-- SocketCanDaemonBus._expect_msg(self, msg) (line 417)
-- SocketCanDaemonBus.send(self, msg, timeout) (line 425)
-- SocketCanDaemonBus.shutdown(self) (line 435)
-- SocketCanDaemonBus._detect_available_configs() (line 442)
+socket_can_daemon_bus:
+  name: SocketCAN 守护进程总线接口
+  name_en: SocketCAN Daemon Bus Interface
+  manufacturer: ''
+  category:
+  - CAN总线接口
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - CAN总线设备调试与集成
+  - CAN总线接口
+  description: 这是一个非物理的软件通信组件，用于通过 socketcand 服务连接和操作 CAN 总线。它主要用于实验系统中的 CAN 消息发送与连接关闭，不直接代表某一台具体仪器。
+  description_en: This is a non-physical software communication component used to
+    connect to and operate a CAN bus through the socketcand service. It is mainly
+    used in lab systems for CAN message transmission and connection shutdown, rather
+    than representing a specific physical instrument.
+  class:
+    action_value_mappings:
+      auto-send:
+        schema:
+          description: 向 CAN 总线发送一条消息。
+          description_en: Transmit a message to the CAN bus.
+      auto-shutdown:
+        schema:
+          description: 停止所有活动的周期任务并关闭连接套接字。
+          description_en: Stop all active periodic tasks and close the socket connection.
+auto_annotation_metadata:
+  registry_key: socket_can_daemon_bus
+  annotation_workflow_version: v4
+  tag_hints:
+  - CAN bus
+  - socketcand
+  - message transport
+  - network CAN interface
+  - bus communication
+  - connection shutdown
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该接口在实验运行时负责CAN报文发送与连接管理，支撑设备控制执行。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 通过socketcand把CAN网络设备接入实验系统，属于自动化集成范畴。
+  - id: P-20004
+    name: CAN总线设备调试与集成
+    name_en: CAN Device Debugging & Integration
+    type: experimental_scene
+    rationale: 描述中明确通过socketcand连接并操作CAN总线，符合CAN设备接入与控制场景。
+  - id: P-700002
+    name: CAN总线接口
+    name_en: CAN Bus Interface
+    type: device_template_tag
+    rationale: 该软件组件直接表示一个可发送CAN消息的总线接口。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

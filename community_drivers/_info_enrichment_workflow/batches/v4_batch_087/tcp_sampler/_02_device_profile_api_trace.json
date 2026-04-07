@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: tcp_sampler\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pymepix/util/tcpsampler.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.tcp_sampler:TcpSampler\n\nClass: TcpSampler (focal)\n  Bases: ['multiprocessing.Process', 'ProcessLogger']\n  Docstring: Recieves tcp packets\n\nThe same as UdpSampler just with TCP\nprobably originally written for benchmarking TCP vs UDP\nFixMe: doesn't work in this state anymore...\n\nFocal class methods:\n  [command] init_new_process(self)\n  [command] createConnection(self, address)\n    comment: Establishes a TCP connection\n  [command] get_useful_packets(self, packet)\n    comment: Get the header\n  [command] enable(self)\n    comment: Enables processing\n\n        Determines whether the class will perform processing, this has the result of signalling the process to terminate.\n        If there are objects ahead of it then they will st...\n  [command] enable(self, value)\n  [command] record(self)\n    comment: Enables saving data to disk\n\n        Determines whether the class will perform processing, this has the result of signalling the process to terminate.\n        If there are objects ahead of it then the...\n  [command] record(self, value)\n  [command] close_file(self)\n  [command] close_file(self, value)\n  [command] outfile_name(self)\n  [command] outfile_name(self, fileN)\n  [command] pre_run(self)\n  [command] post_run(self)\n    comment: return MessageType.RawData, (\n    comment: self._packet_buffer_list[curr_list_idx][:bytes_to_send], self._longtime.value)\n  [command] run(self)\n    comment: enabled = self.enable\n    comment: put close file here to get the cases where there's no data coming and file should be closed\n    comment: mainly there for test to succeed\n    comment: self.debug('Read {}'.format(raw_packet))\n    comment: self._packets_collected += 1\n    comment: if self._packets_collected % 1000 == 0:\n    comment: self.debug('Packets collected {}'.format(self._packets_collected))\n    comment: self.debug('Total time {} s'.format(self._total_time))\n    comment: packet = np.frombuffer(self._packet_buffer_view[:self._recv_bytes], dtype=np.uint64) # TODO: put this in packet processor\n    comment: print(packet)\n    comment: tpx_packets = self.get_useful_packets(packet)\n    comment: bytes_to_send = self._recv_bytes\n    comment: print('curr idx', curr_list_idx)\n    comment: if len(packet) > 1:\n    comment: if not curr_list_idx % 20:\n    comment: return MessageType.RawData, (self._packet_buffer_list[curr_list_idx][:bytes_to_send], self._longtime.value)\n    comment: else:\n    comment: return None, None\n    comment: else:\n    comment: return None, None\n    comment: else:\n    comment: return None, None\n  [command] stopRaw2Disk(self)\n    comment: TODO: this doesn't work for now. should probably go to post_run\n    comment: print(write2disk.my_sock.recv())\n    comment: self.debug('Stopping Raw2Disk')\n        self.write2disk.close()\n        self.write2disk.my_sock.send_string('SHUTDOWN')\n        # print(write2disk.my_sock.recv())\n        self.write2disk.write_thr.joi...\n\nRegistry actions:\n  auto-init_new_process (from init_new_process())\n  auto-createConnection (from createConnection())\n  auto-get_useful_packets (from get_useful_packets())\n  auto-enable (from enable())\n  auto-record (from record())\n  auto-close_file (from close_file())\n  auto-outfile_name (from outfile_name())\n  auto-pre_run (from pre_run())\n  auto-post_run (from post_run())\n  auto-run (from run())\n  auto-stopRaw2Disk (from stopRaw2Disk())\n\nRequired output action ids:\n  auto-init_new_process\n  auto-createConnection\n  auto-get_useful_packets\n  auto-enable\n  auto-record\n  auto-close_file\n  auto-outfile_name\n  auto-pre_run\n  auto-post_run\n  auto-run\n  auto-stopRaw2Disk"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_07dd42cac74344d20069d564bc3100819791fd1a38ba7a0782",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1798,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5950,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_07dd42cac74344d20069d564bc8c988197a28e06ff657f7fd0",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_07dd42cac74344d20069d564c98a7881978df2f11cd4c9ee5e",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"TCP数据采样进程\",\n  \"name_en\": \"TCP Sampler Process\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件采样组件，用于在实验数据采集链路中通过 TCP 接收数据包、提取有用报文内容、缓存原始数据，并可选择将数据写入磁盘。它更像是面向测试或数据传输基准比较的进程式采样工具，而不是直接控制某台实体仪器。\",\n  \"description_en\": \"A non-physical software sampling component used in laboratory data-acquisition pipelines to receive packets over TCP, extract useful packet content, buffer raw data, and optionally record data to disk. It appears to be a process-based sampler intended for testing or TCP/UDP transfer benchmarking rather than direct control of a physical instrument.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init_new_process\",\n      \"description\": \"初始化新的采样子进程及其运行资源。\",\n      \"description_en\": \"Initialize a new sampler subprocess and its runtime resources.\"\n    },\n    {\n      \"action_name\": \"auto-createConnection\",\n      \"description\": \"建立到指定地址的 TCP 连接。\",\n      \"description_en\": \"Establish a TCP connection to the specified address.\"\n    },\n    {\n      \"action_name\": \"auto-get_useful_packets\",\n      \"description\": \"从接收到的数据包中提取有用的报文或报头内容。\",\n      \"description_en\": \"Extract useful packet or header content from a received packet.\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"获取或设置数据处理循环的启用状态。\",\n      \"description_en\": \"Get or set the enabled state of the processing loop.\"\n    },\n    {\n      \"action_name\": \"auto-record\",\n      \"description\": \"获取或设置是否将原始数据记录到磁盘。\",\n      \"description_en\": \"Get or set whether raw data recording to disk is enabled.\"\n    },\n    {\n      \"action_name\": \"auto-close_file\",\n      \"description\": \"获取或设置关闭当前输出文件的状态。\",\n      \"description_en\": \"Get or set the state for closing the current output file.\"\n    },\n    {\n      \"action_name\": \"auto-outfile_name\",\n      \"description\": \"获取或设置输出文件名。\",\n      \"description_en\": \"Get or set the output file name.\"\n    },\n    {\n      \"action_name\": \"auto-pre_run\",\n      \"description\": \"在主运行循环开始前执行准备操作。\",\n      \"description_en\": \"Perform setup steps before the main run loop starts.\"\n    },\n    {\n      \"action_name\": \"auto-post_run\",\n      \"description\": \"在主运行循环结束后执行收尾处理。\",\n      \"description_en\": \"Perform cleanup steps after the main run loop ends.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"运行主 TCP 采样循环，接收、解析、缓存并转发原始数据。\",\n      \"description_en\": \"Run the main TCP sampling loop to receive, parse, buffer, and forward raw data.\"\n    },\n    {\n      \"action_name\": \"auto-stopRaw2Disk\",\n      \"description\": \"停止原始数据写盘流程。\",\n      \"description_en\": \"Stop the raw-data-to-disk writing process.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"TCP packet reception\",\n    \"data acquisition pipeline\",\n    \"raw data buffering\",\n    \"disk recording\",\n    \"process-based sampler\",\n    \"network benchmarking\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1592,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1474,
+      "output_tokens_details": {
+        "reasoning_tokens": 707
+      },
+      "total_tokens": 3066
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1592,
+      "output_token_count": 1474,
+      "predict_time": 27.268909345
+    }
+  },
+  "output_text": "{\n  \"name\": \"TCP数据采样进程\",\n  \"name_en\": \"TCP Sampler Process\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件采样组件，用于在实验数据采集链路中通过 TCP 接收数据包、提取有用报文内容、缓存原始数据，并可选择将数据写入磁盘。它更像是面向测试或数据传输基准比较的进程式采样工具，而不是直接控制某台实体仪器。\",\n  \"description_en\": \"A non-physical software sampling component used in laboratory data-acquisition pipelines to receive packets over TCP, extract useful packet content, buffer raw data, and optionally record data to disk. It appears to be a process-based sampler intended for testing or TCP/UDP transfer benchmarking rather than direct control of a physical instrument.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init_new_process\",\n      \"description\": \"初始化新的采样子进程及其运行资源。\",\n      \"description_en\": \"Initialize a new sampler subprocess and its runtime resources.\"\n    },\n    {\n      \"action_name\": \"auto-createConnection\",\n      \"description\": \"建立到指定地址的 TCP 连接。\",\n      \"description_en\": \"Establish a TCP connection to the specified address.\"\n    },\n    {\n      \"action_name\": \"auto-get_useful_packets\",\n      \"description\": \"从接收到的数据包中提取有用的报文或报头内容。\",\n      \"description_en\": \"Extract useful packet or header content from a received packet.\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"获取或设置数据处理循环的启用状态。\",\n      \"description_en\": \"Get or set the enabled state of the processing loop.\"\n    },\n    {\n      \"action_name\": \"auto-record\",\n      \"description\": \"获取或设置是否将原始数据记录到磁盘。\",\n      \"description_en\": \"Get or set whether raw data recording to disk is enabled.\"\n    },\n    {\n      \"action_name\": \"auto-close_file\",\n      \"description\": \"获取或设置关闭当前输出文件的状态。\",\n      \"description_en\": \"Get or set the state for closing the current output file.\"\n    },\n    {\n      \"action_name\": \"auto-outfile_name\",\n      \"description\": \"获取或设置输出文件名。\",\n      \"description_en\": \"Get or set the output file name.\"\n    },\n    {\n      \"action_name\": \"auto-pre_run\",\n      \"description\": \"在主运行循环开始前执行准备操作。\",\n      \"description_en\": \"Perform setup steps before the main run loop starts.\"\n    },\n    {\n      \"action_name\": \"auto-post_run\",\n      \"description\": \"在主运行循环结束后执行收尾处理。\",\n      \"description_en\": \"Perform cleanup steps after the main run loop ends.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"运行主 TCP 采样循环，接收、解析、缓存并转发原始数据。\",\n      \"description_en\": \"Run the main TCP sampling loop to receive, parse, buffer, and forward raw data.\"\n    },\n    {\n      \"action_name\": \"auto-stopRaw2Disk\",\n      \"description\": \"停止原始数据写盘流程。\",\n      \"description_en\": \"Stop the raw-data-to-disk writing process.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"TCP packet reception\",\n    \"data acquisition pipeline\",\n    \"raw data buffering\",\n    \"disk recording\",\n    \"process-based sampler\",\n    \"network benchmarking\"\n  ]\n}"
+}

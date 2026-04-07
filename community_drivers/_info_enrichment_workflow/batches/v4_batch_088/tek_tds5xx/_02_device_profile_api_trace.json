@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: tek_tds5xx\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/tektronix/tektds5xx.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.oscilloscope.tek_tds5xx:TekTDS5xx\n\nClass: TekTDS5xx (focal)\n  Bases: ['SCPIInstrument', 'Oscilloscope']\n  Docstring: Support for the TDS5xx series of oscilloscopes\n Implemented from:\n  | TDS Family Digitizing Oscilloscopes\n  | (TDS 410A, 420A, 460A, 520A, 524A, 540A, 544A,\n  | 620A, 640A, 644A, 684A, 744A & 784A)\n  | Tektronix Document: 070-8709-07\n\nFocal class methods:\n  [command] measurement(self)\n    comment: Gets a specific oscilloscope measurement object. The desired channel is\n        specified like one would access a list.\n\n        :rtype: `TekTDS5xx.Measurement`\n  [command] channel(self)\n    comment: Gets a specific oscilloscope channel object. The desired channel is\n        specified like one would access a list.\n\n        For instance, this would transfer the waveform from the first channel::\n\n  ...\n  [command] ref(self)\n    comment: Gets a specific oscilloscope reference channel object. The desired\n        channel is specified like one would access a list.\n\n        For instance, this would transfer the waveform from the first cha...\n  [command] math(self)\n    comment: Gets a data source object corresponding to the MATH channel.\n\n        :rtype: `TekTDS5xx.DataSource`\n  [command] sources(self)\n    comment: Returns list of all active sources\n\n        :rtype: `list`\n  [command] data_source(self)\n    comment: Gets/sets the the data source for waveform transfer.\n\n        :type: `TekTDS5xx.Source` or `TekTDS5xx.DataSource`\n        :rtype: `TekTDS5xx.DataSource`\n  [command] data_source(self, newval)\n  [command] data_width(self)\n    comment: Gets/Sets the data width for waveform transfers\n\n        :type: `int`\n  [command] data_width(self, newval)\n  [command] force_trigger(self)\n  [command] horizontal_scale(self)\n    comment: Get/Set Horizontal Scale\n\n        :type: `float`\n  [command] horizontal_scale(self, newval)\n  [command] trigger_level(self)\n    comment: Get/Set trigger level\n\n        :type: `float`\n  [command] trigger_level(self, newval)\n  [command] trigger_coupling(self)\n    comment: Get/Set trigger coupling\n\n        :type: `TekTDS5xx.Coupling`\n  [command] trigger_coupling(self, newval)\n  [command] trigger_slope(self)\n    comment: Get/Set trigger slope\n\n        :type: `TekTDS5xx.Edge`\n  [command] trigger_slope(self, newval)\n  [command] trigger_source(self)\n    comment: Get/Set trigger source\n\n        :type: `TekTDS5xx.Trigger`\n  [command] trigger_source(self, newval)\n  [command] clock(self)\n    comment: Get/Set oscilloscope clock\n\n        :type: `datetime.datetime`\n  [command] clock(self, newval)\n  [command] display_clock(self)\n    comment: Get/Set the visibility of clock on the display\n\n        :type: `bool`\n  [command] display_clock(self, newval)\n  [command] get_hardcopy(self)\n    comment: Get BMP Length  in kilobytes from DIB header, because file header is\n    comment: bad\n    comment: Gets a screenshot of the display\n\n        :rtype: `string`\n\nRegistry actions:\n  auto-measurement (from measurement())\n  auto-channel (from channel())\n  auto-ref (from ref())\n  auto-math (from math())\n  auto-sources (from sources())\n  auto-data_source (from data_source())\n  auto-data_width (from data_width())\n  auto-force_trigger (from force_trigger())\n  auto-horizontal_scale (from horizontal_scale())\n  auto-trigger_level (from trigger_level())\n  auto-trigger_coupling (from trigger_coupling())\n  auto-trigger_slope (from trigger_slope())\n  auto-trigger_source (from trigger_source())\n  auto-clock (from clock())\n  auto-display_clock (from display_clock())\n  auto-get_hardcopy (from get_hardcopy())\n  auto-read (from read())\n  auto-name (from name())\n  auto-read_waveform (from read_waveform())\n  auto-coupling (from coupling())\n  auto-bandwidth (from bandwidth())\n  auto-impedance (from impedance())\n  auto-probe (from probe())\n  auto-scale (from scale())\n\nRequired output action ids:\n  auto-measurement\n  auto-channel\n  auto-ref\n  auto-math\n  auto-sources\n  auto-data_source\n  auto-data_width\n  auto-force_trigger\n  auto-horizontal_scale\n  auto-trigger_level\n  auto-trigger_coupling\n  auto-trigger_slope\n  auto-trigger_source\n  auto-clock\n  auto-display_clock\n  auto-get_hardcopy\n  auto-read\n  auto-name\n  auto-read_waveform\n  auto-coupling\n  auto-bandwidth\n  auto-impedance\n  auto-probe\n  auto-scale"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0a37f292167bd9540069d5667cecf0819585a3b98fdcf211b1",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1797,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6940,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0a37f292167bd9540069d566803a748195b4a1fad3f113f2d9",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0a37f292167bd9540069d5668e8b748195bc45e12d86653eb3",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"泰克 TDS5xx 系列数字示波器\",\n  \"name_en\": \"Tektronix TDS5xx Series Digitizing Oscilloscope\",\n  \"manufacturer\": \"Tektronix\",\n  \"description\": \"用于泰克 TDS5xx 系列数字示波器的控制与读出，可进行通道与参考波形访问、数学波形选择、波形传输、触发设置、水平时基调整、自动测量以及屏幕截图获取，适合实验中的电信号观测与波形分析。\",\n  \"description_en\": \"Control and readout for Tektronix TDS5xx series digitizing oscilloscopes, supporting channel and reference waveform access, math waveform selection, waveform transfer, trigger setup, horizontal timebase adjustment, automatic measurements, and screen capture for laboratory electrical signal observation and waveform analysis.\",\n  \"tag_hints\": [\n    \"oscilloscope\",\n    \"waveform acquisition\",\n    \"trigger control\",\n    \"SCPI\",\n    \"electrical signal measurement\",\n    \"timebase control\",\n    \"screen capture\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-measurement\",\n      \"description\": \"获取指定的示波器测量对象。\",\n      \"description_en\": \"Get a specified oscilloscope measurement object.\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取指定的示波器通道对象。\",\n      \"description_en\": \"Get a specified oscilloscope channel object.\"\n    },\n    {\n      \"action_name\": \"auto-ref\",\n      \"description\": \"获取指定的参考波形通道对象。\",\n      \"description_en\": \"Get a specified reference waveform channel object.\"\n    },\n    {\n      \"action_name\": \"auto-math\",\n      \"description\": \"获取数学运算波形数据源对象。\",\n      \"description_en\": \"Get the MATH waveform data source object.\"\n    },\n    {\n      \"action_name\": \"auto-sources\",\n      \"description\": \"获取所有活动数据源列表。\",\n      \"description_en\": \"Get the list of all active sources.\"\n    },\n    {\n      \"action_name\": \"auto-data_source\",\n      \"description\": \"获取/设置波形传输的数据源。\",\n      \"description_en\": \"Get/set the data source for waveform transfer.\"\n    },\n    {\n      \"action_name\": \"auto-data_width\",\n      \"description\": \"获取/设置波形传输的数据宽度。\",\n      \"description_en\": \"Get/set the data width for waveform transfers.\"\n    },\n    {\n      \"action_name\": \"auto-force_trigger\",\n      \"description\": \"强制触发示波器采集。\",\n      \"description_en\": \"Force-trigger the oscilloscope acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-horizontal_scale\",\n      \"description\": \"获取/设置水平时基刻度。\",\n      \"description_en\": \"Get/set the horizontal scale.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_level\",\n      \"description\": \"获取/设置触发电平。\",\n      \"description_en\": \"Get/set the trigger level.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_coupling\",\n      \"description\": \"获取/设置触发耦合方式。\",\n      \"description_en\": \"Get/set the trigger coupling.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_slope\",\n      \"description\": \"获取/设置触发斜率。\",\n      \"description_en\": \"Get/set the trigger slope.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_source\",\n      \"description\": \"获取/设置触发源。\",\n      \"description_en\": \"Get/set the trigger source.\"\n    },\n    {\n      \"action_name\": \"auto-clock\",\n      \"description\": \"获取/设置示波器时钟。\",\n      \"description_en\": \"Get/set the oscilloscope clock.\"\n    },\n    {\n      \"action_name\": \"auto-display_clock\",\n      \"description\": \"获取/设置屏幕时钟显示状态。\",\n      \"description_en\": \"Get/set the visibility of the on-screen clock.\"\n    },\n    {\n      \"action_name\": \"auto-get_hardcopy\",\n      \"description\": \"获取示波器显示屏截图。\",\n      \"description_en\": \"Get a screenshot of the oscilloscope display.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取当前数据源的数据。\",\n      \"description_en\": \"Read data from the current data source.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取仪器名称。\",\n      \"description_en\": \"Get the instrument name.\"\n    },\n    {\n      \"action_name\": \"auto-read_waveform\",\n      \"description\": \"读取波形数据。\",\n      \"description_en\": \"Read waveform data.\"\n    },\n    {\n      \"action_name\": \"auto-coupling\",\n      \"description\": \"获取/设置通道耦合方式。\",\n      \"description_en\": \"Get/set the channel coupling.\"\n    },\n    {\n      \"action_name\": \"auto-bandwidth\",\n      \"description\": \"获取/设置通道带宽限制。\",\n      \"description_en\": \"Get/set the channel bandwidth limit.\"\n    },\n    {\n      \"action_name\": \"auto-impedance\",\n      \"description\": \"获取/设置通道输入阻抗。\",\n      \"description_en\": \"Get/set the channel input impedance.\"\n    },\n    {\n      \"action_name\": \"auto-probe\",\n      \"description\": \"获取/设置探头倍率。\",\n      \"description_en\": \"Get/set the probe attenuation factor.\"\n    },\n    {\n      \"action_name\": \"auto-scale\",\n      \"description\": \"获取/设置通道垂直刻度。\",\n      \"description_en\": \"Get/set the channel vertical scale.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1874,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1755,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 3629
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1874,
+      "output_token_count": 1755,
+      "predict_time": 40.280338942
+    }
+  },
+  "output_text": "{\n  \"name\": \"泰克 TDS5xx 系列数字示波器\",\n  \"name_en\": \"Tektronix TDS5xx Series Digitizing Oscilloscope\",\n  \"manufacturer\": \"Tektronix\",\n  \"description\": \"用于泰克 TDS5xx 系列数字示波器的控制与读出，可进行通道与参考波形访问、数学波形选择、波形传输、触发设置、水平时基调整、自动测量以及屏幕截图获取，适合实验中的电信号观测与波形分析。\",\n  \"description_en\": \"Control and readout for Tektronix TDS5xx series digitizing oscilloscopes, supporting channel and reference waveform access, math waveform selection, waveform transfer, trigger setup, horizontal timebase adjustment, automatic measurements, and screen capture for laboratory electrical signal observation and waveform analysis.\",\n  \"tag_hints\": [\n    \"oscilloscope\",\n    \"waveform acquisition\",\n    \"trigger control\",\n    \"SCPI\",\n    \"electrical signal measurement\",\n    \"timebase control\",\n    \"screen capture\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-measurement\",\n      \"description\": \"获取指定的示波器测量对象。\",\n      \"description_en\": \"Get a specified oscilloscope measurement object.\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取指定的示波器通道对象。\",\n      \"description_en\": \"Get a specified oscilloscope channel object.\"\n    },\n    {\n      \"action_name\": \"auto-ref\",\n      \"description\": \"获取指定的参考波形通道对象。\",\n      \"description_en\": \"Get a specified reference waveform channel object.\"\n    },\n    {\n      \"action_name\": \"auto-math\",\n      \"description\": \"获取数学运算波形数据源对象。\",\n      \"description_en\": \"Get the MATH waveform data source object.\"\n    },\n    {\n      \"action_name\": \"auto-sources\",\n      \"description\": \"获取所有活动数据源列表。\",\n      \"description_en\": \"Get the list of all active sources.\"\n    },\n    {\n      \"action_name\": \"auto-data_source\",\n      \"description\": \"获取/设置波形传输的数据源。\",\n      \"description_en\": \"Get/set the data source for waveform transfer.\"\n    },\n    {\n      \"action_name\": \"auto-data_width\",\n      \"description\": \"获取/设置波形传输的数据宽度。\",\n      \"description_en\": \"Get/set the data width for waveform transfers.\"\n    },\n    {\n      \"action_name\": \"auto-force_trigger\",\n      \"description\": \"强制触发示波器采集。\",\n      \"description_en\": \"Force-trigger the oscilloscope acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-horizontal_scale\",\n      \"description\": \"获取/设置水平时基刻度。\",\n      \"description_en\": \"Get/set the horizontal scale.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_level\",\n      \"description\": \"获取/设置触发电平。\",\n      \"description_en\": \"Get/set the trigger level.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_coupling\",\n      \"description\": \"获取/设置触发耦合方式。\",\n      \"description_en\": \"Get/set the trigger coupling.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_slope\",\n      \"description\": \"获取/设置触发斜率。\",\n      \"description_en\": \"Get/set the trigger slope.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_source\",\n      \"description\": \"获取/设置触发源。\",\n      \"description_en\": \"Get/set the trigger source.\"\n    },\n    {\n      \"action_name\": \"auto-clock\",\n      \"description\": \"获取/设置示波器时钟。\",\n      \"description_en\": \"Get/set the oscilloscope clock.\"\n    },\n    {\n      \"action_name\": \"auto-display_clock\",\n      \"description\": \"获取/设置屏幕时钟显示状态。\",\n      \"description_en\": \"Get/set the visibility of the on-screen clock.\"\n    },\n    {\n      \"action_name\": \"auto-get_hardcopy\",\n      \"description\": \"获取示波器显示屏截图。\",\n      \"description_en\": \"Get a screenshot of the oscilloscope display.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取当前数据源的数据。\",\n      \"description_en\": \"Read data from the current data source.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取仪器名称。\",\n      \"description_en\": \"Get the instrument name.\"\n    },\n    {\n      \"action_name\": \"auto-read_waveform\",\n      \"description\": \"读取波形数据。\",\n      \"description_en\": \"Read waveform data.\"\n    },\n    {\n      \"action_name\": \"auto-coupling\",\n      \"description\": \"获取/设置通道耦合方式。\",\n      \"description_en\": \"Get/set the channel coupling.\"\n    },\n    {\n      \"action_name\": \"auto-bandwidth\",\n      \"description\": \"获取/设置通道带宽限制。\",\n      \"description_en\": \"Get/set the channel bandwidth limit.\"\n    },\n    {\n      \"action_name\": \"auto-impedance\",\n      \"description\": \"获取/设置通道输入阻抗。\",\n      \"description_en\": \"Get/set the channel input impedance.\"\n    },\n    {\n      \"action_name\": \"auto-probe\",\n      \"description\": \"获取/设置探头倍率。\",\n      \"description_en\": \"Get/set the probe attenuation factor.\"\n    },\n    {\n      \"action_name\": \"auto-scale\",\n      \"description\": \"获取/设置通道垂直刻度。\",\n      \"description_en\": \"Get/set the channel vertical scale.\"\n    }\n  ]\n}"
+}

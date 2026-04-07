@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: tcpip_instr_vicp\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pyvisa_py/tcpip.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.tcpip_instr.tcpip_instr:TCPIPInstrVicp\n\nClass: TCPIPInstrSession \n  Bases: ['Session']\n  Docstring: A class to dispatch to VXI11 or HiSLIP, based on the protocol.\n\nClass: TCPIPInstrHiSLIP \n  Bases: ['Session']\n  Docstring: A TCPIP Session built on socket standard library using HiSLIP protocol.\n\nClass: Vxi11CoreClient \n  Bases: ['vxi11.CoreClient']\n  Docstring: make a connection using vxi11 protocol, optionally allowing the port number\nto be specified.  although in general the port number must be obtained by\nquerying the portmapper, in practice any given instrument typically always\nuses the same port number.  this allows you to open that port on a firewall\nor set up an ssh tunnel to that port.\n\nClass: TCPIPInstrVxi11 \n  Bases: ['Session']\n  Docstring: A TCPIP Session built on socket standard library using VXI-11 protocol.\n\nClass: TCPIPInstrVicp (focal)\n  Bases: ['Session']\n  Docstring: VICP Session that uses pyvicp to do the low level communication.\n\nClass: TCPIPSocketSession \n  Bases: ['Session']\n  Docstring: A TCPIP Session that uses the network standard library to do the low\nlevel communication.\n\nFocal class methods:\n  [command] list_resources(wait_time=1.0)\n  [command] after_parsing(self)\n    comment: TODO: board_number not handled\n    comment: initialize the constant attributes\n    comment: configure the variable attributes\n  [status_getter] get_keepalive(self, attribute)\n    comment: TODO: additional attributes (someday)\n    comment: self.attrs[ResourceAttribute.manufacturer_id] = 16711\n    comment: self.attrs[ResourceAttribute.max_queue_length] = 50\n    comment: self.attrs[ResourceAttribute.read_buffer_size] = 4096\n    comment: self.attrs[ResourceAttribute.resource_impl_version] = 0x0050_0c01\n    comment: self.attrs[ResourceAttribute.resource_manufacturer_id] = 4015\n    comment: self.attrs[ResourceAttribute.resource_manufacturer_name] = 'Rohde & Schwarz GmbH'\n    comment: self.attrs[ResourceAttribute.resource_spec_version] = 0x0050_0800\n    comment: self.attrs[ResourceAttribute.user_data] = 0\n    comment: self.attrs[ResourceAttribute.write_buffer_size] = 4096\n    comment: Is TCP keepalive enabled for the resource.\n  [status_setter] set_keepalive(self, attribute, keepalive)\n    comment: Turns TCP keepalive on/off for this connection.\n  [command] close(self)\n  [command] read(self, count)\n    comment: Reads data from device or interface synchronously.\n\n        Corresponds to viRead function of the VISA library.\n\n        Parameters\n        -----------\n        count : int\n            Number of bytes ...\n  [command] write(self, data)\n    comment: Writes data to device or interface synchronously.\n\n        Corresponds to viWrite function of the VISA library.\n\n        Parameters\n        ----------\n        data : bytes\n            Data to be writt...\n  [command] clear(self)\n    comment: Clears a device.\n\n        Corresponds to viClear function of the VISA library.\n\nRegistry actions:\n  auto-after_parsing (from after_parsing())\n  auto-set_keepalive (from set_keepalive())\n  auto-close (from close())\n  auto-read (from read())\n  auto-write (from write())\n  auto-clear (from clear())\n  auto-list_resources (from list_resources())\n  auto-get_low_level_info (from get_low_level_info())\n  auto-get_max_message_kb (from get_max_message_kb())\n  auto-set_max_message_kb (from set_max_message_kb())\n  auto-get_keepalive (from get_keepalive())\n  auto-read_stb (from read_stb())\n  auto-assert_trigger (from assert_trigger())\n  auto-lock (from lock())\n  auto-unlock (from unlock())\n  auto-flush (from flush())\n  auto-remove_service (from remove_service())\n  auto-add_service (from add_service())\n\nRequired output action ids:\n  auto-after_parsing\n  auto-set_keepalive\n  auto-close\n  auto-read\n  auto-write\n  auto-clear\n  auto-list_resources\n  auto-get_low_level_info\n  auto-get_max_message_kb\n  auto-set_max_message_kb\n  auto-get_keepalive\n  auto-read_stb\n  auto-assert_trigger\n  auto-lock\n  auto-unlock\n  auto-flush\n  auto-remove_service\n  auto-add_service"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_068316e0e3568c050069d564cd82fc8196aa45bdb56885f76b",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5250,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5940,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_068316e0e3568c050069d564cf52e88196be52f54624e37e21",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_068316e0e3568c050069d564db66c48196b8de12f142bb28ed",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"VICP网络仪器会话组件\",\n  \"name_en\": \"VICP Network Instrument Session Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件通信组件，用于通过 TCP/IP 上的 VICP 协议与实验仪器建立会话并进行资源访问。它提供资源枚举、读写、清除、触发、锁定及连接参数管理等能力，适合在自动化实验中作为远程仪器通信层使用。\",\n  \"description_en\": \"This is a non-physical software communication component for creating sessions to laboratory instruments over TCP/IP using the VICP protocol. It provides resource listing, read/write I/O, clear, trigger, lock, and connection-parameter management, and is used as a remote instrument communication layer in lab automation.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-after_parsing\",\n      \"description\": \"初始化并配置会话属性。\",\n      \"description_en\": \"Initialize and configure session attributes.\"\n    },\n    {\n      \"action_name\": \"auto-set_keepalive\",\n      \"description\": \"设置 TCP keepalive 连接属性。\",\n      \"description_en\": \"Set the TCP keepalive connection property.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭 VICP 网络会话。\",\n      \"description_en\": \"Close the VICP network session.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"从远程仪器同步读取数据。\",\n      \"description_en\": \"Read data synchronously from the remote instrument.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向远程仪器同步写入数据。\",\n      \"description_en\": \"Write data synchronously to the remote instrument.\"\n    },\n    {\n      \"action_name\": \"auto-clear\",\n      \"description\": \"清除远程设备状态或缓冲。\",\n      \"description_en\": \"Clear the remote device state or buffers.\"\n    },\n    {\n      \"action_name\": \"auto-list_resources\",\n      \"description\": \"列出可用的网络仪器资源。\",\n      \"description_en\": \"List available network instrument resources.\"\n    },\n    {\n      \"action_name\": \"auto-get_low_level_info\",\n      \"description\": \"获取底层通信信息。\",\n      \"description_en\": \"Get low-level communication information.\"\n    },\n    {\n      \"action_name\": \"auto-get_max_message_kb\",\n      \"description\": \"get 最大消息大小（KB）\",\n      \"description_en\": \"get the maximum message size (KB)\"\n    },\n    {\n      \"action_name\": \"auto-set_max_message_kb\",\n      \"description\": \"set 最大消息大小（KB）\",\n      \"description_en\": \"set the maximum message size (KB)\"\n    },\n    {\n      \"action_name\": \"auto-get_keepalive\",\n      \"description\": \"get TCP keepalive 连接属性\",\n      \"description_en\": \"get the TCP keepalive connection property\"\n    },\n    {\n      \"action_name\": \"auto-read_stb\",\n      \"description\": \"读取仪器状态字节。\",\n      \"description_en\": \"Read the instrument status byte.\"\n    },\n    {\n      \"action_name\": \"auto-assert_trigger\",\n      \"description\": \"向远程仪器发送触发命令。\",\n      \"description_en\": \"Assert a trigger to the remote instrument.\"\n    },\n    {\n      \"action_name\": \"auto-lock\",\n      \"description\": \"锁定会话或资源访问。\",\n      \"description_en\": \"Lock the session or resource access.\"\n    },\n    {\n      \"action_name\": \"auto-unlock\",\n      \"description\": \"解锁会话或资源访问。\",\n      \"description_en\": \"Unlock the session or resource access.\"\n    },\n    {\n      \"action_name\": \"auto-flush\",\n      \"description\": \"刷新通信缓冲区。\",\n      \"description_en\": \"Flush the communication buffers.\"\n    },\n    {\n      \"action_name\": \"auto-remove_service\",\n      \"description\": \"移除已注册的服务处理项。\",\n      \"description_en\": \"Remove a registered service handler.\"\n    },\n    {\n      \"action_name\": \"auto-add_service\",\n      \"description\": \"添加服务处理项。\",\n      \"description_en\": \"Add a service handler.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"VICP protocol\",\n    \"TCP/IP instrument session\",\n    \"VISA resource communication\",\n    \"network instrument I/O\",\n    \"remote instrument control\",\n    \"session keepalive\",\n    \"instrument resource listing\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1712,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1450,
+      "output_tokens_details": {
+        "reasoning_tokens": 477
+      },
+      "total_tokens": 3162
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1712,
+      "output_token_count": 1450,
+      "predict_time": 37.134824231
+    }
+  },
+  "output_text": "{\n  \"name\": \"VICP网络仪器会话组件\",\n  \"name_en\": \"VICP Network Instrument Session Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件通信组件，用于通过 TCP/IP 上的 VICP 协议与实验仪器建立会话并进行资源访问。它提供资源枚举、读写、清除、触发、锁定及连接参数管理等能力，适合在自动化实验中作为远程仪器通信层使用。\",\n  \"description_en\": \"This is a non-physical software communication component for creating sessions to laboratory instruments over TCP/IP using the VICP protocol. It provides resource listing, read/write I/O, clear, trigger, lock, and connection-parameter management, and is used as a remote instrument communication layer in lab automation.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-after_parsing\",\n      \"description\": \"初始化并配置会话属性。\",\n      \"description_en\": \"Initialize and configure session attributes.\"\n    },\n    {\n      \"action_name\": \"auto-set_keepalive\",\n      \"description\": \"设置 TCP keepalive 连接属性。\",\n      \"description_en\": \"Set the TCP keepalive connection property.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭 VICP 网络会话。\",\n      \"description_en\": \"Close the VICP network session.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"从远程仪器同步读取数据。\",\n      \"description_en\": \"Read data synchronously from the remote instrument.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向远程仪器同步写入数据。\",\n      \"description_en\": \"Write data synchronously to the remote instrument.\"\n    },\n    {\n      \"action_name\": \"auto-clear\",\n      \"description\": \"清除远程设备状态或缓冲。\",\n      \"description_en\": \"Clear the remote device state or buffers.\"\n    },\n    {\n      \"action_name\": \"auto-list_resources\",\n      \"description\": \"列出可用的网络仪器资源。\",\n      \"description_en\": \"List available network instrument resources.\"\n    },\n    {\n      \"action_name\": \"auto-get_low_level_info\",\n      \"description\": \"获取底层通信信息。\",\n      \"description_en\": \"Get low-level communication information.\"\n    },\n    {\n      \"action_name\": \"auto-get_max_message_kb\",\n      \"description\": \"get 最大消息大小（KB）\",\n      \"description_en\": \"get the maximum message size (KB)\"\n    },\n    {\n      \"action_name\": \"auto-set_max_message_kb\",\n      \"description\": \"set 最大消息大小（KB）\",\n      \"description_en\": \"set the maximum message size (KB)\"\n    },\n    {\n      \"action_name\": \"auto-get_keepalive\",\n      \"description\": \"get TCP keepalive 连接属性\",\n      \"description_en\": \"get the TCP keepalive connection property\"\n    },\n    {\n      \"action_name\": \"auto-read_stb\",\n      \"description\": \"读取仪器状态字节。\",\n      \"description_en\": \"Read the instrument status byte.\"\n    },\n    {\n      \"action_name\": \"auto-assert_trigger\",\n      \"description\": \"向远程仪器发送触发命令。\",\n      \"description_en\": \"Assert a trigger to the remote instrument.\"\n    },\n    {\n      \"action_name\": \"auto-lock\",\n      \"description\": \"锁定会话或资源访问。\",\n      \"description_en\": \"Lock the session or resource access.\"\n    },\n    {\n      \"action_name\": \"auto-unlock\",\n      \"description\": \"解锁会话或资源访问。\",\n      \"description_en\": \"Unlock the session or resource access.\"\n    },\n    {\n      \"action_name\": \"auto-flush\",\n      \"description\": \"刷新通信缓冲区。\",\n      \"description_en\": \"Flush the communication buffers.\"\n    },\n    {\n      \"action_name\": \"auto-remove_service\",\n      \"description\": \"移除已注册的服务处理项。\",\n      \"description_en\": \"Remove a registered service handler.\"\n    },\n    {\n      \"action_name\": \"auto-add_service\",\n      \"description\": \"添加服务处理项。\",\n      \"description_en\": \"Add a service handler.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"VICP protocol\",\n    \"TCP/IP instrument session\",\n    \"VISA resource communication\",\n    \"network instrument I/O\",\n    \"remote instrument control\",\n    \"session keepalive\",\n    \"instrument resource listing\"\n  ]\n}"
+}
