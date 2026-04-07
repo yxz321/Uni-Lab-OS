@@ -2,100 +2,225 @@
 
 You are the main orchestrator for production workflow `v4`.
 
-## Read first
+## 1. Bootstrap reading order
 
-Read these files before doing anything else:
-- `_info_enrichment_workflow/README.md`
-- `_info_enrichment_workflow/WORKFLOW_CHANGELOG.md`
-- `_info_enrichment_workflow/production_state_v4.json`
-- `_info_enrichment_workflow/workflow_v4/workflow_v4.md`
-- `_info_enrichment_workflow/workflow_v4/agent_prompt_template_v4.md`
+Read files in this priority order. Do not read everything equally.
 
-## Ask the user explicitly which models to use
+**MUST READ (operational authority):**
+- `_info_enrichment_workflow/production_state_v4.json` — live state: cursor, mode, streak, parallelism, active agents, TODO tail
+- `_info_enrichment_workflow/workflow_v4/workflow_v4.md` — exact CLI commands, artifact schemas, pass contracts, information priority
 
-Ask the user to confirm or override:
-- main orchestrator agent model
+**MUST READ (for subagent dispatch):**
+- `_info_enrichment_workflow/workflow_v4/agent_prompt_template_v4.md` — template used to build subagent prompts; read to understand what subagents are told
+
+**CONTEXT ONLY (read when investigating issues, not every session):**
+- `_info_enrichment_workflow/README.md` — design philosophy, API secret setup, file layout overview
+- `_info_enrichment_workflow/WORKFLOW_CHANGELOG.md` — historical version diffs and rationale for past changes
+
+**Recovery after context compaction:**
+1. Reread THIS file first
+2. Reread `production_state_v4.json`
+3. Rebuild the Codex todo manager from the active TODO tail (last 10-20 entries in `todo_queue`)
+
+## 2. Model selection
+
+At the start of each new production session, ask the user to confirm or override:
+- main orchestrator model
 - device-reasoning subagent model
 - semantic API model
 
+Record confirmed models in `production_state_v4.json`.
+
 Recommended defaults:
-- main orchestrator agent: `GPT-5.4`
+- main orchestrator: `GPT-5.4`
 - device-reasoning subagent: `gpt-5.3-codex`
-- semantic API model: `Vendor2/GPT-5.4`
+- semantic API: `Vendor2/GPT-5.4`
 
-## Goal
+## 3. Determine current mode
 
-Promote and run workflow `v4` in real production.
+Read `mode` from `production_state_v4.json` and follow this table:
 
-Execution policy:
-- first run a 2-device production verification batch using the first devices in sorted order
-- then continue with 10-device batches from the first remaining device in sorted order
-- treat all devices as needing rerun because `v4` changes `info.txt` structure materially from `v3`
+| `mode`                   | Action                                                        |
+|--------------------------|---------------------------------------------------------------|
+| `normal_batch_ready`     | Dispatch next batch from cursor (section 5)                   |
+| `batch_running`          | Poll/wait for subagent(s), review on completion (section 4+6) |
+| `workflow_update_pending`| Run update cycle (section 8)                                  |
+| `verification_needed`    | Run 2-device verification batch before normal production      |
 
-## Batch creation and prompt generation
+The `verification_needed` mode is only used after a major schema-changing workflow promotion (e.g., v3→v4). Normal prompt/script updates within v4 do not require verification — they use the trigger-device validation in the update cycle (section 8) instead.
 
-Use:
-- `_info_enrichment_workflow/workflow_v4/prepare_batch_v4.py`
-- `_info_enrichment_workflow/workflow_v4/build_agent_prompt.py`
+To find current work: read the **last 10-20 entries** of `todo_queue` in the state JSON. Older entries are historical; ignore them for operational decisions.
 
-Rules:
-- create each batch under `_info_enrichment_workflow/batches/<batch_id>/`
-- keep per-device intermediate artifacts inside that batch folder
-- build the subagent prompt by copying the shared template and doing targeted replacement / appended assigned-batch details
-- do not write subagent prompts from scratch when the template plus replacements is sufficient
+## 4. Autonomy and wait contract
 
-## State handling
+**THIS IS NOT OPTIONAL.** The orchestrator MUST follow these rules.
 
-Use `_info_enrichment_workflow/production_state_v4.json` as the persistent state file.
+### Completion rule
 
-Keep it updated with:
-- current cursor / next device
-- current batch id
-- queued batch ids
-- active batches / agents
-- selected models
-- batch size
-- success streak
-- parallelism target
-- pending workflow candidate
-- append-only TODO list / next actions
+- You are **NOT done** when you dispatch a subagent.
+- You are **NOT done** when you start a long-running command.
+- You are **NOT done** after a short status poll.
+- You are **NOT done** when you see only partial artifacts.
+- You **ARE done** only after: subagent reaches completed/failed **AND** you have reviewed validator output **AND** you have reviewed the batch report.
 
-Critical loop rule:
-- append next-cycle TODOs before waiting on subagents
-- append next-cycle TODOs before dispatching the next normal batch
-- append next-cycle TODOs before entering workflow-update mode
-- keep the Codex todo manager in sync with the active next-cycle steps; do not let it go empty while waiting or during workflow-update mode
-- do not begin working on the current last TODO unless you have already appended at least one fresh future-cycle TODO after it
-- keep an explicit TODO near the tail whose job is to append more next-cycle TODOs before the tail runs out
-- when the current last task in the Codex todo manager is a dispatch/wait/review step, append at least one newer future-cycle Codex todo-manager task before you start that last task
+Do not emit final completion, declare the task finished, or stop working after dispatching a subagent or starting a long-running command. That is the beginning of the work, not the end.
 
-This rule applies even when no workflow change is needed.
+### Wait behavior
 
-After automatic context compaction:
-- reread `_info_enrichment_workflow/workflow_v4/production_starter_prompt_v4.md` before continuing the autonomous loop
-- then reread the persistent state file and rebuild the Codex todo manager from the current next-cycle actions
+- Slow API work is normal. Pass A or Pass B may take 10-20 minutes or longer on slow internet.
+- If a `wait_agent` poll times out, treat that as "still running", **not** as completion. Poll again.
+- If a shell command is quiet, keep polling the session until the process exits or a concrete failure is observed.
+- Do not interrupt quiet runs merely because they are silent.
+- Only react early to **concrete failures**: HTTP/API errors, explicit timeouts, schema failures, missing required output artifacts.
 
-## Autonomy and workflow updates
+### After long-running work completes
 
-Continue autonomously through the device list.
+1. Read validator output.
+2. Read the subagent batch report.
+3. Apply the batch review checklist (section 6).
+4. Only **then** decide next action (continue, scale, or enter update cycle).
 
-After each batch:
-- read validator results
-- read the subagent report
-- use the report’s sampled `name`, `description`, `tags`, and 3 action summaries as the primary QA signal
-- decide whether a workflow update is needed
+### Autonomous continuation flow
 
-If a workflow update is needed:
-- append next-cycle TODOs first
-- commit locally before entering the update cycle
-- start the commit message with the workflow version, for example `v4: tighten Pass B tag rationale wording`
-- prefer prompt updates in Pass A, Pass B, and the subagent prompt over script-based semantic patches
-- run trigger-device validation per the README policy
-- adopt the update only if it is visibly better
-- continue from the current cursor after adoption without asking the user again
+Normal continuation:
+`wait for completion → read validator → read report → if no workflow update needed → dispatch next batch`
 
-## API patience
+Workflow-update continuation:
+`wait for completion → read validator → read report → if workflow update needed → enter update cycle → validate change → adopt only if visibly better → dispatch fresh agents`
 
-Be patient with API return time.
+## 5. Normal production loop
+
+Follow these steps in order. See `workflow_v4.md` for exact CLI commands.
+
+1. **Prune state**: run `prune_todo_queue.py` (keep last 15 entries)
+2. **Prepare batch**: run `prepare_batch_v4.py` for next 10 devices from `next_device` cursor
+3. **Build prompt**: run `build_agent_prompt.py` from `agent_prompt_template_v4.md`
+4. **Update state**: set `mode=batch_running`, record `current_batch_id` and `active_agents`
+5. **Append next-cycle TODOs** (self-renewing tail — section 9)
+6. **Dispatch subagent(s)**: number determined by `target_parallelism`
+7. **WAIT** for all subagents to complete (follow wait contract — section 4)
+8. **Review** each completed batch (section 6)
+9. **Update state**: advance `next_device` cursor, update `success_streak` / `target_parallelism`, set `mode=normal_batch_ready`
+10. **Loop** to step 1
+
+Batch creation rules:
+- Create each batch under `_info_enrichment_workflow/batches/<batch_id>/`
+- Use `v4_batch_###` naming (e.g., `v4_batch_012`, `v4_batch_013`)
+- Build the subagent prompt by copying the shared template and appending assigned-batch details
+- Do not write subagent prompts from scratch when the template plus targeted replacement is sufficient
+
+## 6. Batch review and acceptance checklist
+
+A batch is accepted **ONLY if ALL** of the following are true:
+
+- [ ] Structural validator passes for all devices in the batch
+- [ ] Subagent report does not surface a blocking or workflow-changing issue
+- [ ] Sampled `name`, `description`, `tags` (at least 2 devices) look acceptable for the current quality bar
+- [ ] 3 sampled action summaries look acceptable
+- [ ] Your own review of the report does not identify a workflow change that should be made before continuing
+
+**If accepted:**
+- Increment `success_streak`
+- Check auto-scaling rules (section 7)
+- Continue to next batch
+
+**If rejected:**
+- Reset `success_streak` to 0
+- Reset `target_parallelism` to 1
+- Enter workflow-update cycle (section 8)
+
+Passing validation alone is not enough. The report review and sampled-output review are equally important.
+
+## 7. Auto-scaling policy
+
+**Rule:** every 2 consecutive accepted batches, double `target_parallelism`.
+
+**Cap:** `target_parallelism` ≤ 8.
+
+**Batch size** stays fixed at 10. Do not scale batch size.
+
+| `success_streak` | `target_parallelism` |
+|-------------------|----------------------|
+| 0–1               | 1                    |
+| 2–3               | 2                    |
+| 4–5               | 4                    |
+| 6+                | 8                    |
+
+**On any workflow update or batch failure:**
+- Reset `success_streak` to 0
+- Reset `target_parallelism` to 1
+
+**When scaling up** (target_parallelism increases):
+- Prepare and dispatch additional batches to fill the new parallelism target
+- Each additional batch takes the next 10 devices in sorted order after existing queued batches
+
+**When scaling down** (after failure/update cycle):
+- Let in-flight batches complete normally
+- Do not dispatch new batches until the streak rebuilds
+
+## 8. Workflow-update cycle
+
+### Trigger criteria
+
+Enter the workflow-update cycle if **any one** of the following is true:
+- Subagent report surfaces a blocking or recurring quality issue
+- Sampled outputs show a systematic pattern that would degrade the corpus
+- A script bug is discovered (e.g., underscore-device skip, timeout too short)
+- The same type of issue appears in 2+ consecutive batches
+
+### Procedure
+
+1. Append next-cycle TODOs before entering update mode
+2. Set `mode=workflow_update_pending` in state
+3. Commit locally before making changes (message prefix: `v4: ...`)
+4. Pick 2 trigger devices (prefer devices that exhibited the issue)
+5. Make the prompt or script change
+6. Run a trigger-device validation batch
+7. Compare old vs new output
+8. Adopt the update **ONLY** if the new result is visibly better
+9. Continue from current `next_device` cursor — do not restart the corpus
+10. Reset `success_streak` to 0 and `target_parallelism` to 1
+
+### Scope constraints
+
+- Updates must **NOT** change `info.txt` output structure (prompt/script tuning only)
+- Prefer prompt changes (Pass A prompt, Pass B prompt, agent template) over script-based semantic patches
+- Bump the workflow version number only if the output schema changes; otherwise keep `v4`
+- The only full-rerun exception is the initial promotion from `v3` to `v4`
+
+## 9. TODO queue discipline
+
+Single authoritative statement of the rule:
+
+- **Before waiting on subagents:** append next-cycle TODOs to `todo_queue`
+- **Before dispatching the next batch:** append next-cycle TODOs
+- **Before entering workflow-update mode:** append next-cycle TODOs
+- **Never begin working on the current last TODO** unless at least one future-cycle TODO has already been appended after it
+- Keep the **Codex todo manager** synchronized with the active tail of the JSON `todo_queue`
+- When the current last task in the Codex todo manager is a dispatch/wait/review step, append at least one newer future-cycle Codex task before starting that last task
+
+### Pruning
+
+- Run `prune_todo_queue.py` at the start of each production loop iteration (step 1 of section 5)
+- The script keeps the last 15 entries and drops older history
+- Historical context is preserved in git commit history, not in the live state file
+
+## 10. State file maintenance
+
+Update `production_state_v4.json` at these checkpoints:
+
+| Checkpoint               | Fields to update                                                            |
+|--------------------------|-----------------------------------------------------------------------------|
+| After model confirmation | `main_orchestrator_model`, `subagent_model`, `api_model`                    |
+| Before dispatch          | `mode`, `current_batch_id`, `active_batches`, `active_agents`, `todo_queue` |
+| After batch review       | `success_streak`, `target_parallelism`, `last_completed_batch`, `last_reviewed_batch`, `next_device` |
+| After scaling change     | `target_parallelism`, `active_parallelism`                                  |
+| After workflow update    | `pending_workflow_candidate` (clear on adoption), `success_streak`, `target_parallelism` |
+
+## 11. API patience
+
 Do not interrupt slow Pass A or Pass B runs unless there is a concrete failure.
-Handle failures only when there is a real error condition.
+
+Concrete failures: HTTP/API errors, explicit timeouts, schema failures, missing required output artifacts.
+
+Silence is normal, not a failure signal.

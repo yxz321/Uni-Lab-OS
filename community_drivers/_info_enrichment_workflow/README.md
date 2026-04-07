@@ -153,8 +153,7 @@ A batch counts as successful only if all of the following are true:
 - the subagent report does not surface a blocking or workflow-changing issue
 - sampled `name`, `description`, `tags`, and 3 sampled action summaries in the
   report look acceptable for the current quality bar
-- my own review of the report does not identify a workflow change that should
-  be made before continuing
+- your own review of the report does not identify a workflow change that should be made before continuing
 
 Passing validation alone is not enough.
 
