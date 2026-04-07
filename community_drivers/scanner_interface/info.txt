@@ -1,45 +1,75 @@
-Device: scanner_interface
-Registry Key: scanner_interface
-Short Description: Scanner Interface是一款实验执行&合成设备，主要功能包括停止、运动控制。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (2):
-- auto-fileno -> fileno [UniLabJsonCommand] goal_params: none
-- auto-send_command -> send_command [UniLabJsonCommand] goal_params: command, reply
-
-Driver Functions (30):
-- ScannerInterface.__init__(self, port) (line 75)
-- ScannerInterface._find_port(self) (line 82)
-- ScannerInterface.fileno(self) (line 86)
-- ScannerInterface._readline(self, terminator, prompt) (line 90)
-- ScannerInterface._flush(self) (line 111)
-- ScannerInterface.send_command(self, command, reply) (line 121)
-- Scanner.__init__(self, port) (line 137)
-- Scanner.move_absolute(self, new_position) (line 148)
-- Scanner.end(self) (line 152)
-- Scanner.position(self) (line 157)
-- Scanner.moving(self) (line 164)
-- Scanner.velocity(self) (line 170)
-- Scanner.velocity(self, new_velocity) (line 175)
-- Scanner.velocity_max(self) (line 180)
-- Scanner.velocity_min(self) (line 184)
-- Scanner.range_min(self) (line 188)
-- Scanner.range_max(self) (line 192)
-- Scanner.range_from(self) (line 196)
-- Scanner.range_from(self, new_value) (line 200)
-- Scanner.range_to(self) (line 204)
-- Scanner.range_to(self, new_value) (line 208)
-- ScannerRedisDaemon.__init__(self, redis_conn, port) (line 213)
-- ScannerRedisDaemon._redis_scanner_state(self) (line 221)
-- ScannerRedisDaemon.__del__(self) (line 229)
-- ScannerRedisDaemon.stop(self, dummy) (line 232)
-- ScannerRedisDaemon.notification_interval(self) (line 237)
-- ScannerRedisDaemon.notification_interval(self, new_value) (line 241)
-- add_arguments(parser) (line 245)
-- launch(redis_client, args) (line 248)
-- main() (line 251)
+scanner_interface:
+  name: 扫描器通信接口
+  name_en: Scanner Communication Interface
+  manufacturer: ''
+  category:
+  - 通用字节流仪器通信接口
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验仪器通信与驱动集成
+  - 实验仪器数据采集与联机控制
+  - 通用字节流仪器通信接口
+  description: 用于实验系统中的非物理扫描器通信组件，提供向扫描器发送命令以及暴露文件描述符的能力，便于将设备通信接入事件循环、轮询或底层 I/O 监控流程。
+  description_en: A non-physical scanner communication component used in laboratory
+    systems. It provides methods to send commands to a scanner and expose a file descriptor,
+    enabling integration with event loops, polling, or low-level I/O monitoring.
+  class:
+    action_value_mappings:
+      auto-fileno:
+        schema:
+          description: 获取该扫描器通信接口对应的文件描述符。
+          description_en: Get the file descriptor associated with this scanner communication
+            interface.
+      auto-send_command:
+        schema:
+          description: 向扫描器发送命令，并可选择等待返回响应。
+          description_en: Send a command to the scanner and optionally wait for a
+            reply.
+auto_annotation_metadata:
+  registry_key: scanner_interface
+  annotation_workflow_version: v4
+  tag_hints:
+  - scanner communication
+  - command interface
+  - file descriptor I/O
+  - event loop integration
+  - instrument messaging
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件在扫描执行时负责发送命令并接入底层I/O控制流程。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它将扫描器通信接入实验系统事件循环和自动化框架，属于仪器集成范畴。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 组件提供命令发送与底层通信封装，是典型的仪器通信/驱动集成场景。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 暴露文件描述符以支持轮询和联机I/O监控，适合在线控制场景。
+  - id: P-21001
+    name: 通用字节流仪器通信接口
+    name_en: Generic Byte-Stream Instrument Communication Interface
+    type: device_template_tag
+    rationale: 其核心能力是基于文件描述符进行命令发送与底层字节流通信。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

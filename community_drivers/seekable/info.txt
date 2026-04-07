@@ -1,69 +1,109 @@
-Device: seekable
-Registry Key: seekable
-Short Description: Seekable是一款实验执行&合成设备，主要功能包括关闭、写入数据、启动、记录、读取数据、运行。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (10):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-has_content -> has_content [UniLabJsonCommand] goal_params: none
-- auto-lines -> lines [UniLabJsonCommand] goal_params: none
-- auto-read_from -> read_from [UniLabJsonCommand] goal_params: line_number
-- auto-readline -> readline [UniLabJsonCommand] goal_params: none
-- auto-seek_end_of_file -> seek_end_of_file [UniLabJsonCommand] goal_params: none
-- auto-seek_line_start -> seek_line_start [UniLabJsonCommand] goal_params: line_number
-- auto-truncate_until_end -> truncate_until_end [UniLabJsonCommand] goal_params: line_number
-- auto-update_line -> update_line [UniLabJsonCommand] goal_params: contents, line_number
-- auto-writeline -> writeline [UniLabJsonCommand] goal_params: contents
-
-Driver Functions (46):
-- Seekable.__init__(self, file, read_only, line_lengths) (line 91)
-- Seekable._read_contents(self) (line 110)
-- Seekable.__enter__(self) (line 125)
-- Seekable.writeline(self, contents) (line 129)
-- Seekable._line_start_offset(self, line_number) (line 147)
-- Seekable._line_end_offset(self, line_number) (line 151)
-- Seekable._offset_until(self, line_index) (line 155)
-- Seekable.readline(self) (line 161)
-- Seekable.seek_line_start(self, line_number) (line 169)
-- Seekable.seek_end_of_file(self) (line 173)
-- Seekable.truncate_until_end(self, line_number) (line 177)
-- Seekable.read_from(self, line_number) (line 186)
-- Seekable.update_line(self, line_number, contents) (line 199)
-- Seekable.lines(self) (line 209)
-- Seekable.has_content(self) (line 213)
-- Seekable.close(self) (line 217)
-- Seekable.__exit__(self, type, value, traceback) (line 221)
-- Catalog.__init__(self, path, read_only, start_index) (line 234)
-- Catalog._exit_handler(self) (line 243)
-- Catalog.write_record(self, record) (line 246)
-- Catalog.close(self) (line 253)
-- CatalogMetadata.__init__(self, catalog_path, read_only, start_index) (line 262)
-- CatalogMetadata.update_line_lengths(self, new_lengths) (line 286)
-- CatalogMetadata.line_lengths(self) (line 290)
-- CatalogMetadata.start_index(self) (line 293)
-- CatalogMetadata._update(self) (line 296)
-- CatalogMetadata.close(self) (line 301)
-- Manifest.__init__(self, base_path, inputs, types, metadata, max_len, read_only) (line 316)
-- Manifest.write_record(self, record) (line 375)
-- Manifest.delete_records(self, record_indexes) (line 391)
-- Manifest.restore_records(self, record_indexes) (line 401)
-- Manifest._add_catalog(self) (line 411)
-- Manifest._read_metadata(self, metadata) (line 425)
-- Manifest._read_contents(self) (line 435)
-- Manifest._write_contents(self) (line 459)
-- Manifest._update_catalog_metadata(self, update) (line 467)
-- Manifest._update_session_info(self) (line 479)
-- Manifest.create_new_session_id(self) (line 490)
-- Manifest.add_deleted_indexes(self, indexes) (line 497)
-- Manifest.close(self) (line 503)
-- Manifest.write_metadata(self) (line 517)
-- Manifest.__iter__(self) (line 521)
-- Manifest.__len__(self) (line 524)
-- ManifestIterator.__init__(self, manifest) (line 535)
-- ManifestIterator.__next__(self) (line 542)
-- ManifestIterator.__len__(self) (line 580)
+seekable:
+  name: 可寻址行记录存储组件
+  name_en: Seekable Line-Record Storage Component
+  manufacturer: ''
+  category:
+  - 实验数据文件读写器
+  - 按行索引实验记录存储器
+  tags:
+  - 实验执行&合成设备
+  - 实验数据管理与记录
+  - 追加式实验记录与索引访问
+  - 实验数据文件读写器
+  - 按行索引实验记录存储器
+  description: 一种非物理的软件文件存储组件，用于读写以换行分隔的记录，并维护行索引以实现按行快速定位。适合在实验过程中保存日志、样本记录、目录清单和相关元数据。
+  description_en: A non-physical software file storage component for reading and writing
+    newline-delimited records while maintaining a line index for fast random access
+    by line. It is useful in experiments for storing logs, sample records, catalogs,
+    manifests, and related metadata.
+  class:
+    action_value_mappings:
+      auto-writeline:
+        schema:
+          description: 写入一条以换行分隔的记录。
+          description_en: Write one newline-delimited record.
+      auto-readline:
+        schema:
+          description: 读取当前位置的一行记录。
+          description_en: Read one record from the current position.
+      auto-seek_line_start:
+        schema:
+          description: 将读写位置移动到指定行的起始处。
+          description_en: Move the read/write position to the start of the specified
+            line.
+      auto-seek_end_of_file:
+        schema:
+          description: 将读写位置移动到文件末尾。
+          description_en: Move the read/write position to the end of the file.
+      auto-truncate_until_end:
+        schema:
+          description: 从指定行开始截断到文件末尾。
+          description_en: Truncate the file from the specified line to the end.
+      auto-read_from:
+        schema:
+          description: 从指定行开始读取后续记录。
+          description_en: Read records starting from the specified line.
+      auto-update_line:
+        schema:
+          description: 更新指定行的记录内容。
+          description_en: Update the contents of the specified line.
+      auto-lines:
+        schema:
+          description: 获取已索引的行数。
+          description_en: Get the number of indexed lines.
+      auto-has_content:
+        schema:
+          description: 检查文件是否包含内容。
+          description_en: Check whether the file contains any content.
+      auto-close:
+        schema:
+          description: 关闭底层文件资源。
+          description_en: Close the underlying file resource.
+auto_annotation_metadata:
+  registry_key: seekable
+  annotation_workflow_version: v4
+  tag_hints:
+  - newline-delimited records
+  - seekable file IO
+  - random access by line
+  - catalog and manifest storage
+  - experiment data logging
+  - memory-mapped file support
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件在实验运行过程中持续读写记录、日志和清单，服务于实验执行过程。
+  - id: P-9103
+    name: 实验数据管理与记录
+    name_en: Experimental Data Management & Logging
+    type: experimental_domain
+    rationale: 组件专门用于实验日志、样本记录、目录清单和元数据存储。
+  - id: P-9104
+    name: 追加式实验记录与索引访问
+    name_en: Append-Only Experimental Logging & Indexed Access
+    type: experimental_scene
+    rationale: 其核心能力是按行追加记录并通过行索引快速定位访问。
+  - id: P-30001
+    name: 实验数据文件读写器
+    name_en: Experimental Data File Reader/Writer
+    type: device_template_tag
+    rationale: 组件提供实验记录文件的读写、定位和截断操作，具备文件读写器特征。
+  proposed_new_tags:
+  - id: P-990906
+    name: 按行索引实验记录存储器
+    name_en: Line-Indexed Experimental Record Store
+    type: device_template_tag
+    rationale: 该组件比普通文件读写器更强调按行索引和随机访问，适合作为独立存储模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

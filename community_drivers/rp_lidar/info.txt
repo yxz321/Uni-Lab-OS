@@ -1,57 +1,100 @@
-Device: rp_lidar
-Registry Key: rp_lidar
-Short Description: RP Lidar是由SLAMTEC生产的实验执行&合成设备，主要功能包括初始化、扫描、绘图、读取数据、运行。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (3):
-- auto-run_threaded -> run_threaded [UniLabJsonCommand] goal_params: none
-- auto-shutdown -> shutdown [UniLabJsonCommand] goal_params: none
-- auto-update -> update [UniLabJsonCommand] goal_params: none
-
-Driver Functions (41):
-- limit_angle(angle) (line 93)
-- angle_in_bounds(angle, min_angle, max_angle) (line 104)
-- RPLidar2.__init__(self, min_angle, max_angle, min_distance, max_distance, forward_angle, angle_direction, batch_ms, debug) (line 125)
-- RPLidar2.poll(self) (line 206)
-- RPLidar2.update(self) (line 292)
-- RPLidar2.run_threaded(self) (line 307)
-- RPLidar2.run(self) (line 313)
-- RPLidar2.shutdown(self) (line 329)
-- RPLidar.__init__(self, lower_limit, upper_limit, debug) (line 344)
-- RPLidar.update(self) (line 377)
-- RPLidar.run_threaded(self) (line 388)
-- RPLidar.shutdown(self) (line 403)
-- YDLidar.__init__(self, port) (line 416)
-- YDLidar.init(self, port) (line 431)
-- YDLidar.update(self, lidar, debug) (line 447)
-- YDLidar.run_threaded(self) (line 460)
-- YDLidar.shutdown(self) (line 463)
-- LidarPlot.__init__(self, resolution, max_dist, radius_plot, plot_type) (line 476)
-- LidarPlot.plot_line(self, img, dist, theta, max_dist, draw) (line 489)
-- LidarPlot.plot_circ(self, img, dist, theta, max_dist, draw) (line 509)
-- LidarPlot.plot_scan(self, img, distances, angles, max_dist, draw) (line 531)
-- LidarPlot.run(self, distances, angles) (line 535)
-- LidarPlot.shutdown(self) (line 545)
-- mark_line(draw_context, cx, cy, distance_px, theta_degrees, mark_color, mark_px) (line 549)
-- mark_circle(draw_context, cx, cy, distance_px, theta_degrees, mark_color, mark_px) (line 560)
-- plot_polar_point(draw_context, bounds, mark_fn, mark_color, mark_px, distance, theta, max_distance, angle_direction, rotate_plot) (line 571)
-- plot_polar_points(draw_context, bounds, mark_fn, mark_color, mark_px, measurements, max_distance, angle_direction, rotate_plot) (line 611)
-- plot_polar_bounds(draw_context, bounds, color, angle_direction, rotate_plot) (line 641)
-- plot_polar_angle(draw_context, bounds, color, theta, angle_direction, rotate_plot) (line 681)
-- LidarPlot2.__init__(self, resolution, plot_type, mark_px, max_dist, angle_direction, rotate_plot, background_color, border_color, point_color) (line 737)
-- LidarPlot2.run(self, measurements) (line 763)
-- LidarPlot2.shutdown(self) (line 790)
-- BreezySLAM.__init__(self, MAP_SIZE_PIXELS, MAP_SIZE_METERS) (line 798)
-- BreezySLAM.run(self, distances, angles, map_bytes) (line 809)
-- BreezySLAM.shutdown(self) (line 819)
-- BreezyMap.__init__(self, MAP_SIZE_PIXELS) (line 827)
-- BreezyMap.run(self) (line 830)
-- BreezyMap.shutdown(self) (line 833)
-- MapToImage.__init__(self, resolution) (line 839)
-- MapToImage.run(self, map_bytes) (line 842)
-- MapToImage.shutdown(self) (line 846)
+rp_lidar:
+  name: RPLIDAR激光雷达
+  name_en: RPLIDAR LiDAR
+  manufacturer: Slamtec
+  category:
+  - 二维激光雷达
+  tags:
+  - 物流/机械
+  - 机器人与移动平台
+  - 传感测量与环境感知
+  - 移动机器人与自动驾驶实验
+  - 距离测量与接近感知
+  - 二维激光雷达
+  description: 用于机器人环境感知的二维激光雷达。该设备通过连续扫描获取距离与角度测量数据，可用于避障、定位、建图和周围环境轮廓检测。
+  description_en: A 2D LiDAR sensor for robot environment perception. It continuously
+    scans to acquire distance and angle measurements, enabling obstacle avoidance,
+    localization, mapping, and surrounding scene detection.
+  class:
+    action_value_mappings:
+      auto-update:
+        schema:
+          description: 更新并读取最新的激光雷达扫描测量数据。
+          description_en: Update and read the latest LiDAR scan measurements.
+      auto-run_threaded:
+        schema:
+          description: 在线程模式下返回当前缓存的激光雷达扫描数据。
+          description_en: Return the currently cached LiDAR scan data in threaded
+            mode.
+      auto-shutdown:
+        schema:
+          description: 停止激光雷达采集并关闭设备连接。
+          description_en: Stop LiDAR acquisition and close the device connection.
+auto_annotation_metadata:
+  registry_key: rp_lidar
+  annotation_workflow_version: v4
+  tag_hints:
+  - 2D LiDAR
+  - laser ranging
+  - robot navigation
+  - obstacle detection
+  - SLAM
+  - distance-angle scan
+  existing_tags:
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 该设备用于机器人避障、定位和建图，属于移动机械平台感知部件。
+  - id: P-0020
+    name: 机器人与移动平台
+    name_en: Robotics & Mobile Platforms
+    type: experimental_domain
+    rationale: 设备描述明确用于机器人环境感知。
+  - id: P-1108
+    name: 传感测量与环境感知
+    name_en: Sensing Measurement & Environmental Perception
+    type: experimental_domain
+    rationale: 该雷达连续输出距离与角度数据，本质上是环境感知传感器。
+  - id: P-0021
+    name: 移动机器人与自动驾驶实验
+    name_en: Mobile Robotics & Autonomous Vehicle Experiments
+    type: experimental_scene
+    rationale: 避障、定位和建图是移动机器人实验的典型使用场景。
+  - id: P-1109
+    name: 距离测量与接近感知
+    name_en: Distance Measurement & Proximity Sensing
+    type: experimental_scene
+    rationale: 设备通过激光扫描获取周围目标距离，直接支撑接近感知与测距。
+  - id: P-910001
+    name: 二维激光雷达
+    name_en: 2D LiDAR
+    type: device_template_tag
+    rationale: RPLIDAR即二维旋转扫描激光雷达，与该模板完全匹配。
+  proposed_new_tags: []
+  websearch_evidence:
+    device: rp_lidar
+    updated_at: '2026-04-08'
+    reason: Pass A profile coherent but manufacturer empty for a clearly branded RPLIDAR
+      device.
+    findings:
+    - field: manufacturer
+      value: Slamtec
+      confidence: high
+      basis: Official Slamtec RPLIDAR product pages and Slamtec-maintained SDK references
+        identify RPLIDAR as Slamtec product line.
+    sources:
+    - title: RPLIDAR-A1 Cost-Effective 360° Lidar Sensor | SLAMTEC
+      url: https://www.slamtec.com/en/Lidar/A1/
+    - title: SLAMTEC - Robot Localization & Navigation Solutions
+      url: https://www.slamtec.com/en
+    - title: Slamtec/rplidar_sdk
+      url: https://github.com/Slamtec/rplidar_sdk
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

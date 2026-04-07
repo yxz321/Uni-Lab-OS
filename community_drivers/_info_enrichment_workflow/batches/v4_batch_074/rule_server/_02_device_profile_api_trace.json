@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: rule_server\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: PYME/cluster/ruleserver.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.rule_server.rule_server:RuleServer\n\nClass: Rule \n  Bases: ['object']\n\nClass: IntegerIDRule \n  Bases: ['Rule']\n  Docstring: A rule which generates tasks based on a template.\n\nParameters\n----------\nruleID : str\n    A unique ID for this rule\ntask_template : str\n    A json template for generating tasks (see templates section below)\ninputs_by_task : list of dict\n    A list of dictionaries mapping recipe variable names to URIs to treat as inputs (recipes only)\nmax_task_ID : int\n    The maximum number of tasks that can be generated by this rule. If the final number of tasks is not known at\n    creation, set this to a value which is garuanteed to be higher and then call `mark_release_complete()` after all tasks\n    have been released / made available.\ntask_timeout: float\n    A timeout in seconds for each task. If a task takes longer than task_timeout seconds it is assumed that\n    the node executing it has fallen over and we retry on a different node (up to a maximum number of times\n    set by the 'ruleserver-retries` config option).\nrule_timeout : float\n    A timeout in seconds from the last task we processed after which we assume that no more tasks are coming and\n    we can delete the rule (to keep memory down in a long-term usage scenario).\n\n    \nNotes\n-----\n\n*Templates*\n\nTemplates are a string which can be substituted to generate tasks. There are currently two supported formats for\ntemplates, those for localization tasks, and those for recipes. Each take the form of a json dictionary:\n\n**Localization**\n\n.. code-block:: json\n    \n    {\n     \"id\" : \"{{ruleID}}~{{taskID}}\",\n     \"type\" : \"localization\",\n     \"taskdef\" : {\"frameIndex\" : {{taskID}}, \"metadata\" : \"PYME-CLUSTER://path/to/series/metadata.json\"},\n     \"inputs\" : {\"frames\" : \"PYME-CLUSTER://path/to/series.pcs\"},\n     \"outputs\" : {\"fitResults\" : \"PYME-CLUSTER://__aggregate_h5r/path/to/analysis.h5r/FitResults\",\n                  \"driftResults\" : \"PYME-CLUSTER://__aggregate_h5r/path/to/analysis.h5r/DriftResults\"}\n    }\n\n\n**Recipes**\nThe recipe can either be specified inline:\n\n.. code-block:: json\n    \n    {\n     \"id\" : \"{{ruleID}}~{{taskID}}\",\n     \"type\" : \"recipe\",\n     \"taskdef\" : {\"recipe\" : \"<recipe as a YAML string>\"},\n     \"inputs\" : {{taskInputs}},\n     \"output_dir\" : \"PYME-CLUSTER://path/to/output/dir\",\n    }\n\n    \nor using a cluster URI:\n\n.. code-block:: json\n    \n    {\n     \"id\" : \"{{ruleID}}~{{taskID}}\",\n     \"type\" : \"recipe\",\n     \"taskdefRef\" : \"PYME-CLUSTER://path/to/recipe.yaml\",\n     \"inputs\" : {{taskInputs}},\n     \"output_dir\" : \"PYME-CLUSTER://path/to/output/dir\",\n    }\n \n    \nThe rule will substitute ``{{taskInputs}}`` with a dictionary mapping integer task IDs to recipe input files, e.g.\n\n.. code-block:: json\n\n    {0 : {\"recipe_input_0\" : \"input_0_URI_0\",\"recipe_input_1\" : \"input_1_URI_0\"},\n     1 : {\"recipe_input_0\" : \"input_0_URI_1\",\"recipe_input_1\" : \"input_1_URI_1\"},\n     2 : {\"recipe_input_0\" : \"input_0_URI_2\",\"recipe_input_1\" : \"input_1_URI_2\"},\n     }\n   \n     \nAlternatively the inputs dictionary can be supplied directly (without relying on the taskInputs substitution).\n\n*Rule Chaining*\n\nRules may also define a chained rule, to be run on completion of the original rule. This is accomplished by\nsupplying an \"on_completion\" dictionary. This is a dictionary, ``{'template' : <template>, 'max_tasks' : max_tasks,\n'rule_timeout' : timeout, 'on_completion' : {...}}``, with the template following the format above and everything\nbut the template being optional (max_tasks defaults to 1). Follow on / chained rules are slightly more restricted\nthan standard rules in that recipe \"inputs\" must be hardcoded (no ``{{taskInputs}}`` substitution).\n\nChained rules are created once the original rule is finished (see \n`IntegerIDRule.finished`). All tasks for the chained rule will be released \nimmediately.\n    \n\nClass: RuleServer (focal)\n  Bases: ['object']\n\nClass: WFRuleServer \n  Bases: ['webframework.APIHTTPServer', 'RuleServer']\n  Docstring: Combines the RuleServer with it's web framework.\n\nLargely an artifact of initial experiments using cherrypy (allowed quickly switching between cherrypy\nand our internal webframework).\n\nClass: ServerThread \n  Bases: ['threading.Thread']\n\nFocal class methods:\n  [command] stop(self)\n  [command] task_advertisements(self)\n    comment: HTTP endpoint (GET) for retrieving task advertisements.\n        \n        Note - by default, a limited number of advertisements are posted at any given time (to limit bandwidth). This\n        should be...\n  [command] bid_on_tasks(self, body='')\n    comment: task_ids = bid['taskIDs']\n    comment: costs = bid['taskCosts']\n    comment: print(succesfull_bids)\n    comment: HTTP endpoint (POST) for bidding on tasks.\n        \n        Parameters\n        ----------\n        body : json list of bids\n            A list of bids, each of which is a dictionary of the form\n       ...\n  [command] add_integer_id_rule(self, max_tasks=1000000.0, release_start=None, release_end=None, ruleID=None, timeout=3600, body='')\n    comment: lock ~entire call so we don't hit KeyErrors if clients immediately\n    comment: try to abort/mark datasource complete, etc. after posting\n    comment: print rule._inputs_by_task\n    comment: HTTP endpoint (POST) for adding a new rule.\n        \n        Add a rule that generates tasks based on an integer ID, such as a frame number (localization) or an index into\n        a list of inputs (re...\n  [command] release_rule_tasks(self, ruleID, release_start, release_end, body='')\n    comment: take out the lock in case the rule is still being added in another\n    comment: request and we are already trying to release tasks\n    comment: HTTP Endpoint (POST or GET ) for releasing tasks associated with a rule.\n        \n        When performing spooling data analysis we typically have one rule per series and one task per frame.\n        T...\n  [command] inactivate_rule(self, ruleID)\n    comment: take out the lock in case the rule is still being added in another\n    comment: request and we are already trying to abort\n  [command] handin(self, body)\n    comment: logger.debug('Handing in tasks...')\n    comment: rulenodeserver currently ignores what we say here other than 'ok'\n    comment: HTTP Endpoint (POST) to mark tasks as having been completed\n        \n        Parameters\n        ----------\n        body : json list\n            A list of entries of the form ``{\"ruleID\": str, \"taskIDs...\n  [command] mark_release_complete(self, ruleID, n_tasks=None)\n    comment: take out the rule lock in case we are still creating the rule and the\n    comment: client POSTs this (e.g. if a series is started/stopped quickly)\n    comment: HTTP Endpoint (POST) to signal that no more tasks will be released for a rule and the rule can be regarded as finished once the previously released\n        tasks are complete. \n        \n        Parame...\n  [status_getter] get_queues(self)\n    comment: HTTP Endpoint (GET) - visible at \"distributor/queues\" - for querying ruleserver status.\n        \n        Returns\n        -------\n        \n        status: json str\n            A dictionary of the form ...\n  [status_getter] get_queue_info(self)\n    comment: a throttled version of queue info\n        \n        Returns\n        -------\n  [command] status(self)\n\nRegistry actions:\n  auto-stop (from stop())\n  auto-task_advertisements (from task_advertisements())\n  auto-bid_on_tasks (from bid_on_tasks())\n  auto-add_integer_id_rule (from add_integer_id_rule())\n  auto-release_rule_tasks (from release_rule_tasks())\n  auto-inactivate_rule (from inactivate_rule())\n  auto-handin (from handin())\n  auto-mark_release_complete (from mark_release_complete())\n  auto-status (from status())\n\nRequired output action ids:\n  auto-stop\n  auto-task_advertisements\n  auto-bid_on_tasks\n  auto-add_integer_id_rule\n  auto-release_rule_tasks\n  auto-inactivate_rule\n  auto-handin\n  auto-mark_release_complete\n  auto-status"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0de2fd3e712790f90069d5599f10448195bcc5f0d0407ae5d9",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 9356,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5025,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0de2fd3e712790f90069d5599f892081959541600e19816459",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0de2fd3e712790f90069d559a6ee4481959765c6d43046f1f5",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"规则任务调度服务器\",\n  \"name_en\": \"Rule-Based Task Scheduling Server\",\n  \"manufacturer\": \"\",\n  \"description\": \"非物理软件组件，用于在 PYME 集群分析流程中按规则生成和发布任务，接收计算节点竞价，释放或停用任务规则，并汇总任务完成状态。适用于显微成像等实验数据的分布式处理与工作流调度。\",\n  \"description_en\": \"A non-physical software component that generates and advertises tasks according to rules in a PYME cluster workflow, accepts bids from compute nodes, releases or inactivates task rules, and collects task completion results. It is used for distributed processing and workflow scheduling of experimental data such as microscopy analysis.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止规则任务服务器。\",\n      \"description_en\": \"Stop the rule task server.\"\n    },\n    {\n      \"action_name\": \"auto-task_advertisements\",\n      \"description\": \"获取当前可供工作节点竞价的任务广告列表。\",\n      \"description_en\": \"Retrieve the current list of task advertisements available for worker-node bidding.\"\n    },\n    {\n      \"action_name\": \"auto-bid_on_tasks\",\n      \"description\": \"提交计算节点对任务的竞价信息，以申请执行任务。\",\n      \"description_en\": \"Submit a compute node's bids on tasks to request task execution.\"\n    },\n    {\n      \"action_name\": \"auto-add_integer_id_rule\",\n      \"description\": \"添加基于整数 ID 生成任务的规则，用于批量创建分析或配方任务。\",\n      \"description_en\": \"Add a rule that generates tasks from integer IDs for bulk creation of analysis or recipe tasks.\"\n    },\n    {\n      \"action_name\": \"auto-release_rule_tasks\",\n      \"description\": \"释放指定规则下某一范围的任务，使其可被集群节点领取执行。\",\n      \"description_en\": \"Release a specified range of tasks under a rule so that cluster nodes can claim and execute them.\"\n    },\n    {\n      \"action_name\": \"auto-inactivate_rule\",\n      \"description\": \"将指定规则置为失效或停止，阻止其继续分发任务。\",\n      \"description_en\": \"Inactivate or stop a specified rule to prevent further task distribution.\"\n    },\n    {\n      \"action_name\": \"auto-handin\",\n      \"description\": \"提交任务完成回执，将任务标记为已完成。\",\n      \"description_en\": \"Submit task completion reports to mark tasks as finished.\"\n    },\n    {\n      \"action_name\": \"auto-mark_release_complete\",\n      \"description\": \"标记某条规则的任务释放过程已完成，表示不会再新增任务。\",\n      \"description_en\": \"Mark task release for a rule as complete, indicating that no more tasks will be added.\"\n    },\n    {\n      \"action_name\": \"auto-status\",\n      \"description\": \"获取规则任务服务器的当前状态。\",\n      \"description_en\": \"Retrieve the current status of the rule task server.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"rule-based job scheduling\",\n    \"distributed analysis workflow\",\n    \"task advertisement and bidding\",\n    \"cluster task dispatch\",\n    \"HTTP API server\",\n    \"PYME workflow\",\n    \"microscopy data processing\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2642,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1226,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 3868
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2642,
+      "output_token_count": 1226,
+      "predict_time": 19.661554866
+    }
+  },
+  "output_text": "{\n  \"name\": \"规则任务调度服务器\",\n  \"name_en\": \"Rule-Based Task Scheduling Server\",\n  \"manufacturer\": \"\",\n  \"description\": \"非物理软件组件，用于在 PYME 集群分析流程中按规则生成和发布任务，接收计算节点竞价，释放或停用任务规则，并汇总任务完成状态。适用于显微成像等实验数据的分布式处理与工作流调度。\",\n  \"description_en\": \"A non-physical software component that generates and advertises tasks according to rules in a PYME cluster workflow, accepts bids from compute nodes, releases or inactivates task rules, and collects task completion results. It is used for distributed processing and workflow scheduling of experimental data such as microscopy analysis.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止规则任务服务器。\",\n      \"description_en\": \"Stop the rule task server.\"\n    },\n    {\n      \"action_name\": \"auto-task_advertisements\",\n      \"description\": \"获取当前可供工作节点竞价的任务广告列表。\",\n      \"description_en\": \"Retrieve the current list of task advertisements available for worker-node bidding.\"\n    },\n    {\n      \"action_name\": \"auto-bid_on_tasks\",\n      \"description\": \"提交计算节点对任务的竞价信息，以申请执行任务。\",\n      \"description_en\": \"Submit a compute node's bids on tasks to request task execution.\"\n    },\n    {\n      \"action_name\": \"auto-add_integer_id_rule\",\n      \"description\": \"添加基于整数 ID 生成任务的规则，用于批量创建分析或配方任务。\",\n      \"description_en\": \"Add a rule that generates tasks from integer IDs for bulk creation of analysis or recipe tasks.\"\n    },\n    {\n      \"action_name\": \"auto-release_rule_tasks\",\n      \"description\": \"释放指定规则下某一范围的任务，使其可被集群节点领取执行。\",\n      \"description_en\": \"Release a specified range of tasks under a rule so that cluster nodes can claim and execute them.\"\n    },\n    {\n      \"action_name\": \"auto-inactivate_rule\",\n      \"description\": \"将指定规则置为失效或停止，阻止其继续分发任务。\",\n      \"description_en\": \"Inactivate or stop a specified rule to prevent further task distribution.\"\n    },\n    {\n      \"action_name\": \"auto-handin\",\n      \"description\": \"提交任务完成回执，将任务标记为已完成。\",\n      \"description_en\": \"Submit task completion reports to mark tasks as finished.\"\n    },\n    {\n      \"action_name\": \"auto-mark_release_complete\",\n      \"description\": \"标记某条规则的任务释放过程已完成，表示不会再新增任务。\",\n      \"description_en\": \"Mark task release for a rule as complete, indicating that no more tasks will be added.\"\n    },\n    {\n      \"action_name\": \"auto-status\",\n      \"description\": \"获取规则任务服务器的当前状态。\",\n      \"description_en\": \"Retrieve the current status of the rule task server.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"rule-based job scheduling\",\n    \"distributed analysis workflow\",\n    \"task advertisement and bidding\",\n    \"cluster task dispatch\",\n    \"HTTP API server\",\n    \"PYME workflow\",\n    \"microscopy data processing\"\n  ]\n}"
+}

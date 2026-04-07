@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: serial_connection\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: PyLabware/connections.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.serial_connection:SerialConnection\n\nClass: AbstractConnection \n  Bases: ['ABC']\n  Docstring: Base abstract class for all connection adapters.\n    \n\nClass: SerialConnection (focal)\n  Bases: ['AbstractConnection']\n  Docstring: Serial connection adapter.\n    \n\nClass: TCPIPConnection \n  Bases: ['AbstractConnection']\n  Docstring: Socket-based TCP/IP connection adapter.\n    \n\nClass: HTTPConnection \n  Bases: ['AbstractConnection']\n  Docstring: HTTP REST connection adapter based on Requests library.\n    \n\nFocal class methods:\n  [command] open_connection(self)\n    comment: Create serial connection object\n    comment: port=None is required to prevent port from being immediately opened\n    comment: TODO add here & for TCPIP check is connection already open\n    comment: Load settings\n    comment: Open connection\n    comment: Start connection listener\n    comment: Creates, sets up and opens serial connection.\n  [command] connection_listener(self)\n    comment: Check connection close request\n    comment: If the flag is still set it means receive() hasn't yet read it out\n    comment: Read data from connection into buffer\n    comment: Lock connection\n    comment: Unlock connection & break to outer loop discarding current data\n    comment: Notify main thread that it can access _last_reply now\n    comment: Switch thread context to main\n    comment: Periodically checks for new data on the connection,\n        reads it, puts the data read into receive buffer and raises data ready flag.\n  [command] close_connection(self)\n    comment: Stop connection listener\n    comment: Closes serial connection.\n  [command] is_connection_open(self)\n    comment: Serial connection open status\n    comment: Check & warn if connection is open, but connection listener thread is not running\n    comment: Checks whether the serial port is opened.\n\n        Returns:\n            (bool): If the serial port is open.\n  [command] transmit(self, msg)\n    comment: Check if connection is alive\n    comment: Calculate if we have to wait after the previous command was sent\n    comment: Subtract 0.5 second for possible jitter/precision errors\n    comment: Sends message to the serial port.\n  [command] receive(self, retries=3)\n    comment: Timeout here ensures upper level code wouldn't lock forever if no reply is received\n    comment: It has to be long enough to give time for connection_listener() thread to do it's job\n    comment: No reply after timeout\n    comment: Unset ready flag\n    comment: Gets the data from receive buffer, clears the data ready flag\n        and passes the data back.\n\n        Returns:\n            (LabDeviceReply): Reply from the device packed into LabDeviceReply object.\n\nRegistry actions:\n  auto-open_connection (from open_connection())\n  auto-connection_listener (from connection_listener())\n  auto-close_connection (from close_connection())\n  auto-is_connection_open (from is_connection_open())\n  auto-transmit (from transmit())\n  auto-receive (from receive())\n\nRequired output action ids:\n  auto-open_connection\n  auto-connection_listener\n  auto-close_connection\n  auto-is_connection_open\n  auto-transmit\n  auto-receive"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_06d89d43b46bf9350069d55c008a88819398b6fc1377712cc4",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4372,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3467,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_06d89d43b46bf9350069d55c01171c8193be7ab0d7c3c3b4ac",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_06d89d43b46bf9350069d55c0872e48193b6278a698122ad54",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"串口连接适配器\",\n  \"name_en\": \"Serial Connection Adapter\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验设备通信的非物理软件组件，通过串口建立与仪器的命令/响应通信。它负责打开和关闭串口、后台监听数据、发送消息并接收设备回复，供上层实验控制模块与串口仪器交互。\",\n  \"description_en\": \"A non-physical software component used for laboratory device communication over a serial port. It opens and closes the serial connection, listens for incoming data in the background, transmits messages, and receives device replies for higher-level experiment control modules.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-open_connection\",\n      \"description\": \"打开并初始化串口连接。\",\n      \"description_en\": \"Open and initialize the serial connection.\"\n    },\n    {\n      \"action_name\": \"auto-connection_listener\",\n      \"description\": \"后台监听串口数据并将收到的回复放入缓冲区。\",\n      \"description_en\": \"Listen for serial data in the background and place received replies into the buffer.\"\n    },\n    {\n      \"action_name\": \"auto-close_connection\",\n      \"description\": \"关闭串口连接并停止监听线程。\",\n      \"description_en\": \"Close the serial connection and stop the listener thread.\"\n    },\n    {\n      \"action_name\": \"auto-is_connection_open\",\n      \"description\": \"检查串口连接是否处于打开状态。\",\n      \"description_en\": \"Check whether the serial connection is open.\"\n    },\n    {\n      \"action_name\": \"auto-transmit\",\n      \"description\": \"通过串口发送消息到设备。\",\n      \"description_en\": \"Transmit a message to the device over the serial connection.\"\n    },\n    {\n      \"action_name\": \"auto-receive\",\n      \"description\": \"从接收缓冲区读取设备回复。\",\n      \"description_en\": \"Receive a device reply from the receive buffer.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"serial communication\",\n    \"instrument I/O\",\n    \"COM port connection\",\n    \"command-response messaging\",\n    \"asynchronous listener thread\",\n    \"lab device connectivity\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1383,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 856,
+      "output_tokens_details": {
+        "reasoning_tokens": 380
+      },
+      "total_tokens": 2239
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1383,
+      "output_token_count": 856,
+      "predict_time": 15.664741228
+    }
+  },
+  "output_text": "{\n  \"name\": \"串口连接适配器\",\n  \"name_en\": \"Serial Connection Adapter\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验设备通信的非物理软件组件，通过串口建立与仪器的命令/响应通信。它负责打开和关闭串口、后台监听数据、发送消息并接收设备回复，供上层实验控制模块与串口仪器交互。\",\n  \"description_en\": \"A non-physical software component used for laboratory device communication over a serial port. It opens and closes the serial connection, listens for incoming data in the background, transmits messages, and receives device replies for higher-level experiment control modules.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-open_connection\",\n      \"description\": \"打开并初始化串口连接。\",\n      \"description_en\": \"Open and initialize the serial connection.\"\n    },\n    {\n      \"action_name\": \"auto-connection_listener\",\n      \"description\": \"后台监听串口数据并将收到的回复放入缓冲区。\",\n      \"description_en\": \"Listen for serial data in the background and place received replies into the buffer.\"\n    },\n    {\n      \"action_name\": \"auto-close_connection\",\n      \"description\": \"关闭串口连接并停止监听线程。\",\n      \"description_en\": \"Close the serial connection and stop the listener thread.\"\n    },\n    {\n      \"action_name\": \"auto-is_connection_open\",\n      \"description\": \"检查串口连接是否处于打开状态。\",\n      \"description_en\": \"Check whether the serial connection is open.\"\n    },\n    {\n      \"action_name\": \"auto-transmit\",\n      \"description\": \"通过串口发送消息到设备。\",\n      \"description_en\": \"Transmit a message to the device over the serial connection.\"\n    },\n    {\n      \"action_name\": \"auto-receive\",\n      \"description\": \"从接收缓冲区读取设备回复。\",\n      \"description_en\": \"Receive a device reply from the receive buffer.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"serial communication\",\n    \"instrument I/O\",\n    \"COM port connection\",\n    \"command-response messaging\",\n    \"asynchronous listener thread\",\n    \"lab device connectivity\"\n  ]\n}"
+}

@@ -1,76 +1,180 @@
-Device: shf_scope
-Registry Key: shf_scope
-Short Description: SHF 宽带放大器是由凌云光技术股份有限公司生产的专业实验设备。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (22):
-- auto-available_aux_trigger_inputs -> available_aux_trigger_inputs [UniLabJsonCommand] goal_params: none
-- auto-available_inputs -> available_inputs [UniLabJsonCommand] goal_params: none
-- auto-available_trigger_inputs -> available_trigger_inputs [UniLabJsonCommand] goal_params: none
-- auto-compile_sequencer_program -> compile_sequencer_program [UniLabJsonCommand] goal_params: sequencer_program
-- auto-configure -> configure [UniLabJsonCommand] goal_params: none
-- auto-configure_channel -> configure_channel [UniLabJsonCommand] goal_params: center_frequency, input_range, mode, output_range
-- auto-configure_result_logger -> configure_result_logger [UniLabJsonCommand] goal_params: averaging_mode, num_averages, result_length, result_source
-- auto-configure_sequencer_triggering -> configure_sequencer_triggering [UniLabJsonCommand] goal_params: aux_trigger, play_pulse_delay
-- auto-enable_sequencer -> enable_sequencer [UniLabJsonCommand] goal_params: single
-- auto-factory_reset -> factory_reset [UniLabJsonCommand] goal_params: deep
-- auto-get_qudits_results -> get_qudits_results [UniLabJsonCommand] goal_params: none
-- auto-load_sequencer_program -> load_sequencer_program [UniLabJsonCommand] goal_params: sequencer_program
-- auto-max_qubits_per_channel -> max_qubits_per_channel [UniLabJsonCommand] goal_params: none
-- auto-read -> read [UniLabJsonCommand] goal_params: none
-- auto-read_from_waveform_memory -> read_from_waveform_memory [UniLabJsonCommand] goal_params: slots
-- auto-read_integration_weights -> read_integration_weights [UniLabJsonCommand] goal_params: slots
-- auto-run -> run [UniLabJsonCommand] goal_params: none
-- auto-start_continuous_sw_trigger -> start_continuous_sw_trigger [UniLabJsonCommand] goal_params: num_triggers, wait_time
-- auto-stop -> stop [UniLabJsonCommand] goal_params: none
-- auto-wait_done -> wait_done [UniLabJsonCommand] goal_params: none
-- auto-write_integration_weights -> write_integration_weights [UniLabJsonCommand] goal_params: clear_existing, integration_delay, weights
-- auto-write_to_waveform_memory -> write_to_waveform_memory [UniLabJsonCommand] goal_params: clear_existing, pulses
-
-Driver Functions (41):
-- Generator.__init__(self, parent, tk_object, snapshot_cache, zi_node) (line 100)
-- Generator.enable_sequencer(self, *, single) (line 106)
-- Generator.wait_done(self, *, timeout, sleep_time) (line 129)
-- Generator.compile_sequencer_program(self, sequencer_program, **kwargs) (line 145)
-- Generator.load_sequencer_program(self, sequencer_program, **kwargs) (line 186)
-- Generator.write_to_waveform_memory(self, pulses, *, clear_existing) (line 236)
-- Generator.read_from_waveform_memory(self, slots) (line 250)
-- Generator.configure_sequencer_triggering(self, *, aux_trigger, play_pulse_delay) (line 262)
-- Generator.available_aux_trigger_inputs(self) (line 277)
-- Qudit.__init__(self, parent, tk_object, index, snapshot_cache, zi_node) (line 295)
-- Qudit.configure(self, qudit_settings, enable) (line 305)
-- MultiState.__init__(self, parent, tk_object, snapshot_cache, zi_node) (line 328)
-- MultiState.get_qudits_results(self) (line 355)
-- Readout.__init__(self, parent, tk_object, snapshot_cache, zi_node) (line 382)
-- Readout.configure_result_logger(self, *, result_source, result_length, num_averages, averaging_mode) (line 399)
-- Readout.run(self) (line 424)
-- Readout.stop(self, *, timeout, sleep_time) (line 428)
-- Readout.wait_done(self, *, timeout, sleep_time) (line 442)
-- Readout.read(self, *, timeout) (line 456)
-- Readout.write_integration_weights(self, weights, *, integration_delay, clear_existing) (line 467)
-- Readout.read_integration_weights(self, slots) (line 491)
-- Spectroscopy.__init__(self, parent, tk_object, snapshot_cache, zi_node) (line 517)
-- Spectroscopy.configure_result_logger(self, *, result_length, num_averages, averaging_mode) (line 523)
-- Spectroscopy.run(self) (line 543)
-- Spectroscopy.stop(self, *, timeout, sleep_time) (line 547)
-- Spectroscopy.wait_done(self, *, timeout, sleep_time) (line 562)
-- Spectroscopy.read(self, *, timeout) (line 578)
-- QAChannel.__init__(self, parent, tk_object, index, snapshot_cache, zi_node) (line 605)
-- QAChannel.configure_channel(self, *, input_range, output_range, center_frequency, mode) (line 650)
-- SHFScope.__init__(self, parent, tk_object, index, snapshot_cache, zi_node) (line 687)
-- SHFScope.run(self, *, single, timeout, sleep_time) (line 698)
-- SHFScope.stop(self, *, timeout, sleep_time) (line 718)
-- SHFScope.wait_done(self, *, timeout, sleep_time) (line 734)
-- SHFScope.configure(self, *, input_select, num_samples, trigger_input, num_segments, num_averages, trigger_delay) (line 750)
-- SHFScope.read(self, *, timeout) (line 790)
-- SHFScope.available_trigger_inputs(self) (line 808)
-- SHFScope.available_inputs(self) (line 814)
-- SHFQA._init_additional_nodes(self) (line 823)
-- SHFQA.factory_reset(self, *, deep) (line 869)
-- SHFQA.start_continuous_sw_trigger(self, *, num_triggers, wait_time) (line 879)
-- SHFQA.max_qubits_per_channel(self) (line 899)
+shf_scope:
+  name: SHFQA示波采集组件
+  name_en: SHFQA Scope Acquisition Component
+  manufacturer: Zurich Instruments
+  category:
+  - 数字存储示波器
+  tags:
+  - 表征设备
+  - 低温与量子测量
+  - 量子比特脉冲控制与读出
+  - 超导量子比特标定与时域测量
+  - 数字存储示波器
+  description: 用于 Zurich Instruments SHFQA 平台的示波采集软件组件（非独立硬件）。该组件对应 SHFQA 的 scope
+    节点/接口，负责采集配置、触发与数据读取，用于量子测量流程中的时域波形观测。
+  description_en: A non-physical scope acquisition software component for the Zurich
+    Instruments SHFQA platform. It corresponds to the SHFQA scope node/interface and
+    handles acquisition setup, triggering, and waveform readout for time-domain observation
+    in quantum measurement workflows.
+  class:
+    action_value_mappings:
+      auto-configure:
+        schema:
+          description: 配置示波器测量参数。
+          description_en: Configure the scope for a measurement.
+      auto-read:
+        schema:
+          description: 读取示波器记录的数据。
+          description_en: Read the recorded scope data.
+      auto-run:
+        schema:
+          description: 启动示波器采集。
+          description_en: Start the scope recording.
+      auto-stop:
+        schema:
+          description: 停止示波器采集。
+          description_en: Stop the scope recording.
+      auto-wait_done:
+        schema:
+          description: 等待示波器采集完成。
+          description_en: Wait until the scope recording is finished.
+      auto-enable_sequencer:
+        schema:
+          description: 启用序列器。
+          description_en: Enable the sequencer.
+      auto-compile_sequencer_program:
+        schema:
+          description: 编译序列器程序。
+          description_en: Compile the sequencer program.
+      auto-load_sequencer_program:
+        schema:
+          description: 加载序列器程序到仪器。
+          description_en: Load a sequencer program to the instrument.
+      auto-write_to_waveform_memory:
+        schema:
+          description: 将波形写入波形存储器。
+          description_en: Write waveforms to waveform memory.
+      auto-read_from_waveform_memory:
+        schema:
+          description: 从波形存储器读取波形。
+          description_en: Read waveforms from waveform memory.
+      auto-configure_sequencer_triggering:
+        schema:
+          description: 配置序列器触发方式。
+          description_en: Configure sequencer triggering.
+      auto-available_aux_trigger_inputs:
+        schema:
+          description: 获取可用辅助触发输入。
+          description_en: Get available auxiliary trigger inputs.
+      auto-get_qudits_results:
+        schema:
+          description: 获取多能级量子态读出结果。
+          description_en: Get qudit readout results.
+      auto-configure_result_logger:
+        schema:
+          description: 配置结果记录器。
+          description_en: Configure the result logger.
+      auto-write_integration_weights:
+        schema:
+          description: 写入读出积分权重。
+          description_en: Write readout integration weights.
+      auto-read_integration_weights:
+        schema:
+          description: 读取读出积分权重。
+          description_en: Read readout integration weights.
+      auto-configure_channel:
+        schema:
+          description: 配置QA通道参数。
+          description_en: Configure a QA channel.
+      auto-available_trigger_inputs:
+        schema:
+          description: 获取可用触发输入。
+          description_en: Get available trigger inputs.
+      auto-available_inputs:
+        schema:
+          description: 获取可用信号输入。
+          description_en: Get available signal inputs.
+      auto-factory_reset:
+        schema:
+          description: 将仪器恢复为出厂默认设置。
+          description_en: Reset the instrument to factory defaults.
+      auto-start_continuous_sw_trigger:
+        schema:
+          description: 启动连续软件触发。
+          description_en: Start continuous software triggering.
+      auto-max_qubits_per_channel:
+        schema:
+          description: 获取每个通道支持的最大量子比特数。
+          description_en: Get the maximum qubits per channel.
+auto_annotation_metadata:
+  registry_key: shf_scope
+  annotation_workflow_version: v4
+  tag_hints:
+  - quantum readout
+  - superconducting qubits
+  - microwave pulse sequencing
+  - scope acquisition
+  - integration weights
+  - result logger
+  - qudit discrimination
+  - SHFQA
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该组件用于采集、触发和读取时域波形数据，直接服务于测量与表征。
+  - id: P-2003
+    name: 低温与量子测量
+    name_en: Cryogenic & Quantum Measurements
+    type: experimental_domain
+    rationale: 组件明确用于 SHFQA 平台的量子测量流程，属于量子测量领域。
+  - id: P-3006
+    name: 量子比特脉冲控制与读出
+    name_en: Qubit Pulse Control & Readout
+    type: experimental_scene
+    rationale: 组件参与量子比特读出相关的采集与触发配置，适合读出场景。
+  - id: P-400006
+    name: 超导量子比特标定与时域测量
+    name_en: Superconducting Qubit Calibration & Time-Domain Measurement
+    type: experimental_scene
+    rationale: 描述中特别强调量子测量流程中的时域波形观测，和超导量子比特时域测量高度相关。
+  - id: P-1002
+    name: 数字存储示波器
+    name_en: Digital Storage Oscilloscope
+    type: device_template_tag
+    rationale: 虽然是软件采集组件，但其功能就是 scope 波形采集与读取，可归入示波采集类模板。
+  proposed_new_tags: []
+  websearch_evidence:
+    decision: websearch_triggered_due_to_identity_conflict
+    reason: Pass A described a full SHFQA instrument, while device id and docs indicate
+      a scope node/component within SHFQA tooling.
+    sources:
+    - url: https://docs.zhinst.com/labone_api_user_manual/reference/toolkit/devices/shfqa.html
+      key_points:
+      - SHFQA is described as a Zurich Instruments device driver.
+      - API lists SHFScope under SHFQA scope sequence, indicating scope-node/component
+        context.
+    - url: https://docs.zhinst.com/zhinst-toolkit/en/latest/_modules/index.html
+      key_points:
+      - Toolkit exposes module zhinst.toolkit.driver.nodes.shfqa_scope.
+      - This supports classifying shf_scope as software node/helper instead of standalone
+        hardware.
+    - url: https://docs.zhinst.com/zhinst-toolkit/en/latest/examples/shfqa.html
+      key_points:
+      - SHFQA is a Zurich Instruments quantum analyzer family context.
+      - Scope handling appears as part of SHFQA workflows.
+    updated_fields:
+    - name
+    - name_en
+    - manufacturer
+    - description
+    - description_en
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

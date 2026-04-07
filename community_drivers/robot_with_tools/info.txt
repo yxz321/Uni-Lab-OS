@@ -1,69 +1,106 @@
-Device: robot_with_tools
-Registry Key: robot_with_tools
-Short Description: RobotWithTools
-
-Categories:
-- arm
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (9):
-- auto-ActivateAndHome -> ActivateAndHome [UniLabJsonCommand] goal_params: none
-- auto-ActivateRobot -> ActivateRobot [UniLabJsonCommand] goal_params: none
-- auto-DeactivateRobot -> DeactivateRobot [UniLabJsonCommand] goal_params: none
-- auto-Disconnect -> Disconnect [UniLabJsonCommand] goal_params: none
-- auto-HasIoModule -> HasIoModule [UniLabJsonCommand] goal_params: none
-- auto-clear_dirty_flags -> clear_dirty_flags [UniLabJsonCommand] goal_params: motion_queue_params
-- auto-is_cmd_dirty -> is_cmd_dirty [UniLabJsonCommand] goal_params: cmd_name
-- auto-set_dirty_if_params_changed -> set_dirty_if_params_changed [UniLabJsonCommand] goal_params: motion_queue_params
-- auto-set_if_dirty -> set_if_dirty [UniLabJsonCommand] goal_params: cmd_name
-
-Driver Functions (47):
-- DirtyFlags.__init__(self) (line 94)
-- DirtyFlags.set_dirty(self) (line 98)
-- DirtyFlags.clear_dirty(self) (line 101)
-- DirtyFlags.is_dirty(self, cmd_name) (line 105)
-- DirtyFlags.add_sent_command(self, cmd_name) (line 108)
-- MotionQueueParams.__init__(self, robot_model) (line 115)
-- MotionQueueParams.__eq__(self, other) (line 163)
-- RobotWithTools.__init__(self) (line 185)
-- RobotWithTools.HasIoModule(self) (line 193)
-- RobotWithTools.ActivateRobot(self) (line 198)
-- RobotWithTools.DeactivateRobot(self) (line 208)
-- RobotWithTools._set_activated(self, activated) (line 218)
-- RobotWithTools.ActivateAndHome(self) (line 228)
-- RobotWithTools.Disconnect(self) (line 237)
-- RobotWithTools._send_command(self, command, args) (line 244)
-- RobotWithTools._set_robot_operation_mode(self, robot_operation_mode) (line 260)
-- RobotWithTools.set_dirty_if_params_changed(self, motion_queue_params) (line 274)
-- RobotWithTools.clear_dirty_flags(self, motion_queue_params) (line 279)
-- RobotWithTools.is_cmd_dirty(self, cmd_name) (line 289)
-- RobotWithTools.set_if_dirty(self, cmd_name, *args) (line 301)
-- get_joint_limits_cfg(robot) (line 333)
-- set_joint_limits_cfg(robot, set_enable) (line 343)
-- get_joint_limits(robot, joint, use_model) (line 360)
-- get_all_joint_limits(robot, use_model) (line 386)
-- _set_joint_limits(robot, joint, low_limit, high_limit) (line 406)
-- _enable_joint_limits_for_ext_tool(robot, move_to_safe_position) (line 427)
-- reset_joint_limits(robot) (line 493)
-- reset_work_zone_limits(robot) (line 513)
-- reset_collision_cfg(robot) (line 552)
-- reset_pstop2_cfg(robot) (line 591)
-- reset_sim_mode_cfg(robot) (line 614)
-- reset_vacuum_grip(robot) (line 638)
-- reset_vacuum_grip_parameters(robot) (line 649)
-- _reset_io_sim_bank(robot, bank_id) (line 656)
-- reset_io_sim(robot) (line 662)
-- _reset_digital_outputs_bank(robot, bank_id) (line 673)
-- _wait_outputs_cleared(robot) (line 687)
-- reset_digital_outputs(robot) (line 706)
-- deactivate_robot(robot) (line 718)
-- configure_recovery_mode(robot, recovery_mode) (line 728)
-- reset_sim_mode(robot) (line 739)
-- reset_error(robot) (line 753)
-- clear_motion(robot, then_resume) (line 775)
-- resume_motion(robot) (line 796)
-- reset_robot_configuration(robot) (line 816)
-- reset_motion_queue(robot, params, activate_home, clear) (line 831)
-- reset_vacuum_module(robot) (line 910)
+robot_with_tools:
+  name: Mecademic机械臂
+  name_en: Mecademic robotic arm
+  manufacturer: Mecademic
+  category:
+  - 机械臂
+  tags:
+  - 物流/机械
+  - 实验室自动化与仪器集成
+  - 实验室机械臂自动化与样品搬运
+  - 机械臂
+  description: 用于实验自动化的机械臂控制对象，可执行机器人激活、回零/归位、断开连接，并检查IO模块状态；同时包含运动队列参数与初始化配置的脏标记管理，便于在测试或实验前将机器人恢复到已知状态。
+  description_en: A robotic arm control object for lab automation that can activate
+    the robot, home it, disconnect it, and check IO module presence. It also manages
+    dirty-state tracking for motion queue parameters and initialization settings so
+    the robot can be restored to a known state before experiments or tests.
+  class:
+    action_value_mappings:
+      auto-HasIoModule:
+        schema:
+          description: 检查机器人是否已连接或检测到IO模块。
+          description_en: Check whether the robot's IO module is connected or detected.
+      auto-ActivateRobot:
+        schema:
+          description: 激活机械臂，并将运动队列相关设置标记为需重新下发。
+          description_en: Activate the robotic arm and mark motion-queue-related settings
+            for reapplication.
+      auto-DeactivateRobot:
+        schema:
+          description: 停用机械臂，并将运动队列相关设置标记为需重新下发。
+          description_en: Deactivate the robotic arm and mark motion-queue-related
+            settings for reapplication.
+      auto-ActivateAndHome:
+        schema:
+          description: 激活机械臂并执行回零/归位，同时将运动队列相关设置标记为需重新下发。
+          description_en: Activate the robotic arm and perform homing, while marking
+            motion-queue-related settings for reapplication.
+      auto-Disconnect:
+        schema:
+          description: 断开与机械臂的连接，并将运动队列相关设置标记为需重新下发。
+          description_en: Disconnect from the robotic arm and mark motion-queue-related
+            settings for reapplication.
+      auto-set_dirty_if_params_changed:
+        schema:
+          description: 当运动队列参数发生变化时，标记相关配置为脏状态。
+          description_en: Mark related configuration as dirty when motion queue parameters
+            have changed.
+      auto-clear_dirty_flags:
+        schema:
+          description: 清除配置脏标记，重置初始化后的状态跟踪。
+          description_en: Clear dirty flags and reset post-initialization state tracking.
+      auto-is_cmd_dirty:
+        schema:
+          description: 检查指定机器人命令对应的配置自上次初始化后是否已变更。
+          description_en: Check whether the configuration associated with a specified
+            robot command has changed since the last initialization.
+      auto-set_if_dirty:
+        schema:
+          description: 仅在对应配置为脏状态时，才向机械臂发送指定设置命令。
+          description_en: Send a specified setting command to the robotic arm only
+            when the related configuration is marked dirty.
+auto_annotation_metadata:
+  registry_key: robot_with_tools
+  annotation_workflow_version: v4
+  tag_hints:
+  - robot arm
+  - lab automation
+  - robot activation
+  - homing
+  - IO module detection
+  - motion queue parameters
+  - robot initialization
+  - Mecademic
+  existing_tags:
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 该对象控制机械臂的激活、回零和断连，服务于机械自动化设备运行。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 其用途是实验自动化中的机器人初始化、状态恢复和配置管理。
+  - id: P-5007
+    name: 实验室机械臂自动化与样品搬运
+    name_en: Laboratory Robotic Arm Automation & Sample Handling
+    type: experimental_scene
+    rationale: 该控制对象面向机械臂实验前初始化和自动化运行准备。
+  - id: '4402'
+    name: 机械臂
+    name_en: Robotic Arm
+    type: device_template_tag
+    rationale: 其控制目标是Mecademic机械臂本体。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

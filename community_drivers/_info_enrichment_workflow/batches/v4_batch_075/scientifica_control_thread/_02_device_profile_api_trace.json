@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: scientifica_control_thread\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: acq4/drivers/Scientifica/control_thread.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.scientifica_control_thread:ScientificaControlThread\n\nClass: ScientificaControlThread (focal)\n  Bases: []\n  Docstring: Monitor position, initiate and track move status\n\nThis thread is used by the main Scientifica class; it has no user-facing API\nother than the ScientificaRequestFuture objects it returns.\n\nClass: ScientificaRequestFuture \n  Bases: []\n  Docstring: Represents a future result to be generated following a request to the control thread.\n    \n\nFocal class methods:\n  [command] set_pos_callback(self, func)\n    comment: Set a callback to be invoked when the position changes.\n  [command] set_obj_callback(self, func)\n    comment: Set a callback to be invoked when the objective changes (MOC devices).\n  [command] set_default_speed(self, speed)\n    comment: Set the default speed\n\n        The device is set to this speed immediately after each move request\n        (because we temporarily change the speed for the move).\n  [command] stop(self, reason)\n    comment: Stop the device immediately\n  [command] move(self, pos, speed, attempts_allowed=3, name=None)\n    comment: Move the device to *pos* (in µm) with *speed* (in µm/s)\n  [command] quit(self)\n    comment: Quit the control thread\n  [command] cancel_move(self, req)\n    comment: Cancel a previously requested move\n        \n        This is the same as calling req.cancel()\n  [command] run(self)\n    comment: check on position and move in progress\n  [command] send_move_command(self)\n    comment: need to send 3 commands uninterrupted in sequence\n    comment: ignore and retry\n  [command] check_position(self, miss_reason=None, recheck=True)\n    comment: check position and invoke change callback\n    comment: stopped; one way or another, the current move is done with this attempt\n    comment: if we reached the target, then the move is a success.\n    comment: Sometimes devices report they are finished moving before they have\n    comment: completely stopped. Wait a moment, then check again to be sure.\n    comment: If we missed the target and we aren't allowed to check the position again, then\n    comment: re-attempt the move if possible\n    comment: Otherwise, the move request fails\n    comment: Check the current position and move status, and update the current move if necessary.\n\n        Parameters\n        ----------\n        miss_reason : str | None\n            If the current move is not com...\n  [command] check_objective(self)\n\nRegistry actions:\n  auto-set_pos_callback (from set_pos_callback())\n  auto-set_obj_callback (from set_obj_callback())\n  auto-set_default_speed (from set_default_speed())\n  auto-stop (from stop())\n  auto-move (from move())\n  auto-quit (from quit())\n  auto-cancel_move (from cancel_move())\n  auto-run (from run())\n  auto-send_move_command (from send_move_command())\n  auto-check_position (from check_position())\n  auto-check_objective (from check_objective())\n\nRequired output action ids:\n  auto-set_pos_callback\n  auto-set_obj_callback\n  auto-set_default_speed\n  auto-stop\n  auto-move\n  auto-quit\n  auto-cancel_move\n  auto-run\n  auto-send_move_command\n  auto-check_position\n  auto-check_objective"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0f5a25dfe6bbfa6a0069d5599df424819083582413e964ce95",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4370,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6220,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0f5a25dfe6bbfa6a0069d5599e6b008190a7dcc39a18441a51",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0f5a25dfe6bbfa6a0069d559ab3ac08190a1242a1b1a930e35",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Scientifica 运动控制线程\",\n  \"name_en\": \"Scientifica Motion Control Thread\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件控制组件，用于主 Scientifica 设备类的后台线程中监测位置、发起移动、跟踪移动状态、处理停止与取消请求，并通过回调通知位置或物镜状态变化，适合用于 Scientifica 位移设备的运动协调与状态轮询。\",\n  \"description_en\": \"This is a non-physical software control component used as a background thread for the main Scientifica device class. It monitors position, initiates moves, tracks move status, handles stop and cancel requests, and reports position or objective changes via callbacks for coordinating and polling Scientifica motion devices.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_pos_callback\",\n      \"description\": \"设置位置变化时触发的回调函数\",\n      \"description_en\": \"Set the callback invoked when the position changes.\"\n    },\n    {\n      \"action_name\": \"auto-set_obj_callback\",\n      \"description\": \"设置物镜变化时触发的回调函数\",\n      \"description_en\": \"Set the callback invoked when the objective changes.\"\n    },\n    {\n      \"action_name\": \"auto-set_default_speed\",\n      \"description\": \"设置默认移动速度\",\n      \"description_en\": \"Set the default move speed.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"立即停止当前设备运动\",\n      \"description_en\": \"Immediately stop the current device motion.\"\n    },\n    {\n      \"action_name\": \"auto-move\",\n      \"description\": \"请求设备以指定速度移动到目标位置\",\n      \"description_en\": \"Request the device to move to a target position at a specified speed.\"\n    },\n    {\n      \"action_name\": \"auto-quit\",\n      \"description\": \"退出控制线程\",\n      \"description_en\": \"Quit the control thread.\"\n    },\n    {\n      \"action_name\": \"auto-cancel_move\",\n      \"description\": \"取消先前提交的移动请求\",\n      \"description_en\": \"Cancel a previously submitted move request.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"运行控制循环并检查位置与移动状态\",\n      \"description_en\": \"Run the control loop and check position and move status.\"\n    },\n    {\n      \"action_name\": \"auto-send_move_command\",\n      \"description\": \"按顺序发送移动相关命令\",\n      \"description_en\": \"Send the move-related command sequence.\"\n    },\n    {\n      \"action_name\": \"auto-check_position\",\n      \"description\": \"检查当前位置与移动状态，并在需要时更新回调或重试移动\",\n      \"description_en\": \"Check the current position and move status, and update callbacks or retry the move if needed.\"\n    },\n    {\n      \"action_name\": \"auto-check_objective\",\n      \"description\": \"检查当前物镜状态\",\n      \"description_en\": \"Check the current objective status.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"motion control thread\",\n    \"position polling\",\n    \"asynchronous move requests\",\n    \"move status tracking\",\n    \"callback notifications\",\n    \"Scientifica integration\",\n    \"objective state monitoring\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1438,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1450,
+      "output_tokens_details": {
+        "reasoning_tokens": 746
+      },
+      "total_tokens": 2888
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1438,
+      "output_token_count": 1450,
+      "predict_time": 25.495688337
+    }
+  },
+  "output_text": "{\n  \"name\": \"Scientifica 运动控制线程\",\n  \"name_en\": \"Scientifica Motion Control Thread\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件控制组件，用于主 Scientifica 设备类的后台线程中监测位置、发起移动、跟踪移动状态、处理停止与取消请求，并通过回调通知位置或物镜状态变化，适合用于 Scientifica 位移设备的运动协调与状态轮询。\",\n  \"description_en\": \"This is a non-physical software control component used as a background thread for the main Scientifica device class. It monitors position, initiates moves, tracks move status, handles stop and cancel requests, and reports position or objective changes via callbacks for coordinating and polling Scientifica motion devices.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_pos_callback\",\n      \"description\": \"设置位置变化时触发的回调函数\",\n      \"description_en\": \"Set the callback invoked when the position changes.\"\n    },\n    {\n      \"action_name\": \"auto-set_obj_callback\",\n      \"description\": \"设置物镜变化时触发的回调函数\",\n      \"description_en\": \"Set the callback invoked when the objective changes.\"\n    },\n    {\n      \"action_name\": \"auto-set_default_speed\",\n      \"description\": \"设置默认移动速度\",\n      \"description_en\": \"Set the default move speed.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"立即停止当前设备运动\",\n      \"description_en\": \"Immediately stop the current device motion.\"\n    },\n    {\n      \"action_name\": \"auto-move\",\n      \"description\": \"请求设备以指定速度移动到目标位置\",\n      \"description_en\": \"Request the device to move to a target position at a specified speed.\"\n    },\n    {\n      \"action_name\": \"auto-quit\",\n      \"description\": \"退出控制线程\",\n      \"description_en\": \"Quit the control thread.\"\n    },\n    {\n      \"action_name\": \"auto-cancel_move\",\n      \"description\": \"取消先前提交的移动请求\",\n      \"description_en\": \"Cancel a previously submitted move request.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"运行控制循环并检查位置与移动状态\",\n      \"description_en\": \"Run the control loop and check position and move status.\"\n    },\n    {\n      \"action_name\": \"auto-send_move_command\",\n      \"description\": \"按顺序发送移动相关命令\",\n      \"description_en\": \"Send the move-related command sequence.\"\n    },\n    {\n      \"action_name\": \"auto-check_position\",\n      \"description\": \"检查当前位置与移动状态，并在需要时更新回调或重试移动\",\n      \"description_en\": \"Check the current position and move status, and update callbacks or retry the move if needed.\"\n    },\n    {\n      \"action_name\": \"auto-check_objective\",\n      \"description\": \"检查当前物镜状态\",\n      \"description_en\": \"Check the current objective status.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"motion control thread\",\n    \"position polling\",\n    \"asynchronous move requests\",\n    \"move status tracking\",\n    \"callback notifications\",\n    \"Scientifica integration\",\n    \"objective state monitoring\"\n  ]\n}"
+}

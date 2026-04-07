@@ -1,33 +1,105 @@
-Device: scpi_device_searcher
-Registry Key: scpi_device_searcher
-Short Description: Search for Zahner devices
-
-Categories:
-- devices
-- generic
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (8):
-- auto-getCommandInterface -> getCommandInterface [UniLabJsonCommand] goal_params: none
-- auto-getDataInterface -> getDataInterface [UniLabJsonCommand] goal_params: none
-- auto-getMultimeterPort -> getMultimeterPort [UniLabJsonCommand] goal_params: none
-- auto-searchDevices -> searchDevices [UniLabJsonCommand] goal_params: none
-- auto-searchDevicesWithIDN -> searchDevicesWithIDN [UniLabJsonCommand] goal_params: ports
-- auto-searchSerialInterfacesWithZahnerVIDPID -> searchSerialInterfacesWithZahnerVIDPID [UniLabJsonCommand] goal_params: none
-- auto-searchZahnerDevices -> searchZahnerDevices [UniLabJsonCommand] goal_params: none
-- auto-selectDevice -> selectDevice [UniLabJsonCommand] goal_params: serialNumber
-
-Driver Functions (11):
-- SCPIDeviceSearcher.__init__(self) (line 134)
-- SCPIDeviceSearcher.searchDevices(self) (line 142)
-- SCPIDeviceSearcher.searchZahnerDevices(self) (line 154)
-- SCPIDeviceSearcher.searchSerialInterfacesWithZahnerVIDPID(self) (line 167)
-- SCPIDeviceSearcher._checkPorts(self, port) (line 185)
-- SCPIDeviceSearcher.searchDevicesWithIDN(self, ports) (line 238)
-- SCPIDeviceSearcher.selectDevice(self, serialNumber) (line 269)
-- SCPIDeviceSearcher.getCommandInterface(self) (line 317)
-- SCPIDeviceSearcher.getDataInterface(self) (line 330)
-- SCPIDeviceSearcher.getMultimeterPort(self) (line 343)
-- SCPIDeviceSearcher._getAvailableSerialInterfaceNames(self) (line 358)
+scpi_device_searcher:
+  name: Zahner设备搜索器
+  name_en: Zahner Device Searcher
+  manufacturer: Zahner
+  category:
+  - 实验室仪器枚举器
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 仪器发现与驱动匹配
+  - 实验仪器通信与驱动集成
+  - 实验室仪器枚举器
+  description: 用于发现和选择Zahner仪器串口接口的软件组件（非物理设备）。它通过USB VID/PID与*IDN?查询识别已连接的Zahner设备，并返回命令口、数据口及相关串口信息，便于电化学仪器接入、通信配置和校准辅助。
+  description_en: A software component for discovering and selecting serial interfaces
+    of Zahner instruments; it is not a physical device. It identifies connected Zahner
+    devices using USB VID/PID information and *IDN? queries, then returns command,
+    data, and related serial-port information to support instrument connection, communication
+    setup, and calibration assistance.
+  class:
+    action_value_mappings:
+      auto-searchDevices:
+        schema:
+          description: 扫描计算机上的串口，并通过*IDN?命令搜索已连接设备。
+          description_en: Scan serial ports on the computer and search for connected
+            devices using the *IDN? command.
+      auto-searchZahnerDevices:
+        schema:
+          description: 结合Zahner的USB VID/PID和*IDN?查询搜索已连接的Zahner设备。
+          description_en: Search for connected Zahner devices using Zahner USB VID/PID
+            information together with *IDN? queries.
+      auto-searchSerialInterfacesWithZahnerVIDPID:
+        schema:
+          description: 按Zahner的USB VID/PID枚举并筛选对应的串口接口。
+          description_en: Enumerate and filter serial interfaces by Zahner USB VID/PID.
+      auto-searchDevicesWithIDN:
+        schema:
+          description: 对指定或全部串口发送*IDN?，根据响应识别设备。
+          description_en: Send *IDN? to specified or all serial ports and identify
+            devices from their responses.
+      auto-selectDevice:
+        schema:
+          description: 从已发现设备中按序列号选择设备；未指定时选择第一个。
+          description_en: Select a discovered device by serial number; if none is
+            given, select the first one.
+      auto-getCommandInterface:
+        schema:
+          description: 获取所选设备的命令串口名称。
+          description_en: Get the command serial interface name of the selected device.
+      auto-getDataInterface:
+        schema:
+          description: 获取所选设备的数据串口名称。
+          description_en: Get the data serial interface name of the selected device.
+      auto-getMultimeterPort:
+        schema:
+          description: 获取连接校准用万用表的串口名称。
+          description_en: Get the serial port name connected to the calibration multimeter.
+auto_annotation_metadata:
+  registry_key: scpi_device_searcher
+  annotation_workflow_version: v4
+  tag_hints:
+  - SCPI device discovery
+  - serial port enumeration
+  - Zahner potentiostat
+  - USB VID PID matching
+  - '*IDN? identification'
+  - instrument connection setup
+  - calibration multimeter port lookup
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件在实验前为Zahner仪器完成发现、选择和通信接入准备。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它负责把仪器搜索与串口配置纳入自动化接入流程。
+  - id: P-10017
+    name: 仪器发现与驱动匹配
+    name_en: Instrument Discovery & Driver Matching
+    type: experimental_scene
+    rationale: 通过VID/PID和*IDN?识别设备，并匹配命令口与数据口，正是发现/驱动匹配场景。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 组件为后续通信配置提供串口信息和接口选择，是通信集成前置步骤。
+  - id: P-10016
+    name: 实验室仪器枚举器
+    name_en: Laboratory Instrument Enumerator
+    type: device_template_tag
+    rationale: 该软件组件的主要功能就是枚举串口并识别已连接的实验仪器。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

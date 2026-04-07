@@ -1,32 +1,99 @@
-Device: robo_hat_driver
-Registry Key: robo_hat_driver
-Short Description: Robo HAT Driver是由Robotics Masters生产的专业实验设备。
-
-Categories:
-- 机械臂
-
-Related Tags (from tag 标签列表.csv):
-- [4402] 机械臂 / Robotic Arm (device_template_tag)
-
-Atom Actions (6):
-- auto-is_valid_pwm_value -> is_valid_pwm_value [UniLabJsonCommand] goal_params: value
-- auto-run -> run [UniLabJsonCommand] goal_params: steering, throttle
-- auto-set_pulse -> set_pulse [UniLabJsonCommand] goal_params: steering, throttle
-- auto-shutdown -> shutdown [UniLabJsonCommand] goal_params: none
-- auto-trim_out_of_bound_value -> trim_out_of_bound_value [UniLabJsonCommand] goal_params: value
-- auto-write_pwm -> write_pwm [UniLabJsonCommand] goal_params: steering, throttle
-
-Driver Functions (13):
-- RoboHATController.__init__(self, cfg, debug) (line 98)
-- RoboHATController.shutdown(self) (line 121)
-- RoboHATController.read_serial(self) (line 127)
-- RoboHATController.update(self) (line 198)
-- RoboHATController.run(self, img_arr, mode, recording) (line 210)
-- RoboHATController.run_threaded(self, img_arr, mode, recording) (line 218)
-- RoboHATDriver.__init__(self, cfg, serial_port, debug) (line 251)
-- RoboHATDriver.trim_out_of_bound_value(self, value) (line 270)
-- RoboHATDriver.set_pulse(self, steering, throttle) (line 281)
-- RoboHATDriver.is_valid_pwm_value(self, value) (line 318)
-- RoboHATDriver.write_pwm(self, steering, throttle) (line 325)
-- RoboHATDriver.run(self, steering, throttle) (line 329)
-- RoboHATDriver.shutdown(self) (line 333)
+robo_hat_driver:
+  name: Robo HAT MM1 电机与转向控制板
+  name_en: Robo HAT MM1 Motor and Steering Controller
+  manufacturer: Robotics Masters
+  category:
+  - PWM转向控制器
+  - PWM油门控制器
+  tags:
+  - 物流/机械
+  - 机器人与移动平台
+  - 移动机器人与自动驾驶实验
+  - PWM信号输出与执行器驱动
+  - PWM转向控制器
+  - PWM油门控制器
+  description: 用于机器人小车的PWM控制板，可将转向和油门指令转换为PWM脉冲输出，以驱动转向舵机和电机油门，并支持数值校验、限幅与安全关闭。
+  description_en: A PWM control board for robotic vehicles that converts steering
+    and throttle commands into PWM pulse outputs to drive a steering servo and motor
+    throttle, with value validation, clamping, and safe shutdown support.
+  class:
+    action_value_mappings:
+      auto-trim_out_of_bound_value:
+        schema:
+          description: 将超出允许范围的控制值裁剪到有效区间。
+          description_en: Clamp a control value that is outside the allowed range
+            into the valid interval.
+      auto-set_pulse:
+        schema:
+          description: 设置转向和油门的PWM脉冲值。
+          description_en: Set the PWM pulse values for steering and throttle.
+      auto-is_valid_pwm_value:
+        schema:
+          description: 检查给定的PWM值是否有效。
+          description_en: Check whether a given PWM value is valid.
+      auto-write_pwm:
+        schema:
+          description: 将转向和油门命令写入PWM输出。
+          description_en: Write steering and throttle commands to the PWM outputs.
+      auto-run:
+        schema:
+          description: 执行一次转向和油门控制更新并输出PWM信号。
+          description_en: Perform one steering and throttle control update and output
+            PWM signals.
+      auto-shutdown:
+        schema:
+          description: 关闭控制板输出以安全停止设备。
+          description_en: Shut down the controller outputs to safely stop the device.
+auto_annotation_metadata:
+  registry_key: robo_hat_driver
+  annotation_workflow_version: v4
+  tag_hints:
+  - PWM motor control
+  - steering servo control
+  - throttle control
+  - Robo HAT MM1
+  - robot car controller
+  - RC pulse output
+  existing_tags:
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 该PWM控制板直接驱动车辆转向舵机和电机油门，属于机器人机械控制设备。
+  - id: P-0020
+    name: 机器人与移动平台
+    name_en: Robotics & Mobile Platforms
+    type: experimental_domain
+    rationale: 设备面向机器人小车与移动平台的运动执行控制。
+  - id: P-0021
+    name: 移动机器人与自动驾驶实验
+    name_en: Mobile Robotics & Autonomous Vehicle Experiments
+    type: experimental_scene
+    rationale: 该控制板用于机器人小车的转向和油门执行，适合自动驾驶/遥控车实验。
+  - id: P-600105
+    name: PWM信号输出与执行器驱动
+    name_en: PWM Signal Output & Actuator Driving
+    type: experimental_scene
+    rationale: 设备核心功能是把转向与油门指令转换成PWM脉冲输出以驱动执行器。
+  - id: P-600107
+    name: PWM转向控制器
+    name_en: PWM Steering Controller
+    type: device_template_tag
+    rationale: 设备可输出转向PWM脉冲，直接对应转向控制器功能。
+  - id: P-600108
+    name: PWM油门控制器
+    name_en: PWM Throttle Controller
+    type: device_template_tag
+    rationale: 设备可输出油门PWM脉冲，直接对应油门执行控制功能。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

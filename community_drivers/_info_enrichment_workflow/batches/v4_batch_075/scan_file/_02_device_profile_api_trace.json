@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: scan_file\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: epicsscan/datafile.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.scan_file:ScanFile\n\nClass: StepScanData \n  Bases: []\n  Docstring: Holds data as read from a Scan Data File.\n\nClass: ScanFile (focal)\n  Bases: []\n  Docstring: base Scan File -- intended to be inherited and\noverrwritten for multiple ScanFile types (ASCII, HDF5) to be\nsupported with compatible methods\n\nClass: ASCIIScanFile \n  Bases: ['ScanFile']\n  Docstring: basis ASCII Column File, line-ending delimited,\nusing '#' for comment lines\nand a format derived from XDI\n\nFocal class methods:\n  [command] open_for_write(self, filename=None, mode='a')\n    comment: open file for write or append,\n        ensuring the filename is auto-incremented so as to\n        not clobber an existing file name\n  [command] check_writeable(self)\n    comment: check that output file is open and writeable\n  [command] flush(self)\n    comment: flush file\n  [command] write(self, s)\n    comment: write to file\n  [command] close(self)\n    comment: close file\n  [command] write_extrapvs(self)\n    comment: write extra PVS\n  [command] write_comments(self)\n    comment: write legend\n  [command] write_legend(self)\n    comment: write legend\n  [command] write_timestamp(self)\n    comment: write timestamp\n  [command] write_data(self, breakpoint=0, clear=False)\n    comment: write data\n\nRegistry actions:\n  auto-check_writeable (from check_writeable())\n  auto-close (from close())\n  auto-flush (from flush())\n  auto-open_for_write (from open_for_write())\n  auto-write (from write())\n  auto-write_comments (from write_comments())\n  auto-write_data (from write_data())\n  auto-write_extrapvs (from write_extrapvs())\n  auto-write_legend (from write_legend())\n  auto-write_timestamp (from write_timestamp())\n  auto-get_data (from get_data())\n  auto-read (from read())\n  auto-write_lines (from write_lines())\n  auto-write_scanparams (from write_scanparams())\n\nRequired output action ids:\n  auto-check_writeable\n  auto-close\n  auto-flush\n  auto-open_for_write\n  auto-write\n  auto-write_comments\n  auto-write_data\n  auto-write_extrapvs\n  auto-write_legend\n  auto-write_timestamp\n  auto-get_data\n  auto-read\n  auto-write_lines\n  auto-write_scanparams"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_02fa385e7c7656f80069d5599e4a108195982b1f0a4155df39",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3328,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5276,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_02fa385e7c7656f80069d559a0fa6081958719aa7a4405de79",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_02fa385e7c7656f80069d559a959448195874e8ba13c4b7754",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"扫描数据文件读写组件\",\n  \"name_en\": \"Scan Data File Reader/Writer\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于实验扫描数据文件的打开、读取、写入和关闭。它支持将扫描数据、注释、时间戳、图例、额外过程变量和扫描参数写入文件，也可读取已有扫描文件内容，常用于实验自动化中的数据保存与元数据记录。\",\n  \"description_en\": \"This is a non-physical software component for opening, reading, writing, flushing, and closing experiment scan data files. It supports writing scan data, comments, timestamps, legends, extra process variables, and scan parameters, and can also read existing scan files. It is commonly used for data logging and metadata capture in laboratory scan workflows.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-check_writeable\",\n      \"description\": \"检查输出扫描文件是否已打开且可写。\",\n      \"description_en\": \"Check whether the output scan file is open and writable.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭扫描数据文件。\",\n      \"description_en\": \"Close the scan data file.\"\n    },\n    {\n      \"action_name\": \"auto-flush\",\n      \"description\": \"将已缓冲的扫描文件内容刷新到磁盘。\",\n      \"description_en\": \"Flush buffered scan file contents to disk.\"\n    },\n    {\n      \"action_name\": \"auto-open_for_write\",\n      \"description\": \"打开扫描数据文件用于写入或追加，并可避免覆盖已有文件名。\",\n      \"description_en\": \"Open a scan data file for writing or appending, with protection against overwriting an existing filename.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向扫描数据文件写入文本内容。\",\n      \"description_en\": \"Write text content to the scan data file.\"\n    },\n    {\n      \"action_name\": \"auto-write_comments\",\n      \"description\": \"向扫描文件写入注释信息。\",\n      \"description_en\": \"Write comment information to the scan file.\"\n    },\n    {\n      \"action_name\": \"auto-write_data\",\n      \"description\": \"将扫描数据写入文件。\",\n      \"description_en\": \"Write scan data to the file.\"\n    },\n    {\n      \"action_name\": \"auto-write_extrapvs\",\n      \"description\": \"将额外过程变量信息写入扫描文件。\",\n      \"description_en\": \"Write extra process variable information to the scan file.\"\n    },\n    {\n      \"action_name\": \"auto-write_legend\",\n      \"description\": \"向扫描文件写入数据图例或列说明。\",\n      \"description_en\": \"Write the data legend or column description to the scan file.\"\n    },\n    {\n      \"action_name\": \"auto-write_timestamp\",\n      \"description\": \"向扫描文件写入时间戳。\",\n      \"description_en\": \"Write a timestamp to the scan file.\"\n    },\n    {\n      \"action_name\": \"auto-get_data\",\n      \"description\": \"获取已读取的扫描数据内容。\",\n      \"description_en\": \"Get the scan data content that has been read.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取扫描数据文件内容。\",\n      \"description_en\": \"Read the contents of a scan data file.\"\n    },\n    {\n      \"action_name\": \"auto-write_lines\",\n      \"description\": \"向扫描文件批量写入多行文本。\",\n      \"description_en\": \"Write multiple lines of text to the scan file.\"\n    },\n    {\n      \"action_name\": \"auto-write_scanparams\",\n      \"description\": \"将扫描参数写入文件。\",\n      \"description_en\": \"Write scan parameters to the file.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"scan data logging\",\n    \"experiment file I/O\",\n    \"ASCII scan files\",\n    \"scan metadata\",\n    \"timestamp recording\",\n    \"EPICS scan data\",\n    \"process variable logging\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1257,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1333,
+      "output_tokens_details": {
+        "reasoning_tokens": 466
+      },
+      "total_tokens": 2590
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1257,
+      "output_token_count": 1333,
+      "predict_time": 24.885473079
+    }
+  },
+  "output_text": "{\n  \"name\": \"扫描数据文件读写组件\",\n  \"name_en\": \"Scan Data File Reader/Writer\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于实验扫描数据文件的打开、读取、写入和关闭。它支持将扫描数据、注释、时间戳、图例、额外过程变量和扫描参数写入文件，也可读取已有扫描文件内容，常用于实验自动化中的数据保存与元数据记录。\",\n  \"description_en\": \"This is a non-physical software component for opening, reading, writing, flushing, and closing experiment scan data files. It supports writing scan data, comments, timestamps, legends, extra process variables, and scan parameters, and can also read existing scan files. It is commonly used for data logging and metadata capture in laboratory scan workflows.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-check_writeable\",\n      \"description\": \"检查输出扫描文件是否已打开且可写。\",\n      \"description_en\": \"Check whether the output scan file is open and writable.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭扫描数据文件。\",\n      \"description_en\": \"Close the scan data file.\"\n    },\n    {\n      \"action_name\": \"auto-flush\",\n      \"description\": \"将已缓冲的扫描文件内容刷新到磁盘。\",\n      \"description_en\": \"Flush buffered scan file contents to disk.\"\n    },\n    {\n      \"action_name\": \"auto-open_for_write\",\n      \"description\": \"打开扫描数据文件用于写入或追加，并可避免覆盖已有文件名。\",\n      \"description_en\": \"Open a scan data file for writing or appending, with protection against overwriting an existing filename.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向扫描数据文件写入文本内容。\",\n      \"description_en\": \"Write text content to the scan data file.\"\n    },\n    {\n      \"action_name\": \"auto-write_comments\",\n      \"description\": \"向扫描文件写入注释信息。\",\n      \"description_en\": \"Write comment information to the scan file.\"\n    },\n    {\n      \"action_name\": \"auto-write_data\",\n      \"description\": \"将扫描数据写入文件。\",\n      \"description_en\": \"Write scan data to the file.\"\n    },\n    {\n      \"action_name\": \"auto-write_extrapvs\",\n      \"description\": \"将额外过程变量信息写入扫描文件。\",\n      \"description_en\": \"Write extra process variable information to the scan file.\"\n    },\n    {\n      \"action_name\": \"auto-write_legend\",\n      \"description\": \"向扫描文件写入数据图例或列说明。\",\n      \"description_en\": \"Write the data legend or column description to the scan file.\"\n    },\n    {\n      \"action_name\": \"auto-write_timestamp\",\n      \"description\": \"向扫描文件写入时间戳。\",\n      \"description_en\": \"Write a timestamp to the scan file.\"\n    },\n    {\n      \"action_name\": \"auto-get_data\",\n      \"description\": \"获取已读取的扫描数据内容。\",\n      \"description_en\": \"Get the scan data content that has been read.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取扫描数据文件内容。\",\n      \"description_en\": \"Read the contents of a scan data file.\"\n    },\n    {\n      \"action_name\": \"auto-write_lines\",\n      \"description\": \"向扫描文件批量写入多行文本。\",\n      \"description_en\": \"Write multiple lines of text to the scan file.\"\n    },\n    {\n      \"action_name\": \"auto-write_scanparams\",\n      \"description\": \"将扫描参数写入文件。\",\n      \"description_en\": \"Write scan parameters to the file.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"scan data logging\",\n    \"experiment file I/O\",\n    \"ASCII scan files\",\n    \"scan metadata\",\n    \"timestamp recording\",\n    \"EPICS scan data\",\n    \"process variable logging\"\n  ]\n}"
+}

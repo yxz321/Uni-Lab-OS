@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: rs_hmp4040\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: basil/HL/rs_hmp4040.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.rs_hmp4040:rs_HMP4040\n\nClass: rs_HMP4040 (focal)\n  Bases: ['HardwareLayer']\n  Docstring: HL for the RS HMP4040\n!! Analog to tti ql355tp for compatibility with bdaq53\n\nFocal class methods:\n  [command] init(self)\n  [command] reinit(self)\n  [command] write(self, command)\n  [command] ask(self, command)\n  [command] read(self)\n  [command] set_channel(self, channel)\n    comment: channel: 1=OP1, 2=OP2, 3=OP3, 4=OP4\n  [command] get_channel(self)\n  [command] set_enable(self, on, channel=1)\n    comment: channel: 1=OP1, 2=OP2, 3=OP3, 4=OP4, ALL=all channels\n  [command] get_name(self)\n  [command] get_current(self, channel)\n    comment: channel: 1=OP1, 2=OP2, 3=OP3, 4=OP4\n  [command] get_voltage(self, channel)\n    comment: channel: 1=OP1, 2=OP2, 3=OP3, 4=OP4\n  [command] get_set_voltage(self, channel)\n    comment: channel: 1=OP1, 2=OP2, 3=OP3, 4=OP4\n  [command] get_current_limit(self, channel)\n    comment: channel: 1=OP1, 2=OP2, 3=OP3, 4=OP4\n  [command] set_voltage(self, value, channel=1)\n    comment: channel: 1=OP1, 2=OP2, 3=OP3, 4=OP4\n  [command] set_current_limit(self, value, channel=1)\n    comment: channel: 1=OP1, 2=OP2, 3=OP3, 4=OP4\n  [command] reset_trip(self)\n\nRegistry actions:\n  auto-init (from init())\n  auto-reinit (from reinit())\n  auto-write (from write())\n  auto-ask (from ask())\n  auto-read (from read())\n  auto-set_channel (from set_channel())\n  auto-get_channel (from get_channel())\n  auto-set_enable (from set_enable())\n  auto-get_name (from get_name())\n  auto-get_current (from get_current())\n  auto-get_voltage (from get_voltage())\n  auto-get_set_voltage (from get_set_voltage())\n  auto-get_current_limit (from get_current_limit())\n  auto-set_voltage (from set_voltage())\n  auto-set_current_limit (from set_current_limit())\n  auto-reset_trip (from reset_trip())\n\nRequired output action ids:\n  auto-init\n  auto-reinit\n  auto-write\n  auto-ask\n  auto-read\n  auto-set_channel\n  auto-get_channel\n  auto-set_enable\n  auto-get_name\n  auto-get_current\n  auto-get_voltage\n  auto-get_set_voltage\n  auto-get_current_limit\n  auto-set_voltage\n  auto-set_current_limit\n  auto-reset_trip"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0dff4eb9b5a7e86b0069d557063e408193a75cdd781da77271",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3313,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4995,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0dff4eb9b5a7e86b0069d55706e3c08193bcbbc3a2b084bf1a",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0dff4eb9b5a7e86b0069d5570d51ac8193835121985247709a",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"R&S HMP4040四通道直流电源\",\n  \"name_en\": \"R&S HMP4040 Four-Channel DC Power Supply\",\n  \"manufacturer\": \"Rohde & Schwarz\",\n  \"description\": \"一款可编程四通道台式直流电源，用于在实验中为电路、传感器或测试模块提供稳定电压与限流输出，并读取各通道的电压、电流和保护状态。\",\n  \"description_en\": \"A programmable four-channel bench DC power supply used in laboratories to provide stable voltage and current-limited outputs for circuits, sensors, or test modules, while monitoring channel voltage, current, and protection status.\",\n  \"tag_hints\": [\n    \"programmable DC power supply\",\n    \"four-channel output\",\n    \"voltage sourcing\",\n    \"current limit\",\n    \"bench power supply\",\n    \"electrical testing\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化电源并建立通信。\",\n      \"description_en\": \"Initialize the power supply and establish communication.\"\n    },\n    {\n      \"action_name\": \"auto-reinit\",\n      \"description\": \"重新初始化电源通信与状态。\",\n      \"description_en\": \"Reinitialize communication with the power supply and refresh its state.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向电源发送原始控制命令。\",\n      \"description_en\": \"Send a raw control command to the power supply.\"\n    },\n    {\n      \"action_name\": \"auto-ask\",\n      \"description\": \"向电源发送查询命令并请求返回结果。\",\n      \"description_en\": \"Send a query command to the power supply and request a response.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取电源返回的数据。\",\n      \"description_en\": \"Read data returned by the power supply.\"\n    },\n    {\n      \"action_name\": \"auto-set_channel\",\n      \"description\": \"选择当前操作的输出通道。\",\n      \"description_en\": \"Select the active output channel.\"\n    },\n    {\n      \"action_name\": \"auto-get_channel\",\n      \"description\": \"读取当前选中的输出通道。\",\n      \"description_en\": \"Get the currently selected output channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_enable\",\n      \"description\": \"打开或关闭指定通道的输出。\",\n      \"description_en\": \"Enable or disable the output of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-get_name\",\n      \"description\": \"读取电源设备名称或型号标识。\",\n      \"description_en\": \"Get the power supply device name or model identification.\"\n    },\n    {\n      \"action_name\": \"auto-get_current\",\n      \"description\": \"读取指定通道的实际输出电流。\",\n      \"description_en\": \"Get the actual output current of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-get_voltage\",\n      \"description\": \"读取指定通道的实际输出电压。\",\n      \"description_en\": \"Get the actual output voltage of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-get_set_voltage\",\n      \"description\": \"读取指定通道设定的输出电压值。\",\n      \"description_en\": \"Get the configured voltage setpoint of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-get_current_limit\",\n      \"description\": \"读取指定通道的电流限制值。\",\n      \"description_en\": \"Get the current limit of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_voltage\",\n      \"description\": \"设置指定通道的输出电压。\",\n      \"description_en\": \"Set the output voltage of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_current_limit\",\n      \"description\": \"设置指定通道的电流限制。\",\n      \"description_en\": \"Set the current limit of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-reset_trip\",\n      \"description\": \"复位电源的保护跳闸状态。\",\n      \"description_en\": \"Reset the protection trip state of the power supply.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1421,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1297,
+      "output_tokens_details": {
+        "reasoning_tokens": 384
+      },
+      "total_tokens": 2718
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1421,
+      "output_token_count": 1297,
+      "predict_time": 18.856209731
+    }
+  },
+  "output_text": "{\n  \"name\": \"R&S HMP4040四通道直流电源\",\n  \"name_en\": \"R&S HMP4040 Four-Channel DC Power Supply\",\n  \"manufacturer\": \"Rohde & Schwarz\",\n  \"description\": \"一款可编程四通道台式直流电源，用于在实验中为电路、传感器或测试模块提供稳定电压与限流输出，并读取各通道的电压、电流和保护状态。\",\n  \"description_en\": \"A programmable four-channel bench DC power supply used in laboratories to provide stable voltage and current-limited outputs for circuits, sensors, or test modules, while monitoring channel voltage, current, and protection status.\",\n  \"tag_hints\": [\n    \"programmable DC power supply\",\n    \"four-channel output\",\n    \"voltage sourcing\",\n    \"current limit\",\n    \"bench power supply\",\n    \"electrical testing\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化电源并建立通信。\",\n      \"description_en\": \"Initialize the power supply and establish communication.\"\n    },\n    {\n      \"action_name\": \"auto-reinit\",\n      \"description\": \"重新初始化电源通信与状态。\",\n      \"description_en\": \"Reinitialize communication with the power supply and refresh its state.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向电源发送原始控制命令。\",\n      \"description_en\": \"Send a raw control command to the power supply.\"\n    },\n    {\n      \"action_name\": \"auto-ask\",\n      \"description\": \"向电源发送查询命令并请求返回结果。\",\n      \"description_en\": \"Send a query command to the power supply and request a response.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取电源返回的数据。\",\n      \"description_en\": \"Read data returned by the power supply.\"\n    },\n    {\n      \"action_name\": \"auto-set_channel\",\n      \"description\": \"选择当前操作的输出通道。\",\n      \"description_en\": \"Select the active output channel.\"\n    },\n    {\n      \"action_name\": \"auto-get_channel\",\n      \"description\": \"读取当前选中的输出通道。\",\n      \"description_en\": \"Get the currently selected output channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_enable\",\n      \"description\": \"打开或关闭指定通道的输出。\",\n      \"description_en\": \"Enable or disable the output of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-get_name\",\n      \"description\": \"读取电源设备名称或型号标识。\",\n      \"description_en\": \"Get the power supply device name or model identification.\"\n    },\n    {\n      \"action_name\": \"auto-get_current\",\n      \"description\": \"读取指定通道的实际输出电流。\",\n      \"description_en\": \"Get the actual output current of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-get_voltage\",\n      \"description\": \"读取指定通道的实际输出电压。\",\n      \"description_en\": \"Get the actual output voltage of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-get_set_voltage\",\n      \"description\": \"读取指定通道设定的输出电压值。\",\n      \"description_en\": \"Get the configured voltage setpoint of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-get_current_limit\",\n      \"description\": \"读取指定通道的电流限制值。\",\n      \"description_en\": \"Get the current limit of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_voltage\",\n      \"description\": \"设置指定通道的输出电压。\",\n      \"description_en\": \"Set the output voltage of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_current_limit\",\n      \"description\": \"设置指定通道的电流限制。\",\n      \"description_en\": \"Set the current limit of the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-reset_trip\",\n      \"description\": \"复位电源的保护跳闸状态。\",\n      \"description_en\": \"Reset the protection trip state of the power supply.\"\n    }\n  ]\n}"
+}

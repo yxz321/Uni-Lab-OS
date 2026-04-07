@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: shutter\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: labscript/outputs.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.shutters.shutter:Shutter\n\nClass: Output \n  Bases: ['Device']\n  Docstring: Base class for all output classes.\n\nClass: AnalogQuantity \n  Bases: ['Output']\n  Docstring: Base class for :obj:`AnalogOut`.\n\nIt is also used internally by :obj:`DDS`. You should never instantiate this\nclass directly.\n\nClass: AnalogOut \n  Bases: ['AnalogQuantity']\n  Docstring: Analog Output class for use with all devices that support timed analog outputs.\n\nClass: StaticAnalogQuantity \n  Bases: ['Output']\n  Docstring: Base class for :obj:`StaticAnalogOut`.\n\nIt can also be used internally by other more complex output types.\n\nClass: StaticAnalogOut \n  Bases: ['StaticAnalogQuantity']\n  Docstring: Static Analog Output class for use with all devices that have constant outputs.\n\nClass: DigitalQuantity \n  Bases: ['Output']\n  Docstring: Base class for :obj:`DigitalOut`.\n\nIt is also used internally by other, more complex, output types.\n\nClass: DigitalOut \n  Bases: ['DigitalQuantity']\n  Docstring: Digital output class for use with all devices.\n\nClass: StaticDigitalQuantity \n  Bases: ['DigitalQuantity']\n  Docstring: Base class for :obj:`StaticDigitalOut`.\n\nIt can also be used internally by other, more complex, output types.\n\nClass: StaticDigitalOut \n  Bases: ['StaticDigitalQuantity']\n  Docstring: Static Digital Output class for use with all devices that have constant outputs.\n\nClass: Shutter (focal)\n  Bases: ['DigitalOut']\n  Docstring: Customized version of :obj:`DigitalOut` that accounts for the open/close\ndelay of a shutter automatically.\n\nWhen using the methods :meth:`open` and :meth:`close`, the shutter open\nand close times are precise without haveing to track the delays. Note:\ndelays can be set using runmanager globals and periodically updated\nvia a calibration.\n\n.. Warning:: \n\n    If the shutter is asked to do something at `t=0`, it cannot start\n    moving earlier than that. This means the initial shutter states\n    will have imprecise timing.\n\nClass: Trigger \n  Bases: ['DigitalOut']\n  Docstring: Customized version of :obj:`DigitalOut` that tracks edge type.\n    \n\nClass: DDSQuantity \n  Bases: ['Device']\n  Docstring: Used to define a DDS output. \n\nIt is a container class, with properties that allow access to a frequency,\namplitude, and phase of the output as :obj:`AnalogQuantity`. \nIt can also have a gate, which provides enable/disable control of the output \nas :obj:`DigitalOut`.\n\nThis class instantiates channels for frequency/amplitude/phase (and optionally the\ngate) itself. \n\nClass: DDS \n  Bases: ['DDSQuantity']\n  Docstring: DDS class for use with all devices that have DDS-like outputs.\n\nClass: StaticDDS \n  Bases: ['Device']\n  Docstring: Static DDS class for use with all devices that have static DDS-like outputs.\n\nFocal class methods:\n  [command] open(self, t)\n    comment: If a shutter is asked to do something at t=0, it cannot start moving\n    comment: earlier than that.  So initial shutter states will have imprecise\n    comment: timing. Not throwing a warning here because if I did, every run\n    comment: would throw a warning for every shutter. The documentation will\n    comment: have to make a point of this.\n    comment: Command the shutter to open at time `t`.\n\n        Takes the open delay time into account.\n\n        Note that the delay time will not be take into account the open delay if the\n        command is made ...\n  [command] close(self, t)\n    comment: Command the shutter to close at time `t`.\n\n        Takes the close delay time into account.\n\n        Note that the delay time will not be take into account the close delay if the\n        command is ma...\n  [command] generate_code(self, hdf5_file)\n  [status_getter] get_change_times(self, *args, **kwargs)\n    comment: only look at instructions that contain a state change\n\nRegistry actions:\n  auto-close (from close())\n  auto-generate_code (from generate_code())\n  auto-open (from open())\n  auto-get_change_times (from get_change_times())\n  auto-clock_limit (from clock_limit())\n  auto-trigger_delay (from trigger_delay())\n  auto-wait_delay (from wait_delay())\n  auto-get_all_outputs (from get_all_outputs())\n  auto-apply_calibration (from apply_calibration())\n  auto-instruction_to_string (from instruction_to_string())\n  auto-add_instruction (from add_instruction())\n  auto-do_checks (from do_checks())\n  auto-offset_instructions_from_trigger (from offset_instructions_from_trigger())\n  auto-get_ramp_times (from get_ramp_times())\n  auto-make_timeseries (from make_timeseries())\n  auto-expand_timeseries (from expand_timeseries())\n  auto-ramp (from ramp())\n  auto-sine (from sine())\n  auto-sine_ramp (from sine_ramp())\n  auto-sine4_ramp (from sine4_ramp())\n  auto-sine4_reverse_ramp (from sine4_reverse_ramp())\n  auto-exp_ramp (from exp_ramp())\n  auto-exp_ramp_t (from exp_ramp_t())\n  auto-piecewise_accel_ramp (from piecewise_accel_ramp())\n  auto-square_wave (from square_wave())\n  auto-square_wave_levels (from square_wave_levels())\n  auto-customramp (from customramp())\n  auto-constant (from constant())\n  auto-static_value (from static_value())\n  auto-go_high (from go_high())\n  auto-go_low (from go_low())\n  auto-enable (from enable())\n  auto-disable (from disable())\n  auto-repeat_pulse_sequence (from repeat_pulse_sequence())\n  auto-trigger (from trigger())\n  auto-add_device (from add_device())\n  auto-setamp (from setamp())\n  auto-setfreq (from setfreq())\n  auto-setphase (from setphase())\n  auto-pulse (from pulse())\n\nRequired output action ids:\n  auto-close\n  auto-generate_code\n  auto-open\n  auto-get_change_times\n  auto-clock_limit\n  auto-trigger_delay\n  auto-wait_delay\n  auto-get_all_outputs\n  auto-apply_calibration\n  auto-instruction_to_string\n  auto-add_instruction\n  auto-do_checks\n  auto-offset_instructions_from_trigger\n  auto-get_ramp_times\n  auto-make_timeseries\n  auto-expand_timeseries\n  auto-ramp\n  auto-sine\n  auto-sine_ramp\n  auto-sine4_ramp\n  auto-sine4_reverse_ramp\n  auto-exp_ramp\n  auto-exp_ramp_t\n  auto-piecewise_accel_ramp\n  auto-square_wave\n  auto-square_wave_levels\n  auto-customramp\n  auto-constant\n  auto-static_value\n  auto-go_high\n  auto-go_low\n  auto-enable\n  auto-disable\n  auto-repeat_pulse_sequence\n  auto-trigger\n  auto-add_device\n  auto-setamp\n  auto-setfreq\n  auto-setphase\n  auto-pulse"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0fafa8f7f8d9a3e40069d55c15ced08195b5be8365fb2075cc",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7561,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 18140,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0fafa8f7f8d9a3e40069d55c164b7881959fd1fe3719c88102",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0fafa8f7f8d9a3e40069d55c4582ac8195a79de5140228aade",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"快门时序控制组件\",\n  \"name_en\": \"Shutter Timing Control Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于在实验时序中表示和调度快门输出通道。它基于数字输出抽象，能够在编排实验序列时自动补偿快门开启/关闭延迟，并生成供实验控制系统执行的定时指令与代码，常用于激光束遮断、放光窗口控制等场景。\",\n  \"description_en\": \"This is a non-physical software component that represents and schedules a shutter output channel within an experimental timing sequence. Built on a digital-output abstraction, it automatically compensates for shutter open/close delays during sequence programming and generates timed instructions and code for the experiment control system, commonly for beam blocking and optical exposure-window control.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"安排快门关闭指令，并自动补偿关闭延迟。\",\n      \"description_en\": \"Schedule a shutter-close instruction with automatic close-delay compensation.\"\n    },\n    {\n      \"action_name\": \"auto-generate_code\",\n      \"description\": \"生成该输出通道的实验控制代码或时序数据。\",\n      \"description_en\": \"Generate experiment-control code or timing data for this output channel.\"\n    },\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"安排快门打开指令，并自动补偿开启延迟。\",\n      \"description_en\": \"Schedule a shutter-open instruction with automatic open-delay compensation.\"\n    },\n    {\n      \"action_name\": \"auto-get_change_times\",\n      \"description\": \"获取状态变化时间。\",\n      \"description_en\": \"get state change times\"\n    },\n    {\n      \"action_name\": \"auto-clock_limit\",\n      \"description\": \"获取时钟速率限制。\",\n      \"description_en\": \"Get the clock rate limit.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_delay\",\n      \"description\": \"获取触发延迟。\",\n      \"description_en\": \"Get the trigger delay.\"\n    },\n    {\n      \"action_name\": \"auto-wait_delay\",\n      \"description\": \"获取等待延迟。\",\n      \"description_en\": \"Get the wait delay.\"\n    },\n    {\n      \"action_name\": \"auto-get_all_outputs\",\n      \"description\": \"获取全部输出对象。\",\n      \"description_en\": \"Get all output objects.\"\n    },\n    {\n      \"action_name\": \"auto-apply_calibration\",\n      \"description\": \"应用校准参数到输出指令。\",\n      \"description_en\": \"Apply calibration parameters to the output instructions.\"\n    },\n    {\n      \"action_name\": \"auto-instruction_to_string\",\n      \"description\": \"将输出指令转换为字符串表示。\",\n      \"description_en\": \"Convert an output instruction to its string representation.\"\n    },\n    {\n      \"action_name\": \"auto-add_instruction\",\n      \"description\": \"添加一条输出时序指令。\",\n      \"description_en\": \"Add an output timing instruction.\"\n    },\n    {\n      \"action_name\": \"auto-do_checks\",\n      \"description\": \"执行输出配置和时序检查。\",\n      \"description_en\": \"Perform output configuration and timing checks.\"\n    },\n    {\n      \"action_name\": \"auto-offset_instructions_from_trigger\",\n      \"description\": \"按触发时间偏移输出指令。\",\n      \"description_en\": \"Offset output instructions relative to a trigger time.\"\n    },\n    {\n      \"action_name\": \"auto-get_ramp_times\",\n      \"description\": \"获取斜坡变化时间。\",\n      \"description_en\": \"Get ramp times.\"\n    },\n    {\n      \"action_name\": \"auto-make_timeseries\",\n      \"description\": \"生成输出时间序列。\",\n      \"description_en\": \"Generate an output time series.\"\n    },\n    {\n      \"action_name\": \"auto-expand_timeseries\",\n      \"description\": \"展开输出时间序列。\",\n      \"description_en\": \"Expand an output time series.\"\n    },\n    {\n      \"action_name\": \"auto-ramp\",\n      \"description\": \"定义斜坡输出指令。\",\n      \"description_en\": \"Define a ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-sine\",\n      \"description\": \"定义正弦输出指令。\",\n      \"description_en\": \"Define a sine output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-sine_ramp\",\n      \"description\": \"定义正弦斜坡输出指令。\",\n      \"description_en\": \"Define a sine-ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-sine4_ramp\",\n      \"description\": \"定义四次正弦斜坡输出指令。\",\n      \"description_en\": \"Define a sine4 ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-sine4_reverse_ramp\",\n      \"description\": \"定义反向四次正弦斜坡输出指令。\",\n      \"description_en\": \"Define a reverse sine4 ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-exp_ramp\",\n      \"description\": \"定义指数斜坡输出指令。\",\n      \"description_en\": \"Define an exponential ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-exp_ramp_t\",\n      \"description\": \"定义带时间参数的指数斜坡输出指令。\",\n      \"description_en\": \"Define a time-parameterized exponential ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-piecewise_accel_ramp\",\n      \"description\": \"定义分段加速度斜坡输出指令。\",\n      \"description_en\": \"Define a piecewise-acceleration ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-square_wave\",\n      \"description\": \"定义方波输出指令。\",\n      \"description_en\": \"Define a square-wave output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-square_wave_levels\",\n      \"description\": \"定义带电平参数的方波输出指令。\",\n      \"description_en\": \"Define a square-wave output instruction with specified levels.\"\n    },\n    {\n      \"action_name\": \"auto-customramp\",\n      \"description\": \"定义自定义斜坡输出指令。\",\n      \"description_en\": \"Define a custom ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-constant\",\n      \"description\": \"定义常量输出值。\",\n      \"description_en\": \"Define a constant output value.\"\n    },\n    {\n      \"action_name\": \"auto-static_value\",\n      \"description\": \"定义静态输出值。\",\n      \"description_en\": \"Define a static output value.\"\n    },\n    {\n      \"action_name\": \"auto-go_high\",\n      \"description\": \"将数字输出置为高电平。\",\n      \"description_en\": \"Set the digital output high.\"\n    },\n    {\n      \"action_name\": \"auto-go_low\",\n      \"description\": \"将数字输出置为低电平。\",\n      \"description_en\": \"Set the digital output low.\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"使能输出通道。\",\n      \"description_en\": \"Enable the output channel.\"\n    },\n    {\n      \"action_name\": \"auto-disable\",\n      \"description\": \"禁用输出通道。\",\n      \"description_en\": \"Disable the output channel.\"\n    },\n    {\n      \"action_name\": \"auto-repeat_pulse_sequence\",\n      \"description\": \"定义重复脉冲序列。\",\n      \"description_en\": \"Define a repeated pulse sequence.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"安排触发输出指令。\",\n      \"description_en\": \"Schedule a trigger output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-add_device\",\n      \"description\": \"添加子设备或关联输出对象。\",\n      \"description_en\": \"Add a child device or associated output object.\"\n    },\n    {\n      \"action_name\": \"auto-setamp\",\n      \"description\": \"设置输出幅度。\",\n      \"description_en\": \"Set the output amplitude.\"\n    },\n    {\n      \"action_name\": \"auto-setfreq\",\n      \"description\": \"设置输出频率。\",\n      \"description_en\": \"Set the output frequency.\"\n    },\n    {\n      \"action_name\": \"auto-setphase\",\n      \"description\": \"设置输出相位。\",\n      \"description_en\": \"Set the output phase.\"\n    },\n    {\n      \"action_name\": \"auto-pulse\",\n      \"description\": \"定义脉冲输出指令。\",\n      \"description_en\": \"Define a pulse output instruction.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"shutter timing\",\n    \"digital output sequencing\",\n    \"delay compensation\",\n    \"labscript experiment control\",\n    \"HDF5 code generation\",\n    \"trigger scheduling\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2243,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 4335,
+      "output_tokens_details": {
+        "reasoning_tokens": 2437
+      },
+      "total_tokens": 6578
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2243,
+      "output_token_count": 4335,
+      "predict_time": 71.656866277
+    }
+  },
+  "output_text": "{\n  \"name\": \"快门时序控制组件\",\n  \"name_en\": \"Shutter Timing Control Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于在实验时序中表示和调度快门输出通道。它基于数字输出抽象，能够在编排实验序列时自动补偿快门开启/关闭延迟，并生成供实验控制系统执行的定时指令与代码，常用于激光束遮断、放光窗口控制等场景。\",\n  \"description_en\": \"This is a non-physical software component that represents and schedules a shutter output channel within an experimental timing sequence. Built on a digital-output abstraction, it automatically compensates for shutter open/close delays during sequence programming and generates timed instructions and code for the experiment control system, commonly for beam blocking and optical exposure-window control.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"安排快门关闭指令，并自动补偿关闭延迟。\",\n      \"description_en\": \"Schedule a shutter-close instruction with automatic close-delay compensation.\"\n    },\n    {\n      \"action_name\": \"auto-generate_code\",\n      \"description\": \"生成该输出通道的实验控制代码或时序数据。\",\n      \"description_en\": \"Generate experiment-control code or timing data for this output channel.\"\n    },\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"安排快门打开指令，并自动补偿开启延迟。\",\n      \"description_en\": \"Schedule a shutter-open instruction with automatic open-delay compensation.\"\n    },\n    {\n      \"action_name\": \"auto-get_change_times\",\n      \"description\": \"获取状态变化时间。\",\n      \"description_en\": \"get state change times\"\n    },\n    {\n      \"action_name\": \"auto-clock_limit\",\n      \"description\": \"获取时钟速率限制。\",\n      \"description_en\": \"Get the clock rate limit.\"\n    },\n    {\n      \"action_name\": \"auto-trigger_delay\",\n      \"description\": \"获取触发延迟。\",\n      \"description_en\": \"Get the trigger delay.\"\n    },\n    {\n      \"action_name\": \"auto-wait_delay\",\n      \"description\": \"获取等待延迟。\",\n      \"description_en\": \"Get the wait delay.\"\n    },\n    {\n      \"action_name\": \"auto-get_all_outputs\",\n      \"description\": \"获取全部输出对象。\",\n      \"description_en\": \"Get all output objects.\"\n    },\n    {\n      \"action_name\": \"auto-apply_calibration\",\n      \"description\": \"应用校准参数到输出指令。\",\n      \"description_en\": \"Apply calibration parameters to the output instructions.\"\n    },\n    {\n      \"action_name\": \"auto-instruction_to_string\",\n      \"description\": \"将输出指令转换为字符串表示。\",\n      \"description_en\": \"Convert an output instruction to its string representation.\"\n    },\n    {\n      \"action_name\": \"auto-add_instruction\",\n      \"description\": \"添加一条输出时序指令。\",\n      \"description_en\": \"Add an output timing instruction.\"\n    },\n    {\n      \"action_name\": \"auto-do_checks\",\n      \"description\": \"执行输出配置和时序检查。\",\n      \"description_en\": \"Perform output configuration and timing checks.\"\n    },\n    {\n      \"action_name\": \"auto-offset_instructions_from_trigger\",\n      \"description\": \"按触发时间偏移输出指令。\",\n      \"description_en\": \"Offset output instructions relative to a trigger time.\"\n    },\n    {\n      \"action_name\": \"auto-get_ramp_times\",\n      \"description\": \"获取斜坡变化时间。\",\n      \"description_en\": \"Get ramp times.\"\n    },\n    {\n      \"action_name\": \"auto-make_timeseries\",\n      \"description\": \"生成输出时间序列。\",\n      \"description_en\": \"Generate an output time series.\"\n    },\n    {\n      \"action_name\": \"auto-expand_timeseries\",\n      \"description\": \"展开输出时间序列。\",\n      \"description_en\": \"Expand an output time series.\"\n    },\n    {\n      \"action_name\": \"auto-ramp\",\n      \"description\": \"定义斜坡输出指令。\",\n      \"description_en\": \"Define a ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-sine\",\n      \"description\": \"定义正弦输出指令。\",\n      \"description_en\": \"Define a sine output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-sine_ramp\",\n      \"description\": \"定义正弦斜坡输出指令。\",\n      \"description_en\": \"Define a sine-ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-sine4_ramp\",\n      \"description\": \"定义四次正弦斜坡输出指令。\",\n      \"description_en\": \"Define a sine4 ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-sine4_reverse_ramp\",\n      \"description\": \"定义反向四次正弦斜坡输出指令。\",\n      \"description_en\": \"Define a reverse sine4 ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-exp_ramp\",\n      \"description\": \"定义指数斜坡输出指令。\",\n      \"description_en\": \"Define an exponential ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-exp_ramp_t\",\n      \"description\": \"定义带时间参数的指数斜坡输出指令。\",\n      \"description_en\": \"Define a time-parameterized exponential ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-piecewise_accel_ramp\",\n      \"description\": \"定义分段加速度斜坡输出指令。\",\n      \"description_en\": \"Define a piecewise-acceleration ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-square_wave\",\n      \"description\": \"定义方波输出指令。\",\n      \"description_en\": \"Define a square-wave output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-square_wave_levels\",\n      \"description\": \"定义带电平参数的方波输出指令。\",\n      \"description_en\": \"Define a square-wave output instruction with specified levels.\"\n    },\n    {\n      \"action_name\": \"auto-customramp\",\n      \"description\": \"定义自定义斜坡输出指令。\",\n      \"description_en\": \"Define a custom ramp output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-constant\",\n      \"description\": \"定义常量输出值。\",\n      \"description_en\": \"Define a constant output value.\"\n    },\n    {\n      \"action_name\": \"auto-static_value\",\n      \"description\": \"定义静态输出值。\",\n      \"description_en\": \"Define a static output value.\"\n    },\n    {\n      \"action_name\": \"auto-go_high\",\n      \"description\": \"将数字输出置为高电平。\",\n      \"description_en\": \"Set the digital output high.\"\n    },\n    {\n      \"action_name\": \"auto-go_low\",\n      \"description\": \"将数字输出置为低电平。\",\n      \"description_en\": \"Set the digital output low.\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"使能输出通道。\",\n      \"description_en\": \"Enable the output channel.\"\n    },\n    {\n      \"action_name\": \"auto-disable\",\n      \"description\": \"禁用输出通道。\",\n      \"description_en\": \"Disable the output channel.\"\n    },\n    {\n      \"action_name\": \"auto-repeat_pulse_sequence\",\n      \"description\": \"定义重复脉冲序列。\",\n      \"description_en\": \"Define a repeated pulse sequence.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"安排触发输出指令。\",\n      \"description_en\": \"Schedule a trigger output instruction.\"\n    },\n    {\n      \"action_name\": \"auto-add_device\",\n      \"description\": \"添加子设备或关联输出对象。\",\n      \"description_en\": \"Add a child device or associated output object.\"\n    },\n    {\n      \"action_name\": \"auto-setamp\",\n      \"description\": \"设置输出幅度。\",\n      \"description_en\": \"Set the output amplitude.\"\n    },\n    {\n      \"action_name\": \"auto-setfreq\",\n      \"description\": \"设置输出频率。\",\n      \"description_en\": \"Set the output frequency.\"\n    },\n    {\n      \"action_name\": \"auto-setphase\",\n      \"description\": \"设置输出相位。\",\n      \"description_en\": \"Set the output phase.\"\n    },\n    {\n      \"action_name\": \"auto-pulse\",\n      \"description\": \"定义脉冲输出指令。\",\n      \"description_en\": \"Define a pulse output instruction.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"shutter timing\",\n    \"digital output sequencing\",\n    \"delay compensation\",\n    \"labscript experiment control\",\n    \"HDF5 code generation\",\n    \"trigger scheduling\"\n  ]\n}"
+}

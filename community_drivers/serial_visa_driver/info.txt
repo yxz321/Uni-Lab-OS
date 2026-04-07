@@ -1,29 +1,89 @@
-Device: serial_visa_driver
-Registry Key: serial_visa_driver
-Short Description: Serial Visa Driver是由National Instruments (VISA)生产的实验执行&合成设备，主要功能包括初始化、打开。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (5):
-- auto-finalize -> finalize [UniLabJsonCommand] goal_params: none
-- auto-initialize -> initialize [UniLabJsonCommand] goal_params: none
-- auto-is_open -> is_open [UniLabJsonCommand] goal_params: none
-- auto-raw_recv -> raw_recv [UniLabJsonCommand] goal_params: size
-- auto-raw_send -> raw_send [UniLabJsonCommand] goal_params: data
-
-Driver Functions (11):
-- VisaDriver.__new__(cls, resource_name, *args, **kwargs) (line 104)
-- MessageVisaDriver.__init__(self, resource_name, *args, **kwargs) (line 137)
-- MessageVisaDriver.raw_send(self, data) (line 153)
-- MessageVisaDriver.initialize(self) (line 165)
-- MessageVisaDriver.finalize(self) (line 178)
-- MessageVisaDriver.is_open(self) (line 184)
-- SerialVisaDriver.__init__(self, *args, **kwargs) (line 198)
-- SerialVisaDriver.__init__(self, resource_name, *args, **kwargs) (line 213)
-- SerialVisaDriver.raw_recv(self, size) (line 242)
-- GPIBVisaDriver.raw_recv(self, size) (line 271)
-- USBVisaDriver.raw_recv(self, size) (line 297)
+serial_visa_driver:
+  name: VISA串口通信组件
+  name_en: VISA Serial Communication Component
+  manufacturer: ''
+  category:
+  - VISA消息式仪器
+  - 串行仪器通信接口
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验仪器通信与驱动集成
+  - VISA消息式仪器
+  - 串行仪器通信接口
+  description: 一个非物理的软件通信组件，用于通过VISA串口会话与实验仪器进行通用消息通信。它提供会话初始化、关闭、连接状态检查以及原始字节收发功能，通常作为具体仪器驱动的基础层使用，而不是某一台特定硬件仪器本身。
+  description_en: A non-physical software communication component for generic message-based
+    communication with laboratory instruments over a VISA serial session. It provides
+    session initialization, shutdown, connection-state checking, and raw byte send/receive
+    functions, typically serving as a base layer for specific instrument drivers rather
+    than representing a particular hardware instrument itself.
+  class:
+    action_value_mappings:
+      auto-raw_recv:
+        schema:
+          description: 从VISA串口会话接收原始字节数据。
+          description_en: Receive raw byte data from the VISA serial session.
+      auto-raw_send:
+        schema:
+          description: 通过VISA串口会话发送原始字节数据。
+          description_en: Send raw byte data through the VISA serial session.
+      auto-initialize:
+        schema:
+          description: 初始化并打开VISA串口通信会话。
+          description_en: Initialize and open the VISA serial communication session.
+      auto-finalize:
+        schema:
+          description: 关闭并释放VISA串口通信会话。
+          description_en: Close and release the VISA serial communication session.
+      auto-is_open:
+        schema:
+          description: 检查VISA串口通信会话是否已打开。
+          description_en: Check whether the VISA serial communication session is open.
+auto_annotation_metadata:
+  registry_key: serial_visa_driver
+  annotation_workflow_version: v4
+  tag_hints:
+  - VISA serial communication
+  - instrument session management
+  - raw byte I/O
+  - serial port instruments
+  - message-based communication
+  - lab instrument software component
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件负责实验仪器的 VISA 串口会话初始化、收发与关闭，属于实验执行通信基础层。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它作为具体仪器驱动的基础层，直接服务实验室自动化中的仪器集成。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 描述强调其是具体仪器驱动之下的通用通信基类，非常符合驱动集成场景。
+  - id: P-500003
+    name: VISA消息式仪器
+    name_en: VISA Message-Based Instrument
+    type: device_template_tag
+    rationale: 该组件围绕 VISA 会话进行通用消息通信，与 VISA 消息式仪器通信模板直接相关。
+  - id: P-2013
+    name: 串行仪器通信接口
+    name_en: Serial Instrument Communication Interface
+    type: device_template_tag
+    rationale: 其底层传输是 VISA 串口会话上的原始字节收发，也符合串行仪器通信接口类特征。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: seekable\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: donkeycar/parts/datastore_v2.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.seekable:Seekable\n\nClass: Seekable (focal)\n  Bases: ['object']\n  Docstring: A seekable file reader, writer which deals with newline delimited\nrecords. \n\nThis reader maintains an index of line lengths, so seeking a line is a\nO(1) operation.\n\nClass: Catalog \n  Bases: ['object']\n  Docstring: A new line delimited file that has records delimited by newlines. \n\n\n[ json object record ] \n\n[ json object record ] \n\n...\n\nClass: CatalogMetadata \n  Bases: ['object']\n  Docstring: Manifest for a Catalog\n\nClass: Manifest \n  Bases: ['object']\n  Docstring: A newline delimited file, with the following format.\n\n[ json array of inputs ]\n\n[ json array of types ]\n\n[ json object with user metadata ]\n\n[ json object with manifest metadata ]\n\n[ json object with catalog metadata ]\n\nClass: ManifestIterator \n  Bases: ['object']\n  Docstring: An iterator for the Manifest type. \n\n\nReturns catalog entries lazily when a consumer calls __next__().\n\nFocal class methods:\n  [command] writeline(self, contents)\n  [command] readline(self)\n    comment: When Seekable is a memory mapped file, readline() returns a `bytes`\n  [command] seek_line_start(self, line_number)\n  [command] seek_end_of_file(self)\n  [command] truncate_until_end(self, line_number)\n  [command] read_from(self, line_number)\n  [command] update_line(self, line_number, contents)\n  [command] lines(self)\n  [command] has_content(self)\n  [command] close(self)\n\nRegistry actions:\n  auto-writeline (from writeline())\n  auto-readline (from readline())\n  auto-seek_line_start (from seek_line_start())\n  auto-seek_end_of_file (from seek_end_of_file())\n  auto-truncate_until_end (from truncate_until_end())\n  auto-read_from (from read_from())\n  auto-update_line (from update_line())\n  auto-lines (from lines())\n  auto-has_content (from has_content())\n  auto-close (from close())\n\nRequired output action ids:\n  auto-writeline\n  auto-readline\n  auto-seek_line_start\n  auto-seek_end_of_file\n  auto-truncate_until_end\n  auto-read_from\n  auto-update_line\n  auto-lines\n  auto-has_content\n  auto-close"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_03c0c4b05dfc2c630069d55c1488b08190ae44e377584d8355",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3265,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7271,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_03c0c4b05dfc2c630069d55c14ffb48190a1e71287e89271bc",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_03c0c4b05dfc2c630069d55c2bf2b8819090369aef072da3c5",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"可寻址行记录存储组件\",\n  \"name_en\": \"Seekable Line-Record Storage Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"一种非物理的软件文件存储组件，用于读写以换行分隔的记录，并维护行索引以实现按行快速定位。适合在实验过程中保存日志、样本记录、目录清单和相关元数据。\",\n  \"description_en\": \"A non-physical software file storage component for reading and writing newline-delimited records while maintaining a line index for fast random access by line. It is useful in experiments for storing logs, sample records, catalogs, manifests, and related metadata.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-writeline\",\n      \"description\": \"写入一条以换行分隔的记录。\",\n      \"description_en\": \"Write one newline-delimited record.\"\n    },\n    {\n      \"action_name\": \"auto-readline\",\n      \"description\": \"读取当前位置的一行记录。\",\n      \"description_en\": \"Read one record from the current position.\"\n    },\n    {\n      \"action_name\": \"auto-seek_line_start\",\n      \"description\": \"将读写位置移动到指定行的起始处。\",\n      \"description_en\": \"Move the read/write position to the start of the specified line.\"\n    },\n    {\n      \"action_name\": \"auto-seek_end_of_file\",\n      \"description\": \"将读写位置移动到文件末尾。\",\n      \"description_en\": \"Move the read/write position to the end of the file.\"\n    },\n    {\n      \"action_name\": \"auto-truncate_until_end\",\n      \"description\": \"从指定行开始截断到文件末尾。\",\n      \"description_en\": \"Truncate the file from the specified line to the end.\"\n    },\n    {\n      \"action_name\": \"auto-read_from\",\n      \"description\": \"从指定行开始读取后续记录。\",\n      \"description_en\": \"Read records starting from the specified line.\"\n    },\n    {\n      \"action_name\": \"auto-update_line\",\n      \"description\": \"更新指定行的记录内容。\",\n      \"description_en\": \"Update the contents of the specified line.\"\n    },\n    {\n      \"action_name\": \"auto-lines\",\n      \"description\": \"获取已索引的行数。\",\n      \"description_en\": \"Get the number of indexed lines.\"\n    },\n    {\n      \"action_name\": \"auto-has_content\",\n      \"description\": \"检查文件是否包含内容。\",\n      \"description_en\": \"Check whether the file contains any content.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭底层文件资源。\",\n      \"description_en\": \"Close the underlying file resource.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"newline-delimited records\",\n    \"seekable file IO\",\n    \"random access by line\",\n    \"catalog and manifest storage\",\n    \"experiment data logging\",\n    \"memory-mapped file support\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1231,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1875,
+      "output_tokens_details": {
+        "reasoning_tokens": 1231
+      },
+      "total_tokens": 3106
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1231,
+      "output_token_count": 1875,
+      "predict_time": 33.032422167
+    }
+  },
+  "output_text": "{\n  \"name\": \"可寻址行记录存储组件\",\n  \"name_en\": \"Seekable Line-Record Storage Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"一种非物理的软件文件存储组件，用于读写以换行分隔的记录，并维护行索引以实现按行快速定位。适合在实验过程中保存日志、样本记录、目录清单和相关元数据。\",\n  \"description_en\": \"A non-physical software file storage component for reading and writing newline-delimited records while maintaining a line index for fast random access by line. It is useful in experiments for storing logs, sample records, catalogs, manifests, and related metadata.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-writeline\",\n      \"description\": \"写入一条以换行分隔的记录。\",\n      \"description_en\": \"Write one newline-delimited record.\"\n    },\n    {\n      \"action_name\": \"auto-readline\",\n      \"description\": \"读取当前位置的一行记录。\",\n      \"description_en\": \"Read one record from the current position.\"\n    },\n    {\n      \"action_name\": \"auto-seek_line_start\",\n      \"description\": \"将读写位置移动到指定行的起始处。\",\n      \"description_en\": \"Move the read/write position to the start of the specified line.\"\n    },\n    {\n      \"action_name\": \"auto-seek_end_of_file\",\n      \"description\": \"将读写位置移动到文件末尾。\",\n      \"description_en\": \"Move the read/write position to the end of the file.\"\n    },\n    {\n      \"action_name\": \"auto-truncate_until_end\",\n      \"description\": \"从指定行开始截断到文件末尾。\",\n      \"description_en\": \"Truncate the file from the specified line to the end.\"\n    },\n    {\n      \"action_name\": \"auto-read_from\",\n      \"description\": \"从指定行开始读取后续记录。\",\n      \"description_en\": \"Read records starting from the specified line.\"\n    },\n    {\n      \"action_name\": \"auto-update_line\",\n      \"description\": \"更新指定行的记录内容。\",\n      \"description_en\": \"Update the contents of the specified line.\"\n    },\n    {\n      \"action_name\": \"auto-lines\",\n      \"description\": \"获取已索引的行数。\",\n      \"description_en\": \"Get the number of indexed lines.\"\n    },\n    {\n      \"action_name\": \"auto-has_content\",\n      \"description\": \"检查文件是否包含内容。\",\n      \"description_en\": \"Check whether the file contains any content.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭底层文件资源。\",\n      \"description_en\": \"Close the underlying file resource.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"newline-delimited records\",\n    \"seekable file IO\",\n    \"random access by line\",\n    \"catalog and manifest storage\",\n    \"experiment data logging\",\n    \"memory-mapped file support\"\n  ]\n}"
+}

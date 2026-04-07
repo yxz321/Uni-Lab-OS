@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: shfqa\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pycqed/instrument_drivers/physical_instruments/ZurichInstruments/shfqa.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.quantum_measurement.shfqa:SHFQA\n\nClass: Defaults \n  Bases: []\n  Docstring: Class specifying driver default configuration values.\n\nClass: SHFQA (focal)\n  Bases: ['ZI_base_instrument', 'CalInterface']\n  Docstring: This is the PycQED driver for the 2.0 Gsample/s SHFQA developed\nby Zurich Instruments.\n\nRequirements:\nInstallation instructions for Zurich Instrument Libraries.\n1. install ziPython 3.5/3.6 ucs4 19.05 for 64bit Windows from\n    http://www.zhinst.com/downloads, https://people.zhinst.com/~niels/\n2. upload the latest firmware to the SHFQA using the LabOne GUI\n\nFocal class methods:\n  [command] start(self)\n    comment: \n    comment: 'public' overrides for ZI_base_instrument\n    comment: \n    comment: Starts the driver. In particular, cached configurations are validated and pushed to the device before arming\n        the acquisition units as well as the sequencers.\n  [command] stop(self)\n    comment: Stops the driver. In particular, disarms active sequencers and checks for errors.\n  [command] load_default_settings(self, upload_sequence=True)\n    comment: Sets default values to the QCoDes extra parameters. Note: these default settings are not pushed to the device.\n        They are only cached in the driver. Use the \"push_to_device\" method in order to u...\n  [command] configure_awg_from_string(self, awg_nr, program_string, timeout=15)\n    comment: Uploads the provided program string to the specified sequencer.\n\n        Args:\n            awg_nr: index of the sequencer to configure.\n            program_string: string specifying the SeqC program t...\n  [command] assure_ext_clock(self)\n    comment: Attempts to lock the device to an external reference clock. Failure to lock does\n        not raise an exception.\n  [command] clock_freq(self)\n    comment: Returns the device clock frequency.\n  [command] plot_dio_snapshot(self, bits=range(32))\n  [command] acquisition(self, samples=Defaults.NUM_MEASUREMENTS, averages=Defaults.NUM_AVERAGES, acquisition_time=0.01, timeout=10, mode=Defaults.RESULT_MODE, poll=True)\n    comment: \n    comment: measurement setup methods ported from UHF\n    comment: \n    comment: Perform an acquisition from start to finish.\n\n        Args:\n            samples: number of measurement samples.\n            averages: number of averages per measurement sample.\n            acquisition...\n  [command] acquisition_initialize(self, samples, averages, loop_cnt=None, channels=(0, 1), mode=Defaults.RESULT_MODE, poll=True)\n    comment: Initializes the acquisition units with the provided measurement configration.\n\n        Args:\n            samples: number of measurement samples.\n            averages: number of averages per measuremen...\n  [command] acquisition_arm(self, single=True)\n    comment: Arms the acquisition.\n\n        Args:\n            single: specifies whether to disarm sequencers once all results have been collected.\n  [command] acquisition_poll(self, samples, arm=True, acquisition_time=0.01)\n    comment: Returns the collected measurement results using the poll command under the hood. Note: this method does not\n        allow collecting partial results. Results will only be available if the acquisition ...\n  [command] acquisition_get(self, samples, arm=True, acquisition_time=0.01)\n    comment: Returns the collected measurement results using the get command under the hood. Note: this method does not\n        allow collecting partial results. Results will only be available if the acquisition u...\n  [command] acquisition_finalize(self)\n    comment: Finalizes the current measurement.\n  [command] snapshot_base(self, update=False, params_to_skip_update=None, params_to_exclude=None)\n    comment: \n    comment: Overriding Qcodes InstrumentBase methods\n    comment: \n    comment: Returns QCoDes snapshot instance.\n\n        Args:\n            update: specify whether to query parameters from the instrument itself, or to use cached values.\n            params_to_skip_update: paramet...\n  [command] awg_sequence_acquisition_and_DIO_triggered_pulse(self, Iwaves=None, Qwaves=None, cases=None, acquisition_delay=0)\n    comment: \n    comment: sequencer functions ported from UHFQC\n    comment: \n    comment: Configures the sequencers for a codeword experiment. The acquisition is started after receiving a DIO trigger,\n        with different generator and integrator slots being triggered based on the value ...\n  [command] awg_sequence_acquisition_and_pulse(self, Iwave=None, Qwave=None, acquisition_delay=0, dig_trigger=True, ch=Defaults.SingleQubitExperiments.CHANNEL, slot=Defaults.SingleQubitExperiments.SLOT)\n    comment: \n    comment: single qubit experiments\n    comment: \n    comment: Configures the sequencers for an experiment where the acquisition is started after optionally receiving a\n        DIO trigger, with the readout pulse and integration weights stored in the specified ge...\n  [command] awg_sequence_acquisition(self, dly=0, ch=Defaults.SingleQubitExperiments.CHANNEL, slot=Defaults.SingleQubitExperiments.SLOT)\n    comment: Configures the sequencers for an experiment where the acquisition is started after receiving a DIO trigger,\n        without playing any readout pulse and using the integration weights stored in a spec...\n  [command] awg_sequence_acquisition_and_pulse_SSB(self, f_RO_mod, RO_amp, RO_pulse_length, acquisition_delay, dig_trigger=True, ch=Defaults.SingleQubitExperiments.CHANNEL, slot=Defaults.SingleQubitExperiments.SLOT)\n    comment: Same as 'awg_sequence_acquisition_and_pulse', only with an SSB readout pulse uploaded to the specified slot.\n        Args:\n            f_RO_mod: modulation frequency of the SSB readout pulse.\n        ...\n  [command] configure_spectroscopy(self, start_frequency, frequency_step, settling_time, dio_trigger=True, envelope=None, ch=Defaults.SingleQubitExperiments.CHANNEL)\n    comment: Configures a sequencer-based continuous or pulsed spectroscopy experiment on the specified channel, where each step\n        may be triggered via DIO. The number of frequency steps and averages is spec...\n  [command] awg_sequence_acquisition_and_DIO_RED_test(self, acquisition_delay=0, dio_out_vect=None)\n  [command] awg_sequence_test_pattern(self, dio_out_vect=None)\n  [command] spec_mode_on(self, acq_length=1 / 1500, IF=20000000.0, ro_amp=0.1, wint_length=2 ** 14)\n  [command] prepare_SSB_weight_and_rotation(self, IF, rotation_angle=0, length=DeviceConstants.Readout.MAX_LENGTH / DeviceConstants.SAMPLING_FREQUENCY, scaling_factor=1, ch=Defaults.SingleQubitExperiments.CHANNEL, slot=Defaults.SingleQubitExperiments.SLOT)\n    comment: \n    comment: weighted integration helpers ported from UHF\n    comment: \n    comment: to be consistent in naming\n    comment: Uploads SSB integration weights to a specified integrator slot.\n\n        Args:\n            IF: demodulation frequency.\n            rotation_angle: rotation to apply to the weights.\n            length:...\n  [command] prepare_DSB_weight_and_rotation(self, IF, ch=Defaults.SingleQubitExperiments.CHANNEL, slot=Defaults.SingleQubitExperiments.SLOT)\n  [command] output_dio_calibration_data(self, dio_mode, port=0)\n    comment: \n    comment: overrides for CalInterface interface\n    comment: \n  [command] calibrate_dio_protocol(self, dio_mask, expected_sequence, port=0)\n    comment: Calculate measurement time so at least 10k toggles are checked.\n    comment: As long as values at the end of the array indicate value_same == 0, keep walking to the front.\n    comment: Clear all detected errors (caused by DIO timing calibration)\n  [command] active_slots(self)\n    comment: Returns the currently active slots in the driver.\n  [command] active_channels(self)\n    comment: Returns the currently active channels in the driver.\n  [command] validate_config(self)\n    comment: \n    comment: startup helpers\n    comment: \n    comment: Top level function validating currently stored driver configuration. Can be used e.g. before actually pushing\n        data to the device.\n  [command] push_to_device(self)\n    comment: Top level function responsible for pushing the shallow device configuration stored in the driver to the actual\n        device.\n  [command] reset_acquisition_params(self)\n    comment: \n    comment: 'public' utility functions ported from UHF\n    comment: \n  [command] reset_user_registers(self)\n  [command] reset_crosstalk_matrix(self)\n  [command] reset_correlation_params(self)\n  [command] reset_rotation_params(self)\n  [command] upload_crosstalk_matrix(self, matrix)\n  [command] download_crosstalk_matrix(self, nr_rows=10, nr_cols=10)\n  [command] print_correlation_overview(self)\n    comment: \n    comment: 'public' print overview functions ported from UHF\n    comment: \n  [command] print_deskew_overview(self)\n  [command] print_crosstalk_overview(self)\n  [command] print_integration_overview(self)\n  [command] print_rotations_overview(self)\n  [command] print_thresholds_overview(self)\n  [command] print_user_regs_overview(self)\n  [command] print_overview(self)\n\nRegistry actions:\n  auto-load_default_settings (from load_default_settings())\n  auto-configure_awg_from_string (from configure_awg_from_string())\n  auto-assure_ext_clock (from assure_ext_clock())\n  auto-clock_freq (from clock_freq())\n  auto-plot_dio_snapshot (from plot_dio_snapshot())\n  auto-acquisition (from acquisition())\n  auto-acquisition_initialize (from acquisition_initialize())\n  auto-acquisition_arm (from acquisition_arm())\n  auto-acquisition_poll (from acquisition_poll())\n  auto-acquisition_get (from acquisition_get())\n  auto-acquisition_finalize (from acquisition_finalize())\n  auto-snapshot_base (from snapshot_base())\n  auto-awg_sequence_acquisition_and_DIO_triggered_pulse (from awg_sequence_acquisition_and_DIO_triggered_pulse())\n  auto-awg_sequence_acquisition_and_pulse (from awg_sequence_acquisition_and_pulse())\n  auto-awg_sequence_acquisition (from awg_sequence_acquisition())\n  auto-awg_sequence_acquisition_and_pulse_SSB (from awg_sequence_acquisition_and_pulse_SSB())\n  auto-configure_spectroscopy (from configure_spectroscopy())\n  auto-awg_sequence_acquisition_and_DIO_RED_test (from awg_sequence_acquisition_and_DIO_RED_test())\n  auto-awg_sequence_test_pattern (from awg_sequence_test_pattern())\n  auto-spec_mode_on (from spec_mode_on())\n  auto-prepare_SSB_weight_and_rotation (from prepare_SSB_weight_and_rotation())\n  auto-prepare_DSB_weight_and_rotation (from prepare_DSB_weight_and_rotation())\n  auto-output_dio_calibration_data (from output_dio_calibration_data())\n  auto-calibrate_dio_protocol (from calibrate_dio_protocol())\n  auto-active_slots (from active_slots())\n  auto-active_channels (from active_channels())\n  auto-validate_config (from validate_config())\n  auto-push_to_device (from push_to_device())\n  auto-reset_acquisition_params (from reset_acquisition_params())\n  auto-reset_user_registers (from reset_user_registers())\n  auto-reset_crosstalk_matrix (from reset_crosstalk_matrix())\n  auto-reset_correlation_params (from reset_correlation_params())\n  auto-reset_rotation_params (from reset_rotation_params())\n  auto-upload_crosstalk_matrix (from upload_crosstalk_matrix())\n  auto-download_crosstalk_matrix (from download_crosstalk_matrix())\n  auto-print_correlation_overview (from print_correlation_overview())\n  auto-print_deskew_overview (from print_deskew_overview())\n  auto-print_crosstalk_overview (from print_crosstalk_overview())\n  auto-print_integration_overview (from print_integration_overview())\n  auto-print_rotations_overview (from print_rotations_overview())\n  auto-print_thresholds_overview (from print_thresholds_overview())\n  auto-print_user_regs_overview (from print_user_regs_overview())\n  auto-print_overview (from print_overview())\n\nRequired output action ids:\n  auto-load_default_settings\n  auto-configure_awg_from_string\n  auto-assure_ext_clock\n  auto-clock_freq\n  auto-plot_dio_snapshot\n  auto-acquisition\n  auto-acquisition_initialize\n  auto-acquisition_arm\n  auto-acquisition_poll\n  auto-acquisition_get\n  auto-acquisition_finalize\n  auto-snapshot_base\n  auto-awg_sequence_acquisition_and_DIO_triggered_pulse\n  auto-awg_sequence_acquisition_and_pulse\n  auto-awg_sequence_acquisition\n  auto-awg_sequence_acquisition_and_pulse_SSB\n  auto-configure_spectroscopy\n  auto-awg_sequence_acquisition_and_DIO_RED_test\n  auto-awg_sequence_test_pattern\n  auto-spec_mode_on\n  auto-prepare_SSB_weight_and_rotation\n  auto-prepare_DSB_weight_and_rotation\n  auto-output_dio_calibration_data\n  auto-calibrate_dio_protocol\n  auto-active_slots\n  auto-active_channels\n  auto-validate_config\n  auto-push_to_device\n  auto-reset_acquisition_params\n  auto-reset_user_registers\n  auto-reset_crosstalk_matrix\n  auto-reset_correlation_params\n  auto-reset_rotation_params\n  auto-upload_crosstalk_matrix\n  auto-download_crosstalk_matrix\n  auto-print_correlation_overview\n  auto-print_deskew_overview\n  auto-print_crosstalk_overview\n  auto-print_integration_overview\n  auto-print_rotations_overview\n  auto-print_thresholds_overview\n  auto-print_user_regs_overview\n  auto-print_overview"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_06421cc76206bc110069d55bf0ca808195ac1172257a242e7b",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 14419,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 15497,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "low"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_06421cc76206bc110069d55bf12f808195b5635d96011d68ef",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_06421cc76206bc110069d55c093e58819580e3463919529ad0",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"SHFQA量子分析仪\",\n  \"name_en\": \"SHFQA Quantum Analyzer\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"这是一台 Zurich Instruments 的 SHFQA 量子分析仪，用于量子测量实验中的读出脉冲生成、采集控制、加权积分、DIO 触发联动以及谱学配置。驱动表明该设备支持测量序列上传、外部时钟锁定、采集单元控制、积分权重配置和串扰校正，常用于超导量子比特读出与相关表征实验。\",\n  \"description_en\": \"This is a Zurich Instruments SHFQA quantum analyzer used in quantum measurement experiments for readout pulse generation, acquisition control, weighted integration, DIO-triggered coordination, and spectroscopy setup. The driver indicates support for sequencer program upload, external clock locking, acquisition unit control, integration weight configuration, and crosstalk correction, making it suitable for superconducting qubit readout and related characterization experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-load_default_settings\",\n      \"description\": \"加载设备参数的默认设置到驱动缓存中，但不立即下发到仪器。\",\n      \"description_en\": \"Load default parameter settings into the driver cache without immediately uploading them to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-configure_awg_from_string\",\n      \"description\": \"向指定测序器上传并配置字符串形式的 SeqC/AWG 程序。\",\n      \"description_en\": \"Upload and configure a SeqC/AWG program string to the specified sequencer.\"\n    },\n    {\n      \"action_name\": \"auto-assure_ext_clock\",\n      \"description\": \"尝试将仪器锁定到外部参考时钟。\",\n      \"description_en\": \"Attempt to lock the instrument to an external reference clock.\"\n    },\n    {\n      \"action_name\": \"auto-clock_freq\",\n      \"description\": \"读取设备时钟频率。\",\n      \"description_en\": \"Read the device clock frequency.\"\n    },\n    {\n      \"action_name\": \"auto-plot_dio_snapshot\",\n      \"description\": \"绘制数字 I/O 位快照，用于触发与时序诊断。\",\n      \"description_en\": \"Plot a digital I/O bit snapshot for trigger and timing diagnostics.\"\n    },\n    {\n      \"action_name\": \"auto-acquisition\",\n      \"description\": \"执行一次完整采集流程，并返回测量结果。\",\n      \"description_en\": \"Run a complete acquisition procedure and return the measurement results.\"\n    },\n    {\n      \"action_name\": \"auto-acquisition_initialize\",\n      \"description\": \"按给定测量参数初始化采集单元和通道配置。\",\n      \"description_en\": \"Initialize the acquisition units and channel setup with the specified measurement parameters.\"\n    },\n    {\n      \"action_name\": \"auto-acquisition_arm\",\n      \"description\": \"使采集系统进入等待触发的就绪状态。\",\n      \"description_en\": \"Arm the acquisition system so it is ready for triggering.\"\n    },\n    {\n      \"action_name\": \"auto-acquisition_poll\",\n      \"description\": \"通过轮询方式读取已完成采集的结果。\",\n      \"description_en\": \"Retrieve completed acquisition results using a polling method.\"\n    },\n    {\n      \"action_name\": \"auto-acquisition_get\",\n      \"description\": \"通过获取接口读取已完成采集的结果。\",\n      \"description_en\": \"Retrieve completed acquisition results using the get interface.\"\n    },\n    {\n      \"action_name\": \"auto-acquisition_finalize\",\n      \"description\": \"结束并收尾当前测量采集流程。\",\n      \"description_en\": \"Finalize and clean up the current measurement acquisition procedure.\"\n    },\n    {\n      \"action_name\": \"auto-snapshot_base\",\n      \"description\": \"返回设备及其参数配置的快照信息。\",\n      \"description_en\": \"Return a snapshot of the instrument and its parameter configuration.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_DIO_triggered_pulse\",\n      \"description\": \"配置由 DIO 触发的采集与读出脉冲序列，用于码字类实验。\",\n      \"description_en\": \"Configure a DIO-triggered acquisition and readout pulse sequence for codeword-style experiments.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_pulse\",\n      \"description\": \"配置单量子比特实验中的读出脉冲与采集序列，可选数字触发。\",\n      \"description_en\": \"Configure a readout pulse and acquisition sequence for single-qubit experiments, optionally with digital triggering.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition\",\n      \"description\": \"配置仅执行触发采集而不输出读出脉冲的序列。\",\n      \"description_en\": \"Configure a sequence that performs triggered acquisition without outputting a readout pulse.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_pulse_SSB\",\n      \"description\": \"配置带单边带调制读出脉冲的采集序列。\",\n      \"description_en\": \"Configure an acquisition sequence with a single-sideband modulated readout pulse.\"\n    },\n    {\n      \"action_name\": \"auto-configure_spectroscopy\",\n      \"description\": \"配置连续或脉冲式谱学扫描实验序列。\",\n      \"description_en\": \"Configure a continuous or pulsed spectroscopy sweep experiment sequence.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_DIO_RED_test\",\n      \"description\": \"配置用于 DIO 触发与时序验证的测试采集序列。\",\n      \"description_en\": \"Configure a test acquisition sequence for DIO triggering and timing verification.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_test_pattern\",\n      \"description\": \"输出测序器测试图样，用于接口与时序检查。\",\n      \"description_en\": \"Output a sequencer test pattern for interface and timing checks.\"\n    },\n    {\n      \"action_name\": \"auto-spec_mode_on\",\n      \"description\": \"开启谱学测量模式并设置相关采集参数。\",\n      \"description_en\": \"Enable spectroscopy mode and set the related acquisition parameters.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_SSB_weight_and_rotation\",\n      \"description\": \"上传单边带积分权重并设置读出旋转参数。\",\n      \"description_en\": \"Upload single-sideband integration weights and set the readout rotation parameters.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_DSB_weight_and_rotation\",\n      \"description\": \"上传双边带积分权重并设置相应旋转参数。\",\n      \"description_en\": \"Upload double-sideband integration weights and set the corresponding rotation parameters.\"\n    },\n    {\n      \"action_name\": \"auto-output_dio_calibration_data\",\n      \"description\": \"输出 DIO 校准数据或模式，用于数字接口校准。\",\n      \"description_en\": \"Output DIO calibration data or patterns for digital interface calibration.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_dio_protocol\",\n      \"description\": \"根据期望序列校准 DIO 协议与时序。\",\n      \"description_en\": \"Calibrate the DIO protocol and timing against an expected sequence.\"\n    },\n    {\n      \"action_name\": \"auto-active_slots\",\n      \"description\": \"返回当前驱动配置中启用的槽位列表。\",\n      \"description_en\": \"Return the list of active slots in the current driver configuration.\"\n    },\n    {\n      \"action_name\": \"auto-active_channels\",\n      \"description\": \"返回当前驱动配置中启用的通道列表。\",\n      \"description_en\": \"Return the list of active channels in the current driver configuration.\"\n    },\n    {\n      \"action_name\": \"auto-validate_config\",\n      \"description\": \"校验当前缓存的设备配置是否有效。\",\n      \"description_en\": \"Validate whether the currently cached device configuration is valid.\"\n    },\n    {\n      \"action_name\": \"auto-push_to_device\",\n      \"description\": \"将驱动中缓存的配置下发到实际仪器。\",\n      \"description_en\": \"Push the configuration cached in the driver to the physical instrument.\"\n    },\n    {\n      \"action_name\": \"auto-reset_acquisition_params\",\n      \"description\": \"重置采集相关参数。\",\n      \"description_en\": \"Reset acquisition-related parameters.\"\n    },\n    {\n      \"action_name\": \"auto-reset_user_registers\",\n      \"description\": \"重置用户寄存器。\",\n      \"description_en\": \"Reset the user registers.\"\n    },\n    {\n      \"action_name\": \"auto-reset_crosstalk_matrix\",\n      \"description\": \"重置串扰校正矩阵。\",\n      \"description_en\": \"Reset the crosstalk correction matrix.\"\n    },\n    {\n      \"action_name\": \"auto-reset_correlation_params\",\n      \"description\": \"重置相关性分析参数。\",\n      \"description_en\": \"Reset correlation analysis parameters.\"\n    },\n    {\n      \"action_name\": \"auto-reset_rotation_params\",\n      \"description\": \"重置积分或读出旋转参数。\",\n      \"description_en\": \"Reset integration or readout rotation parameters.\"\n    },\n    {\n      \"action_name\": \"auto-upload_crosstalk_matrix\",\n      \"description\": \"上传串扰校正矩阵到设备配置中。\",\n      \"description_en\": \"Upload a crosstalk correction matrix into the device configuration.\"\n    },\n    {\n      \"action_name\": \"auto-download_crosstalk_matrix\",\n      \"description\": \"读取当前串扰校正矩阵。\",\n      \"description_en\": \"Read back the current crosstalk correction matrix.\"\n    },\n    {\n      \"action_name\": \"auto-print_correlation_overview\",\n      \"description\": \"打印相关性参数概览。\",\n      \"description_en\": \"Print an overview of the correlation parameters.\"\n    },\n    {\n      \"action_name\": \"auto-print_deskew_overview\",\n      \"description\": \"打印去偏斜设置概览。\",\n      \"description_en\": \"Print an overview of the deskew settings.\"\n    },\n    {\n      \"action_name\": \"auto-print_crosstalk_overview\",\n      \"description\": \"打印串扰配置概览。\",\n      \"description_en\": \"Print an overview of the crosstalk configuration.\"\n    },\n    {\n      \"action_name\": \"auto-print_integration_overview\",\n      \"description\": \"打印积分设置概览。\",\n      \"description_en\": \"Print an overview of the integration settings.\"\n    },\n    {\n      \"action_name\": \"auto-print_rotations_overview\",\n      \"description\": \"打印旋转参数概览。\",\n      \"description_en\": \"Print an overview of the rotation parameters.\"\n    },\n    {\n      \"action_name\": \"auto-print_thresholds_overview\",\n      \"description\": \"打印阈值设置概览。\",\n      \"description_en\": \"Print an overview of the threshold settings.\"\n    },\n    {\n      \"action_name\": \"auto-print_user_regs_overview\",\n      \"description\": \"打印用户寄存器概览。\",\n      \"description_en\": \"Print an overview of the user registers.\"\n    },\n    {\n      \"action_name\": \"auto-print_overview\",\n      \"description\": \"打印设备整体配置概览。\",\n      \"description_en\": \"Print an overall overview of the device configuration.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"qubit readout\",\n    \"quantum analyzer\",\n    \"AWG sequencer\",\n    \"microwave spectroscopy\",\n    \"weighted integration\",\n    \"DIO triggering\",\n    \"crosstalk correction\",\n    \"external reference clock\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 3744,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3818,
+      "output_tokens_details": {
+        "reasoning_tokens": 1306
+      },
+      "total_tokens": 7562
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 3744,
+      "output_token_count": 3818,
+      "predict_time": 57.533767909
+    }
+  },
+  "output_text": "{\n  \"name\": \"SHFQA量子分析仪\",\n  \"name_en\": \"SHFQA Quantum Analyzer\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"这是一台 Zurich Instruments 的 SHFQA 量子分析仪，用于量子测量实验中的读出脉冲生成、采集控制、加权积分、DIO 触发联动以及谱学配置。驱动表明该设备支持测量序列上传、外部时钟锁定、采集单元控制、积分权重配置和串扰校正，常用于超导量子比特读出与相关表征实验。\",\n  \"description_en\": \"This is a Zurich Instruments SHFQA quantum analyzer used in quantum measurement experiments for readout pulse generation, acquisition control, weighted integration, DIO-triggered coordination, and spectroscopy setup. The driver indicates support for sequencer program upload, external clock locking, acquisition unit control, integration weight configuration, and crosstalk correction, making it suitable for superconducting qubit readout and related characterization experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-load_default_settings\",\n      \"description\": \"加载设备参数的默认设置到驱动缓存中，但不立即下发到仪器。\",\n      \"description_en\": \"Load default parameter settings into the driver cache without immediately uploading them to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-configure_awg_from_string\",\n      \"description\": \"向指定测序器上传并配置字符串形式的 SeqC/AWG 程序。\",\n      \"description_en\": \"Upload and configure a SeqC/AWG program string to the specified sequencer.\"\n    },\n    {\n      \"action_name\": \"auto-assure_ext_clock\",\n      \"description\": \"尝试将仪器锁定到外部参考时钟。\",\n      \"description_en\": \"Attempt to lock the instrument to an external reference clock.\"\n    },\n    {\n      \"action_name\": \"auto-clock_freq\",\n      \"description\": \"读取设备时钟频率。\",\n      \"description_en\": \"Read the device clock frequency.\"\n    },\n    {\n      \"action_name\": \"auto-plot_dio_snapshot\",\n      \"description\": \"绘制数字 I/O 位快照，用于触发与时序诊断。\",\n      \"description_en\": \"Plot a digital I/O bit snapshot for trigger and timing diagnostics.\"\n    },\n    {\n      \"action_name\": \"auto-acquisition\",\n      \"description\": \"执行一次完整采集流程，并返回测量结果。\",\n      \"description_en\": \"Run a complete acquisition procedure and return the measurement results.\"\n    },\n    {\n      \"action_name\": \"auto-acquisition_initialize\",\n      \"description\": \"按给定测量参数初始化采集单元和通道配置。\",\n      \"description_en\": \"Initialize the acquisition units and channel setup with the specified measurement parameters.\"\n    },\n    {\n      \"action_name\": \"auto-acquisition_arm\",\n      \"description\": \"使采集系统进入等待触发的就绪状态。\",\n      \"description_en\": \"Arm the acquisition system so it is ready for triggering.\"\n    },\n    {\n      \"action_name\": \"auto-acquisition_poll\",\n      \"description\": \"通过轮询方式读取已完成采集的结果。\",\n      \"description_en\": \"Retrieve completed acquisition results using a polling method.\"\n    },\n    {\n      \"action_name\": \"auto-acquisition_get\",\n      \"description\": \"通过获取接口读取已完成采集的结果。\",\n      \"description_en\": \"Retrieve completed acquisition results using the get interface.\"\n    },\n    {\n      \"action_name\": \"auto-acquisition_finalize\",\n      \"description\": \"结束并收尾当前测量采集流程。\",\n      \"description_en\": \"Finalize and clean up the current measurement acquisition procedure.\"\n    },\n    {\n      \"action_name\": \"auto-snapshot_base\",\n      \"description\": \"返回设备及其参数配置的快照信息。\",\n      \"description_en\": \"Return a snapshot of the instrument and its parameter configuration.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_DIO_triggered_pulse\",\n      \"description\": \"配置由 DIO 触发的采集与读出脉冲序列，用于码字类实验。\",\n      \"description_en\": \"Configure a DIO-triggered acquisition and readout pulse sequence for codeword-style experiments.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_pulse\",\n      \"description\": \"配置单量子比特实验中的读出脉冲与采集序列，可选数字触发。\",\n      \"description_en\": \"Configure a readout pulse and acquisition sequence for single-qubit experiments, optionally with digital triggering.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition\",\n      \"description\": \"配置仅执行触发采集而不输出读出脉冲的序列。\",\n      \"description_en\": \"Configure a sequence that performs triggered acquisition without outputting a readout pulse.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_pulse_SSB\",\n      \"description\": \"配置带单边带调制读出脉冲的采集序列。\",\n      \"description_en\": \"Configure an acquisition sequence with a single-sideband modulated readout pulse.\"\n    },\n    {\n      \"action_name\": \"auto-configure_spectroscopy\",\n      \"description\": \"配置连续或脉冲式谱学扫描实验序列。\",\n      \"description_en\": \"Configure a continuous or pulsed spectroscopy sweep experiment sequence.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_DIO_RED_test\",\n      \"description\": \"配置用于 DIO 触发与时序验证的测试采集序列。\",\n      \"description_en\": \"Configure a test acquisition sequence for DIO triggering and timing verification.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_test_pattern\",\n      \"description\": \"输出测序器测试图样，用于接口与时序检查。\",\n      \"description_en\": \"Output a sequencer test pattern for interface and timing checks.\"\n    },\n    {\n      \"action_name\": \"auto-spec_mode_on\",\n      \"description\": \"开启谱学测量模式并设置相关采集参数。\",\n      \"description_en\": \"Enable spectroscopy mode and set the related acquisition parameters.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_SSB_weight_and_rotation\",\n      \"description\": \"上传单边带积分权重并设置读出旋转参数。\",\n      \"description_en\": \"Upload single-sideband integration weights and set the readout rotation parameters.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_DSB_weight_and_rotation\",\n      \"description\": \"上传双边带积分权重并设置相应旋转参数。\",\n      \"description_en\": \"Upload double-sideband integration weights and set the corresponding rotation parameters.\"\n    },\n    {\n      \"action_name\": \"auto-output_dio_calibration_data\",\n      \"description\": \"输出 DIO 校准数据或模式，用于数字接口校准。\",\n      \"description_en\": \"Output DIO calibration data or patterns for digital interface calibration.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_dio_protocol\",\n      \"description\": \"根据期望序列校准 DIO 协议与时序。\",\n      \"description_en\": \"Calibrate the DIO protocol and timing against an expected sequence.\"\n    },\n    {\n      \"action_name\": \"auto-active_slots\",\n      \"description\": \"返回当前驱动配置中启用的槽位列表。\",\n      \"description_en\": \"Return the list of active slots in the current driver configuration.\"\n    },\n    {\n      \"action_name\": \"auto-active_channels\",\n      \"description\": \"返回当前驱动配置中启用的通道列表。\",\n      \"description_en\": \"Return the list of active channels in the current driver configuration.\"\n    },\n    {\n      \"action_name\": \"auto-validate_config\",\n      \"description\": \"校验当前缓存的设备配置是否有效。\",\n      \"description_en\": \"Validate whether the currently cached device configuration is valid.\"\n    },\n    {\n      \"action_name\": \"auto-push_to_device\",\n      \"description\": \"将驱动中缓存的配置下发到实际仪器。\",\n      \"description_en\": \"Push the configuration cached in the driver to the physical instrument.\"\n    },\n    {\n      \"action_name\": \"auto-reset_acquisition_params\",\n      \"description\": \"重置采集相关参数。\",\n      \"description_en\": \"Reset acquisition-related parameters.\"\n    },\n    {\n      \"action_name\": \"auto-reset_user_registers\",\n      \"description\": \"重置用户寄存器。\",\n      \"description_en\": \"Reset the user registers.\"\n    },\n    {\n      \"action_name\": \"auto-reset_crosstalk_matrix\",\n      \"description\": \"重置串扰校正矩阵。\",\n      \"description_en\": \"Reset the crosstalk correction matrix.\"\n    },\n    {\n      \"action_name\": \"auto-reset_correlation_params\",\n      \"description\": \"重置相关性分析参数。\",\n      \"description_en\": \"Reset correlation analysis parameters.\"\n    },\n    {\n      \"action_name\": \"auto-reset_rotation_params\",\n      \"description\": \"重置积分或读出旋转参数。\",\n      \"description_en\": \"Reset integration or readout rotation parameters.\"\n    },\n    {\n      \"action_name\": \"auto-upload_crosstalk_matrix\",\n      \"description\": \"上传串扰校正矩阵到设备配置中。\",\n      \"description_en\": \"Upload a crosstalk correction matrix into the device configuration.\"\n    },\n    {\n      \"action_name\": \"auto-download_crosstalk_matrix\",\n      \"description\": \"读取当前串扰校正矩阵。\",\n      \"description_en\": \"Read back the current crosstalk correction matrix.\"\n    },\n    {\n      \"action_name\": \"auto-print_correlation_overview\",\n      \"description\": \"打印相关性参数概览。\",\n      \"description_en\": \"Print an overview of the correlation parameters.\"\n    },\n    {\n      \"action_name\": \"auto-print_deskew_overview\",\n      \"description\": \"打印去偏斜设置概览。\",\n      \"description_en\": \"Print an overview of the deskew settings.\"\n    },\n    {\n      \"action_name\": \"auto-print_crosstalk_overview\",\n      \"description\": \"打印串扰配置概览。\",\n      \"description_en\": \"Print an overview of the crosstalk configuration.\"\n    },\n    {\n      \"action_name\": \"auto-print_integration_overview\",\n      \"description\": \"打印积分设置概览。\",\n      \"description_en\": \"Print an overview of the integration settings.\"\n    },\n    {\n      \"action_name\": \"auto-print_rotations_overview\",\n      \"description\": \"打印旋转参数概览。\",\n      \"description_en\": \"Print an overview of the rotation parameters.\"\n    },\n    {\n      \"action_name\": \"auto-print_thresholds_overview\",\n      \"description\": \"打印阈值设置概览。\",\n      \"description_en\": \"Print an overview of the threshold settings.\"\n    },\n    {\n      \"action_name\": \"auto-print_user_regs_overview\",\n      \"description\": \"打印用户寄存器概览。\",\n      \"description_en\": \"Print an overview of the user registers.\"\n    },\n    {\n      \"action_name\": \"auto-print_overview\",\n      \"description\": \"打印设备整体配置概览。\",\n      \"description_en\": \"Print an overall overview of the device configuration.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"qubit readout\",\n    \"quantum analyzer\",\n    \"AWG sequencer\",\n    \"microwave spectroscopy\",\n    \"weighted integration\",\n    \"DIO triggering\",\n    \"crosstalk correction\",\n    \"external reference clock\"\n  ]\n}"
+}

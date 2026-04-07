@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: seeed_bus\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: can/interfaces/seeedstudio/seeedstudio.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.usb.seeed.seeed_bus:SeeedBus\n\nClass: SeeedBus (focal)\n  Bases: ['BusABC']\n  Docstring: Enable basic can communication over a USB-CAN-Analyzer device.\n\nFocal class methods:\n  [command] shutdown(self)\n    comment: Close the serial interface.\n  [command] init_frame(self, timeout=None)\n    comment: Send init message to setup the device for comms. this is called during\n        interface creation.\n\n        :param timeout:\n            This parameter will be ignored. The timeout value of the channel...\n  [command] flush_buffer(self)\n  [command] status_frame(self, timeout=None)\n    comment: Send status request message over the serial device.  The device will\n        respond but details of error codes are unknown but are logged - DEBUG.\n\n        :param timeout:\n            This parameter ...\n  [command] send(self, msg, timeout=None)\n    comment: Send a message over the serial device.\n\n        :param can.Message msg:\n            Message to send.\n\n        :param timeout:\n            This parameter will be ignored. The timeout value of the chann...\n  [command] fileno(self)\n\nRegistry actions:\n  auto-shutdown (from shutdown())\n  auto-init_frame (from init_frame())\n  auto-flush_buffer (from flush_buffer())\n  auto-status_frame (from status_frame())\n  auto-send (from send())\n  auto-fileno (from fileno())\n\nRequired output action ids:\n  auto-shutdown\n  auto-init_frame\n  auto-flush_buffer\n  auto-status_frame\n  auto-send\n  auto-fileno"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_08e6151d4a616e150069d55c0a8e448190aaa30bdb3db9d9dc",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2643,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3905,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_08e6151d4a616e150069d55c0b17048190a242ac0804c8ff6e",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_08e6151d4a616e150069d55c158bd081908230876a47cd9d04",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Seeed USB-CAN 分析仪\",\n  \"name_en\": \"Seeed USB-CAN Analyzer\",\n  \"manufacturer\": \"Seeed Studio\",\n  \"description\": \"用于通过 USB 将计算机连接到 CAN 总线的硬件接口设备，可完成总线初始化、状态查询与 CAN 报文发送，适合实验中的设备联调、协议通信和总线监测。\",\n  \"description_en\": \"A hardware interface device that connects a computer to a CAN bus over USB. It supports bus initialization, status queries, and CAN message transmission for laboratory device integration, protocol communication, and bus monitoring.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭 USB-CAN 分析仪的串口通信接口。\",\n      \"description_en\": \"Close the USB-CAN analyzer serial communication interface.\"\n    },\n    {\n      \"action_name\": \"auto-init_frame\",\n      \"description\": \"发送初始化帧以配置设备并开始 CAN 通信。\",\n      \"description_en\": \"Send an initialization frame to configure the device and start CAN communication.\"\n    },\n    {\n      \"action_name\": \"auto-flush_buffer\",\n      \"description\": \"清空设备通信缓冲区以移除积压数据。\",\n      \"description_en\": \"Flush the device communication buffer to remove queued data.\"\n    },\n    {\n      \"action_name\": \"auto-status_frame\",\n      \"description\": \"发送状态查询帧以获取设备状态或错误信息。\",\n      \"description_en\": \"Send a status request frame to obtain device status or error information.\"\n    },\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"通过 USB-CAN 分析仪发送 CAN 报文。\",\n      \"description_en\": \"Send a CAN message through the USB-CAN analyzer.\"\n    },\n    {\n      \"action_name\": \"auto-fileno\",\n      \"description\": \"获取底层通信接口的文件描述符。\",\n      \"description_en\": \"Get the file descriptor of the underlying communication interface.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB-CAN interface\",\n    \"CAN bus communication\",\n    \"CAN message transmission\",\n    \"serial-connected CAN adapter\",\n    \"bus initialization\",\n    \"device status query\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1059,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1003,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2062
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1059,
+      "output_token_count": 1003,
+      "predict_time": 18.556084189
+    }
+  },
+  "output_text": "{\n  \"name\": \"Seeed USB-CAN 分析仪\",\n  \"name_en\": \"Seeed USB-CAN Analyzer\",\n  \"manufacturer\": \"Seeed Studio\",\n  \"description\": \"用于通过 USB 将计算机连接到 CAN 总线的硬件接口设备，可完成总线初始化、状态查询与 CAN 报文发送，适合实验中的设备联调、协议通信和总线监测。\",\n  \"description_en\": \"A hardware interface device that connects a computer to a CAN bus over USB. It supports bus initialization, status queries, and CAN message transmission for laboratory device integration, protocol communication, and bus monitoring.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭 USB-CAN 分析仪的串口通信接口。\",\n      \"description_en\": \"Close the USB-CAN analyzer serial communication interface.\"\n    },\n    {\n      \"action_name\": \"auto-init_frame\",\n      \"description\": \"发送初始化帧以配置设备并开始 CAN 通信。\",\n      \"description_en\": \"Send an initialization frame to configure the device and start CAN communication.\"\n    },\n    {\n      \"action_name\": \"auto-flush_buffer\",\n      \"description\": \"清空设备通信缓冲区以移除积压数据。\",\n      \"description_en\": \"Flush the device communication buffer to remove queued data.\"\n    },\n    {\n      \"action_name\": \"auto-status_frame\",\n      \"description\": \"发送状态查询帧以获取设备状态或错误信息。\",\n      \"description_en\": \"Send a status request frame to obtain device status or error information.\"\n    },\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"通过 USB-CAN 分析仪发送 CAN 报文。\",\n      \"description_en\": \"Send a CAN message through the USB-CAN analyzer.\"\n    },\n    {\n      \"action_name\": \"auto-fileno\",\n      \"description\": \"获取底层通信接口的文件描述符。\",\n      \"description_en\": \"Get the file descriptor of the underlying communication interface.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB-CAN interface\",\n    \"CAN bus communication\",\n    \"CAN message transmission\",\n    \"serial-connected CAN adapter\",\n    \"bus initialization\",\n    \"device status query\"\n  ]\n}"
+}

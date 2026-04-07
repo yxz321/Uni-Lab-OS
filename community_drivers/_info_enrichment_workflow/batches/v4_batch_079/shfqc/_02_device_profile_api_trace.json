@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: shfqc\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/zhinst/qcodes/driver/devices/shfqc.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.quantum.shfqc:SHFQC\n\nClass: CommandTableNode \n  Bases: ['ZINode']\n  Docstring: CommandTable node.\n\nThis class implements the basic functionality of the command table allowing\nthe user to load and upload their own command table.\n\nA dedicated class called ``CommandTable`` exists that is the preferred way\nto create a valid command table. For more information about the\n``CommandTable`` refer to the corresponding example or the documentation\nof that class directly.\n\nArgs:\n    root: Node used for the upload of the command table\n    tree: Tree (node path as tuple) of the current node\n    device_type: Device type.\n\nClass: AWGCore \n  Bases: ['ZINode']\n  Docstring: AWG Core Node.\n\nClass: SGChannel \n  Bases: ['ZINode']\n  Docstring: Signal Generator Channel for the SHFSG.\n\n:class:`SGChannel` implements basic functionality to configure SGChannel\nsettings of the :class:`SHFSG` instrument.\n\nArgs:\n    device: SHFQA device object.\n    session: Underlying session.\n    tree: Node tree (node path as tuple) of the corresponding node.\n\nClass: Generator \n  Bases: ['ZINode']\n  Docstring: Generator node.\n\nImplements basic functionality of the generator allowing the user to write\nand upload their *'.seqC'* code.\n\nIn contrast to other AWG Sequencers, e.g. from the HDAWG, SHFSG\nit does not provide writing access to the Waveform Memories\nand hence does not come with predefined waveforms such as `gauss`\nor `ones`. Therefore, all waveforms need to be defined in Python\nand uploaded to the device using `upload_waveforms` method.\n\nArgs:\n    root: Root of the nodetree\n    tree: Tree (node path as tuple) of the current node\n    daq_server: Instance of the ziDAQServer\n    serial: Serial of the device.\n    index: Index of the corresponding awg channel\n    max_qubits_per_channel: Max qubits per channel\n\nClass: Qudit \n  Bases: ['ZINode']\n  Docstring: Single Qudit node.\n\nImplements basic functionality of a single qudit node, e.g applying the\nbasic configuration.\n\nArgs:\n    root: Root of the nodetree.\n    tree: Tree (node path as tuple) of the current node.\n    serial: Serial of the device.\n    readout_channel: Index of the readout channel this qudit belongs to.\n\nClass: MultiState \n  Bases: ['ZINode']\n  Docstring: MultiState node.\n\nImplements basic functionality of the MultiState node.\n\nArgs:\n    root: Root of the nodetree.\n    tree: Tree (node path as tuple) of the current node.\n    serial: Serial of the device.\n    index: Index of the corresponding readout channel.\n\nClass: Readout \n  Bases: ['ZINode']\n  Docstring: Readout node.\n\nImplements basic functionality of the readout, e.g allowing the user to\nwrite the integration weight.\n\nArgs:\n    root: Root of the nodetree\n    tree: Tree (node path as tuple) of the current node\n    serial: Serial of the device.\n    index: Index of the corresponding awg channel\n    max_qubits_per_channel: Max qubits per channel\n\nClass: Spectroscopy \n  Bases: ['ZINode']\n  Docstring: Spectroscopy node.\n\nImplements basic functionality of the spectroscopy, e.g allowing the user to\nread the result logger data.\n\nArgs:\n    root: Root of the nodetree\n    tree: Tree (node path as tuple) of the current node\n    serial: Serial of the device.\n    index: Index of the corresponding awg channel\n\nClass: QAChannel \n  Bases: ['ZINode']\n  Docstring: Quantum Analyzer Channel for the SHFQA.\n\n:class:`QAChannel` implements basic functionality to configure QAChannel\nsettings of the :class:`SHFQA` instrument.\nBesides the :class:`Generator`, :class:`Readout` and :class:`Sweeper`\nmodules it also provides an easy access to commonly used `QAChannel` parameters.\n\nArgs:\n    device: SHFQA device object.\n    session: Underlying session.\n    tree: Node tree (node path as tuple) of the corresponding node.\n\nClass: SHFScope \n  Bases: ['ZINode']\n  Docstring: SHFQA Scope Node.\n\nImplements basic functionality of the scope node, e.g allowing the user to\nread the data.\n\nArgs:\n    root: Root of the nodetree\n    tree: Tree (node path as tuple) of the current node\n    daq_server: Instance of the ziDAQServer\n    serial: Serial of the device.\n\nClass: SHFQC (focal)\n  Bases: ['ZIBaseInstrument']\n  Docstring: QCoDeS driver for the Zurich Instruments SHFQC.\n\nFocal class methods:\n  [command] factory_reset(self, deep=True)\n    comment: Load the factory default settings.\n\n        Args:\n            deep: A flag that specifies if a synchronization\n                should be performed between the device and the data\n                serve...\n  [command] start_continuous_sw_trigger(self, num_triggers, wait_time)\n    comment: Issues a specified number of software triggers.\n\n        Issues a specified number of software triggers with a certain wait time\n        in between. The function guarantees reception and proper proces...\n  [status_getter] max_qubits_per_channel(self)\n    comment: Maximum number of supported qubits per channel.\n\nRegistry actions:\n  auto-factory_reset (from factory_reset())\n  auto-start_continuous_sw_trigger (from start_continuous_sw_trigger())\n  auto-check_status (from check_status())\n  auto-load_validation_schema (from load_validation_schema())\n  auto-upload_to_device (from upload_to_device())\n  auto-load_from_device (from load_from_device())\n  auto-enable_sequencer (from enable_sequencer())\n  auto-wait_done (from wait_done())\n  auto-compile_sequencer_program (from compile_sequencer_program())\n  auto-load_sequencer_program (from load_sequencer_program())\n  auto-write_to_waveform_memory (from write_to_waveform_memory())\n  auto-read_from_waveform_memory (from read_from_waveform_memory())\n  auto-configure_marker_and_trigger (from configure_marker_and_trigger())\n  auto-available_trigger_inputs (from available_trigger_inputs())\n  auto-available_trigger_slopes (from available_trigger_slopes())\n  auto-available_marker_outputs (from available_marker_outputs())\n  auto-configure_channel (from configure_channel())\n  auto-configure_pulse_modulation (from configure_pulse_modulation())\n  auto-configure_sine_generation (from configure_sine_generation())\n  auto-awg_modulation_freq (from awg_modulation_freq())\n  auto-configure_sequencer_triggering (from configure_sequencer_triggering())\n  auto-available_aux_trigger_inputs (from available_aux_trigger_inputs())\n  auto-configure (from configure())\n  auto-get_qudits_results (from get_qudits_results())\n  auto-configure_result_logger (from configure_result_logger())\n  auto-read (from read())\n  auto-write_integration_weights (from write_integration_weights())\n  auto-read_integration_weights (from read_integration_weights())\n  auto-available_inputs (from available_inputs())\n  auto-max_qubits_per_channel (from max_qubits_per_channel())\n\nRequired output action ids:\n  auto-factory_reset\n  auto-start_continuous_sw_trigger\n  auto-check_status\n  auto-load_validation_schema\n  auto-upload_to_device\n  auto-load_from_device\n  auto-enable_sequencer\n  auto-wait_done\n  auto-compile_sequencer_program\n  auto-load_sequencer_program\n  auto-write_to_waveform_memory\n  auto-read_from_waveform_memory\n  auto-configure_marker_and_trigger\n  auto-available_trigger_inputs\n  auto-available_trigger_slopes\n  auto-available_marker_outputs\n  auto-configure_channel\n  auto-configure_pulse_modulation\n  auto-configure_sine_generation\n  auto-awg_modulation_freq\n  auto-configure_sequencer_triggering\n  auto-available_aux_trigger_inputs\n  auto-configure\n  auto-get_qudits_results\n  auto-configure_result_logger\n  auto-read\n  auto-write_integration_weights\n  auto-read_integration_weights\n  auto-available_inputs\n  auto-max_qubits_per_channel"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_062f8d0943f025990069d55bf439d08194831790ee20173cd4",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1795,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 14036,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_062f8d0943f025990069d55bf4af448194838663f16c8c1e54",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_062f8d0943f025990069d55c1881cc8194b8a26c8481d1fc4c",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"SHFQC量子控制器\",\n  \"name_en\": \"SHFQC Quantum Controller\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"这是一台面向量子计算实验的高频量子控制与读出仪器，集成信号发生、AWG/序列器、触发、波形存储、积分权重、读出和结果记录等功能，可用于量子比特或量子多能级态实验中的微波脉冲生成、序列控制与测量读出。\",\n  \"description_en\": \"This is a high-frequency quantum control and readout instrument for quantum computing experiments. It integrates signal generation, AWG/sequencer control, triggering, waveform memory, integration weights, readout, and result logging for microwave pulse generation, sequence control, and measurement readout of qubits or qudits.\",\n  \"tag_hints\": [\n    \"quantum control\",\n    \"qubit readout\",\n    \"microwave signal generation\",\n    \"AWG sequencer\",\n    \"software triggering\",\n    \"integration weights\",\n    \"qudit measurement\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-factory_reset\",\n      \"description\": \"恢复出厂默认设置。\",\n      \"description_en\": \"Restore the factory default settings.\"\n    },\n    {\n      \"action_name\": \"auto-start_continuous_sw_trigger\",\n      \"description\": \"按设定次数和间隔发送连续软件触发。\",\n      \"description_en\": \"Issue continuous software triggers with the specified count and interval.\"\n    },\n    {\n      \"action_name\": \"auto-check_status\",\n      \"description\": \"检查当前操作或模块状态。\",\n      \"description_en\": \"Check the current operation or module status.\"\n    },\n    {\n      \"action_name\": \"auto-load_validation_schema\",\n      \"description\": \"加载命令表的验证模式。\",\n      \"description_en\": \"Load the validation schema for the command table.\"\n    },\n    {\n      \"action_name\": \"auto-upload_to_device\",\n      \"description\": \"将命令表上传到设备。\",\n      \"description_en\": \"Upload the command table to the device.\"\n    },\n    {\n      \"action_name\": \"auto-load_from_device\",\n      \"description\": \"从设备读取命令表。\",\n      \"description_en\": \"Load the command table from the device.\"\n    },\n    {\n      \"action_name\": \"auto-enable_sequencer\",\n      \"description\": \"启用序列器。\",\n      \"description_en\": \"Enable the sequencer.\"\n    },\n    {\n      \"action_name\": \"auto-wait_done\",\n      \"description\": \"等待当前操作完成。\",\n      \"description_en\": \"Wait until the current operation is done.\"\n    },\n    {\n      \"action_name\": \"auto-compile_sequencer_program\",\n      \"description\": \"编译seqC序列程序。\",\n      \"description_en\": \"Compile the seqC sequencer program.\"\n    },\n    {\n      \"action_name\": \"auto-load_sequencer_program\",\n      \"description\": \"将序列程序加载到设备。\",\n      \"description_en\": \"Load the sequencer program onto the device.\"\n    },\n    {\n      \"action_name\": \"auto-write_to_waveform_memory\",\n      \"description\": \"将波形写入波形存储器。\",\n      \"description_en\": \"Write waveforms to waveform memory.\"\n    },\n    {\n      \"action_name\": \"auto-read_from_waveform_memory\",\n      \"description\": \"从波形存储器读取波形。\",\n      \"description_en\": \"Read waveforms from waveform memory.\"\n    },\n    {\n      \"action_name\": \"auto-configure_marker_and_trigger\",\n      \"description\": \"配置标记与触发设置。\",\n      \"description_en\": \"Configure marker and trigger settings.\"\n    },\n    {\n      \"action_name\": \"auto-available_trigger_inputs\",\n      \"description\": \"获取可用触发输入列表。\",\n      \"description_en\": \"Get the available trigger inputs.\"\n    },\n    {\n      \"action_name\": \"auto-available_trigger_slopes\",\n      \"description\": \"获取可用触发沿类型。\",\n      \"description_en\": \"Get the available trigger slopes.\"\n    },\n    {\n      \"action_name\": \"auto-available_marker_outputs\",\n      \"description\": \"获取可用标记输出列表。\",\n      \"description_en\": \"Get the available marker outputs.\"\n    },\n    {\n      \"action_name\": \"auto-configure_channel\",\n      \"description\": \"配置通道参数。\",\n      \"description_en\": \"Configure channel parameters.\"\n    },\n    {\n      \"action_name\": \"auto-configure_pulse_modulation\",\n      \"description\": \"配置脉冲调制。\",\n      \"description_en\": \"Configure pulse modulation.\"\n    },\n    {\n      \"action_name\": \"auto-configure_sine_generation\",\n      \"description\": \"配置正弦信号生成。\",\n      \"description_en\": \"Configure sine generation.\"\n    },\n    {\n      \"action_name\": \"auto-awg_modulation_freq\",\n      \"description\": \"获取或设置AWG调制频率。\",\n      \"description_en\": \"Get or set the AWG modulation frequency.\"\n    },\n    {\n      \"action_name\": \"auto-configure_sequencer_triggering\",\n      \"description\": \"配置序列器触发方式。\",\n      \"description_en\": \"Configure sequencer triggering.\"\n    },\n    {\n      \"action_name\": \"auto-available_aux_trigger_inputs\",\n      \"description\": \"获取可用辅助触发输入列表。\",\n      \"description_en\": \"Get the available auxiliary trigger inputs.\"\n    },\n    {\n      \"action_name\": \"auto-configure\",\n      \"description\": \"应用基本配置。\",\n      \"description_en\": \"Apply the basic configuration.\"\n    },\n    {\n      \"action_name\": \"auto-get_qudits_results\",\n      \"description\": \"获取量子多能级态读出结果。\",\n      \"description_en\": \"Get qudit readout results.\"\n    },\n    {\n      \"action_name\": \"auto-configure_result_logger\",\n      \"description\": \"配置结果记录器。\",\n      \"description_en\": \"Configure the result logger.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取采集或结果数据。\",\n      \"description_en\": \"Read acquired or result data.\"\n    },\n    {\n      \"action_name\": \"auto-write_integration_weights\",\n      \"description\": \"写入积分权重。\",\n      \"description_en\": \"Write integration weights.\"\n    },\n    {\n      \"action_name\": \"auto-read_integration_weights\",\n      \"description\": \"读取积分权重。\",\n      \"description_en\": \"Read integration weights.\"\n    },\n    {\n      \"action_name\": \"auto-available_inputs\",\n      \"description\": \"获取可用输入列表。\",\n      \"description_en\": \"Get the available inputs.\"\n    },\n    {\n      \"action_name\": \"auto-max_qubits_per_channel\",\n      \"description\": \"获取每通道支持的最大量子比特数。\",\n      \"description_en\": \"get maximum number of supported qubits per channel\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2517,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3573,
+      "output_tokens_details": {
+        "reasoning_tokens": 2070
+      },
+      "total_tokens": 6090
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2517,
+      "output_token_count": 3573,
+      "predict_time": 53.915292147
+    }
+  },
+  "output_text": "{\n  \"name\": \"SHFQC量子控制器\",\n  \"name_en\": \"SHFQC Quantum Controller\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"这是一台面向量子计算实验的高频量子控制与读出仪器，集成信号发生、AWG/序列器、触发、波形存储、积分权重、读出和结果记录等功能，可用于量子比特或量子多能级态实验中的微波脉冲生成、序列控制与测量读出。\",\n  \"description_en\": \"This is a high-frequency quantum control and readout instrument for quantum computing experiments. It integrates signal generation, AWG/sequencer control, triggering, waveform memory, integration weights, readout, and result logging for microwave pulse generation, sequence control, and measurement readout of qubits or qudits.\",\n  \"tag_hints\": [\n    \"quantum control\",\n    \"qubit readout\",\n    \"microwave signal generation\",\n    \"AWG sequencer\",\n    \"software triggering\",\n    \"integration weights\",\n    \"qudit measurement\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-factory_reset\",\n      \"description\": \"恢复出厂默认设置。\",\n      \"description_en\": \"Restore the factory default settings.\"\n    },\n    {\n      \"action_name\": \"auto-start_continuous_sw_trigger\",\n      \"description\": \"按设定次数和间隔发送连续软件触发。\",\n      \"description_en\": \"Issue continuous software triggers with the specified count and interval.\"\n    },\n    {\n      \"action_name\": \"auto-check_status\",\n      \"description\": \"检查当前操作或模块状态。\",\n      \"description_en\": \"Check the current operation or module status.\"\n    },\n    {\n      \"action_name\": \"auto-load_validation_schema\",\n      \"description\": \"加载命令表的验证模式。\",\n      \"description_en\": \"Load the validation schema for the command table.\"\n    },\n    {\n      \"action_name\": \"auto-upload_to_device\",\n      \"description\": \"将命令表上传到设备。\",\n      \"description_en\": \"Upload the command table to the device.\"\n    },\n    {\n      \"action_name\": \"auto-load_from_device\",\n      \"description\": \"从设备读取命令表。\",\n      \"description_en\": \"Load the command table from the device.\"\n    },\n    {\n      \"action_name\": \"auto-enable_sequencer\",\n      \"description\": \"启用序列器。\",\n      \"description_en\": \"Enable the sequencer.\"\n    },\n    {\n      \"action_name\": \"auto-wait_done\",\n      \"description\": \"等待当前操作完成。\",\n      \"description_en\": \"Wait until the current operation is done.\"\n    },\n    {\n      \"action_name\": \"auto-compile_sequencer_program\",\n      \"description\": \"编译seqC序列程序。\",\n      \"description_en\": \"Compile the seqC sequencer program.\"\n    },\n    {\n      \"action_name\": \"auto-load_sequencer_program\",\n      \"description\": \"将序列程序加载到设备。\",\n      \"description_en\": \"Load the sequencer program onto the device.\"\n    },\n    {\n      \"action_name\": \"auto-write_to_waveform_memory\",\n      \"description\": \"将波形写入波形存储器。\",\n      \"description_en\": \"Write waveforms to waveform memory.\"\n    },\n    {\n      \"action_name\": \"auto-read_from_waveform_memory\",\n      \"description\": \"从波形存储器读取波形。\",\n      \"description_en\": \"Read waveforms from waveform memory.\"\n    },\n    {\n      \"action_name\": \"auto-configure_marker_and_trigger\",\n      \"description\": \"配置标记与触发设置。\",\n      \"description_en\": \"Configure marker and trigger settings.\"\n    },\n    {\n      \"action_name\": \"auto-available_trigger_inputs\",\n      \"description\": \"获取可用触发输入列表。\",\n      \"description_en\": \"Get the available trigger inputs.\"\n    },\n    {\n      \"action_name\": \"auto-available_trigger_slopes\",\n      \"description\": \"获取可用触发沿类型。\",\n      \"description_en\": \"Get the available trigger slopes.\"\n    },\n    {\n      \"action_name\": \"auto-available_marker_outputs\",\n      \"description\": \"获取可用标记输出列表。\",\n      \"description_en\": \"Get the available marker outputs.\"\n    },\n    {\n      \"action_name\": \"auto-configure_channel\",\n      \"description\": \"配置通道参数。\",\n      \"description_en\": \"Configure channel parameters.\"\n    },\n    {\n      \"action_name\": \"auto-configure_pulse_modulation\",\n      \"description\": \"配置脉冲调制。\",\n      \"description_en\": \"Configure pulse modulation.\"\n    },\n    {\n      \"action_name\": \"auto-configure_sine_generation\",\n      \"description\": \"配置正弦信号生成。\",\n      \"description_en\": \"Configure sine generation.\"\n    },\n    {\n      \"action_name\": \"auto-awg_modulation_freq\",\n      \"description\": \"获取或设置AWG调制频率。\",\n      \"description_en\": \"Get or set the AWG modulation frequency.\"\n    },\n    {\n      \"action_name\": \"auto-configure_sequencer_triggering\",\n      \"description\": \"配置序列器触发方式。\",\n      \"description_en\": \"Configure sequencer triggering.\"\n    },\n    {\n      \"action_name\": \"auto-available_aux_trigger_inputs\",\n      \"description\": \"获取可用辅助触发输入列表。\",\n      \"description_en\": \"Get the available auxiliary trigger inputs.\"\n    },\n    {\n      \"action_name\": \"auto-configure\",\n      \"description\": \"应用基本配置。\",\n      \"description_en\": \"Apply the basic configuration.\"\n    },\n    {\n      \"action_name\": \"auto-get_qudits_results\",\n      \"description\": \"获取量子多能级态读出结果。\",\n      \"description_en\": \"Get qudit readout results.\"\n    },\n    {\n      \"action_name\": \"auto-configure_result_logger\",\n      \"description\": \"配置结果记录器。\",\n      \"description_en\": \"Configure the result logger.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取采集或结果数据。\",\n      \"description_en\": \"Read acquired or result data.\"\n    },\n    {\n      \"action_name\": \"auto-write_integration_weights\",\n      \"description\": \"写入积分权重。\",\n      \"description_en\": \"Write integration weights.\"\n    },\n    {\n      \"action_name\": \"auto-read_integration_weights\",\n      \"description\": \"读取积分权重。\",\n      \"description_en\": \"Read integration weights.\"\n    },\n    {\n      \"action_name\": \"auto-available_inputs\",\n      \"description\": \"获取可用输入列表。\",\n      \"description_en\": \"Get the available inputs.\"\n    },\n    {\n      \"action_name\": \"auto-max_qubits_per_channel\",\n      \"description\": \"获取每通道支持的最大量子比特数。\",\n      \"description_en\": \"get maximum number of supported qubits per channel\"\n    }\n  ]\n}"
+}

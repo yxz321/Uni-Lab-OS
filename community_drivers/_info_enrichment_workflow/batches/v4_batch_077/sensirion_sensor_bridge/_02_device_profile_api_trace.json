@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: sensirion_sensor_bridge\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: basil/TL/SensirionSensorBridge.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.sensors.sensirion.sensirion_sensor_bridge:SensirionSensorBridge\n\nClass: SensirionSensorBridge (focal)\n  Bases: ['TransferLayer']\n  Docstring: Driver for Sensirion Sensor Bridge using the official SHDLC drivers of Sensirion.\nThe Sensirion Sensor Bridge is connected via USB and allows communication to two I2C ports.\n\nFocal class methods:\n  [command] init(self)\n  [command] setup_i2c_device(self, bridge_port=SensorBridgePort.ONE, voltage=3.3, frequency=400000.0, **_)\n  [command] disable_i2c_device(self, device, bridge_port=SensorBridgePort.ONE)\n  [command] print_i2c_device_information(self, device)\n  [command] read_i2c(self, device, port, address, command, read_n_bytes=0, timeout_us=100000.0)\n  [command] write_i2c(self, device, port, address, command)\n  [command] close(self)\n\nRegistry actions:\n  auto-init (from init())\n  auto-setup_i2c_device (from setup_i2c_device())\n  auto-disable_i2c_device (from disable_i2c_device())\n  auto-print_i2c_device_information (from print_i2c_device_information())\n  auto-read_i2c (from read_i2c())\n  auto-write_i2c (from write_i2c())\n  auto-close (from close())\n\nRequired output action ids:\n  auto-init\n  auto-setup_i2c_device\n  auto-disable_i2c_device\n  auto-print_i2c_device_information\n  auto-read_i2c\n  auto-write_i2c\n  auto-close"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0348f474ca4b11570069d55bdd2ee88196b587bd8a390fa335",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1790,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3091,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0348f474ca4b11570069d55bdd9f608196aed1eaf45c749839",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0348f474ca4b11570069d55be10e8481968b1c46f249bc818a",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Sensirion 传感器桥接器\",\n  \"name_en\": \"Sensirion Sensor Bridge\",\n  \"manufacturer\": \"Sensirion\",\n  \"description\": \"一款通过 USB 连接电脑并提供双路 I2C 端口的硬件桥接设备，用于在实验中接入、配置和通信 Sensirion 或其他兼容 I2C 的传感器模块，便于传感器测试、数据采集与调试。\",\n  \"description_en\": \"A hardware USB-to-I2C bridge that connects to a computer and exposes two I2C ports for laboratory communication with Sensirion and other compatible I2C sensor modules, enabling sensor setup, testing, data acquisition, and debugging.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化传感器桥接器并建立通信连接。\",\n      \"description_en\": \"Initialize the sensor bridge and establish communication.\"\n    },\n    {\n      \"action_name\": \"auto-setup_i2c_device\",\n      \"description\": \"配置指定桥接口的 I2C 设备参数，如供电电压和总线频率。\",\n      \"description_en\": \"Configure an I2C device on the selected bridge port, including supply voltage and bus frequency.\"\n    },\n    {\n      \"action_name\": \"auto-disable_i2c_device\",\n      \"description\": \"禁用指定桥接口上的 I2C 设备。\",\n      \"description_en\": \"Disable the I2C device on the selected bridge port.\"\n    },\n    {\n      \"action_name\": \"auto-print_i2c_device_information\",\n      \"description\": \"输出 I2C 设备的信息以便识别和调试。\",\n      \"description_en\": \"Print information about the I2C device for identification and debugging.\"\n    },\n    {\n      \"action_name\": \"auto-read_i2c\",\n      \"description\": \"向指定 I2C 地址发送命令并读取返回字节数据。\",\n      \"description_en\": \"Send a command to the specified I2C address and read back response bytes.\"\n    },\n    {\n      \"action_name\": \"auto-write_i2c\",\n      \"description\": \"向指定 I2C 地址写入命令或数据。\",\n      \"description_en\": \"Write a command or data payload to the specified I2C address.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭桥接器连接并释放通信资源。\",\n      \"description_en\": \"Close the bridge connection and release communication resources.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB-to-I2C bridge\",\n    \"Sensirion sensors\",\n    \"I2C communication\",\n    \"sensor interfacing\",\n    \"dual I2C ports\",\n    \"sensor testing\",\n    \"data acquisition\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1091,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 828,
+      "output_tokens_details": {
+        "reasoning_tokens": 218
+      },
+      "total_tokens": 1919
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1091,
+      "output_token_count": 828,
+      "predict_time": 15.004015794
+    }
+  },
+  "output_text": "{\n  \"name\": \"Sensirion 传感器桥接器\",\n  \"name_en\": \"Sensirion Sensor Bridge\",\n  \"manufacturer\": \"Sensirion\",\n  \"description\": \"一款通过 USB 连接电脑并提供双路 I2C 端口的硬件桥接设备，用于在实验中接入、配置和通信 Sensirion 或其他兼容 I2C 的传感器模块，便于传感器测试、数据采集与调试。\",\n  \"description_en\": \"A hardware USB-to-I2C bridge that connects to a computer and exposes two I2C ports for laboratory communication with Sensirion and other compatible I2C sensor modules, enabling sensor setup, testing, data acquisition, and debugging.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化传感器桥接器并建立通信连接。\",\n      \"description_en\": \"Initialize the sensor bridge and establish communication.\"\n    },\n    {\n      \"action_name\": \"auto-setup_i2c_device\",\n      \"description\": \"配置指定桥接口的 I2C 设备参数，如供电电压和总线频率。\",\n      \"description_en\": \"Configure an I2C device on the selected bridge port, including supply voltage and bus frequency.\"\n    },\n    {\n      \"action_name\": \"auto-disable_i2c_device\",\n      \"description\": \"禁用指定桥接口上的 I2C 设备。\",\n      \"description_en\": \"Disable the I2C device on the selected bridge port.\"\n    },\n    {\n      \"action_name\": \"auto-print_i2c_device_information\",\n      \"description\": \"输出 I2C 设备的信息以便识别和调试。\",\n      \"description_en\": \"Print information about the I2C device for identification and debugging.\"\n    },\n    {\n      \"action_name\": \"auto-read_i2c\",\n      \"description\": \"向指定 I2C 地址发送命令并读取返回字节数据。\",\n      \"description_en\": \"Send a command to the specified I2C address and read back response bytes.\"\n    },\n    {\n      \"action_name\": \"auto-write_i2c\",\n      \"description\": \"向指定 I2C 地址写入命令或数据。\",\n      \"description_en\": \"Write a command or data payload to the specified I2C address.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭桥接器连接并释放通信资源。\",\n      \"description_en\": \"Close the bridge connection and release communication resources.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB-to-I2C bridge\",\n    \"Sensirion sensors\",\n    \"I2C communication\",\n    \"sensor interfacing\",\n    \"dual I2C ports\",\n    \"sensor testing\",\n    \"data acquisition\"\n  ]\n}"
+}

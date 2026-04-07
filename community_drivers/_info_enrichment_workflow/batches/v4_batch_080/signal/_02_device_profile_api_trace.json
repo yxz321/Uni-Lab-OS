@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: signal\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: imswitch/imcommon/framework/noqt.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.common.signals.psygnal_signal:Signal\n\nClass: Mutex \n  Bases: ['abstract.Mutex']\n  Docstring: Wrapper around the `threading.Lock` class. \n    \n\nClass: Signal (focal)\n  Bases: ['SignalInstance', 'abstract.Signal']\n  Docstring: `psygnal` implementation of the `base.Signal` abstract class.\n    \n\nClass: SignalInterface \n  Bases: ['abstract.SignalInterface']\n  Docstring: Base implementation of `abstract.SignalInterface`.\n    \n\nClass: Worker \n  Bases: ['abstract.Worker']\n\nClass: Thread \n  Bases: ['abstract.Thread']\n\nClass: Timer \n  Bases: ['abstract.Timer']\n\nClass: FrameworkUtils \n  Bases: ['abstract.FrameworkUtils']\n\nFocal class methods:\n  [command] connect(self, func)\n  [command] disconnect(self, func=None)\n  [command] emit(self, *args)\n  [status_getter] types(self)\n  [status_getter] info(self)\n\nRegistry actions:\n  auto-connect (from connect())\n  auto-disconnect (from disconnect())\n  auto-emit (from emit())\n\nRequired output action ids:\n  auto-connect\n  auto-disconnect\n  auto-emit"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0ca2d365e52bb2c50069d55d5afa34819080520ac885e49601",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2185,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5288,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0ca2d365e52bb2c50069d55d5b70388190aa7846a463ba6d61",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0ca2d365e52bb2c50069d55d6dc6e08190a8bbec5b4bb634ed",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"事件信号组件\",\n  \"name_en\": \"Psygnal-based Signal Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个基于 psygnal 的非物理软件组件，用于实验控制软件中的事件通知与回调分发。它可在界面、线程或其他模块之间连接函数、断开连接并发射信号，以传递状态变化或触发后续处理，而不直接控制具体实验硬件。\",\n  \"description_en\": \"A non-physical software component based on psygnal for event notification and callback dispatch in laboratory control software. It is used to connect functions, disconnect them, and emit signals between UI elements, threads, or other modules to propagate state changes or trigger follow-up processing, without directly controlling any laboratory hardware.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"将回调函数连接到该信号。\",\n      \"description_en\": \"Connect a callback function to the signal.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开该信号与一个或全部回调函数的连接。\",\n      \"description_en\": \"Disconnect one callback or all callbacks from the signal.\"\n    },\n    {\n      \"action_name\": \"auto-emit\",\n      \"description\": \"发射该信号并向已连接的回调传递参数。\",\n      \"description_en\": \"Emit the signal and pass arguments to connected callbacks.\"\n    },\n    {\n      \"action_name\": \"types\",\n      \"description\": \"获取信号参数类型。\",\n      \"description_en\": \"Get the signal argument types.\"\n    },\n    {\n      \"action_name\": \"info\",\n      \"description\": \"获取信号信息。\",\n      \"description_en\": \"Get the signal information.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"event signaling\",\n    \"callback connection\",\n    \"software helper\",\n    \"psygnal\",\n    \"inter-module communication\",\n    \"thread/UI notifications\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 970,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1261,
+      "output_tokens_details": {
+        "reasoning_tokens": 824
+      },
+      "total_tokens": 2231
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 970,
+      "output_token_count": 1261,
+      "predict_time": 27.394901117
+    }
+  },
+  "output_text": "{\n  \"name\": \"事件信号组件\",\n  \"name_en\": \"Psygnal-based Signal Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个基于 psygnal 的非物理软件组件，用于实验控制软件中的事件通知与回调分发。它可在界面、线程或其他模块之间连接函数、断开连接并发射信号，以传递状态变化或触发后续处理，而不直接控制具体实验硬件。\",\n  \"description_en\": \"A non-physical software component based on psygnal for event notification and callback dispatch in laboratory control software. It is used to connect functions, disconnect them, and emit signals between UI elements, threads, or other modules to propagate state changes or trigger follow-up processing, without directly controlling any laboratory hardware.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"将回调函数连接到该信号。\",\n      \"description_en\": \"Connect a callback function to the signal.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开该信号与一个或全部回调函数的连接。\",\n      \"description_en\": \"Disconnect one callback or all callbacks from the signal.\"\n    },\n    {\n      \"action_name\": \"auto-emit\",\n      \"description\": \"发射该信号并向已连接的回调传递参数。\",\n      \"description_en\": \"Emit the signal and pass arguments to connected callbacks.\"\n    },\n    {\n      \"action_name\": \"types\",\n      \"description\": \"获取信号参数类型。\",\n      \"description_en\": \"Get the signal argument types.\"\n    },\n    {\n      \"action_name\": \"info\",\n      \"description\": \"获取信号信息。\",\n      \"description_en\": \"Get the signal information.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"event signaling\",\n    \"callback connection\",\n    \"software helper\",\n    \"psygnal\",\n    \"inter-module communication\",\n    \"thread/UI notifications\"\n  ]\n}"
+}

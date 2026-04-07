@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: scanner_interface\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: hics/hardware/specimswir/scanner.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.scanner_interface:ScannerInterface\n\nClass: ScannerInterface (focal)\n  Bases: []\n\nClass: Scanner \n  Bases: []\n\nClass: ScannerRedisDaemon \n  Bases: ['Scanner']\n\nFocal class methods:\n  [command] fileno(self)\n  [command] send_command(self, command, reply=False)\n\nRegistry actions:\n  auto-fileno (from fileno())\n  auto-send_command (from send_command())\n\nRequired output action ids:\n  auto-fileno\n  auto-send_command"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0e78d177c24099160069d5599e5250819086ce0d8629ac4a88",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1600,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3031,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0e78d177c24099160069d5599ea894819082edb9798cd7e0f0",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0e78d177c24099160069d559a5b06c8190878af75352a5c562",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"扫描器通信接口\",\n  \"name_en\": \"Scanner Communication Interface\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验系统中的非物理扫描器通信组件，提供向扫描器发送命令以及暴露文件描述符的能力，便于将设备通信接入事件循环、轮询或底层 I/O 监控流程。\",\n  \"description_en\": \"A non-physical scanner communication component used in laboratory systems. It provides methods to send commands to a scanner and expose a file descriptor, enabling integration with event loops, polling, or low-level I/O monitoring.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-fileno\",\n      \"description\": \"获取该扫描器通信接口对应的文件描述符。\",\n      \"description_en\": \"Get the file descriptor associated with this scanner communication interface.\"\n    },\n    {\n      \"action_name\": \"auto-send_command\",\n      \"description\": \"向扫描器发送命令，并可选择等待返回响应。\",\n      \"description_en\": \"Send a command to the scanner and optionally wait for a reply.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"scanner communication\",\n    \"command interface\",\n    \"file descriptor I/O\",\n    \"event loop integration\",\n    \"instrument messaging\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 828,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 660,
+      "output_tokens_details": {
+        "reasoning_tokens": 381
+      },
+      "total_tokens": 1488
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 828,
+      "output_token_count": 660,
+      "predict_time": 13.363183201
+    }
+  },
+  "output_text": "{\n  \"name\": \"扫描器通信接口\",\n  \"name_en\": \"Scanner Communication Interface\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验系统中的非物理扫描器通信组件，提供向扫描器发送命令以及暴露文件描述符的能力，便于将设备通信接入事件循环、轮询或底层 I/O 监控流程。\",\n  \"description_en\": \"A non-physical scanner communication component used in laboratory systems. It provides methods to send commands to a scanner and expose a file descriptor, enabling integration with event loops, polling, or low-level I/O monitoring.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-fileno\",\n      \"description\": \"获取该扫描器通信接口对应的文件描述符。\",\n      \"description_en\": \"Get the file descriptor associated with this scanner communication interface.\"\n    },\n    {\n      \"action_name\": \"auto-send_command\",\n      \"description\": \"向扫描器发送命令，并可选择等待返回响应。\",\n      \"description_en\": \"Send a command to the scanner and optionally wait for a reply.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"scanner communication\",\n    \"command interface\",\n    \"file descriptor I/O\",\n    \"event loop integration\",\n    \"instrument messaging\"\n  ]\n}"
+}

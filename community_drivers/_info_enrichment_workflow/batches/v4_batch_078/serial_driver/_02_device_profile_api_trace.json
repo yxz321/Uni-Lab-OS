@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: serial_driver\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: lantz/drivers/legacy/serial.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.serial_base.serial_base_driver:SerialDriver\n\nClass: LantzSerialTimeoutError \n  Bases: ['SerialTimeoutException', 'LantzTimeoutError']\n\nClass: SerialDriver (focal)\n  Bases: ['TextualMixin', 'Driver']\n  Docstring: Base class for drivers that communicate with instruments\nvia serial or parallel port using pyserial\n\n:param port: Device name or port number\n:param baudrate: Baud rate such as 9600 or 115200\n:param bytesize: Number of data bits. Possible values = (5, 6, 7, 8)\n:param parity: Enable parity checking. Possible values = ('None', 'Even', 'Odd', 'Mark', 'Space')\n:param stopbits: Number of stop bits. Possible values = (1, 1.5, 2)\n:param xonoff: xonoff flow control enabled.\n:param rtscts: rtscts flow control enabled.\n:param dsrdtr: dsrdtr flow control enabled\n:param timeout: value in seconds, None or negative to wait for ever or 0 for non-blocking mode\n:param write_timeout: see timeout\n\nFocal class methods:\n  [command] raw_send(self, data)\n    comment: Send raw bytes to the instrument.\n\n        :param data: bytes to be sent to the instrument\n        :param data: bytes\n  [command] raw_recv(self, size)\n    comment: Receive raw bytes to the instrument.\n\n        :param size: number of bytes to receive\n        :return: received bytes\n        :return type: bytes\n\n        If a timeout is set, it may return less bytes...\n  [command] initialize(self)\n    comment: Open port\n  [command] finalize(self)\n    comment: Close port\n  [command] is_open(self)\n\nRegistry actions:\n  auto-finalize (from finalize())\n  auto-initialize (from initialize())\n  auto-is_open (from is_open())\n  auto-raw_recv (from raw_recv())\n  auto-raw_send (from raw_send())\n\nRequired output action ids:\n  auto-finalize\n  auto-initialize\n  auto-is_open\n  auto-raw_recv\n  auto-raw_send"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_00d2ab6c7f1fa65d0069d55be59a008195adc9b913017666da",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1795,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3521,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_00d2ab6c7f1fa65d0069d55be5f720819597f2add0026a5f5b",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_00d2ab6c7f1fa65d0069d55bee96a8819582a9eceaeea050b3",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"串口仪器通信基类组件\",\n  \"name_en\": \"Serial Instrument Communication Base Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"非物理实验软件组件，用于实验自动化中通过 pyserial 管理串口连接、收发原始字节数据并检查端口状态，作为各类串口仪器驱动的通用基础类。\",\n  \"description_en\": \"A non-physical laboratory software component used in automation to manage serial connections via pyserial, send and receive raw byte data, and check port status. It serves as a common base class for serial instrument drivers.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"打开串口连接。\",\n      \"description_en\": \"Open the serial port connection.\"\n    },\n    {\n      \"action_name\": \"auto-finalize\",\n      \"description\": \"关闭串口连接。\",\n      \"description_en\": \"Close the serial port connection.\"\n    },\n    {\n      \"action_name\": \"auto-is_open\",\n      \"description\": \"检查串口是否已打开。\",\n      \"description_en\": \"Check whether the serial port is open.\"\n    },\n    {\n      \"action_name\": \"auto-raw_send\",\n      \"description\": \"通过串口发送原始字节数据。\",\n      \"description_en\": \"Send raw byte data through the serial port.\"\n    },\n    {\n      \"action_name\": \"auto-raw_recv\",\n      \"description\": \"通过串口接收指定长度的原始字节数据。\",\n      \"description_en\": \"Receive raw byte data of a specified length through the serial port.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"serial communication\",\n    \"pyserial\",\n    \"instrument control base class\",\n    \"raw byte transfer\",\n    \"port open/close\",\n    \"lab automation software\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1177,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 919,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2096
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1177,
+      "output_token_count": 919,
+      "predict_time": 15.48709324
+    }
+  },
+  "output_text": "{\n  \"name\": \"串口仪器通信基类组件\",\n  \"name_en\": \"Serial Instrument Communication Base Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"非物理实验软件组件，用于实验自动化中通过 pyserial 管理串口连接、收发原始字节数据并检查端口状态，作为各类串口仪器驱动的通用基础类。\",\n  \"description_en\": \"A non-physical laboratory software component used in automation to manage serial connections via pyserial, send and receive raw byte data, and check port status. It serves as a common base class for serial instrument drivers.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"打开串口连接。\",\n      \"description_en\": \"Open the serial port connection.\"\n    },\n    {\n      \"action_name\": \"auto-finalize\",\n      \"description\": \"关闭串口连接。\",\n      \"description_en\": \"Close the serial port connection.\"\n    },\n    {\n      \"action_name\": \"auto-is_open\",\n      \"description\": \"检查串口是否已打开。\",\n      \"description_en\": \"Check whether the serial port is open.\"\n    },\n    {\n      \"action_name\": \"auto-raw_send\",\n      \"description\": \"通过串口发送原始字节数据。\",\n      \"description_en\": \"Send raw byte data through the serial port.\"\n    },\n    {\n      \"action_name\": \"auto-raw_recv\",\n      \"description\": \"通过串口接收指定长度的原始字节数据。\",\n      \"description_en\": \"Receive raw byte data of a specified length through the serial port.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"serial communication\",\n    \"pyserial\",\n    \"instrument control base class\",\n    \"raw byte transfer\",\n    \"port open/close\",\n    \"lab automation software\"\n  ]\n}"
+}

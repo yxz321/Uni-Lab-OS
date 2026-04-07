@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: safe_buffer_access\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: core/src/drivers/plugins/python/shared/safe_buffer_access_refactored.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.common.safe_buffer_access:SafeBufferAccess\n\nClass: SafeBufferAccess (focal)\n  Bases: ['ISafeBufferAccess']\n  Docstring: Refactored SafeBufferAccess with modular architecture.\n\nThis class maintains 100% API compatibility with the original SafeBufferAccess\nwhile internally using a clean, modular component architecture. All existing\ncode and tests will continue to work without modification.\n\nThe modular architecture eliminates code duplication and improves maintainability:\n- Buffer type definitions are centralized and extensible\n- Validation logic is consolidated\n- Mutex management is abstracted\n- Buffer access is generic and type-agnostic\n- Batch operations are optimized\n- Debug utilities are separated\n- Configuration handling is isolated\n\nFocal class methods:\n  [status_getter] is_valid(self)\n    comment: Whether the instance is properly initialized.\n  [status_getter] error_msg(self)\n    comment: Error message if initialization failed.\n  [command] acquire_mutex(self)\n    comment: ============================================================================\n    comment: Mutex Management Methods\n    comment: ============================================================================\n    comment: Acquire the buffer mutex.\n  [command] release_mutex(self)\n    comment: Release the buffer mutex.\n  [command] read_bool_input(self, buffer_idx, bit_idx, thread_safe=True)\n    comment: ============================================================================\n    comment: Boolean Buffer Operations\n    comment: ============================================================================\n    comment: Read a boolean input value.\n  [command] read_bool_output(self, buffer_idx, bit_idx, thread_safe=True)\n    comment: Read a boolean output value.\n  [command] write_bool_input(self, buffer_idx, bit_idx, value, thread_safe=True)\n    comment: Write a boolean input value (used by Modbus master to update PLC inputs).\n  [command] write_bool_output(self, buffer_idx, bit_idx, value, thread_safe=True)\n    comment: Write a boolean output value.\n  [command] read_bool_memory(self, buffer_idx, bit_idx, thread_safe=True)\n    comment: Read a boolean memory value (%MX).\n  [command] write_bool_memory(self, buffer_idx, bit_idx, value, thread_safe=True)\n    comment: Write a boolean memory value (%MX).\n  [command] read_byte_input(self, buffer_idx, thread_safe=True)\n    comment: ============================================================================\n    comment: Byte Buffer Operations\n    comment: ============================================================================\n    comment: Read a byte input value.\n  [command] write_byte_input(self, buffer_idx, value, thread_safe=True)\n    comment: Write a byte input value (used by Modbus master to update PLC inputs).\n  [command] read_byte_output(self, buffer_idx, thread_safe=True)\n    comment: Read a byte output value.\n  [command] write_byte_output(self, buffer_idx, value, thread_safe=True)\n    comment: Write a byte output value.\n  [command] read_int_input(self, buffer_idx, thread_safe=True)\n    comment: ============================================================================\n    comment: Integer Buffer Operations (16-bit)\n    comment: ============================================================================\n    comment: Read an integer input value.\n  [command] write_int_input(self, buffer_idx, value, thread_safe=True)\n    comment: Write an integer input value (used by Modbus master to update PLC inputs).\n  [command] read_int_output(self, buffer_idx, thread_safe=True)\n    comment: Read an integer output value.\n  [command] write_int_output(self, buffer_idx, value, thread_safe=True)\n    comment: Write an integer output value.\n  [command] read_int_memory(self, buffer_idx, thread_safe=True)\n    comment: Read an integer memory value.\n  [command] write_int_memory(self, buffer_idx, value, thread_safe=True)\n    comment: Write an integer memory value.\n  [command] read_dint_input(self, buffer_idx, thread_safe=True)\n    comment: ============================================================================\n    comment: Double Integer Buffer Operations (32-bit)\n    comment: ============================================================================\n    comment: Read a double integer input value.\n  [command] write_dint_input(self, buffer_idx, value, thread_safe=True)\n    comment: Write a double integer input value (used by Modbus master to update PLC inputs).\n  [command] read_dint_output(self, buffer_idx, thread_safe=True)\n    comment: Read a double integer output value.\n  [command] write_dint_output(self, buffer_idx, value, thread_safe=True)\n    comment: Write a double integer output value.\n  [command] read_dint_memory(self, buffer_idx, thread_safe=True)\n    comment: Read a double integer memory value.\n  [command] write_dint_memory(self, buffer_idx, value, thread_safe=True)\n    comment: Write a double integer memory value.\n  [command] read_lint_input(self, buffer_idx, thread_safe=True)\n    comment: ============================================================================\n    comment: Long Integer Buffer Operations (64-bit)\n    comment: ============================================================================\n    comment: Read a long integer input value.\n  [command] write_lint_input(self, buffer_idx, value, thread_safe=True)\n    comment: Write a long integer input value (used by Modbus master to update PLC inputs).\n  [command] read_lint_output(self, buffer_idx, thread_safe=True)\n    comment: Read a long integer output value.\n  [command] write_lint_output(self, buffer_idx, value, thread_safe=True)\n    comment: Write a long integer output value.\n  [command] read_lint_memory(self, buffer_idx, thread_safe=True)\n    comment: Read a long integer memory value.\n  [command] write_lint_memory(self, buffer_idx, value, thread_safe=True)\n    comment: Write a long integer memory value.\n  [command] batch_read_values(self, operations)\n    comment: ============================================================================\n    comment: Batch Operations\n    comment: ============================================================================\n    comment: Process multiple read operations in batch.\n  [command] batch_write_values(self, operations)\n    comment: Process multiple write operations in batch.\n  [command] batch_mixed_operations(self, read_operations, write_operations)\n    comment: Process mixed read and write operations in batch.\n  [status_getter] get_var_list(self, indexes)\n    comment: ============================================================================\n    comment: Debug/Variable Operations\n    comment: ============================================================================\n    comment: Get variable addresses for indexes.\n  [status_getter] get_var_size(self, index)\n    comment: Get variable size.\n  [status_getter] get_var_value(self, index)\n    comment: Read variable value by index.\n  [status_setter] set_var_value(self, index, value)\n    comment: Write variable value by index.\n  [status_getter] get_var_count(self)\n    comment: Get total variable count.\n  [status_getter] get_var_info(self, index)\n    comment: Get variable information.\n  [status_getter] get_var_sizes_batch(self, indexes)\n    comment: Get sizes for multiple variables in batch.\n  [status_getter] get_var_values_batch(self, indexes)\n    comment: Read multiple variable values in batch.\n  [status_setter] set_var_values_batch(self, index_value_pairs)\n    comment: Write multiple variable values in batch.\n  [status_getter] get_config_path(self)\n    comment: ============================================================================\n    comment: Configuration Operations\n    comment: ============================================================================\n    comment: Get configuration file path.\n  [status_getter] get_config_file_args_as_map(self)\n    comment: Parse configuration file as map.\n\nRegistry actions:\n  auto-acquire_mutex (from acquire_mutex())\n  auto-batch_mixed_operations (from batch_mixed_operations())\n  auto-batch_read_values (from batch_read_values())\n  auto-batch_write_values (from batch_write_values())\n  auto-read_bool_input (from read_bool_input())\n  auto-read_bool_memory (from read_bool_memory())\n  auto-read_bool_output (from read_bool_output())\n  auto-read_byte_input (from read_byte_input())\n  auto-read_byte_output (from read_byte_output())\n  auto-read_dint_input (from read_dint_input())\n  auto-read_dint_memory (from read_dint_memory())\n  auto-read_dint_output (from read_dint_output())\n  auto-read_int_input (from read_int_input())\n  auto-read_int_memory (from read_int_memory())\n  auto-read_int_output (from read_int_output())\n  auto-read_lint_input (from read_lint_input())\n  auto-read_lint_memory (from read_lint_memory())\n  auto-read_lint_output (from read_lint_output())\n  auto-release_mutex (from release_mutex())\n  auto-set_var_value (from set_var_value())\n  auto-set_var_values_batch (from set_var_values_batch())\n  auto-write_bool_input (from write_bool_input())\n  auto-write_bool_memory (from write_bool_memory())\n  auto-write_bool_output (from write_bool_output())\n  auto-write_byte_input (from write_byte_input())\n  auto-write_byte_output (from write_byte_output())\n  auto-write_dint_input (from write_dint_input())\n  auto-write_dint_memory (from write_dint_memory())\n  auto-write_dint_output (from write_dint_output())\n  auto-write_int_input (from write_int_input())\n  auto-write_int_memory (from write_int_memory())\n  auto-write_int_output (from write_int_output())\n  auto-write_lint_input (from write_lint_input())\n  auto-write_lint_memory (from write_lint_memory())\n  auto-write_lint_output (from write_lint_output())\n  auto-is_valid (from is_valid())\n  auto-error_msg (from error_msg())\n  auto-get_var_list (from get_var_list())\n  auto-get_var_size (from get_var_size())\n  auto-get_var_value (from get_var_value())\n  auto-get_var_count (from get_var_count())\n  auto-get_var_info (from get_var_info())\n  auto-get_var_sizes_batch (from get_var_sizes_batch())\n  auto-get_var_values_batch (from get_var_values_batch())\n  auto-get_config_path (from get_config_path())\n  auto-get_config_file_args_as_map (from get_config_file_args_as_map())\n\nRequired output action ids:\n  auto-acquire_mutex\n  auto-batch_mixed_operations\n  auto-batch_read_values\n  auto-batch_write_values\n  auto-read_bool_input\n  auto-read_bool_memory\n  auto-read_bool_output\n  auto-read_byte_input\n  auto-read_byte_output\n  auto-read_dint_input\n  auto-read_dint_memory\n  auto-read_dint_output\n  auto-read_int_input\n  auto-read_int_memory\n  auto-read_int_output\n  auto-read_lint_input\n  auto-read_lint_memory\n  auto-read_lint_output\n  auto-release_mutex\n  auto-set_var_value\n  auto-set_var_values_batch\n  auto-write_bool_input\n  auto-write_bool_memory\n  auto-write_bool_output\n  auto-write_byte_input\n  auto-write_byte_output\n  auto-write_dint_input\n  auto-write_dint_memory\n  auto-write_dint_output\n  auto-write_int_input\n  auto-write_int_memory\n  auto-write_int_output\n  auto-write_lint_input\n  auto-write_lint_memory\n  auto-write_lint_output\n  auto-is_valid\n  auto-error_msg\n  auto-get_var_list\n  auto-get_var_size\n  auto-get_var_value\n  auto-get_var_count\n  auto-get_var_info\n  auto-get_var_sizes_batch\n  auto-get_var_values_batch\n  auto-get_config_path\n  auto-get_config_file_args_as_map"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_057ef7e6c4e0ca240069d559ae0cc48197bb318987c8525fec",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 12760,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 12317,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_057ef7e6c4e0ca240069d559ae6d1481978a3eaa3d0bd90dc5",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_057ef7e6c4e0ca240069d559be735c81978d0ff1910d388c78",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"安全缓冲区访问组件\",\n  \"name_en\": \"Safe Buffer Access Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"一种非物理软件组件，用于在线程安全条件下读写与 PLC/Modbus 相关的输入、输出和内存缓冲区。它支持布尔、字节、16/32/64 位整数、批量读写、变量调试访问以及配置读取，常用于实验自动化程序中的共享数据交换与控制逻辑集成。\",\n  \"description_en\": \"A non-physical software component for thread-safe reading and writing of PLC/Modbus-related input, output, and memory buffers. It supports boolean, byte, 16/32/64-bit integers, batch operations, variable inspection, and configuration access, and is commonly used for shared data exchange and control-logic integration in laboratory automation software.\",\n  \"tag_hints\": [\n    \"thread-safe buffer access\",\n    \"PLC I/O buffers\",\n    \"Modbus shared memory\",\n    \"batch variable read/write\",\n    \"mutex synchronization\",\n    \"automation data exchange\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-acquire_mutex\",\n      \"description\": \"获取缓冲区互斥锁。\",\n      \"description_en\": \"Acquire the buffer mutex.\"\n    },\n    {\n      \"action_name\": \"auto-batch_mixed_operations\",\n      \"description\": \"批量执行混合读写操作。\",\n      \"description_en\": \"Process mixed read and write operations in batch.\"\n    },\n    {\n      \"action_name\": \"auto-batch_read_values\",\n      \"description\": \"批量执行多个读取操作。\",\n      \"description_en\": \"Process multiple read operations in batch.\"\n    },\n    {\n      \"action_name\": \"auto-batch_write_values\",\n      \"description\": \"批量执行多个写入操作。\",\n      \"description_en\": \"Process multiple write operations in batch.\"\n    },\n    {\n      \"action_name\": \"auto-read_bool_input\",\n      \"description\": \"读取布尔输入缓冲区值。\",\n      \"description_en\": \"Read a boolean input buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_bool_memory\",\n      \"description\": \"读取布尔内存缓冲区值。\",\n      \"description_en\": \"Read a boolean memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_bool_output\",\n      \"description\": \"读取布尔输出缓冲区值。\",\n      \"description_en\": \"Read a boolean output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_byte_input\",\n      \"description\": \"读取字节输入缓冲区值。\",\n      \"description_en\": \"Read a byte input buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_byte_output\",\n      \"description\": \"读取字节输出缓冲区值。\",\n      \"description_en\": \"Read a byte output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_dint_input\",\n      \"description\": \"读取 32 位整数输入缓冲区值。\",\n      \"description_en\": \"Read a 32-bit integer input buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_dint_memory\",\n      \"description\": \"读取 32 位整数内存缓冲区值。\",\n      \"description_en\": \"Read a 32-bit integer memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_dint_output\",\n      \"description\": \"读取 32 位整数输出缓冲区值。\",\n      \"description_en\": \"Read a 32-bit integer output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_int_input\",\n      \"description\": \"读取 16 位整数输入缓冲区值。\",\n      \"description_en\": \"Read a 16-bit integer input buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_int_memory\",\n      \"description\": \"读取 16 位整数内存缓冲区值。\",\n      \"description_en\": \"Read a 16-bit integer memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_int_output\",\n      \"description\": \"读取 16 位整数输出缓冲区值。\",\n      \"description_en\": \"Read a 16-bit integer output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_lint_input\",\n      \"description\": \"读取 64 位整数输入缓冲区值。\",\n      \"description_en\": \"Read a 64-bit integer input buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_lint_memory\",\n      \"description\": \"读取 64 位整数内存缓冲区值。\",\n      \"description_en\": \"Read a 64-bit integer memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_lint_output\",\n      \"description\": \"读取 64 位整数输出缓冲区值。\",\n      \"description_en\": \"Read a 64-bit integer output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-release_mutex\",\n      \"description\": \"释放缓冲区互斥锁。\",\n      \"description_en\": \"Release the buffer mutex.\"\n    },\n    {\n      \"action_name\": \"auto-set_var_value\",\n      \"description\": \"设置指定索引的变量值。\",\n      \"description_en\": \"Set the variable value for the specified index.\"\n    },\n    {\n      \"action_name\": \"auto-set_var_values_batch\",\n      \"description\": \"设置多个变量的值。\",\n      \"description_en\": \"Set the values of multiple variables.\"\n    },\n    {\n      \"action_name\": \"auto-write_bool_input\",\n      \"description\": \"写入布尔输入缓冲区值，通常供 Modbus 主站更新 PLC 输入。\",\n      \"description_en\": \"Write a boolean input buffer value, typically for a Modbus master to update PLC inputs.\"\n    },\n    {\n      \"action_name\": \"auto-write_bool_memory\",\n      \"description\": \"写入布尔内存缓冲区值。\",\n      \"description_en\": \"Write a boolean memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_bool_output\",\n      \"description\": \"写入布尔输出缓冲区值。\",\n      \"description_en\": \"Write a boolean output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_byte_input\",\n      \"description\": \"写入字节输入缓冲区值，通常供 Modbus 主站更新 PLC 输入。\",\n      \"description_en\": \"Write a byte input buffer value, typically for a Modbus master to update PLC inputs.\"\n    },\n    {\n      \"action_name\": \"auto-write_byte_output\",\n      \"description\": \"写入字节输出缓冲区值。\",\n      \"description_en\": \"Write a byte output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_dint_input\",\n      \"description\": \"写入 32 位整数输入缓冲区值，通常供 Modbus 主站更新 PLC 输入。\",\n      \"description_en\": \"Write a 32-bit integer input buffer value, typically for a Modbus master to update PLC inputs.\"\n    },\n    {\n      \"action_name\": \"auto-write_dint_memory\",\n      \"description\": \"写入 32 位整数内存缓冲区值。\",\n      \"description_en\": \"Write a 32-bit integer memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_dint_output\",\n      \"description\": \"写入 32 位整数输出缓冲区值。\",\n      \"description_en\": \"Write a 32-bit integer output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_int_input\",\n      \"description\": \"写入 16 位整数输入缓冲区值，通常供 Modbus 主站更新 PLC 输入。\",\n      \"description_en\": \"Write a 16-bit integer input buffer value, typically for a Modbus master to update PLC inputs.\"\n    },\n    {\n      \"action_name\": \"auto-write_int_memory\",\n      \"description\": \"写入 16 位整数内存缓冲区值。\",\n      \"description_en\": \"Write a 16-bit integer memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_int_output\",\n      \"description\": \"写入 16 位整数输出缓冲区值。\",\n      \"description_en\": \"Write a 16-bit integer output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_lint_input\",\n      \"description\": \"写入 64 位整数输入缓冲区值，通常供 Modbus 主站更新 PLC 输入。\",\n      \"description_en\": \"Write a 64-bit integer input buffer value, typically for a Modbus master to update PLC inputs.\"\n    },\n    {\n      \"action_name\": \"auto-write_lint_memory\",\n      \"description\": \"写入 64 位整数内存缓冲区值。\",\n      \"description_en\": \"Write a 64-bit integer memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_lint_output\",\n      \"description\": \"写入 64 位整数输出缓冲区值。\",\n      \"description_en\": \"Write a 64-bit integer output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-is_valid\",\n      \"description\": \"获取实例是否已正确初始化。\",\n      \"description_en\": \"Get whether the instance is properly initialized.\"\n    },\n    {\n      \"action_name\": \"auto-error_msg\",\n      \"description\": \"获取初始化失败时的错误消息。\",\n      \"description_en\": \"Get the error message if initialization failed.\"\n    },\n    {\n      \"action_name\": \"auto-get_var_list\",\n      \"description\": \"获取指定索引的变量地址列表。\",\n      \"description_en\": \"Get variable addresses for the specified indexes.\"\n    },\n    {\n      \"action_name\": \"auto-get_var_size\",\n      \"description\": \"获取变量大小。\",\n      \"description_en\": \"Get the variable size.\"\n    },\n    {\n      \"action_name\": \"auto-get_var_value\",\n      \"description\": \"获取指定索引的变量值。\",\n      \"description_en\": \"Get the variable value for the specified index.\"\n    },\n    {\n      \"action_name\": \"auto-get_var_count\",\n      \"description\": \"获取变量总数。\",\n      \"description_en\": \"Get the total variable count.\"\n    },\n    {\n      \"action_name\": \"auto-get_var_info\",\n      \"description\": \"获取变量信息。\",\n      \"description_en\": \"Get variable information.\"\n    },\n    {\n      \"action_name\": \"auto-get_var_sizes_batch\",\n      \"description\": \"获取多个变量的大小。\",\n      \"description_en\": \"Get sizes for multiple variables.\"\n    },\n    {\n      \"action_name\": \"auto-get_var_values_batch\",\n      \"description\": \"获取多个变量的值。\",\n      \"description_en\": \"Get values for multiple variables.\"\n    },\n    {\n      \"action_name\": \"auto-get_config_path\",\n      \"description\": \"获取配置文件路径。\",\n      \"description_en\": \"Get the configuration file path.\"\n    },\n    {\n      \"action_name\": \"auto-get_config_file_args_as_map\",\n      \"description\": \"获取映射形式的配置文件参数。\",\n      \"description_en\": \"Get configuration file arguments as a map.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 3094,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3306,
+      "output_tokens_details": {
+        "reasoning_tokens": 926
+      },
+      "total_tokens": 6400
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 3094,
+      "output_token_count": 3306,
+      "predict_time": 47.257014988
+    }
+  },
+  "output_text": "{\n  \"name\": \"安全缓冲区访问组件\",\n  \"name_en\": \"Safe Buffer Access Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"一种非物理软件组件，用于在线程安全条件下读写与 PLC/Modbus 相关的输入、输出和内存缓冲区。它支持布尔、字节、16/32/64 位整数、批量读写、变量调试访问以及配置读取，常用于实验自动化程序中的共享数据交换与控制逻辑集成。\",\n  \"description_en\": \"A non-physical software component for thread-safe reading and writing of PLC/Modbus-related input, output, and memory buffers. It supports boolean, byte, 16/32/64-bit integers, batch operations, variable inspection, and configuration access, and is commonly used for shared data exchange and control-logic integration in laboratory automation software.\",\n  \"tag_hints\": [\n    \"thread-safe buffer access\",\n    \"PLC I/O buffers\",\n    \"Modbus shared memory\",\n    \"batch variable read/write\",\n    \"mutex synchronization\",\n    \"automation data exchange\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-acquire_mutex\",\n      \"description\": \"获取缓冲区互斥锁。\",\n      \"description_en\": \"Acquire the buffer mutex.\"\n    },\n    {\n      \"action_name\": \"auto-batch_mixed_operations\",\n      \"description\": \"批量执行混合读写操作。\",\n      \"description_en\": \"Process mixed read and write operations in batch.\"\n    },\n    {\n      \"action_name\": \"auto-batch_read_values\",\n      \"description\": \"批量执行多个读取操作。\",\n      \"description_en\": \"Process multiple read operations in batch.\"\n    },\n    {\n      \"action_name\": \"auto-batch_write_values\",\n      \"description\": \"批量执行多个写入操作。\",\n      \"description_en\": \"Process multiple write operations in batch.\"\n    },\n    {\n      \"action_name\": \"auto-read_bool_input\",\n      \"description\": \"读取布尔输入缓冲区值。\",\n      \"description_en\": \"Read a boolean input buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_bool_memory\",\n      \"description\": \"读取布尔内存缓冲区值。\",\n      \"description_en\": \"Read a boolean memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_bool_output\",\n      \"description\": \"读取布尔输出缓冲区值。\",\n      \"description_en\": \"Read a boolean output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_byte_input\",\n      \"description\": \"读取字节输入缓冲区值。\",\n      \"description_en\": \"Read a byte input buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_byte_output\",\n      \"description\": \"读取字节输出缓冲区值。\",\n      \"description_en\": \"Read a byte output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_dint_input\",\n      \"description\": \"读取 32 位整数输入缓冲区值。\",\n      \"description_en\": \"Read a 32-bit integer input buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_dint_memory\",\n      \"description\": \"读取 32 位整数内存缓冲区值。\",\n      \"description_en\": \"Read a 32-bit integer memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_dint_output\",\n      \"description\": \"读取 32 位整数输出缓冲区值。\",\n      \"description_en\": \"Read a 32-bit integer output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_int_input\",\n      \"description\": \"读取 16 位整数输入缓冲区值。\",\n      \"description_en\": \"Read a 16-bit integer input buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_int_memory\",\n      \"description\": \"读取 16 位整数内存缓冲区值。\",\n      \"description_en\": \"Read a 16-bit integer memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_int_output\",\n      \"description\": \"读取 16 位整数输出缓冲区值。\",\n      \"description_en\": \"Read a 16-bit integer output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_lint_input\",\n      \"description\": \"读取 64 位整数输入缓冲区值。\",\n      \"description_en\": \"Read a 64-bit integer input buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_lint_memory\",\n      \"description\": \"读取 64 位整数内存缓冲区值。\",\n      \"description_en\": \"Read a 64-bit integer memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-read_lint_output\",\n      \"description\": \"读取 64 位整数输出缓冲区值。\",\n      \"description_en\": \"Read a 64-bit integer output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-release_mutex\",\n      \"description\": \"释放缓冲区互斥锁。\",\n      \"description_en\": \"Release the buffer mutex.\"\n    },\n    {\n      \"action_name\": \"auto-set_var_value\",\n      \"description\": \"设置指定索引的变量值。\",\n      \"description_en\": \"Set the variable value for the specified index.\"\n    },\n    {\n      \"action_name\": \"auto-set_var_values_batch\",\n      \"description\": \"设置多个变量的值。\",\n      \"description_en\": \"Set the values of multiple variables.\"\n    },\n    {\n      \"action_name\": \"auto-write_bool_input\",\n      \"description\": \"写入布尔输入缓冲区值，通常供 Modbus 主站更新 PLC 输入。\",\n      \"description_en\": \"Write a boolean input buffer value, typically for a Modbus master to update PLC inputs.\"\n    },\n    {\n      \"action_name\": \"auto-write_bool_memory\",\n      \"description\": \"写入布尔内存缓冲区值。\",\n      \"description_en\": \"Write a boolean memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_bool_output\",\n      \"description\": \"写入布尔输出缓冲区值。\",\n      \"description_en\": \"Write a boolean output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_byte_input\",\n      \"description\": \"写入字节输入缓冲区值，通常供 Modbus 主站更新 PLC 输入。\",\n      \"description_en\": \"Write a byte input buffer value, typically for a Modbus master to update PLC inputs.\"\n    },\n    {\n      \"action_name\": \"auto-write_byte_output\",\n      \"description\": \"写入字节输出缓冲区值。\",\n      \"description_en\": \"Write a byte output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_dint_input\",\n      \"description\": \"写入 32 位整数输入缓冲区值，通常供 Modbus 主站更新 PLC 输入。\",\n      \"description_en\": \"Write a 32-bit integer input buffer value, typically for a Modbus master to update PLC inputs.\"\n    },\n    {\n      \"action_name\": \"auto-write_dint_memory\",\n      \"description\": \"写入 32 位整数内存缓冲区值。\",\n      \"description_en\": \"Write a 32-bit integer memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_dint_output\",\n      \"description\": \"写入 32 位整数输出缓冲区值。\",\n      \"description_en\": \"Write a 32-bit integer output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_int_input\",\n      \"description\": \"写入 16 位整数输入缓冲区值，通常供 Modbus 主站更新 PLC 输入。\",\n      \"description_en\": \"Write a 16-bit integer input buffer value, typically for a Modbus master to update PLC inputs.\"\n    },\n    {\n      \"action_name\": \"auto-write_int_memory\",\n      \"description\": \"写入 16 位整数内存缓冲区值。\",\n      \"description_en\": \"Write a 16-bit integer memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_int_output\",\n      \"description\": \"写入 16 位整数输出缓冲区值。\",\n      \"description_en\": \"Write a 16-bit integer output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_lint_input\",\n      \"description\": \"写入 64 位整数输入缓冲区值，通常供 Modbus 主站更新 PLC 输入。\",\n      \"description_en\": \"Write a 64-bit integer input buffer value, typically for a Modbus master to update PLC inputs.\"\n    },\n    {\n      \"action_name\": \"auto-write_lint_memory\",\n      \"description\": \"写入 64 位整数内存缓冲区值。\",\n      \"description_en\": \"Write a 64-bit integer memory buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-write_lint_output\",\n      \"description\": \"写入 64 位整数输出缓冲区值。\",\n      \"description_en\": \"Write a 64-bit integer output buffer value.\"\n    },\n    {\n      \"action_name\": \"auto-is_valid\",\n      \"description\": \"获取实例是否已正确初始化。\",\n      \"description_en\": \"Get whether the instance is properly initialized.\"\n    },\n    {\n      \"action_name\": \"auto-error_msg\",\n      \"description\": \"获取初始化失败时的错误消息。\",\n      \"description_en\": \"Get the error message if initialization failed.\"\n    },\n    {\n      \"action_name\": \"auto-get_var_list\",\n      \"description\": \"获取指定索引的变量地址列表。\",\n      \"description_en\": \"Get variable addresses for the specified indexes.\"\n    },\n    {\n      \"action_name\": \"auto-get_var_size\",\n      \"description\": \"获取变量大小。\",\n      \"description_en\": \"Get the variable size.\"\n    },\n    {\n      \"action_name\": \"auto-get_var_value\",\n      \"description\": \"获取指定索引的变量值。\",\n      \"description_en\": \"Get the variable value for the specified index.\"\n    },\n    {\n      \"action_name\": \"auto-get_var_count\",\n      \"description\": \"获取变量总数。\",\n      \"description_en\": \"Get the total variable count.\"\n    },\n    {\n      \"action_name\": \"auto-get_var_info\",\n      \"description\": \"获取变量信息。\",\n      \"description_en\": \"Get variable information.\"\n    },\n    {\n      \"action_name\": \"auto-get_var_sizes_batch\",\n      \"description\": \"获取多个变量的大小。\",\n      \"description_en\": \"Get sizes for multiple variables.\"\n    },\n    {\n      \"action_name\": \"auto-get_var_values_batch\",\n      \"description\": \"获取多个变量的值。\",\n      \"description_en\": \"Get values for multiple variables.\"\n    },\n    {\n      \"action_name\": \"auto-get_config_path\",\n      \"description\": \"获取配置文件路径。\",\n      \"description_en\": \"Get the configuration file path.\"\n    },\n    {\n      \"action_name\": \"auto-get_config_file_args_as_map\",\n      \"description\": \"获取映射形式的配置文件参数。\",\n      \"description_en\": \"Get configuration file arguments as a map.\"\n    }\n  ]\n}"
+}

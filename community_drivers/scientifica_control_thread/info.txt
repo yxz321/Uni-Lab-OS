@@ -1,53 +1,123 @@
-Device: scientifica_control_thread
-Registry Key: scientifica_control_thread
-Short Description: Scientifica Control Thread是由Scientifica生产的专业实验设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (11):
-- auto-cancel_move -> cancel_move [UniLabJsonCommand] goal_params: req
-- auto-check_objective -> check_objective [UniLabJsonCommand] goal_params: none
-- auto-check_position -> check_position [UniLabJsonCommand] goal_params: miss_reason, recheck
-- auto-move -> move [UniLabJsonCommand] goal_params: attempts_allowed, name, pos, speed
-- auto-quit -> quit [UniLabJsonCommand] goal_params: none
-- auto-run -> run [UniLabJsonCommand] goal_params: none
-- auto-send_move_command -> send_move_command [UniLabJsonCommand] goal_params: none
-- auto-set_default_speed -> set_default_speed [UniLabJsonCommand] goal_params: speed
-- auto-set_obj_callback -> set_obj_callback [UniLabJsonCommand] goal_params: func
-- auto-set_pos_callback -> set_pos_callback [UniLabJsonCommand] goal_params: func
-- auto-stop -> stop [UniLabJsonCommand] goal_params: reason
-
-Driver Functions (29):
-- ScientificaControlThread.__init__(self, dev) (line 90)
-- ScientificaControlThread.set_pos_callback(self, func) (line 108)
-- ScientificaControlThread.set_obj_callback(self, func) (line 114)
-- ScientificaControlThread.set_default_speed(self, speed) (line 120)
-- ScientificaControlThread.stop(self, reason) (line 129)
-- ScientificaControlThread.move(self, pos, speed, attempts_allowed, name) (line 134)
-- ScientificaControlThread.quit(self) (line 139)
-- ScientificaControlThread.cancel_move(self, req) (line 144)
-- ScientificaControlThread.run(self) (line 151)
-- ScientificaControlThread._request(self, req, **kwds) (line 169)
-- ScientificaControlThread._handle_request(self, fut) (line 175)
-- ScientificaControlThread._handle_move(self, fut) (line 194)
-- ScientificaControlThread._handle_stop(self, fut) (line 206)
-- ScientificaControlThread._handle_cancel(self, fut) (line 219)
-- ScientificaControlThread.send_move_command(self) (line 229)
-- ScientificaControlThread.check_position(self, miss_reason, recheck) (line 251)
-- ScientificaControlThread.check_objective(self) (line 312)
-- ScientificaRequestFuture.__init__(self, ctrl_thread, req, kwds) (line 335)
-- ScientificaRequestFuture.done(self) (line 347)
-- ScientificaRequestFuture.set_callback(self, cb) (line 351)
-- ScientificaRequestFuture.can_retry(self) (line 365)
-- ScientificaRequestFuture.cancel(self) (line 368)
-- ScientificaRequestFuture.wait(self, timeout) (line 378)
-- ScientificaRequestFuture.set_result(self, result) (line 395)
-- ScientificaRequestFuture.set_exc_info(self, exc) (line 399)
-- ScientificaRequestFuture.fail(self, reason) (line 403)
-- ScientificaRequestFuture._finish(self) (line 407)
-- ScientificaRequestFuture.target_pos(self) (line 416)
-- ScientificaRequestFuture.__str__(self) (line 420)
+scientifica_control_thread:
+  name: Scientifica 运动控制线程
+  name_en: Scientifica Motion Control Thread
+  manufacturer: ''
+  category:
+  - 位置控制器
+  - 电动位移台控制器
+  tags:
+  - 物流/机械
+  - 精密定位与运动控制
+  - 实验室自动化与仪器集成
+  - 样品/探针定位与运动控制
+  - 位置控制器
+  - 电动位移台控制器
+  description: 这是一个非物理的软件控制组件，用于主 Scientifica 设备类的后台线程中监测位置、发起移动、跟踪移动状态、处理停止与取消请求，并通过回调通知位置或物镜状态变化，适合用于
+    Scientifica 位移设备的运动协调与状态轮询。
+  description_en: This is a non-physical software control component used as a background
+    thread for the main Scientifica device class. It monitors position, initiates
+    moves, tracks move status, handles stop and cancel requests, and reports position
+    or objective changes via callbacks for coordinating and polling Scientifica motion
+    devices.
+  class:
+    action_value_mappings:
+      auto-set_pos_callback:
+        schema:
+          description: 设置位置变化时触发的回调函数
+          description_en: Set the callback invoked when the position changes.
+      auto-set_obj_callback:
+        schema:
+          description: 设置物镜变化时触发的回调函数
+          description_en: Set the callback invoked when the objective changes.
+      auto-set_default_speed:
+        schema:
+          description: 设置默认移动速度
+          description_en: Set the default move speed.
+      auto-stop:
+        schema:
+          description: 立即停止当前设备运动
+          description_en: Immediately stop the current device motion.
+      auto-move:
+        schema:
+          description: 请求设备以指定速度移动到目标位置
+          description_en: Request the device to move to a target position at a specified
+            speed.
+      auto-quit:
+        schema:
+          description: 退出控制线程
+          description_en: Quit the control thread.
+      auto-cancel_move:
+        schema:
+          description: 取消先前提交的移动请求
+          description_en: Cancel a previously submitted move request.
+      auto-run:
+        schema:
+          description: 运行控制循环并检查位置与移动状态
+          description_en: Run the control loop and check position and move status.
+      auto-send_move_command:
+        schema:
+          description: 按顺序发送移动相关命令
+          description_en: Send the move-related command sequence.
+      auto-check_position:
+        schema:
+          description: 检查当前位置与移动状态，并在需要时更新回调或重试移动
+          description_en: Check the current position and move status, and update callbacks
+            or retry the move if needed.
+      auto-check_objective:
+        schema:
+          description: 检查当前物镜状态
+          description_en: Check the current objective status.
+auto_annotation_metadata:
+  registry_key: scientifica_control_thread
+  annotation_workflow_version: v4
+  tag_hints:
+  - motion control thread
+  - position polling
+  - asynchronous move requests
+  - move status tracking
+  - callback notifications
+  - Scientifica integration
+  - objective state monitoring
+  existing_tags:
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 该后台线程专门协调位移设备的运动、停止和状态轮询，属于机械运动控制环节。
+  - id: P-1009
+    name: 精密定位与运动控制
+    name_en: Precision Positioning & Motion Control
+    type: experimental_domain
+    rationale: 组件持续监测位置并发起移动请求，核心就是精密定位控制。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它以线程和回调方式把Scientifica运动设备集成进自动化控制系统。
+  - id: P-0038
+    name: 样品/探针定位与运动控制
+    name_en: Sample / Probe Positioning & Motion Control
+    type: experimental_scene
+    rationale: 支持目标位置移动、停止/取消和位置状态更新，符合样品/探针定位场景。
+  - id: P-0027
+    name: 位置控制器
+    name_en: Positioner Controller
+    type: device_template_tag
+    rationale: 该组件本质上是用于位移设备的通用位置控制器软件接口。
+  - id: P-3008
+    name: 电动位移台控制器
+    name_en: Motorized Stage Controller
+    type: device_template_tag
+    rationale: 其功能与电动位移设备的运动指令、状态监测和回调控制高度一致。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

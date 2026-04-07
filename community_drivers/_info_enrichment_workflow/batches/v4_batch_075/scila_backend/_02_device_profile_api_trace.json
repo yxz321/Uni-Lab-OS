@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: scila_backend\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pylabrobot/storage/inheco/scila/scila_backend.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.arm.scila_backend:SCILABackend\n\nClass: SCILABackend (focal)\n  Bases: ['MachineBackend']\n\nFocal class methods:\n  [command] setup(self)\n  [command] stop(self)\n  [command] request_status(self)\n    comment: GetStatus returns synchronously (return_code 1 = immediate dict), unlike other commands\n    comment: which return asynchronously (return_code 2 = XML via callback).\n  [command] request_liquid_level(self)\n  [command] request_temperature_information(self)\n  [command] measure_temperature(self)\n  [command] request_target_temperature(self)\n  [command] is_temperature_control_enabled(self)\n  [command] open(self, drawer_id)\n  [command] close(self, drawer_id)\n  [command] request_drawer_statuses(self)\n  [command] request_drawer_status(self, drawer_id)\n  [command] request_co2_flow_status(self)\n  [command] request_valve_status(self)\n    comment: example:\n\n    {\n      \"H2O\": \"Opened\",\n      \"CO2 Normal\": \"Opened\",\n      \"CO2 Boost\": \"Closed\"\n    }\n  [command] start_temperature_control(self, temperature)\n  [command] stop_temperature_control(self)\n  [command] serialize(self)\n  [command] deserialize(cls, data)\n\nRegistry actions:\n  auto-request_status (from request_status())\n  auto-request_liquid_level (from request_liquid_level())\n  auto-request_temperature_information (from request_temperature_information())\n  auto-measure_temperature (from measure_temperature())\n  auto-request_target_temperature (from request_target_temperature())\n  auto-is_temperature_control_enabled (from is_temperature_control_enabled())\n  auto-request_drawer_statuses (from request_drawer_statuses())\n  auto-request_drawer_status (from request_drawer_status())\n  auto-request_co2_flow_status (from request_co2_flow_status())\n  auto-request_valve_status (from request_valve_status())\n  auto-start_temperature_control (from start_temperature_control())\n  auto-stop_temperature_control (from stop_temperature_control())\n  auto-serialize (from serialize())\n  auto-deserialize (from deserialize())\n\nRequired output action ids:\n  auto-request_status\n  auto-request_liquid_level\n  auto-request_temperature_information\n  auto-measure_temperature\n  auto-request_target_temperature\n  auto-is_temperature_control_enabled\n  auto-request_drawer_statuses\n  auto-request_drawer_status\n  auto-request_co2_flow_status\n  auto-request_valve_status\n  auto-start_temperature_control\n  auto-stop_temperature_control\n  auto-serialize\n  auto-deserialize"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_06393468e01303680069d559ab9c08819090fc0743cb7977cb",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3658,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6906,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "low"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_06393468e01303680069d559abfc6081908837469617ac7956",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_06393468e01303680069d559beb4e88190997a3241e91d6fad",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"SCILA抽屉式培养存储装置\",\n  \"name_en\": \"SCILA drawer-based incubation/storage unit\",\n  \"manufacturer\": \"INHECO\",\n  \"description\": \"一种带抽屉访问的实验室环境控制装置，可用于样品或微孔板的培养或受控存储。该设备支持温度控制，并可查询液位、温度、CO₂流量、阀门以及抽屉状态。\",\n  \"description_en\": \"A drawer-based laboratory environmental control unit for incubating or storing samples or microplates under controlled conditions. It supports temperature control and can report liquid level, temperature, CO2 flow, valve status, and drawer status.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-request_status\",\n      \"description\": \"获取设备总体状态。\",\n      \"description_en\": \"Get the overall device status.\"\n    },\n    {\n      \"action_name\": \"auto-request_liquid_level\",\n      \"description\": \"获取液位信息。\",\n      \"description_en\": \"Get the liquid level information.\"\n    },\n    {\n      \"action_name\": \"auto-request_temperature_information\",\n      \"description\": \"获取温度信息。\",\n      \"description_en\": \"Get temperature information.\"\n    },\n    {\n      \"action_name\": \"auto-measure_temperature\",\n      \"description\": \"测量当前温度。\",\n      \"description_en\": \"Measure the current temperature.\"\n    },\n    {\n      \"action_name\": \"auto-request_target_temperature\",\n      \"description\": \"获取目标温度。\",\n      \"description_en\": \"Get the target temperature.\"\n    },\n    {\n      \"action_name\": \"auto-is_temperature_control_enabled\",\n      \"description\": \"查询温度控制是否已启用。\",\n      \"description_en\": \"Check whether temperature control is enabled.\"\n    },\n    {\n      \"action_name\": \"auto-request_drawer_statuses\",\n      \"description\": \"获取所有抽屉状态。\",\n      \"description_en\": \"Get the status of all drawers.\"\n    },\n    {\n      \"action_name\": \"auto-request_drawer_status\",\n      \"description\": \"获取指定抽屉状态。\",\n      \"description_en\": \"Get the status of a specified drawer.\"\n    },\n    {\n      \"action_name\": \"auto-request_co2_flow_status\",\n      \"description\": \"获取CO₂流量状态。\",\n      \"description_en\": \"Get the CO2 flow status.\"\n    },\n    {\n      \"action_name\": \"auto-request_valve_status\",\n      \"description\": \"获取阀门状态。\",\n      \"description_en\": \"Get the valve status.\"\n    },\n    {\n      \"action_name\": \"auto-start_temperature_control\",\n      \"description\": \"启动温度控制并设定目标温度。\",\n      \"description_en\": \"Start temperature control and set the target temperature.\"\n    },\n    {\n      \"action_name\": \"auto-stop_temperature_control\",\n      \"description\": \"停止温度控制。\",\n      \"description_en\": \"Stop temperature control.\"\n    },\n    {\n      \"action_name\": \"auto-serialize\",\n      \"description\": \"序列化设备配置或状态数据。\",\n      \"description_en\": \"Serialize the device configuration or state data.\"\n    },\n    {\n      \"action_name\": \"auto-deserialize\",\n      \"description\": \"从序列化数据恢复设备配置或状态。\",\n      \"description_en\": \"Restore the device configuration or state from serialized data.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"temperature-controlled incubation\",\n    \"drawer-based storage\",\n    \"CO2 control\",\n    \"humidification reservoir\",\n    \"liquid level monitoring\",\n    \"microplate incubation\",\n    \"environmental chamber\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1264,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1795,
+      "output_tokens_details": {
+        "reasoning_tokens": 1018
+      },
+      "total_tokens": 3059
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1264,
+      "output_token_count": 1795,
+      "predict_time": 30.1484382
+    }
+  },
+  "output_text": "{\n  \"name\": \"SCILA抽屉式培养存储装置\",\n  \"name_en\": \"SCILA drawer-based incubation/storage unit\",\n  \"manufacturer\": \"INHECO\",\n  \"description\": \"一种带抽屉访问的实验室环境控制装置，可用于样品或微孔板的培养或受控存储。该设备支持温度控制，并可查询液位、温度、CO₂流量、阀门以及抽屉状态。\",\n  \"description_en\": \"A drawer-based laboratory environmental control unit for incubating or storing samples or microplates under controlled conditions. It supports temperature control and can report liquid level, temperature, CO2 flow, valve status, and drawer status.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-request_status\",\n      \"description\": \"获取设备总体状态。\",\n      \"description_en\": \"Get the overall device status.\"\n    },\n    {\n      \"action_name\": \"auto-request_liquid_level\",\n      \"description\": \"获取液位信息。\",\n      \"description_en\": \"Get the liquid level information.\"\n    },\n    {\n      \"action_name\": \"auto-request_temperature_information\",\n      \"description\": \"获取温度信息。\",\n      \"description_en\": \"Get temperature information.\"\n    },\n    {\n      \"action_name\": \"auto-measure_temperature\",\n      \"description\": \"测量当前温度。\",\n      \"description_en\": \"Measure the current temperature.\"\n    },\n    {\n      \"action_name\": \"auto-request_target_temperature\",\n      \"description\": \"获取目标温度。\",\n      \"description_en\": \"Get the target temperature.\"\n    },\n    {\n      \"action_name\": \"auto-is_temperature_control_enabled\",\n      \"description\": \"查询温度控制是否已启用。\",\n      \"description_en\": \"Check whether temperature control is enabled.\"\n    },\n    {\n      \"action_name\": \"auto-request_drawer_statuses\",\n      \"description\": \"获取所有抽屉状态。\",\n      \"description_en\": \"Get the status of all drawers.\"\n    },\n    {\n      \"action_name\": \"auto-request_drawer_status\",\n      \"description\": \"获取指定抽屉状态。\",\n      \"description_en\": \"Get the status of a specified drawer.\"\n    },\n    {\n      \"action_name\": \"auto-request_co2_flow_status\",\n      \"description\": \"获取CO₂流量状态。\",\n      \"description_en\": \"Get the CO2 flow status.\"\n    },\n    {\n      \"action_name\": \"auto-request_valve_status\",\n      \"description\": \"获取阀门状态。\",\n      \"description_en\": \"Get the valve status.\"\n    },\n    {\n      \"action_name\": \"auto-start_temperature_control\",\n      \"description\": \"启动温度控制并设定目标温度。\",\n      \"description_en\": \"Start temperature control and set the target temperature.\"\n    },\n    {\n      \"action_name\": \"auto-stop_temperature_control\",\n      \"description\": \"停止温度控制。\",\n      \"description_en\": \"Stop temperature control.\"\n    },\n    {\n      \"action_name\": \"auto-serialize\",\n      \"description\": \"序列化设备配置或状态数据。\",\n      \"description_en\": \"Serialize the device configuration or state data.\"\n    },\n    {\n      \"action_name\": \"auto-deserialize\",\n      \"description\": \"从序列化数据恢复设备配置或状态。\",\n      \"description_en\": \"Restore the device configuration or state from serialized data.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"temperature-controlled incubation\",\n    \"drawer-based storage\",\n    \"CO2 control\",\n    \"humidification reservoir\",\n    \"liquid level monitoring\",\n    \"microplate incubation\",\n    \"environmental chamber\"\n  ]\n}"
+}

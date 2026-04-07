@@ -1,39 +1,90 @@
-Device: serial_interface
-Registry Key: serial_interface
-Short Description: Abstract base class from which the data and command interfaces are derived
-
-Categories:
-- generic
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (7):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-connect -> connect [UniLabJsonCommand] goal_params: serialName
-- auto-getDebugString -> getDebugString [UniLabJsonCommand] goal_params: direction, withTime
-- auto-getLastCommandWithAnswer -> getLastCommandWithAnswer [UniLabJsonCommand] goal_params: direction, withTime
-- auto-isConnected -> isConnected [UniLabJsonCommand] goal_params: none
-- auto-write -> write [UniLabJsonCommand] goal_params: data
-- auto-writeLog -> writeLog [UniLabJsonCommand] goal_params: data, direction
-
-Driver Functions (19):
-- SerialInterface.__init__(self, serialName) (line 127)
-- SerialInterface.connect(self, serialName) (line 139)
-- SerialInterface.isConnected(self) (line 171)
-- SerialInterface.write(self, data) (line 182)
-- SerialInterface.close(self) (line 204)
-- SerialInterface.writeLog(self, data, direction) (line 210)
-- SerialInterface.getDebugString(self, withTime, direction) (line 228)
-- SerialInterface.getLastCommandWithAnswer(self, withTime, direction) (line 253)
-- SerialInterface._startTelegramListener(self) (line 271)
-- SerialInterface._stopTelegramListener(self) (line 279)
-- SerialInterface._telegramListenerJob(self) (line 300)
-- SerialCommandInterface.__init__(self, serialName) (line 318)
-- SerialCommandInterface.waitForReplyString(self, commandType, timeout) (line 331)
-- SerialCommandInterface.sendStringAndWaitForReplyString(self, string, commandType) (line 346)
-- SerialCommandInterface._telegramListenerJob(self) (line 361)
-- SerialDataInterface.__init__(self, serialName) (line 453)
-- SerialDataInterface._telegramListenerJob(self) (line 459)
-- SerialDataInterface.availableBytes(self) (line 477)
-- SerialDataInterface.readBytes(self, numberOfBytes, timeout) (line 484)
+serial_interface:
+  name: 串口通信接口组件
+  name_en: Serial Communication Interface Component
+  manufacturer: Zahner
+  category:
+  - 串行仪器通信接口
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验仪器通信与驱动集成
+  - 串行仪器通信接口
+  description: 用于实验控制软件的非物理串口通信组件，提供命令/数据串口的连接、写入、关闭和通信日志记录功能，常用于通过 SCPI 与仪器进行通信和调试。
+  description_en: A non-physical serial communication component used in laboratory
+    control software. It provides command/data serial port connection, writing, closing,
+    and communication log functions, and is commonly used for SCPI-based instrument
+    communication and debugging.
+  class:
+    action_value_mappings:
+      auto-connect:
+        schema:
+          description: 连接到指定串口接口。
+          description_en: Connect to the specified serial interface.
+      auto-isConnected:
+        schema:
+          description: 检查串口接口是否已连接。
+          description_en: Check whether the serial interface is connected.
+      auto-write:
+        schema:
+          description: 向串口接口写入字节数据。
+          description_en: Write byte data to the serial interface.
+      auto-close:
+        schema:
+          description: 关闭串口连接。
+          description_en: Close the serial connection.
+      auto-writeLog:
+        schema:
+          description: 记录串口通信日志，包括收发方向和时间信息。
+          description_en: Record serial communication logs, including direction and
+            timestamp information.
+      auto-getDebugString:
+        schema:
+          description: 获取用于调试的串口通信日志文本。
+          description_en: Get the serial communication log text for debugging.
+      auto-getLastCommandWithAnswer:
+        schema:
+          description: 获取最近一次命令及其响应记录。
+          description_en: Get the most recent command and its response record.
+auto_annotation_metadata:
+  registry_key: serial_interface
+  annotation_workflow_version: v4
+  tag_hints:
+  - serial communication
+  - SCPI control
+  - instrument command logging
+  - serial port connection
+  - debug trace
+  - command/data interface
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件用于实验控制软件中的串口连接、写入和关闭，直接参与仪器联机控制。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它是实验控制软件中的非物理通信组件，属于实验室自动化与仪器集成范畴。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 通过 SCPI 与仪器通信并保留调试日志，明显属于仪器通信与驱动集成场景。
+  - id: P-2013
+    name: 串行仪器通信接口
+    name_en: Serial Instrument Communication Interface
+    type: device_template_tag
+    rationale: 组件本质上提供命令/数据串口连接与写入能力，适合串行仪器通信接口标签。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

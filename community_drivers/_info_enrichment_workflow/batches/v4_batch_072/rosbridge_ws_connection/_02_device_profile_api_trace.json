@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: rosbridge_ws_connection\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: mir_driver/src/mir_driver/rosbridge.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.rosbridge_ws_connection:RosbridgeWSConnection\n\nClass: RosbridgeSetup \n  Bases: []\n\nClass: RosbridgeWSConnection (focal)\n  Bases: []\n\nFocal class methods:\n  [command] on_open(self)\n  [command] sendString(self, message)\n    comment: TODO: throw exception\n  [command] on_error(self, error)\n  [command] on_close(self)\n  [command] run(self, *args)\n  [command] on_message(self, message)\n    comment: Call the handlers\n  [command] registerCallback(self, callback)\n\nRegistry actions:\n  auto-on_open (from on_open())\n  auto-sendString (from sendString())\n  auto-on_error (from on_error())\n  auto-on_close (from on_close())\n  auto-run (from run())\n  auto-on_message (from on_message())\n  auto-registerCallback (from registerCallback())\n\nRequired output action ids:\n  auto-on_open\n  auto-sendString\n  auto-on_error\n  auto-on_close\n  auto-run\n  auto-on_message\n  auto-registerCallback"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0824aa405e3af87d0069d5550f214c81909f3a01f061c95e01",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2087,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3967,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0824aa405e3af87d0069d5550f7f088190a5467d54d78fd7a6",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0824aa405e3af87d0069d555185ee881908c4b9fe1b40b9a7d",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"ROSBridge WebSocket连接组件\",\n  \"name_en\": \"ROSBridge WebSocket Connection Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于与ROSBridge服务器建立并维护WebSocket通信的非物理软件组件，可在实验系统中发送字符串消息、接收消息，并将收到的数据分发给已注册的回调函数。\",\n  \"description_en\": \"A non-physical software component that establishes and maintains WebSocket communication with a ROSBridge server, used in lab systems to send string messages, receive incoming messages, and dispatch received data to registered callbacks.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-on_open\",\n      \"description\": \"处理WebSocket连接打开事件。\",\n      \"description_en\": \"Handle the WebSocket connection-open event.\"\n    },\n    {\n      \"action_name\": \"auto-sendString\",\n      \"description\": \"通过WebSocket发送字符串消息。\",\n      \"description_en\": \"Send a string message through the WebSocket connection.\"\n    },\n    {\n      \"action_name\": \"auto-on_error\",\n      \"description\": \"处理WebSocket连接错误事件。\",\n      \"description_en\": \"Handle a WebSocket connection error event.\"\n    },\n    {\n      \"action_name\": \"auto-on_close\",\n      \"description\": \"处理WebSocket连接关闭事件。\",\n      \"description_en\": \"Handle the WebSocket connection-close event.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"启动并运行WebSocket连接过程。\",\n      \"description_en\": \"Start and run the WebSocket connection process.\"\n    },\n    {\n      \"action_name\": \"auto-on_message\",\n      \"description\": \"处理收到的消息并调用已注册的回调函数。\",\n      \"description_en\": \"Handle an incoming message and invoke registered callbacks.\"\n    },\n    {\n      \"action_name\": \"auto-registerCallback\",\n      \"description\": \"注册用于处理收到消息的回调函数。\",\n      \"description_en\": \"Register a callback function for handling incoming messages.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"ROSBridge\",\n    \"WebSocket communication\",\n    \"ROS message transport\",\n    \"callback dispatch\",\n    \"robot software integration\",\n    \"network messaging\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 953,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 908,
+      "output_tokens_details": {
+        "reasoning_tokens": 433
+      },
+      "total_tokens": 1861
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 953,
+      "output_token_count": 908,
+      "predict_time": 16.494015511
+    }
+  },
+  "output_text": "{\n  \"name\": \"ROSBridge WebSocket连接组件\",\n  \"name_en\": \"ROSBridge WebSocket Connection Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于与ROSBridge服务器建立并维护WebSocket通信的非物理软件组件，可在实验系统中发送字符串消息、接收消息，并将收到的数据分发给已注册的回调函数。\",\n  \"description_en\": \"A non-physical software component that establishes and maintains WebSocket communication with a ROSBridge server, used in lab systems to send string messages, receive incoming messages, and dispatch received data to registered callbacks.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-on_open\",\n      \"description\": \"处理WebSocket连接打开事件。\",\n      \"description_en\": \"Handle the WebSocket connection-open event.\"\n    },\n    {\n      \"action_name\": \"auto-sendString\",\n      \"description\": \"通过WebSocket发送字符串消息。\",\n      \"description_en\": \"Send a string message through the WebSocket connection.\"\n    },\n    {\n      \"action_name\": \"auto-on_error\",\n      \"description\": \"处理WebSocket连接错误事件。\",\n      \"description_en\": \"Handle a WebSocket connection error event.\"\n    },\n    {\n      \"action_name\": \"auto-on_close\",\n      \"description\": \"处理WebSocket连接关闭事件。\",\n      \"description_en\": \"Handle the WebSocket connection-close event.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"启动并运行WebSocket连接过程。\",\n      \"description_en\": \"Start and run the WebSocket connection process.\"\n    },\n    {\n      \"action_name\": \"auto-on_message\",\n      \"description\": \"处理收到的消息并调用已注册的回调函数。\",\n      \"description_en\": \"Handle an incoming message and invoke registered callbacks.\"\n    },\n    {\n      \"action_name\": \"auto-registerCallback\",\n      \"description\": \"注册用于处理收到消息的回调函数。\",\n      \"description_en\": \"Register a callback function for handling incoming messages.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"ROSBridge\",\n    \"WebSocket communication\",\n    \"ROS message transport\",\n    \"callback dispatch\",\n    \"robot software integration\",\n    \"network messaging\"\n  ]\n}"
+}

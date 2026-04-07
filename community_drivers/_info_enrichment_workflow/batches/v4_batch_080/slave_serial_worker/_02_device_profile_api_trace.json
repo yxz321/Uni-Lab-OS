@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: slave_serial_worker\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: examples/client_serial_gw.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.slave_serial_worker:SlaveSerialWorker\n\nClass: ModbusRTUFrame \n  Bases: []\n  Docstring: Modbus RTU frame container class. \n\nClass: SlaveSerialWorker (focal)\n  Bases: []\n  Docstring: A serial worker to manage I/O with RTU master device. \n\nClass: Serial2ModbusClient \n  Bases: []\n  Docstring: Customize a slave serial worker for map a modbus TCP client. \n\nFocal class methods:\n  [command] handle_request(self)\n    comment: Default PDU request processing here, you must implement it in your app.\n  [command] run(self)\n    comment: flush serial buffer\n    comment: request loop\n    comment: init a new transaction\n    comment: receive from serial\n    comment: wait for first byte of data\n    comment: if ok, wait for the remaining\n    comment: wait for next bytes of data until end of frame delay\n    comment: store the receipt frame\n    comment: log of received items for debugging purposes\n    comment: just ignore current frame on CRC error\n    comment: relay PDU of request to modbus server\n    comment: if a response frame is set sent it\n    comment: log sent items for debugging purposes\n    comment: Serial worker process.\n\nRegistry actions:\n  auto-handle_request (from handle_request())\n  auto-run (from run())\n\nRequired output action ids:\n  auto-handle_request\n  auto-run"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0af811cd65753b900069d55d6c4bc88195b87dbfbed5a32054",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2480,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2966,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0af811cd65753b900069d55d6cdf348195b2b546e9e14b367d",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0af811cd65753b900069d55d744fe4819592859821cdfed85c",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Modbus RTU 从站串口工作器\",\n  \"name_en\": \"Modbus RTU Slave Serial Worker\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理软件组件，用于管理与 Modbus RTU 主站设备之间的串口通信。它负责接收和组装 RTU 帧、校验 CRC、处理请求 PDU，并可将请求转发到 Modbus 服务端后返回响应，适合实验系统中的串口协议网关、仿真从站或通信桥接场景。\",\n  \"description_en\": \"This is a non-physical software component for managing serial communication with a Modbus RTU master device. It receives and assembles RTU frames, validates CRC, processes request PDUs, and can relay requests to a Modbus server before sending responses back. It is suitable for protocol gateways, simulated slaves, and communication bridging in laboratory systems.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-handle_request\",\n      \"description\": \"处理收到的 Modbus 请求 PDU，并生成或转发对应响应。\",\n      \"description_en\": \"Process the received Modbus request PDU and generate or relay the corresponding response.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"运行串口工作循环，接收并校验 Modbus RTU 帧，将请求转发处理后发送响应。\",\n      \"description_en\": \"Run the serial worker loop: receive and validate Modbus RTU frames, forward requests for processing, and send responses.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Modbus RTU\",\n    \"serial communication\",\n    \"protocol gateway\",\n    \"CRC frame parsing\",\n    \"Modbus TCP bridging\",\n    \"slave simulation\",\n    \"laboratory automation integration\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1028,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 789,
+      "output_tokens_details": {
+        "reasoning_tokens": 394
+      },
+      "total_tokens": 1817
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1028,
+      "output_token_count": 789,
+      "predict_time": 14.80939247
+    }
+  },
+  "output_text": "{\n  \"name\": \"Modbus RTU 从站串口工作器\",\n  \"name_en\": \"Modbus RTU Slave Serial Worker\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理软件组件，用于管理与 Modbus RTU 主站设备之间的串口通信。它负责接收和组装 RTU 帧、校验 CRC、处理请求 PDU，并可将请求转发到 Modbus 服务端后返回响应，适合实验系统中的串口协议网关、仿真从站或通信桥接场景。\",\n  \"description_en\": \"This is a non-physical software component for managing serial communication with a Modbus RTU master device. It receives and assembles RTU frames, validates CRC, processes request PDUs, and can relay requests to a Modbus server before sending responses back. It is suitable for protocol gateways, simulated slaves, and communication bridging in laboratory systems.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-handle_request\",\n      \"description\": \"处理收到的 Modbus 请求 PDU，并生成或转发对应响应。\",\n      \"description_en\": \"Process the received Modbus request PDU and generate or relay the corresponding response.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"运行串口工作循环，接收并校验 Modbus RTU 帧，将请求转发处理后发送响应。\",\n      \"description_en\": \"Run the serial worker loop: receive and validate Modbus RTU frames, forward requests for processing, and send responses.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Modbus RTU\",\n    \"serial communication\",\n    \"protocol gateway\",\n    \"CRC frame parsing\",\n    \"Modbus TCP bridging\",\n    \"slave simulation\",\n    \"laboratory automation integration\"\n  ]\n}"
+}

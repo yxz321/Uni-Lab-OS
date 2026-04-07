@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: sensicam\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: lantz/drivers/pco/sensicam.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.sensicam:Sensicam\n\nClass: Status \n  Bases: ['object']\n\nClass: Sensicam (focal)\n  Bases: ['LibraryDriver']\n  Docstring: PCO Sensicam\n    \n\nFocal class methods:\n  [command] initialize(self)\n  [command] finalize(self)\n  [command] status(self)\n    comment: Get camera type, temperature of electronics and temp. of CCD\n    comment: return \"{}\".format(_ERRORS[err])\n  [command] mode(self)\n    comment: Imaging mode as a 3-element tuple (type, gain and submode).\n  [command] mode(self, typ_gain_submode)\n  [command] trigger(self)\n    comment: Triger mode.\n  [command] trigger(self, value)\n  [command] roi(self)\n    comment: Region of interest in pixels as a 4-element tuple (x1, x2, y1, y2).\n  [command] roi(self, roi)\n  [command] binning(self)\n    comment: Binning in pixels as a 2-element tuple (horizontal, vertical).\n  [command] binning(self, hbin_vbin)\n  [command] exposure_time(self)\n    comment: Exposure time.\n  [command] exposure_time(self, value)\n  [command] table(self)\n    comment: COC table\n  [command] stop_coc(self)\n    comment: Stop camera\n  [command] run_coc(self, runmode=4)\n    comment: 0 continuous - 4 single\n  [command] coc(self)\n    comment: Command Operation Code\n  [command] coc(self, value)\n  [command] image_status(self)\n    comment: Image status\n  [command] image_size(self)\n    comment: Image size in pixels (width, height).\n  [command] coc_time(self)\n  [command] delay_time(self)\n  [command] exp_time(self)\n  [command] bel_time(self)\n  [command] expose(self, exposure=1)\n    comment: Expose.\n\n        :param exposure: exposure time.\n  [command] read_out(self)\n    comment: Readout image from the CCD.\n\n        :rtype: NumPy array\n  [command] take_image(self, exposure=1)\n    comment: Take image.\n\n        :param exposure: exposure time.\n        :rtype: NumPy array\n\nRegistry actions:\n  auto-initialize (from initialize())\n  auto-finalize (from finalize())\n  auto-status (from status())\n  auto-mode (from mode())\n  auto-trigger (from trigger())\n  auto-roi (from roi())\n  auto-binning (from binning())\n  auto-exposure_time (from exposure_time())\n  auto-table (from table())\n  auto-stop_coc (from stop_coc())\n  auto-run_coc (from run_coc())\n  auto-coc (from coc())\n  auto-image_status (from image_status())\n  auto-image_size (from image_size())\n  auto-coc_time (from coc_time())\n  auto-delay_time (from delay_time())\n  auto-exp_time (from exp_time())\n  auto-bel_time (from bel_time())\n  auto-expose (from expose())\n  auto-read_out (from read_out())\n  auto-take_image (from take_image())\n\nRequired output action ids:\n  auto-initialize\n  auto-finalize\n  auto-status\n  auto-mode\n  auto-trigger\n  auto-roi\n  auto-binning\n  auto-exposure_time\n  auto-table\n  auto-stop_coc\n  auto-run_coc\n  auto-coc\n  auto-image_status\n  auto-image_size\n  auto-coc_time\n  auto-delay_time\n  auto-exp_time\n  auto-bel_time\n  auto-expose\n  auto-read_out\n  auto-take_image"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_01e2d1e4df1e89550069d55c14888c81938013c82e626440a8",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1805,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6986,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_01e2d1e4df1e89550069d55c14ecb88193897887eafbc5d462",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_01e2d1e4df1e89550069d55c227de881939654059bd7a4fba0",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"PCO Sensicam CCD科学相机\",\n  \"name_en\": \"PCO Sensicam CCD scientific camera\",\n  \"manufacturer\": \"PCO\",\n  \"description\": \"这是一款用于实验成像采集的 PCO Sensicam CCD 相机。驱动显示其支持曝光控制、触发模式、感兴趣区域（ROI）、像素合并（binning）、成像模式设置，以及 CCD 图像读出，适合实验室中的科学成像与单次/连续采集任务。\",\n  \"description_en\": \"This is a PCO Sensicam CCD camera for laboratory image acquisition. The driver indicates support for exposure control, trigger mode, region of interest (ROI), pixel binning, imaging mode configuration, and CCD image readout, making it suitable for scientific imaging and single or continuous acquisition tasks in the lab.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"初始化相机连接与控制环境。\",\n      \"description_en\": \"Initialize the camera connection and control environment.\"\n    },\n    {\n      \"action_name\": \"auto-finalize\",\n      \"description\": \"关闭相机连接并释放资源。\",\n      \"description_en\": \"Finalize the camera connection and release resources.\"\n    },\n    {\n      \"action_name\": \"auto-status\",\n      \"description\": \"获取相机类型、电子学温度和 CCD 温度状态。\",\n      \"description_en\": \"Get the camera type, electronics temperature, and CCD temperature status.\"\n    },\n    {\n      \"action_name\": \"auto-mode\",\n      \"description\": \"获取或设置成像模式（类型、增益和子模式）。\",\n      \"description_en\": \"Get or set the imaging mode (type, gain, and submode).\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"获取或设置触发模式。\",\n      \"description_en\": \"Get or set the trigger mode.\"\n    },\n    {\n      \"action_name\": \"auto-roi\",\n      \"description\": \"获取或设置图像感兴趣区域（ROI）。\",\n      \"description_en\": \"Get or set the image region of interest (ROI).\"\n    },\n    {\n      \"action_name\": \"auto-binning\",\n      \"description\": \"获取或设置水平和垂直像素合并参数。\",\n      \"description_en\": \"Get or set the horizontal and vertical pixel binning.\"\n    },\n    {\n      \"action_name\": \"auto-exposure_time\",\n      \"description\": \"获取或设置曝光时间。\",\n      \"description_en\": \"Get or set the exposure time.\"\n    },\n    {\n      \"action_name\": \"auto-table\",\n      \"description\": \"获取 COC 参数表。\",\n      \"description_en\": \"Get the COC parameter table.\"\n    },\n    {\n      \"action_name\": \"auto-stop_coc\",\n      \"description\": \"停止相机的 COC 运行。\",\n      \"description_en\": \"Stop the camera COC operation.\"\n    },\n    {\n      \"action_name\": \"auto-run_coc\",\n      \"description\": \"以指定模式启动 COC 运行，例如单次或连续采集。\",\n      \"description_en\": \"Start COC operation in a specified mode, such as single or continuous acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-coc\",\n      \"description\": \"获取或设置命令操作代码（COC）。\",\n      \"description_en\": \"Get or set the command operation code (COC).\"\n    },\n    {\n      \"action_name\": \"auto-image_status\",\n      \"description\": \"获取图像采集状态。\",\n      \"description_en\": \"Get the image acquisition status.\"\n    },\n    {\n      \"action_name\": \"auto-image_size\",\n      \"description\": \"获取图像尺寸（宽度和高度）。\",\n      \"description_en\": \"Get the image size (width and height).\"\n    },\n    {\n      \"action_name\": \"auto-coc_time\",\n      \"description\": \"获取 COC 时间参数。\",\n      \"description_en\": \"Get the COC timing parameter.\"\n    },\n    {\n      \"action_name\": \"auto-delay_time\",\n      \"description\": \"获取延迟时间参数。\",\n      \"description_en\": \"Get the delay time parameter.\"\n    },\n    {\n      \"action_name\": \"auto-exp_time\",\n      \"description\": \"获取曝光时间参数。\",\n      \"description_en\": \"Get the exposure time parameter.\"\n    },\n    {\n      \"action_name\": \"auto-bel_time\",\n      \"description\": \"获取 BEL 时间参数。\",\n      \"description_en\": \"Get the BEL timing parameter.\"\n    },\n    {\n      \"action_name\": \"auto-expose\",\n      \"description\": \"执行一次曝光。\",\n      \"description_en\": \"Perform a single exposure.\"\n    },\n    {\n      \"action_name\": \"auto-read_out\",\n      \"description\": \"从 CCD 读出图像数据。\",\n      \"description_en\": \"Read out image data from the CCD.\"\n    },\n    {\n      \"action_name\": \"auto-take_image\",\n      \"description\": \"完成一次曝光并读取图像。\",\n      \"description_en\": \"Take an image by performing an exposure and reading it out.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"CCD imaging\",\n    \"scientific camera\",\n    \"PCO Sensicam\",\n    \"ROI control\",\n    \"pixel binning\",\n    \"triggered acquisition\",\n    \"exposure control\",\n    \"image readout\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1515,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1952,
+      "output_tokens_details": {
+        "reasoning_tokens": 795
+      },
+      "total_tokens": 3467
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1515,
+      "output_token_count": 1952,
+      "predict_time": 29.06138664
+    }
+  },
+  "output_text": "{\n  \"name\": \"PCO Sensicam CCD科学相机\",\n  \"name_en\": \"PCO Sensicam CCD scientific camera\",\n  \"manufacturer\": \"PCO\",\n  \"description\": \"这是一款用于实验成像采集的 PCO Sensicam CCD 相机。驱动显示其支持曝光控制、触发模式、感兴趣区域（ROI）、像素合并（binning）、成像模式设置，以及 CCD 图像读出，适合实验室中的科学成像与单次/连续采集任务。\",\n  \"description_en\": \"This is a PCO Sensicam CCD camera for laboratory image acquisition. The driver indicates support for exposure control, trigger mode, region of interest (ROI), pixel binning, imaging mode configuration, and CCD image readout, making it suitable for scientific imaging and single or continuous acquisition tasks in the lab.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"初始化相机连接与控制环境。\",\n      \"description_en\": \"Initialize the camera connection and control environment.\"\n    },\n    {\n      \"action_name\": \"auto-finalize\",\n      \"description\": \"关闭相机连接并释放资源。\",\n      \"description_en\": \"Finalize the camera connection and release resources.\"\n    },\n    {\n      \"action_name\": \"auto-status\",\n      \"description\": \"获取相机类型、电子学温度和 CCD 温度状态。\",\n      \"description_en\": \"Get the camera type, electronics temperature, and CCD temperature status.\"\n    },\n    {\n      \"action_name\": \"auto-mode\",\n      \"description\": \"获取或设置成像模式（类型、增益和子模式）。\",\n      \"description_en\": \"Get or set the imaging mode (type, gain, and submode).\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"获取或设置触发模式。\",\n      \"description_en\": \"Get or set the trigger mode.\"\n    },\n    {\n      \"action_name\": \"auto-roi\",\n      \"description\": \"获取或设置图像感兴趣区域（ROI）。\",\n      \"description_en\": \"Get or set the image region of interest (ROI).\"\n    },\n    {\n      \"action_name\": \"auto-binning\",\n      \"description\": \"获取或设置水平和垂直像素合并参数。\",\n      \"description_en\": \"Get or set the horizontal and vertical pixel binning.\"\n    },\n    {\n      \"action_name\": \"auto-exposure_time\",\n      \"description\": \"获取或设置曝光时间。\",\n      \"description_en\": \"Get or set the exposure time.\"\n    },\n    {\n      \"action_name\": \"auto-table\",\n      \"description\": \"获取 COC 参数表。\",\n      \"description_en\": \"Get the COC parameter table.\"\n    },\n    {\n      \"action_name\": \"auto-stop_coc\",\n      \"description\": \"停止相机的 COC 运行。\",\n      \"description_en\": \"Stop the camera COC operation.\"\n    },\n    {\n      \"action_name\": \"auto-run_coc\",\n      \"description\": \"以指定模式启动 COC 运行，例如单次或连续采集。\",\n      \"description_en\": \"Start COC operation in a specified mode, such as single or continuous acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-coc\",\n      \"description\": \"获取或设置命令操作代码（COC）。\",\n      \"description_en\": \"Get or set the command operation code (COC).\"\n    },\n    {\n      \"action_name\": \"auto-image_status\",\n      \"description\": \"获取图像采集状态。\",\n      \"description_en\": \"Get the image acquisition status.\"\n    },\n    {\n      \"action_name\": \"auto-image_size\",\n      \"description\": \"获取图像尺寸（宽度和高度）。\",\n      \"description_en\": \"Get the image size (width and height).\"\n    },\n    {\n      \"action_name\": \"auto-coc_time\",\n      \"description\": \"获取 COC 时间参数。\",\n      \"description_en\": \"Get the COC timing parameter.\"\n    },\n    {\n      \"action_name\": \"auto-delay_time\",\n      \"description\": \"获取延迟时间参数。\",\n      \"description_en\": \"Get the delay time parameter.\"\n    },\n    {\n      \"action_name\": \"auto-exp_time\",\n      \"description\": \"获取曝光时间参数。\",\n      \"description_en\": \"Get the exposure time parameter.\"\n    },\n    {\n      \"action_name\": \"auto-bel_time\",\n      \"description\": \"获取 BEL 时间参数。\",\n      \"description_en\": \"Get the BEL timing parameter.\"\n    },\n    {\n      \"action_name\": \"auto-expose\",\n      \"description\": \"执行一次曝光。\",\n      \"description_en\": \"Perform a single exposure.\"\n    },\n    {\n      \"action_name\": \"auto-read_out\",\n      \"description\": \"从 CCD 读出图像数据。\",\n      \"description_en\": \"Read out image data from the CCD.\"\n    },\n    {\n      \"action_name\": \"auto-take_image\",\n      \"description\": \"完成一次曝光并读取图像。\",\n      \"description_en\": \"Take an image by performing an exposure and reading it out.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"CCD imaging\",\n    \"scientific camera\",\n    \"PCO Sensicam\",\n    \"ROI control\",\n    \"pixel binning\",\n    \"triggered acquisition\",\n    \"exposure control\",\n    \"image readout\"\n  ]\n}"
+}

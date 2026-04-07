@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: slcan_bus\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: can/interfaces/slcan.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.slcan_bus:slcanBus\n\nClass: slcanBus (focal)\n  Bases: ['BusABC']\n  Docstring: slcan interface\n\nFocal class methods:\n  [command] set_bitrate(self, bitrate, data_bitrate=None)\n    comment: If data_bitrate is None, we set it to 0 which means no data bitrate\n    comment: :param bitrate:\n            Bitrate in bit/s\n        :param data_bitrate:\n            Data Bitrate in bit/s for FD frames\n\n        :raise ValueError: if ``bitrate`` is not among the possible values\n  [command] set_bitrate_reg(self, btr)\n    comment: :param btr:\n            BTR register value to set custom can speed as a string `xxyy` where\n            xx is the BTR0 value in hex and yy is the BTR1 value in hex.\n  [command] flush(self)\n  [command] open(self)\n  [command] close(self)\n  [command] send(self, msg, timeout=None)\n  [command] shutdown(self)\n  [command] fileno(self)\n  [command] get_version(self, timeout)\n    comment: convert ASCII coded version\n    comment: Get HW and SW version of the slcan interface.\n\n        :param timeout:\n            seconds to wait for version or None to wait indefinitely\n\n        :returns: tuple (hw_version, sw_version)\n          ...\n  [command] get_serial_number(self, timeout)\n    comment: Get serial number of the slcan interface.\n\n        :param timeout:\n            seconds to wait for serial number or :obj:`None` to wait indefinitely\n\n        :return:\n            :obj:`None` on timeou...\n\nRegistry actions:\n  auto-set_bitrate (from set_bitrate())\n  auto-set_bitrate_reg (from set_bitrate_reg())\n  auto-flush (from flush())\n  auto-open (from open())\n  auto-close (from close())\n  auto-send (from send())\n  auto-shutdown (from shutdown())\n  auto-fileno (from fileno())\n  auto-get_version (from get_version())\n  auto-get_serial_number (from get_serial_number())\n\nRequired output action ids:\n  auto-set_bitrate\n  auto-set_bitrate_reg\n  auto-flush\n  auto-open\n  auto-close\n  auto-send\n  auto-shutdown\n  auto-fileno\n  auto-get_version\n  auto-get_serial_number"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0fc9c887cde5c3990069d55d6f49a48190ace8e07a1a21b9d5",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3187,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4867,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0fc9c887cde5c3990069d55d6fcbf081908e3a6c5c40ce29b8",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0fc9c887cde5c3990069d55d792978819098813546f03c5210",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"SLCAN CAN总线接口\",\n  \"name_en\": \"SLCAN CAN Bus Interface\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于通过兼容 SLCAN 协议的串口/CAN 适配器与 CAN 总线设备通信。可在实验系统中完成总线连接打开与关闭、位速率配置、报文发送，以及读取接口版本和序列号等操作，适合连接和调试各类基于 CAN 的实验装置。\",\n  \"description_en\": \"A CAN bus interface for communicating with CAN devices through an adapter compatible with the SLCAN protocol. In laboratory setups, it is used to open and close the bus connection, configure bitrate, send frames, and read interface version and serial number for connecting and debugging CAN-based experimental equipment.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_bitrate\",\n      \"description\": \"设置 CAN 总线位速率，必要时同时设置 CAN FD 数据位速率。\",\n      \"description_en\": \"Set the CAN bus bitrate and optionally the CAN FD data bitrate.\"\n    },\n    {\n      \"action_name\": \"auto-set_bitrate_reg\",\n      \"description\": \"通过 BTR 寄存器值设置自定义 CAN 位时序参数。\",\n      \"description_en\": \"Set a custom CAN bit timing configuration using the BTR register value.\"\n    },\n    {\n      \"action_name\": \"auto-flush\",\n      \"description\": \"清空接口缓冲区中的待处理数据。\",\n      \"description_en\": \"Flush pending data in the interface buffer.\"\n    },\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开 SLCAN 接口并建立总线通信连接。\",\n      \"description_en\": \"Open the SLCAN interface and establish bus communication.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭 SLCAN 接口连接。\",\n      \"description_en\": \"Close the SLCAN interface connection.\"\n    },\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"向 CAN 总线发送一帧报文。\",\n      \"description_en\": \"Send a message frame onto the CAN bus.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭并停用接口通信会话。\",\n      \"description_en\": \"Shut down and deactivate the interface communication session.\"\n    },\n    {\n      \"action_name\": \"auto-fileno\",\n      \"description\": \"获取底层通信句柄的文件描述符。\",\n      \"description_en\": \"Get the file descriptor of the underlying communication handle.\"\n    },\n    {\n      \"action_name\": \"auto-get_version\",\n      \"description\": \"读取 SLCAN 接口的硬件版本和软件版本。\",\n      \"description_en\": \"Read the hardware and software version of the SLCAN interface.\"\n    },\n    {\n      \"action_name\": \"auto-get_serial_number\",\n      \"description\": \"读取 SLCAN 接口的序列号。\",\n      \"description_en\": \"Read the serial number of the SLCAN interface.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"CAN bus communication\",\n    \"SLCAN adapter\",\n    \"serial-to-CAN interface\",\n    \"bitrate configuration\",\n    \"CAN frame transmission\",\n    \"interface version query\",\n    \"serial number identification\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1229,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1240,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2469
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1229,
+      "output_token_count": 1240,
+      "predict_time": 19.908299318
+    }
+  },
+  "output_text": "{\n  \"name\": \"SLCAN CAN总线接口\",\n  \"name_en\": \"SLCAN CAN Bus Interface\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于通过兼容 SLCAN 协议的串口/CAN 适配器与 CAN 总线设备通信。可在实验系统中完成总线连接打开与关闭、位速率配置、报文发送，以及读取接口版本和序列号等操作，适合连接和调试各类基于 CAN 的实验装置。\",\n  \"description_en\": \"A CAN bus interface for communicating with CAN devices through an adapter compatible with the SLCAN protocol. In laboratory setups, it is used to open and close the bus connection, configure bitrate, send frames, and read interface version and serial number for connecting and debugging CAN-based experimental equipment.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_bitrate\",\n      \"description\": \"设置 CAN 总线位速率，必要时同时设置 CAN FD 数据位速率。\",\n      \"description_en\": \"Set the CAN bus bitrate and optionally the CAN FD data bitrate.\"\n    },\n    {\n      \"action_name\": \"auto-set_bitrate_reg\",\n      \"description\": \"通过 BTR 寄存器值设置自定义 CAN 位时序参数。\",\n      \"description_en\": \"Set a custom CAN bit timing configuration using the BTR register value.\"\n    },\n    {\n      \"action_name\": \"auto-flush\",\n      \"description\": \"清空接口缓冲区中的待处理数据。\",\n      \"description_en\": \"Flush pending data in the interface buffer.\"\n    },\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开 SLCAN 接口并建立总线通信连接。\",\n      \"description_en\": \"Open the SLCAN interface and establish bus communication.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭 SLCAN 接口连接。\",\n      \"description_en\": \"Close the SLCAN interface connection.\"\n    },\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"向 CAN 总线发送一帧报文。\",\n      \"description_en\": \"Send a message frame onto the CAN bus.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭并停用接口通信会话。\",\n      \"description_en\": \"Shut down and deactivate the interface communication session.\"\n    },\n    {\n      \"action_name\": \"auto-fileno\",\n      \"description\": \"获取底层通信句柄的文件描述符。\",\n      \"description_en\": \"Get the file descriptor of the underlying communication handle.\"\n    },\n    {\n      \"action_name\": \"auto-get_version\",\n      \"description\": \"读取 SLCAN 接口的硬件版本和软件版本。\",\n      \"description_en\": \"Read the hardware and software version of the SLCAN interface.\"\n    },\n    {\n      \"action_name\": \"auto-get_serial_number\",\n      \"description\": \"读取 SLCAN 接口的序列号。\",\n      \"description_en\": \"Read the serial number of the SLCAN interface.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"CAN bus communication\",\n    \"SLCAN adapter\",\n    \"serial-to-CAN interface\",\n    \"bitrate configuration\",\n    \"CAN frame transmission\",\n    \"interface version query\",\n    \"serial number identification\"\n  ]\n}"
+}

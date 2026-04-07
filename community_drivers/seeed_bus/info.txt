@@ -1,28 +1,94 @@
-Device: seeed_bus
-Registry Key: seeed_bus
-Short Description: Seeed BUS是由Seeed Studio生产的专业实验设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (6):
-- auto-fileno -> fileno [UniLabJsonCommand] goal_params: none
-- auto-flush_buffer -> flush_buffer [UniLabJsonCommand] goal_params: none
-- auto-init_frame -> init_frame [UniLabJsonCommand] goal_params: timeout
-- auto-send -> send [UniLabJsonCommand] goal_params: msg, timeout
-- auto-shutdown -> shutdown [UniLabJsonCommand] goal_params: none
-- auto-status_frame -> status_frame [UniLabJsonCommand] goal_params: timeout
-
-Driver Functions (9):
-- SeeedBus.__init__(self, channel, baudrate, timeout, frame_type, operation_mode, bitrate, can_filters, **kwargs) (line 126)
-- SeeedBus.shutdown(self) (line 206)
-- SeeedBus.init_frame(self, timeout) (line 214)
-- SeeedBus.flush_buffer(self) (line 246)
-- SeeedBus.status_frame(self, timeout) (line 250)
-- SeeedBus.send(self, msg, timeout) (line 275)
-- SeeedBus._write(self, byte_msg) (line 313)
-- SeeedBus._recv_internal(self, timeout) (line 322)
-- SeeedBus.fileno(self) (line 398)
+seeed_bus:
+  name: Seeed USB-CAN 分析仪
+  name_en: Seeed USB-CAN Analyzer
+  manufacturer: Seeed Studio
+  category:
+  - USB-CAN总线适配器
+  - CAN总线分析仪
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - CAN总线设备调试与集成
+  - USB-CAN总线适配器
+  - CAN总线分析仪
+  description: 用于通过 USB 将计算机连接到 CAN 总线的硬件接口设备，可完成总线初始化、状态查询与 CAN 报文发送，适合实验中的设备联调、协议通信和总线监测。
+  description_en: A hardware interface device that connects a computer to a CAN bus
+    over USB. It supports bus initialization, status queries, and CAN message transmission
+    for laboratory device integration, protocol communication, and bus monitoring.
+  class:
+    action_value_mappings:
+      auto-shutdown:
+        schema:
+          description: 关闭 USB-CAN 分析仪的串口通信接口。
+          description_en: Close the USB-CAN analyzer serial communication interface.
+      auto-init_frame:
+        schema:
+          description: 发送初始化帧以配置设备并开始 CAN 通信。
+          description_en: Send an initialization frame to configure the device and
+            start CAN communication.
+      auto-flush_buffer:
+        schema:
+          description: 清空设备通信缓冲区以移除积压数据。
+          description_en: Flush the device communication buffer to remove queued data.
+      auto-status_frame:
+        schema:
+          description: 发送状态查询帧以获取设备状态或错误信息。
+          description_en: Send a status request frame to obtain device status or error
+            information.
+      auto-send:
+        schema:
+          description: 通过 USB-CAN 分析仪发送 CAN 报文。
+          description_en: Send a CAN message through the USB-CAN analyzer.
+      auto-fileno:
+        schema:
+          description: 获取底层通信接口的文件描述符。
+          description_en: Get the file descriptor of the underlying communication
+            interface.
+auto_annotation_metadata:
+  registry_key: seeed_bus
+  annotation_workflow_version: v4
+  tag_hints:
+  - USB-CAN interface
+  - CAN bus communication
+  - CAN message transmission
+  - serial-connected CAN adapter
+  - bus initialization
+  - device status query
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该设备在实验中承担现场总线初始化、报文发送和联调控制任务。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 设备用于将计算机与 CAN 总线设备集成到同一实验控制链路。
+  - id: P-20004
+    name: CAN总线设备调试与集成
+    name_en: CAN Device Debugging & Integration
+    type: experimental_scene
+    rationale: 支持初始化、状态查询和 CAN 报文发送，典型用于 CAN 设备联调集成。
+  - id: P-20003
+    name: USB-CAN总线适配器
+    name_en: USB-to-CAN Bus Adapter
+    type: device_template_tag
+    rationale: 该硬件本质上就是将 USB 连接转换为 CAN 总线接口的适配器。
+  - id: P-8110
+    name: CAN总线分析仪
+    name_en: CAN Bus Analyzer
+    type: device_template_tag
+    rationale: 设备描述包含总线监测与状态查询功能，符合 CAN 分析仪用途。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

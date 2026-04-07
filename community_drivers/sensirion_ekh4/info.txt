@@ -1,27 +1,93 @@
-Device: sensirion_ekh4
-Registry Key: sensirion_ekh4
-Short Description: Sensirion Ekh4是由Sensirion AG生产的实验执行&合成设备，主要功能包括初始化、温度读取。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (4):
-- auto-get_dew_point -> get_dew_point [UniLabJsonCommand] goal_params: channel
-- auto-get_humidity -> get_humidity [UniLabJsonCommand] goal_params: channel
-- auto-get_temperature -> get_temperature [UniLabJsonCommand] goal_params: channel
-- auto-init -> init [UniLabJsonCommand] goal_params: none
-
-Driver Functions (10):
-- sensirionEKH4.__init__(self, intf, conf) (line 90)
-- sensirionEKH4.init(self) (line 94)
-- sensirionEKH4._write(self, command) (line 100)
-- sensirionEKH4._read(self) (line 104)
-- sensirionEKH4._query(self, command) (line 121)
-- sensirionEKH4._calc_value(self, value) (line 127)
-- sensirionEKH4._get_values(self, cmd) (line 138)
-- sensirionEKH4.get_temperature(self, channel) (line 173)
-- sensirionEKH4.get_humidity(self, channel) (line 181)
-- sensirionEKH4.get_dew_point(self, channel) (line 189)
+sensirion_ekh4:
+  name: Sensirion EK-H4 温湿度传感器多路复用盒
+  name_en: Sensirion EK-H4 humidity and temperature sensor multiplexer box
+  manufacturer: Sensirion
+  category:
+  - 串行过程仪表
+  - 多路温湿度传感器采集盒
+  tags:
+  - 表征设备
+  - 环境控制与稳定性测试
+  - 过程变量监测与日志记录
+  - 串行过程仪表
+  - 温湿度与露点监测
+  - 多路温湿度传感器采集盒
+  description: 用于通过串口连接并读取最多 4 路 Sensirion 温湿度传感器的多路复用采集盒。在实验中可用于环境温度、相对湿度和露点的多通道监测。
+  description_en: A multiplexer box that connects over a serial port and reads up
+    to four Sensirion humidity and temperature sensor channels. It is used in laboratory
+    setups for multi-channel monitoring of temperature, relative humidity, and dew
+    point.
+  class:
+    action_value_mappings:
+      auto-init:
+        schema:
+          description: 初始化 EK-H4 设备通信并准备采集。
+          description_en: Initialize communication with the EK-H4 and prepare it for
+            data acquisition.
+      auto-get_temperature:
+        schema:
+          description: 读取指定通道或全部通道的温度。
+          description_en: Read temperature from a specified channel or from all channels.
+      auto-get_humidity:
+        schema:
+          description: 读取指定通道或全部通道的相对湿度。
+          description_en: Read relative humidity from a specified channel or from
+            all channels.
+      auto-get_dew_point:
+        schema:
+          description: 读取指定通道或全部通道的露点。
+          description_en: Read dew point from a specified channel or from all channels.
+auto_annotation_metadata:
+  registry_key: sensirion_ekh4
+  annotation_workflow_version: v4
+  tag_hints:
+  - humidity measurement
+  - temperature measurement
+  - dew point
+  - sensor multiplexer
+  - environmental monitoring
+  - serial communication
+  - Sensirion
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该多路复用盒用于读取温度、湿度和露点数据，核心用途是环境参数测量与监测。
+  - id: P-9004
+    name: 环境控制与稳定性测试
+    name_en: Environmental Control & Stability Testing
+    type: experimental_domain
+    rationale: 设备用于实验环境温湿度相关监测，适合归入环境稳定性相关实验域。
+  - id: P-600101
+    name: 过程变量监测与日志记录
+    name_en: Process Variable Monitoring & Logging
+    type: experimental_scene
+    rationale: 该设备支持多通道持续监测温度、相对湿度和露点，符合过程变量监测场景。
+  - id: P-0041
+    name: 串行过程仪表
+    name_en: Serial Process Instrument
+    type: device_template_tag
+    rationale: 该设备通过串口连接并输出环境测量读数，具备串行过程仪表特征。
+  proposed_new_tags:
+  - id: P-9900101
+    name: 温湿度与露点监测
+    name_en: Temperature, Humidity & Dew Point Monitoring
+    type: experimental_scene
+    rationale: 该设备直接面向温度、相对湿度和露点的多通道监测，此场景比通用过程监测更贴切。
+  - id: P-9900102
+    name: 多路温湿度传感器采集盒
+    name_en: Multi-Channel Temperature & Humidity Sensor Hub
+    type: device_template_tag
+    rationale: EK-H4本质上是面向多路温湿度探头的集中采集/复用盒，现有模板缺少更精准对应。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

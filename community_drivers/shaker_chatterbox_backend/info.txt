@@ -1,26 +1,85 @@
-Device: shaker_chatterbox_backend
-Registry Key: shaker_chatterbox_backend
-Short Description: Automated Shaker System 透射电镜是一款透射电子显微镜，主要功能包括停止、设置。
-
-Categories:
-- 透射电子显微镜
-
-Related Tags (from tag 标签列表.csv):
-- [4456] 透射电子显微镜 / Transmission Electron Microscope (device_template_tag)
-
-Atom Actions (5):
-- auto-lock_plate -> lock_plate [UniLabJsonCommand] goal_params: none
-- auto-shake -> shake [UniLabJsonCommand] goal_params: speed
-- auto-stop_shaking -> stop_shaking [UniLabJsonCommand] goal_params: none
-- auto-supports_locking -> supports_locking [UniLabJsonCommand] goal_params: none
-- auto-unlock_plate -> unlock_plate [UniLabJsonCommand] goal_params: none
-
-Driver Functions (8):
-- ShakerChatterboxBackend.__init__(self, *args, **kwargs) (line 75)
-- ShakerChatterboxBackend.setup(self) [async] (line 80)
-- ShakerChatterboxBackend.stop(self) [async] (line 84)
-- ShakerChatterboxBackend.shake(self, speed) [async] (line 88)
-- ShakerChatterboxBackend.stop_shaking(self) [async] (line 92)
-- ShakerChatterboxBackend.supports_locking(self) (line 97)
-- ShakerChatterboxBackend.lock_plate(self) [async] (line 101)
-- ShakerChatterboxBackend.unlock_plate(self) [async] (line 105)
+shaker_chatterbox_backend:
+  name: Chatterbox振荡器模拟后端
+  name_en: Chatterbox Shaker Backend
+  manufacturer: ''
+  category:
+  - 振荡器模拟后端
+  tags:
+  - 备料&前处理设备
+  - 实验室自动化与仪器集成
+  - 微孔板样品孵育与混匀
+  - 实验设备模拟与流程调试
+  - 振荡器模拟后端
+  description: 用于振荡器流程的非实体软件组件。它提供振荡、停止振荡以及夹板锁定/解锁等接口，主要用于测试、调试或在未连接具体硬件时模拟振荡器行为。
+  description_en: A non-physical software component for shaker workflows. It provides
+    interfaces for shaking, stopping, and plate locking/unlocking, mainly for testing,
+    debugging, or simulating shaker behavior when no specific hardware is attached.
+  class:
+    action_value_mappings:
+      auto-shake:
+        schema:
+          description: 以指定速度启动振荡模拟。
+          description_en: Start simulated shaking at a specified speed.
+      auto-stop_shaking:
+        schema:
+          description: 停止振荡模拟。
+          description_en: Stop simulated shaking.
+      auto-supports_locking:
+        schema:
+          description: 检查是否支持夹板锁定功能。
+          description_en: Check whether plate locking is supported.
+      auto-lock_plate:
+        schema:
+          description: 执行夹板锁定模拟。
+          description_en: Simulate locking the plate.
+      auto-unlock_plate:
+        schema:
+          description: 执行夹板解锁模拟。
+          description_en: Simulate unlocking the plate.
+auto_annotation_metadata:
+  registry_key: shaker_chatterbox_backend
+  annotation_workflow_version: v4
+  tag_hints:
+  - shaker simulation
+  - non-physical backend
+  - lab automation testing
+  - plate locking
+  - workflow debugging
+  existing_tags:
+  - id: '4312'
+    name: 备料&前处理设备
+    name_en: Material Preparation & Pre-processing Equipment
+    type: experimental_step
+    rationale: 该后端模拟的是样品板振荡混匀流程，对应的实验步骤仍属于前处理/混匀环节。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 这是为自动化流程提供振荡器行为接口的后端组件，属于实验室自动化集成的一部分。
+  - id: P-40003
+    name: 微孔板样品孵育与混匀
+    name_en: Microplate Sample Incubation & Mixing
+    type: experimental_scene
+    rationale: 虽然是模拟后端，但它服务的工作流是微孔板振荡和锁板操作。
+  proposed_new_tags:
+  - id: P-00002
+    name: 实验设备模拟与流程调试
+    name_en: Laboratory Device Simulation & Workflow Debugging
+    type: experimental_scene
+    rationale: 该组件专门用于测试、调试和无硬件条件下模拟振荡器行为，适合形成通用的设备仿真场景。
+  - id: P-00003
+    name: 振荡器模拟后端
+    name_en: Shaker Simulation Backend
+    type: device_template_tag
+    rationale: 该组件并非实体振荡器，而是面向振荡器工作流的可复用模拟后端模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: rohde_schwarz_shm52\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/labtoolkit/SignalGenerator/RohdeSchwarzSHM52.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.rohde_schwarz_shm52:RohdeSchwarzSHM52\n\nClass: RohdeSchwarzSHM52 (focal)\n  Bases: ['Instrument', 'SignalGenerator']\n  Docstring: Rohde and Schwarz SHM, 100e3-2e9.\n\nFocal class methods:\n  [command] frequency(self)\n    comment: .\n  [command] frequency(self, frequency)\n  [command] amplitude(self)\n    comment: .\n  [command] amplitude(self, amplitude)\n  [command] output(self)\n    comment: .\n  [command] output(self, boolean=False)\n    comment: LEV:OFF\n    comment: self.amplitude = min(self.amps)\n\nRegistry actions:\n  auto-frequency (from frequency())\n  auto-amplitude (from amplitude())\n  auto-output (from output())\n\nRequired output action ids:\n  auto-frequency\n  auto-amplitude\n  auto-output"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_04b1061feb0e6fa30069d5550e28fc819389421feb5785604a",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1907,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2748,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_04b1061feb0e6fa30069d5550ec1a08193abe06f1897606c4b",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_04b1061feb0e6fa30069d55516fa088193a70c138b76c2e009",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"罗德与施瓦茨 SHM52 信号发生器\",\n  \"name_en\": \"Rohde & Schwarz SHM52 Signal Generator\",\n  \"manufacturer\": \"Rohde & Schwarz\",\n  \"description\": \"一款射频信号发生器，频率范围约为 100 kHz 至 2 GHz。可用于实验与电子测试中的信号输出，支持设置频率、幅度以及输出开关。\",\n  \"description_en\": \"An RF signal generator with an approximate frequency range of 100 kHz to 2 GHz. It is used for signal output in laboratory and electronic test setups, with support for frequency setting, amplitude setting, and output enable control.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-frequency\",\n      \"description\": \"获取或设置输出频率。\",\n      \"description_en\": \"Get or set the output frequency.\"\n    },\n    {\n      \"action_name\": \"auto-amplitude\",\n      \"description\": \"获取或设置输出幅度。\",\n      \"description_en\": \"Get or set the output amplitude.\"\n    },\n    {\n      \"action_name\": \"auto-output\",\n      \"description\": \"获取或设置输出开关状态。\",\n      \"description_en\": \"Get or set the output enable state.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"RF signal generation\",\n    \"frequency control\",\n    \"amplitude control\",\n    \"signal source\",\n    \"electronic test equipment\",\n    \"2 GHz\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 930,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 761,
+      "output_tokens_details": {
+        "reasoning_tokens": 435
+      },
+      "total_tokens": 1691
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 930,
+      "output_token_count": 761,
+      "predict_time": 14.041625634
+    }
+  },
+  "output_text": "{\n  \"name\": \"罗德与施瓦茨 SHM52 信号发生器\",\n  \"name_en\": \"Rohde & Schwarz SHM52 Signal Generator\",\n  \"manufacturer\": \"Rohde & Schwarz\",\n  \"description\": \"一款射频信号发生器，频率范围约为 100 kHz 至 2 GHz。可用于实验与电子测试中的信号输出，支持设置频率、幅度以及输出开关。\",\n  \"description_en\": \"An RF signal generator with an approximate frequency range of 100 kHz to 2 GHz. It is used for signal output in laboratory and electronic test setups, with support for frequency setting, amplitude setting, and output enable control.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-frequency\",\n      \"description\": \"获取或设置输出频率。\",\n      \"description_en\": \"Get or set the output frequency.\"\n    },\n    {\n      \"action_name\": \"auto-amplitude\",\n      \"description\": \"获取或设置输出幅度。\",\n      \"description_en\": \"Get or set the output amplitude.\"\n    },\n    {\n      \"action_name\": \"auto-output\",\n      \"description\": \"获取或设置输出开关状态。\",\n      \"description_en\": \"Get or set the output enable state.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"RF signal generation\",\n    \"frequency control\",\n    \"amplitude control\",\n    \"signal source\",\n    \"electronic test equipment\",\n    \"2 GHz\"\n  ]\n}"
+}

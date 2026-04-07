@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: sc10\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/thorlabs/sc10.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.shutter_controller.sc10:SC10\n\nClass: SC10 (focal)\n  Bases: ['Instrument']\n  Docstring: The SC10 is a shutter controller, to be used with the Thorlabs SH05 and SH1.\nThe user manual can be found here:\nhttp://www.thorlabs.com/thorcat/8600/SC10-Manual.pdf\n\nFocal class methods:\n  [status_getter] name(self)\n    comment: Gets the name and version number of the device.\n\n        :return: Name and verison number of the device\n        :rtype: `str`\n  [status_getter] enable(self)\n    comment: Gets/sets the shutter enable status, False for disabled, True if\n        enabled\n\n        If output enable is on (`True`), there is a voltage on the output.\n        :return: Status of the switch.\n    ...\n  [status_setter] enable(self, value)\n  [status_getter] baud_rate(self)\n    comment: Gets/sets the instrument baud rate.\n\n        Valid baud rates are 9600 and 115200.\n\n        :type: `int`\n  [status_setter] baud_rate(self, newval)\n  [command] default(self)\n    comment: Methods #\n    comment: Restores instrument to factory settings.\n\n        Returns 1 if successful, zero otherwise.\n\n        :rtype: `int`\n  [command] save(self)\n    comment: Stores the parameters in static memory\n\n        Returns 1 if successful, zero otherwise.\n\n        :rtype: `int`\n  [command] save_mode(self)\n    comment: Stores output trigger mode and baud rate settings in memory.\n\n        Returns 1 if successful, zero otherwise.\n\n        :rtype: `int`\n  [command] restore(self)\n    comment: Loads the settings from memory.\n\n        Returns 1 if successful, zero otherwise.\n\n        :rtype: `int`\n\nRegistry actions:\n  auto-baud_rate (from baud_rate())\n  auto-default (from default())\n  auto-enable (from enable())\n  auto-mode (from mode())\n  auto-open_time (from open_time())\n  auto-out_trigger (from out_trigger())\n  auto-repeat (from repeat())\n  auto-restore (from restore())\n  auto-save (from save())\n  auto-save_mode (from save_mode())\n  auto-shut_time (from shut_time())\n  auto-trigger (from trigger())\n  auto-name (from name())\n\nRequired output action ids:\n  auto-baud_rate\n  auto-default\n  auto-enable\n  auto-mode\n  auto-open_time\n  auto-out_trigger\n  auto-repeat\n  auto-restore\n  auto-save\n  auto-save_mode\n  auto-shut_time\n  auto-trigger\n  auto-name"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_090b85e23b4f8d570069d559b2d35c819791336b9d1042b3b9",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3456,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4900,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_090b85e23b4f8d570069d559b330b8819796d842ec9618c018",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_090b85e23b4f8d570069d559bdd81081979681229cc246fc78",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"SC10快门控制器\",\n  \"name_en\": \"SC10 Shutter Controller\",\n  \"manufacturer\": \"Thorlabs\",\n  \"description\": \"用于控制 Thorlabs SH05 和 SH1 机械快门的控制器。可管理快门启用状态、通信波特率、工作模式，以及开/关时间、重复次数和触发相关设置，适用于光学实验中的光束通断控制与同步。\",\n  \"description_en\": \"A controller for Thorlabs SH05 and SH1 mechanical shutters. It manages shutter enable state, communication baud rate, operating mode, and timing, repeat, and trigger-related settings for beam blocking/unblocking and synchronization in optical experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-baud_rate\",\n      \"description\": \"获取/设置通信波特率。\",\n      \"description_en\": \"Get/set the communication baud rate.\"\n    },\n    {\n      \"action_name\": \"auto-default\",\n      \"description\": \"恢复出厂设置。\",\n      \"description_en\": \"Restore factory settings.\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"获取/设置快门启用状态。\",\n      \"description_en\": \"Get/set the shutter enable state.\"\n    },\n    {\n      \"action_name\": \"auto-mode\",\n      \"description\": \"获取/设置工作模式。\",\n      \"description_en\": \"Get/set the operating mode.\"\n    },\n    {\n      \"action_name\": \"auto-open_time\",\n      \"description\": \"获取/设置快门打开时间。\",\n      \"description_en\": \"Get/set the shutter open time.\"\n    },\n    {\n      \"action_name\": \"auto-out_trigger\",\n      \"description\": \"获取/设置输出触发模式。\",\n      \"description_en\": \"Get/set the output trigger mode.\"\n    },\n    {\n      \"action_name\": \"auto-repeat\",\n      \"description\": \"获取/设置重复次数。\",\n      \"description_en\": \"Get/set the repeat count.\"\n    },\n    {\n      \"action_name\": \"auto-restore\",\n      \"description\": \"从存储器恢复设置。\",\n      \"description_en\": \"Restore settings from memory.\"\n    },\n    {\n      \"action_name\": \"auto-save\",\n      \"description\": \"将参数保存到存储器。\",\n      \"description_en\": \"Save parameters to memory.\"\n    },\n    {\n      \"action_name\": \"auto-save_mode\",\n      \"description\": \"将输出触发模式和波特率设置保存到存储器。\",\n      \"description_en\": \"Save the output trigger mode and baud rate settings to memory.\"\n    },\n    {\n      \"action_name\": \"auto-shut_time\",\n      \"description\": \"获取/设置快门关闭时间。\",\n      \"description_en\": \"Get/set the shutter closed time.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"触发快门控制动作。\",\n      \"description_en\": \"Trigger the shutter control action.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取设备名称和版本号。\",\n      \"description_en\": \"Get the device name and version.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"optical shutter control\",\n    \"mechanical shutter\",\n    \"beam blocking\",\n    \"trigger synchronization\",\n    \"timing control\",\n    \"serial communication\",\n    \"Thorlabs SC10\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1290,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1243,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2533
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1290,
+      "output_token_count": 1243,
+      "predict_time": 21.067724253
+    }
+  },
+  "output_text": "{\n  \"name\": \"SC10快门控制器\",\n  \"name_en\": \"SC10 Shutter Controller\",\n  \"manufacturer\": \"Thorlabs\",\n  \"description\": \"用于控制 Thorlabs SH05 和 SH1 机械快门的控制器。可管理快门启用状态、通信波特率、工作模式，以及开/关时间、重复次数和触发相关设置，适用于光学实验中的光束通断控制与同步。\",\n  \"description_en\": \"A controller for Thorlabs SH05 and SH1 mechanical shutters. It manages shutter enable state, communication baud rate, operating mode, and timing, repeat, and trigger-related settings for beam blocking/unblocking and synchronization in optical experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-baud_rate\",\n      \"description\": \"获取/设置通信波特率。\",\n      \"description_en\": \"Get/set the communication baud rate.\"\n    },\n    {\n      \"action_name\": \"auto-default\",\n      \"description\": \"恢复出厂设置。\",\n      \"description_en\": \"Restore factory settings.\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"获取/设置快门启用状态。\",\n      \"description_en\": \"Get/set the shutter enable state.\"\n    },\n    {\n      \"action_name\": \"auto-mode\",\n      \"description\": \"获取/设置工作模式。\",\n      \"description_en\": \"Get/set the operating mode.\"\n    },\n    {\n      \"action_name\": \"auto-open_time\",\n      \"description\": \"获取/设置快门打开时间。\",\n      \"description_en\": \"Get/set the shutter open time.\"\n    },\n    {\n      \"action_name\": \"auto-out_trigger\",\n      \"description\": \"获取/设置输出触发模式。\",\n      \"description_en\": \"Get/set the output trigger mode.\"\n    },\n    {\n      \"action_name\": \"auto-repeat\",\n      \"description\": \"获取/设置重复次数。\",\n      \"description_en\": \"Get/set the repeat count.\"\n    },\n    {\n      \"action_name\": \"auto-restore\",\n      \"description\": \"从存储器恢复设置。\",\n      \"description_en\": \"Restore settings from memory.\"\n    },\n    {\n      \"action_name\": \"auto-save\",\n      \"description\": \"将参数保存到存储器。\",\n      \"description_en\": \"Save parameters to memory.\"\n    },\n    {\n      \"action_name\": \"auto-save_mode\",\n      \"description\": \"将输出触发模式和波特率设置保存到存储器。\",\n      \"description_en\": \"Save the output trigger mode and baud rate settings to memory.\"\n    },\n    {\n      \"action_name\": \"auto-shut_time\",\n      \"description\": \"获取/设置快门关闭时间。\",\n      \"description_en\": \"Get/set the shutter closed time.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"触发快门控制动作。\",\n      \"description_en\": \"Trigger the shutter control action.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取设备名称和版本号。\",\n      \"description_en\": \"Get the device name and version.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"optical shutter control\",\n    \"mechanical shutter\",\n    \"beam blocking\",\n    \"trigger synchronization\",\n    \"timing control\",\n    \"serial communication\",\n    \"Thorlabs SC10\"\n  ]\n}"
+}

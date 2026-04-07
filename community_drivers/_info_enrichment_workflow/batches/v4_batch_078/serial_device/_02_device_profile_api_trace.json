@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: serial_device\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: acq4/drivers/SerialDevice.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.serial_device:SerialDevice\n\nClass: DataError \n  Bases: ['Exception']\n  Docstring: Raised when a serial communication is corrupt.\n\n*data* attribute contains the corrupt packet.\n*extra* attribute contains any data left in the serial buffer \npast the end of the packet.\n\nClass: SerialDevice (focal)\n  Bases: ['object']\n  Docstring: Class used for standardizing access to serial devices. \n\nProvides some commonly used functions for reading and writing \nserial packets.\n\nFocal class methods:\n  [command] normalizePortName(cls, port)\n    comment: Return a 'normalized' port name that is always the same for a particular serial port.\n        On windows, this means 'com1', 'COM1', and 0 will all normalize to 0. On unix,\n        the port name is un...\n  [command] open(self, port=None, baudrate=None, **kwds)\n    comment: Open a serial port. If this port was previously closed, then calling \n        open() with no arguments will re-open the original port with the same settings.\n        All keyword arguments are sent to ...\n  [command] close(self)\n    comment: Close the serial port.\n  [command] readAll(self)\n    comment: logging.info('Serial port %s readAll: %r', self.__serialOpts['port'], d)\n    comment: Read all bytes waiting in buffer; non-blocking.\n  [command] write(self, data)\n    comment: logging.info('Serial port %s write: %r', self.__serialOpts['port'], data)\n    comment: Write *data* to the serial port\n  [command] read(self, length, timeout=5.0, term=None)\n    comment: self.serial.setTimeout(timeout) # broken!\n    comment: logging.info('Serial port %s read: %r', self.__serialOpts['port'], packet)\n    comment: logging.info('Serial port %s read: %r', self.__serialOpts['port'], packet)\n    comment: Read *length* bytes or raise TimeoutError after *timeout* has elapsed.\n\n        If *term* is given, check that the packet is terminated with *term* and \n        return the packet excluding *term*. If ...\n  [command] readUntil(self, term, minBytes=0, timeout=5)\n    comment: Read from the serial port until *term* is received, or *timeout* has elapsed.\n\n        If *minBytes* is given, then this number of bytes will be read without checking for *term*.\n        Returns the e...\n  [command] readline(self, **kwargs)\n  [command] hasDataToRead(self)\n  [command] clearBuffer(self)\n    comment: not recommended..\n  [command] getPort(self)\n    comment: Return the serial port that was last connected.\n  [command] getBaudrate(self)\n    comment: Return the configured baud rate.\n\nRegistry actions:\n  auto-normalizePortName (from normalizePortName())\n  auto-open (from open())\n  auto-close (from close())\n  auto-readAll (from readAll())\n  auto-write (from write())\n  auto-read (from read())\n  auto-readUntil (from readUntil())\n  auto-readline (from readline())\n  auto-hasDataToRead (from hasDataToRead())\n  auto-clearBuffer (from clearBuffer())\n  auto-getPort (from getPort())\n  auto-getBaudrate (from getBaudrate())\n\nRequired output action ids:\n  auto-normalizePortName\n  auto-open\n  auto-close\n  auto-readAll\n  auto-write\n  auto-read\n  auto-readUntil\n  auto-readline\n  auto-hasDataToRead\n  auto-clearBuffer\n  auto-getPort\n  auto-getBaudrate"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_07a4ec4ea0ab3a690069d55be4bc8c81959a957b52ee14b727",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4388,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5320,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_07a4ec4ea0ab3a690069d55be6a58c8195af055b16d0b43168",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_07a4ec4ea0ab3a690069d55bf0e3a08195a977b0c3b04a010c",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"串口通信助手组件\",\n  \"name_en\": \"Serial Device Communication Helper\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非实体的软件组件，用于在实验系统中统一管理串口连接。它提供串口名标准化、打开与关闭端口、读写数据包、按终止符读取、缓冲区清理以及端口参数查询等功能，便于各类基于串口通信的实验仪器接入。\",\n  \"description_en\": \"This is a non-physical software component used to standardize serial communication in a lab system. It provides port-name normalization, port open/close control, packet read/write, terminator-based reads, buffer clearing, and serial parameter queries, helping integrate various serial-connected laboratory instruments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-normalizePortName\",\n      \"description\": \"标准化串口名称\",\n      \"description_en\": \"Normalize a serial port name\"\n    },\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开串口连接\",\n      \"description_en\": \"Open a serial port connection\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭串口连接\",\n      \"description_en\": \"Close the serial port connection\"\n    },\n    {\n      \"action_name\": \"auto-readAll\",\n      \"description\": \"读取缓冲区中全部可用字节\",\n      \"description_en\": \"Read all available bytes from the serial buffer\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向串口写入数据\",\n      \"description_en\": \"Write data to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"按指定长度从串口读取数据，可检查终止符\",\n      \"description_en\": \"Read a specified number of bytes from the serial port, optionally checking a terminator\"\n    },\n    {\n      \"action_name\": \"auto-readUntil\",\n      \"description\": \"持续读取直到收到终止符\",\n      \"description_en\": \"Read until a terminator is received\"\n    },\n    {\n      \"action_name\": \"auto-readline\",\n      \"description\": \"按行从串口读取数据\",\n      \"description_en\": \"Read a line of data from the serial port\"\n    },\n    {\n      \"action_name\": \"auto-hasDataToRead\",\n      \"description\": \"检查串口是否有待读数据\",\n      \"description_en\": \"Check whether the serial port has data waiting to be read\"\n    },\n    {\n      \"action_name\": \"auto-clearBuffer\",\n      \"description\": \"清空串口缓冲区\",\n      \"description_en\": \"Clear the serial buffer\"\n    },\n    {\n      \"action_name\": \"auto-getPort\",\n      \"description\": \"获取当前配置的串口\",\n      \"description_en\": \"Get the currently configured serial port\"\n    },\n    {\n      \"action_name\": \"auto-getBaudrate\",\n      \"description\": \"获取当前配置的波特率\",\n      \"description_en\": \"Get the configured baud rate\"\n    }\n  ],\n  \"tag_hints\": [\n    \"serial communication\",\n    \"RS-232\",\n    \"USB serial\",\n    \"packet I/O\",\n    \"buffer management\",\n    \"lab automation software\",\n    \"port configuration\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1517,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1389,
+      "output_tokens_details": {
+        "reasoning_tokens": 663
+      },
+      "total_tokens": 2906
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1517,
+      "output_token_count": 1389,
+      "predict_time": 23.315104211
+    }
+  },
+  "output_text": "{\n  \"name\": \"串口通信助手组件\",\n  \"name_en\": \"Serial Device Communication Helper\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非实体的软件组件，用于在实验系统中统一管理串口连接。它提供串口名标准化、打开与关闭端口、读写数据包、按终止符读取、缓冲区清理以及端口参数查询等功能，便于各类基于串口通信的实验仪器接入。\",\n  \"description_en\": \"This is a non-physical software component used to standardize serial communication in a lab system. It provides port-name normalization, port open/close control, packet read/write, terminator-based reads, buffer clearing, and serial parameter queries, helping integrate various serial-connected laboratory instruments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-normalizePortName\",\n      \"description\": \"标准化串口名称\",\n      \"description_en\": \"Normalize a serial port name\"\n    },\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开串口连接\",\n      \"description_en\": \"Open a serial port connection\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭串口连接\",\n      \"description_en\": \"Close the serial port connection\"\n    },\n    {\n      \"action_name\": \"auto-readAll\",\n      \"description\": \"读取缓冲区中全部可用字节\",\n      \"description_en\": \"Read all available bytes from the serial buffer\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向串口写入数据\",\n      \"description_en\": \"Write data to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"按指定长度从串口读取数据，可检查终止符\",\n      \"description_en\": \"Read a specified number of bytes from the serial port, optionally checking a terminator\"\n    },\n    {\n      \"action_name\": \"auto-readUntil\",\n      \"description\": \"持续读取直到收到终止符\",\n      \"description_en\": \"Read until a terminator is received\"\n    },\n    {\n      \"action_name\": \"auto-readline\",\n      \"description\": \"按行从串口读取数据\",\n      \"description_en\": \"Read a line of data from the serial port\"\n    },\n    {\n      \"action_name\": \"auto-hasDataToRead\",\n      \"description\": \"检查串口是否有待读数据\",\n      \"description_en\": \"Check whether the serial port has data waiting to be read\"\n    },\n    {\n      \"action_name\": \"auto-clearBuffer\",\n      \"description\": \"清空串口缓冲区\",\n      \"description_en\": \"Clear the serial buffer\"\n    },\n    {\n      \"action_name\": \"auto-getPort\",\n      \"description\": \"获取当前配置的串口\",\n      \"description_en\": \"Get the currently configured serial port\"\n    },\n    {\n      \"action_name\": \"auto-getBaudrate\",\n      \"description\": \"获取当前配置的波特率\",\n      \"description_en\": \"Get the configured baud rate\"\n    }\n  ],\n  \"tag_hints\": [\n    \"serial communication\",\n    \"RS-232\",\n    \"USB serial\",\n    \"packet I/O\",\n    \"buffer management\",\n    \"lab automation software\",\n    \"port configuration\"\n  ]\n}"
+}

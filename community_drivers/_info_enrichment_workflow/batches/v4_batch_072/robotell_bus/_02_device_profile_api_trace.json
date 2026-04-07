@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: robotell_bus\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: can/interfaces/robotell.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.robotell_bus:robotellBus\n\nClass: robotellBus (focal)\n  Bases: ['BusABC']\n  Docstring: robotell interface\n\nFocal class methods:\n  [command] set_bitrate(self, bitrate)\n    comment: :raise ValueError: if *bitrate* is greater than 1000000\n        :param int bitrate:\n            Bitrate in bit/s\n  [command] set_auto_retransmit(self, retrans_flag)\n    comment: :param bool retrans_flag:\n            Enable/disable automatic retransmission of unacknowledged CAN frames\n  [command] set_auto_bus_management(self, auto_man)\n    comment: Not sure what \"automatic bus management\" does. Does not seem to control\n    comment: automatic ACK of CAN frames (listen only mode)\n    comment: :param bool auto_man:\n            Enable/disable automatic bus management\n  [command] set_serial_rate(self, serial_bps)\n    comment: :param int serial_bps:\n            Set the baud rate of the serial port (not CAN) interface\n  [command] set_hw_filter(self, filterid, enabled, msgid_value, msgid_mask, extended_msg)\n    comment: :raise ValueError: if *filterid* is not between 1 and 14\n        :param int filterid:\n            ID of filter (1-14)\n        :param bool enabled:\n            This filter is enabled\n        :param int...\n  [command] flush(self)\n  [command] send(self, msg, timeout=None)\n  [command] shutdown(self)\n  [command] fileno(self)\n  [command] get_serial_number(self, timeout)\n    comment: Get serial number of the slcan interface.\n\n        :param timeout:\n            seconds to wait for serial number or None to wait indefinitely\n        :return:\n            None on timeout or a str obje...\n\nRegistry actions:\n  auto-set_bitrate (from set_bitrate())\n  auto-set_auto_retransmit (from set_auto_retransmit())\n  auto-set_auto_bus_management (from set_auto_bus_management())\n  auto-set_serial_rate (from set_serial_rate())\n  auto-set_hw_filter (from set_hw_filter())\n  auto-flush (from flush())\n  auto-send (from send())\n  auto-shutdown (from shutdown())\n  auto-fileno (from fileno())\n  auto-get_serial_number (from get_serial_number())\n\nRequired output action ids:\n  auto-set_bitrate\n  auto-set_auto_retransmit\n  auto-set_auto_bus_management\n  auto-set_serial_rate\n  auto-set_hw_filter\n  auto-flush\n  auto-send\n  auto-shutdown\n  auto-fileno\n  auto-get_serial_number"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_042312d8f734fe300069d554f491808194b81f3fe39a999cbc",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1800,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4800,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_042312d8f734fe300069d554f511d4819486deb321698c3790",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_042312d8f734fe300069d555001b788194b956f438ec1a13f3",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Robotell CAN总线接口\",\n  \"name_en\": \"Robotell CAN Bus Interface\",\n  \"manufacturer\": \"Robotell\",\n  \"description\": \"用于连接和配置 Robotell CAN 总线接口设备的通信接口，可设置 CAN 比特率、串口速率、自动重传和硬件过滤，并发送 CAN 帧。适合在实验系统中与使用 CAN 总线通信的控制器、传感器或执行机构进行数据交换。\",\n  \"description_en\": \"A communication interface for connecting to and configuring a Robotell CAN bus interface device. It supports setting CAN bitrate, serial port rate, automatic retransmission, and hardware filters, and can transmit CAN frames. It is suitable for laboratory systems that need to exchange data with CAN-based controllers, sensors, or actuators.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_bitrate\",\n      \"description\": \"设置 CAN 总线比特率。\",\n      \"description_en\": \"Set the CAN bus bitrate.\"\n    },\n    {\n      \"action_name\": \"auto-set_auto_retransmit\",\n      \"description\": \"设置是否自动重传未确认的 CAN 帧。\",\n      \"description_en\": \"Enable or disable automatic retransmission of unacknowledged CAN frames.\"\n    },\n    {\n      \"action_name\": \"auto-set_auto_bus_management\",\n      \"description\": \"设置是否启用自动总线管理。\",\n      \"description_en\": \"Enable or disable automatic bus management.\"\n    },\n    {\n      \"action_name\": \"auto-set_serial_rate\",\n      \"description\": \"设置串口接口波特率。\",\n      \"description_en\": \"Set the serial interface baud rate.\"\n    },\n    {\n      \"action_name\": \"auto-set_hw_filter\",\n      \"description\": \"配置硬件消息过滤器。\",\n      \"description_en\": \"Configure a hardware message filter.\"\n    },\n    {\n      \"action_name\": \"auto-flush\",\n      \"description\": \"清空接口缓冲区。\",\n      \"description_en\": \"Flush the interface buffers.\"\n    },\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"发送 CAN 消息帧。\",\n      \"description_en\": \"Send a CAN message frame.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭总线接口连接。\",\n      \"description_en\": \"Shut down the bus interface connection.\"\n    },\n    {\n      \"action_name\": \"auto-fileno\",\n      \"description\": \"获取接口对应的文件描述符。\",\n      \"description_en\": \"Get the file descriptor associated with the interface.\"\n    },\n    {\n      \"action_name\": \"auto-get_serial_number\",\n      \"description\": \"获取该 slcan 接口的序列号。\",\n      \"description_en\": \"Get the serial number of the slcan interface.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"CAN bus communication\",\n    \"serial-to-CAN interface\",\n    \"bitrate configuration\",\n    \"hardware CAN filtering\",\n    \"CAN frame transmission\",\n    \"slcan interface\",\n    \"bus adapter\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1282,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1172,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2454
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1282,
+      "output_token_count": 1172,
+      "predict_time": 22.277283608
+    }
+  },
+  "output_text": "{\n  \"name\": \"Robotell CAN总线接口\",\n  \"name_en\": \"Robotell CAN Bus Interface\",\n  \"manufacturer\": \"Robotell\",\n  \"description\": \"用于连接和配置 Robotell CAN 总线接口设备的通信接口，可设置 CAN 比特率、串口速率、自动重传和硬件过滤，并发送 CAN 帧。适合在实验系统中与使用 CAN 总线通信的控制器、传感器或执行机构进行数据交换。\",\n  \"description_en\": \"A communication interface for connecting to and configuring a Robotell CAN bus interface device. It supports setting CAN bitrate, serial port rate, automatic retransmission, and hardware filters, and can transmit CAN frames. It is suitable for laboratory systems that need to exchange data with CAN-based controllers, sensors, or actuators.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_bitrate\",\n      \"description\": \"设置 CAN 总线比特率。\",\n      \"description_en\": \"Set the CAN bus bitrate.\"\n    },\n    {\n      \"action_name\": \"auto-set_auto_retransmit\",\n      \"description\": \"设置是否自动重传未确认的 CAN 帧。\",\n      \"description_en\": \"Enable or disable automatic retransmission of unacknowledged CAN frames.\"\n    },\n    {\n      \"action_name\": \"auto-set_auto_bus_management\",\n      \"description\": \"设置是否启用自动总线管理。\",\n      \"description_en\": \"Enable or disable automatic bus management.\"\n    },\n    {\n      \"action_name\": \"auto-set_serial_rate\",\n      \"description\": \"设置串口接口波特率。\",\n      \"description_en\": \"Set the serial interface baud rate.\"\n    },\n    {\n      \"action_name\": \"auto-set_hw_filter\",\n      \"description\": \"配置硬件消息过滤器。\",\n      \"description_en\": \"Configure a hardware message filter.\"\n    },\n    {\n      \"action_name\": \"auto-flush\",\n      \"description\": \"清空接口缓冲区。\",\n      \"description_en\": \"Flush the interface buffers.\"\n    },\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"发送 CAN 消息帧。\",\n      \"description_en\": \"Send a CAN message frame.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭总线接口连接。\",\n      \"description_en\": \"Shut down the bus interface connection.\"\n    },\n    {\n      \"action_name\": \"auto-fileno\",\n      \"description\": \"获取接口对应的文件描述符。\",\n      \"description_en\": \"Get the file descriptor associated with the interface.\"\n    },\n    {\n      \"action_name\": \"auto-get_serial_number\",\n      \"description\": \"获取该 slcan 接口的序列号。\",\n      \"description_en\": \"Get the serial number of the slcan interface.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"CAN bus communication\",\n    \"serial-to-CAN interface\",\n    \"bitrate configuration\",\n    \"hardware CAN filtering\",\n    \"CAN frame transmission\",\n    \"slcan interface\",\n    \"bus adapter\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: serial_line_reader\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: donkeycar/parts/serial_port.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.serial_line_reader:SerialLineReader\n\nClass: SerialPort \n  Bases: []\n  Docstring: Wrapper for serial port connect/read/write.\nUse this rather than raw pyserial api.\nIt provides a layer that automatically \ncatches exceptions and encodes/decodes\nbetween bytes and str.  \nIt also provides a layer of indirection \nso that we can mock this for testing.\n\nClass: SerialLineReader (focal)\n  Bases: []\n  Docstring: Donkeycar part for reading lines from a serial port\n\nFocal class methods:\n  [command] clear(self)\n    comment: Clear the lines buffer and serial port input buffer\n  [command] run(self)\n    comment: in non-threaded mode, just max_lines and return them\n  [command] run_threaded(self)\n    comment: return the accumulated readings\n  [command] update(self)\n    comment: open serial port and run an infinite loop.\n    comment: NOTE: this is NOT compatible with non-threaded run()\n    comment: make sure we access self.positions in\n    comment: a threadsafe manner.\n    comment: This will NOT block:\n    comment: - If it can't write then it will leave\n    comment: readings in buffered_lines.\n    comment: - If it can write then it will moved the\n    comment: buffered_lines into self.positions\n    comment: and clear the buffer.\n  [command] shutdown(self)\n\nRegistry actions:\n  auto-clear (from clear())\n  auto-run (from run())\n  auto-run_threaded (from run_threaded())\n  auto-update (from update())\n  auto-shutdown (from shutdown())\n\nRequired output action ids:\n  auto-clear\n  auto-run\n  auto-run_threaded\n  auto-update\n  auto-shutdown"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_099a660d969340810069d55bf4aa6c8193ae3d009fb3dab0f4",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2749,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3799,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_099a660d969340810069d55bf52ba881939710aabbf581e4f5",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_099a660d969340810069d55bff12008193b17b9ca3ff4ab739",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"串口文本行读取组件\",\n  \"name_en\": \"Serial Line Reader\",\n  \"manufacturer\": \"\",\n  \"description\": \"非物理软件组件，用于通过串口持续读取按行组织的文本数据并进行缓冲，支持线程模式和非线程模式。适合在实验系统中接收外部串口设备输出的 ASCII 或行式测量数据。\",\n  \"description_en\": \"A non-physical software component for continuously reading line-based text data from a serial port and buffering it for use in threaded or non-threaded execution. It is suitable for receiving ASCII or other line-oriented measurement data from external serial devices in lab workflows.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-clear\",\n      \"description\": \"清空内部行缓冲区并清除串口输入缓冲区。\",\n      \"description_en\": \"Clear the internal line buffer and the serial input buffer.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"在非线程模式下读取并返回当前批次的行数据。\",\n      \"description_en\": \"Read and return the current batch of line data in non-threaded mode.\"\n    },\n    {\n      \"action_name\": \"auto-run_threaded\",\n      \"description\": \"返回当前已累积的读取结果。\",\n      \"description_en\": \"Return the currently accumulated readings.\"\n    },\n    {\n      \"action_name\": \"auto-update\",\n      \"description\": \"打开串口并在循环中持续读取数据，线程安全地更新已缓冲的行内容。\",\n      \"description_en\": \"Open the serial port and continuously read data in a loop, updating buffered lines in a thread-safe manner.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"停止读取流程并关闭串口相关资源。\",\n      \"description_en\": \"Stop the reading process and close serial-port-related resources.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"serial communication\",\n    \"line-based data acquisition\",\n    \"ASCII serial data\",\n    \"buffered readings\",\n    \"threaded polling\",\n    \"instrument integration\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1090,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 977,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2067
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1090,
+      "output_token_count": 977,
+      "predict_time": 17.907545619
+    }
+  },
+  "output_text": "{\n  \"name\": \"串口文本行读取组件\",\n  \"name_en\": \"Serial Line Reader\",\n  \"manufacturer\": \"\",\n  \"description\": \"非物理软件组件，用于通过串口持续读取按行组织的文本数据并进行缓冲，支持线程模式和非线程模式。适合在实验系统中接收外部串口设备输出的 ASCII 或行式测量数据。\",\n  \"description_en\": \"A non-physical software component for continuously reading line-based text data from a serial port and buffering it for use in threaded or non-threaded execution. It is suitable for receiving ASCII or other line-oriented measurement data from external serial devices in lab workflows.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-clear\",\n      \"description\": \"清空内部行缓冲区并清除串口输入缓冲区。\",\n      \"description_en\": \"Clear the internal line buffer and the serial input buffer.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"在非线程模式下读取并返回当前批次的行数据。\",\n      \"description_en\": \"Read and return the current batch of line data in non-threaded mode.\"\n    },\n    {\n      \"action_name\": \"auto-run_threaded\",\n      \"description\": \"返回当前已累积的读取结果。\",\n      \"description_en\": \"Return the currently accumulated readings.\"\n    },\n    {\n      \"action_name\": \"auto-update\",\n      \"description\": \"打开串口并在循环中持续读取数据，线程安全地更新已缓冲的行内容。\",\n      \"description_en\": \"Open the serial port and continuously read data in a loop, updating buffered lines in a thread-safe manner.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"停止读取流程并关闭串口相关资源。\",\n      \"description_en\": \"Stop the reading process and close serial-port-related resources.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"serial communication\",\n    \"line-based data acquisition\",\n    \"ASCII serial data\",\n    \"buffered readings\",\n    \"threaded polling\",\n    \"instrument integration\"\n  ]\n}"
+}

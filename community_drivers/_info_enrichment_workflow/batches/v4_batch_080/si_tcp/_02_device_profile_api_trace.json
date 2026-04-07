@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: si_tcp\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: basil/TL/SiTcp.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.ethernet.sitcp:SiTcp\n\nClass: SiTcp (focal)\n  Bases: ['SiTransferLayer']\n  Docstring: SiTcp transport layer.transport\n\nUDP (RBCP) Header+Data\n\nBit 7         Bit 0\n+-----------------+\n|  Ver.  |  Type  |\n+-----------------+\n|   CMD  |  FLAG  |\n+-----------------+\n|        ID       |\n+-----------------+\n|   Data Length   |\n+-----------------+\n| Address [31:24] |\n+-----------------+\n| Address [23:16] |\n+-----------------+\n| Address [15:8]  |\n+-----------------+\n| Address [7:0]   |\n+-----------------+\n|      Data 0     |\n+-----------------+\n|      Data 1     |\n+-----------------+\n|       ...       |\n+-----------------+\n|     Data N-1    |\n+-----------------+\n|      Data N     | (N max. 255)\n+-----------------+\n\nCMD Field\n\n+-----+------------+-------------+\n| BIT |    Name    | Description |\n+--------------------------------+\n|  3  |   Access   | Bus Access  |\n+--------------------------------+\n|  2  |    R/W     | 0:Wr,1:Read |\n+--------------------------------+\n|  1  |  Reserved  |   Always 0  |\n+--------------------------------+\n|  0  |  Reserved  |   Always 0  |\n+-----+------------+-------------+\n\nFALG Field\n\n+-----+------------+-------------+\n| BIT |    Name    | Description |\n+--------------------------------+\n|  3  |  REQ/ACK   | 0:Req,1:Ack |\n+--------------------------------+\n|  2  |  Reserved  |   Always 0  |\n+--------------------------------+\n|  1  |  Reserved  |   Always 0  |\n+--------------------------------+\n|  0  |    Error   |   0:Normal  |\n|     |            | 1:Bus Error |\n+-----+------------+-------------+\n\n\nTCP to BUS Header+Data\n\nBit 7         Bit 0\n+-----------------+\n|   Length [7:0]  |\n+-----------------+\n|   Length [15:8] |\n+-----------------+\n| Address [7:0]   |\n+-----------------+\n| Address [15:8]  |\n+-----------------+\n| Address [23:16] |\n+-----------------+\n| Address [31:24] |\n+-----------------+\n|      Data 0     |\n+-----------------+\n|      Data 1     |\n+-----------------+\n|       ...       |\n+-----------------+\n|  Data Length-1  |\n+-----------------+\n|   Data Length   | (Length max. 65529)\n+-----------------+\n\nTCP to BUS reset sequence (in case of status invalid): 65535 * 0xff + 6 * 0x00\n\nFocal class methods:\n  [command] reset(self)\n  [command] reset_fifo(self)\n  [command] init(self)\n    comment: using select to monitor socket status, therefore the socket is set to blocking (default)\n    comment: start readout thread if TCP connection is set\n    comment: using select to monitor socket status, therefore the socket is set to blocking (default)\n  [command] write(self, addr, data)\n    comment: resetting SiTcp buffer\n    comment: the buffer may contain random (?) data words after setting\n    comment: up of the TCP socket and stating of the readout thread\n  [command] read(self, addr, size)\n  [command] close(self)\n\nRegistry actions:\n  auto-reset (from reset())\n  auto-reset_fifo (from reset_fifo())\n  auto-init (from init())\n  auto-write (from write())\n  auto-read (from read())\n  auto-close (from close())\n\nRequired output action ids:\n  auto-reset\n  auto-reset_fifo\n  auto-init\n  auto-write\n  auto-read\n  auto-close"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_00da91609a1727f30069d55d5af87481979df940476544ef0e",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1806,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2765,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_00da91609a1727f30069d55d5ca0708197af4d0ab9b1ec99a4",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_00da91609a1727f30069d55d60f43c8197b07e4bf745432dee",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"SiTCP传输层组件\",\n  \"name_en\": \"SiTCP Transport Layer Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件通信组件，通过以太网使用 TCP 和 UDP/RBCP 协议与外部实验电子学或 FPGA 寄存器总线通信。它用于初始化连接、读写总线地址、复位缓冲区或 FIFO，并在实验数据采集系统中管理套接字与读出流程。\",\n  \"description_en\": \"A non-physical software communication component that talks over Ethernet using TCP and UDP/RBCP to external lab electronics or FPGA register buses. It is used to initialize connections, read and write bus addresses, reset buffers or FIFOs, and manage sockets and readout flow in experimental data acquisition systems.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"复位 SiTCP 通信状态或相关缓冲状态。\",\n      \"description_en\": \"Reset the SiTCP communication state or related buffer state.\"\n    },\n    {\n      \"action_name\": \"auto-reset_fifo\",\n      \"description\": \"复位 SiTCP 数据 FIFO 缓冲区。\",\n      \"description_en\": \"Reset the SiTCP data FIFO buffer.\"\n    },\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化 SiTCP 传输连接、套接字监控和读出线程。\",\n      \"description_en\": \"Initialize the SiTCP transport connection, socket monitoring, and readout thread.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向指定总线地址写入数据。\",\n      \"description_en\": \"Write data to a specified bus address.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"从指定总线地址读取数据。\",\n      \"description_en\": \"Read data from a specified bus address.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭 SiTCP 连接和相关通信资源。\",\n      \"description_en\": \"Close the SiTCP connection and related communication resources.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"SiTCP\",\n    \"Ethernet transport\",\n    \"RBCP\",\n    \"TCP bus access\",\n    \"FPGA register communication\",\n    \"data acquisition\",\n    \"socket readout\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1572,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 709,
+      "output_tokens_details": {
+        "reasoning_tokens": 199
+      },
+      "total_tokens": 2281
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1572,
+      "output_token_count": 709,
+      "predict_time": 14.901724221
+    }
+  },
+  "output_text": "{\n  \"name\": \"SiTCP传输层组件\",\n  \"name_en\": \"SiTCP Transport Layer Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件通信组件，通过以太网使用 TCP 和 UDP/RBCP 协议与外部实验电子学或 FPGA 寄存器总线通信。它用于初始化连接、读写总线地址、复位缓冲区或 FIFO，并在实验数据采集系统中管理套接字与读出流程。\",\n  \"description_en\": \"A non-physical software communication component that talks over Ethernet using TCP and UDP/RBCP to external lab electronics or FPGA register buses. It is used to initialize connections, read and write bus addresses, reset buffers or FIFOs, and manage sockets and readout flow in experimental data acquisition systems.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"复位 SiTCP 通信状态或相关缓冲状态。\",\n      \"description_en\": \"Reset the SiTCP communication state or related buffer state.\"\n    },\n    {\n      \"action_name\": \"auto-reset_fifo\",\n      \"description\": \"复位 SiTCP 数据 FIFO 缓冲区。\",\n      \"description_en\": \"Reset the SiTCP data FIFO buffer.\"\n    },\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化 SiTCP 传输连接、套接字监控和读出线程。\",\n      \"description_en\": \"Initialize the SiTCP transport connection, socket monitoring, and readout thread.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向指定总线地址写入数据。\",\n      \"description_en\": \"Write data to a specified bus address.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"从指定总线地址读取数据。\",\n      \"description_en\": \"Read data from a specified bus address.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭 SiTCP 连接和相关通信资源。\",\n      \"description_en\": \"Close the SiTCP connection and related communication resources.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"SiTCP\",\n    \"Ethernet transport\",\n    \"RBCP\",\n    \"TCP bus access\",\n    \"FPGA register communication\",\n    \"data acquisition\",\n    \"socket readout\"\n  ]\n}"
+}

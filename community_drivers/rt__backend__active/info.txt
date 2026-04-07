@@ -1,63 +1,142 @@
-Device: rt__backend__active
-Registry Key: rt__backend__active
-Short Description: RT Measurement Backend (Active)是一款表征设备，主要功能包括停止、加热、参数配置、启动、扫描、日志记录。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (14):
-- auto-configure_instruments -> configure_instruments [UniLabJsonCommand] goal_params: compliance_v, current_ma
-- auto-connect -> connect [UniLabJsonCommand] goal_params: k2400_visa, ls_visa
-- auto-create_widgets -> create_widgets [UniLabJsonCommand] goal_params: none
-- auto-get_measurement -> get_measurement [UniLabJsonCommand] goal_params: none
-- auto-get_temperature -> get_temperature [UniLabJsonCommand] goal_params: none
-- auto-log -> log [UniLabJsonCommand] goal_params: message
-- auto-set_heater_range -> set_heater_range [UniLabJsonCommand] goal_params: heater_range, output
-- auto-set_setpoint -> set_setpoint [UniLabJsonCommand] goal_params: output, temperature_k
-- auto-set_ui_state -> set_ui_state [UniLabJsonCommand] goal_params: running
-- auto-setup_styles -> setup_styles [UniLabJsonCommand] goal_params: none
-- auto-shutdown -> shutdown [UniLabJsonCommand] goal_params: none
-- auto-start_experiment -> start_experiment [UniLabJsonCommand] goal_params: none
-- auto-start_ramp -> start_ramp [UniLabJsonCommand] goal_params: end_temp, rate_k_min
-- auto-stop_experiment -> stop_experiment [UniLabJsonCommand] goal_params: reason
-
-Driver Functions (36):
-- run_script_process(script_path) (line 115)
-- launch_plotter_utility() (line 129)
-- launch_gpib_scanner() (line 147)
-- RT_Backend_Active.__init__(self) (line 172)
-- RT_Backend_Active.connect(self, k2400_visa, ls_visa) (line 182)
-- RT_Backend_Active.configure_instruments(self, current_ma, compliance_v) (line 194)
-- RT_Backend_Active.get_temperature(self) (line 212)
-- RT_Backend_Active.set_heater_range(self, output, heater_range) (line 218)
-- RT_Backend_Active.set_setpoint(self, output, temperature_k) (line 226)
-- RT_Backend_Active.start_ramp(self, end_temp, rate_k_min) (line 230)
-- RT_Backend_Active.get_measurement(self) (line 236)
-- RT_Backend_Active.shutdown(self) (line 242)
-- RT_GUI_Active.__init__(self, root) (line 276)
-- RT_GUI_Active.setup_styles(self) (line 299)
-- RT_GUI_Active.create_widgets(self) (line 377)
-- RT_GUI_Active._populate_left_panel(self, panel) (line 437)
-- RT_GUI_Active._create_info_panel(self, parent) (line 446)
-- RT_GUI_Active._populate_right_panel(self, panel) (line 526)
-- RT_GUI_Active._create_params_panel(self, parent) (line 556)
-- RT_GUI_Active._create_control_panel(self, parent) (line 584)
-- RT_GUI_Active._create_console_panel(self, parent) (line 615)
-- RT_GUI_Active.log(self, message) (line 623)
-- RT_GUI_Active.start_experiment(self) (line 631)
-- RT_GUI_Active.stop_experiment(self, reason) (line 676)
-- RT_GUI_Active._stabilization_loop(self) (line 694)
-- RT_GUI_Active._experiment_loop(self) (line 724)
-- RT_GUI_Active._validate_and_get_params(self) (line 802)
-- RT_GUI_Active.set_ui_state(self, running) (line 838)
-- RT_GUI_Active._scan_for_visa(self) (line 847)
-- RT_GUI_Active._browse_file_location(self) (line 865)
-- RT_GUI_Active._create_entry(self, parent, label_text, default_value, row, browse) (line 873)
-- RT_GUI_Active._create_combobox(self, parent, label_text, row) (line 907)
-- RT_GUI_Active._on_draw(self, event) (line 926)
-- RT_GUI_Active._on_resize(self, event) (line 932)
-- RT_GUI_Active._finalize_resize(self) (line 940)
-- RT_GUI_Active._on_closing(self) (line 947)
+rt__backend__active:
+  name: Keithley 2400 / Lake Shore 350 联合实验控制组件
+  name_en: Keithley 2400 / Lake Shore 350 Experiment Control Component
+  manufacturer: ''
+  category:
+  - 联合实验控制后端
+  tags:
+  - 实验执行&合成设备
+  - 表征设备
+  - 电子与电气测试
+  - 环境控制与稳定性测试
+  - 外接设备恒温控制
+  - 仪表读数与状态监测
+  - 联合实验控制后端
+  description: 一个非物理软件组件，用于协调 Keithley 2400 源表与 Lake Shore 350 温控器的实验流程。它负责仪器连接、参数配置、温度读取、加热器量程与温度设定值设置、温度斜坡控制、电学测量读取，以及实验图形界面的创建、样式、日志和状态管理。
+  description_en: A non-physical software component that coordinates experiments involving
+    a Keithley 2400 source meter and a Lake Shore 350 temperature controller. It handles
+    instrument connection, configuration, temperature readback, heater-range and setpoint
+    control, temperature ramping, electrical measurement readout, and GUI creation,
+    styling, logging, and UI state management.
+  class:
+    action_value_mappings:
+      auto-configure_instruments:
+        schema:
+          description: 配置 Keithley 2400 的源表参数以及 Lake Shore 350 的温控参数。
+          description_en: Configure the Keithley 2400 source/measurement settings
+            and the Lake Shore 350 temperature-control settings.
+      auto-connect:
+        schema:
+          description: 连接到 Keithley 2400 和 Lake Shore 350 仪器。
+          description_en: Connect to the Keithley 2400 and Lake Shore 350 instruments.
+      auto-set_heater_range:
+        schema:
+          description: 设置指定输出通道的加热器量程。
+          description_en: Set the heater range for the selected output channel.
+      auto-set_setpoint:
+        schema:
+          description: 设置指定输出通道的温度设定值。
+          description_en: Set the temperature setpoint for the selected output channel.
+      auto-shutdown:
+        schema:
+          description: 关闭实验控制流程并执行相关仪器的安全停机。
+          description_en: Shut down the experiment control flow and perform a safe
+            stop of the associated instruments.
+      auto-start_ramp:
+        schema:
+          description: 以指定速率启动到目标温度的斜坡控制。
+          description_en: Start a temperature ramp to the target temperature at the
+            specified rate.
+      auto-get_measurement:
+        schema:
+          description: 获取电学测量值。
+          description_en: get electrical measurement reading
+      auto-get_temperature:
+        schema:
+          description: 获取温度。
+          description_en: get temperature
+      auto-setup_styles:
+        schema:
+          description: 配置图形界面的样式。
+          description_en: Set up the GUI styles.
+      auto-create_widgets:
+        schema:
+          description: 创建图形界面控件。
+          description_en: Create the GUI widgets.
+      auto-log:
+        schema:
+          description: 记录实验或界面日志信息。
+          description_en: Log experiment or UI messages.
+      auto-start_experiment:
+        schema:
+          description: 启动联动温控与测量实验流程。
+          description_en: Start the coordinated temperature-control and measurement
+            experiment.
+      auto-stop_experiment:
+        schema:
+          description: 停止联动温控与测量实验流程。
+          description_en: Stop the coordinated temperature-control and measurement
+            experiment.
+      auto-set_ui_state:
+        schema:
+          description: 设置界面的启用或禁用状态。
+          description_en: Set the enabled or disabled state of the user interface.
+auto_annotation_metadata:
+  registry_key: rt__backend__active
+  annotation_workflow_version: v4
+  tag_hints:
+  - Keithley 2400
+  - Lake Shore 350
+  - temperature control
+  - temperature ramping
+  - heater range control
+  - SMU measurement
+  - experiment GUI
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件负责连接仪器、设置参数、启动温度斜坡并运行联合实验流程。
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 组件还读取温度和电学测量值，用于实验监测与表征。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: 实验中包含Keithley 2400电学测量读取，属于电子电学测试域。
+  - id: P-9004
+    name: 环境控制与稳定性测试
+    name_en: Environmental Control & Stability Testing
+    type: experimental_domain
+    rationale: Lake Shore 350温控、设定值和斜坡控制体现了受控温度环境下的实验运行。
+  - id: P-6002
+    name: 外接设备恒温控制
+    name_en: External Equipment Thermostating
+    type: experimental_scene
+    rationale: 组件直接设置温度设定值、加热器量程并执行温度斜坡。
+  - id: P-500004
+    name: 仪表读数与状态监测
+    name_en: Meter Readout & Status Monitoring
+    type: experimental_scene
+    rationale: 组件持续读取温度和电学测量并管理日志与状态。
+  proposed_new_tags:
+  - id: P-900906
+    name: 联合实验控制后端
+    name_en: Coordinated Experiment Control Backend
+    type: device_template_tag
+    rationale: 该对象不是单一仪器，而是协调源表、温控器和界面的联合实验控制后端。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

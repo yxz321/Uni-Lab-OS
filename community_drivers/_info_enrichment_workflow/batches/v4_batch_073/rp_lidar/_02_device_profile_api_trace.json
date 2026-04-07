@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: rp_lidar\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: donkeycar/parts/lidar.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.rp_lidar:RPLidar\n\nClass: RPLidar2 \n  Bases: ['object']\n  Docstring: Adapted from https://github.com/Ezward/rplidar\nNOTES\n- empirical measurements show\n  scan rate is 7 scans per second\n  and 1846 measurements per second.\n\nClass: RPLidar (focal)\n  Bases: ['object']\n  Docstring: https://github.com/adafruit/Adafruit_CircuitPython_RPLIDAR\n\nClass: YDLidar \n  Bases: ['object']\n  Docstring: https://pypi.org/project/PyLidar3/\n\nClass: LidarPlot \n  Bases: ['object']\n  Docstring: takes the raw lidar measurements and plots it to an image\n\nClass: LidarPlot2 \n  Bases: ['object']\n  Docstring: takes the lidar measurements as a list of (distance, angle) tuples\nand plots them to a PIL image which it outputs\n\nresolution: dimensions of image in pixels as tuple (width, height)\nplot_type: PLOT_TYPE_CIRC or PLOT_TYPE_LINE\nmark_px: size of data measurement marks in pixels\nmax_dist: polar bounds; clip measures whose distance > max_dist\nangle_direction: direction of increasing angles in the data;\n                 CLOCKWISE or COUNTER_CLOCKWISE\nrotate_plot: angle in positive degrees to rotate the measurement mark.\n             this can be used to match the direction of the robot\n             when it is plotted in world coordinates.\n\nClass: BreezySLAM \n  Bases: ['object']\n  Docstring: https://github.com/simondlevy/BreezySLAM\n\nClass: BreezyMap \n  Bases: ['object']\n  Docstring: bitmap that may optionally be constructed by BreezySLAM\n\nClass: MapToImage \n  Bases: ['object']\n\nFocal class methods:\n  [command] update(self)\n  [command] run_threaded(self)\n  [command] shutdown(self)\n\nRegistry actions:\n  auto-update (from update())\n  auto-run_threaded (from run_threaded())\n  auto-shutdown (from shutdown())\n\nRequired output action ids:\n  auto-update\n  auto-run_threaded\n  auto-shutdown"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0e852cc5dc8b43c40069d556f878e08194a601f746a0c190b6",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1799,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2833,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0e852cc5dc8b43c40069d556f8e1f481949510e7bfe60e39d5",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0e852cc5dc8b43c40069d556ff65e48194ad37af0166022d4a",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"RPLIDAR激光雷达\",\n  \"name_en\": \"RPLIDAR LiDAR\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于机器人环境感知的二维激光雷达。该设备通过连续扫描获取距离与角度测量数据，可用于避障、定位、建图和周围环境轮廓检测。\",\n  \"description_en\": \"A 2D LiDAR sensor for robot environment perception. It continuously scans to acquire distance and angle measurements, enabling obstacle avoidance, localization, mapping, and surrounding scene detection.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-update\",\n      \"description\": \"更新并读取最新的激光雷达扫描测量数据。\",\n      \"description_en\": \"Update and read the latest LiDAR scan measurements.\"\n    },\n    {\n      \"action_name\": \"auto-run_threaded\",\n      \"description\": \"在线程模式下返回当前缓存的激光雷达扫描数据。\",\n      \"description_en\": \"Return the currently cached LiDAR scan data in threaded mode.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"停止激光雷达采集并关闭设备连接。\",\n      \"description_en\": \"Stop LiDAR acquisition and close the device connection.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"2D LiDAR\",\n    \"laser ranging\",\n    \"robot navigation\",\n    \"obstacle detection\",\n    \"SLAM\",\n    \"distance-angle scan\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1185,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 726,
+      "output_tokens_details": {
+        "reasoning_tokens": 399
+      },
+      "total_tokens": 1911
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1185,
+      "output_token_count": 726,
+      "predict_time": 13.994436057
+    }
+  },
+  "output_text": "{\n  \"name\": \"RPLIDAR激光雷达\",\n  \"name_en\": \"RPLIDAR LiDAR\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于机器人环境感知的二维激光雷达。该设备通过连续扫描获取距离与角度测量数据，可用于避障、定位、建图和周围环境轮廓检测。\",\n  \"description_en\": \"A 2D LiDAR sensor for robot environment perception. It continuously scans to acquire distance and angle measurements, enabling obstacle avoidance, localization, mapping, and surrounding scene detection.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-update\",\n      \"description\": \"更新并读取最新的激光雷达扫描测量数据。\",\n      \"description_en\": \"Update and read the latest LiDAR scan measurements.\"\n    },\n    {\n      \"action_name\": \"auto-run_threaded\",\n      \"description\": \"在线程模式下返回当前缓存的激光雷达扫描数据。\",\n      \"description_en\": \"Return the currently cached LiDAR scan data in threaded mode.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"停止激光雷达采集并关闭设备连接。\",\n      \"description_en\": \"Stop LiDAR acquisition and close the device connection.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"2D LiDAR\",\n    \"laser ranging\",\n    \"robot navigation\",\n    \"obstacle detection\",\n    \"SLAM\",\n    \"distance-angle scan\"\n  ]\n}"
+}

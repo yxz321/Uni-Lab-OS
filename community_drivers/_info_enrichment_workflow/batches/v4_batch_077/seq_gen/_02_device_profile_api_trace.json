@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: seq_gen\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: basil/HL/seq_gen.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.sequencer.seq_gen:seq_gen\n\nClass: seq_gen (focal)\n  Bases: ['RegisterHardwareLayer']\n  Docstring: Sequencer generator controller interface for seq_gen FPGA module.\n    \n\nFocal class methods:\n  [command] init(self)\n  [command] reset(self)\n  [command] start(self)\n  [status_setter] set_size(self, value)\n  [status_getter] get_size(self)\n  [status_setter] set_wait(self, value)\n  [status_getter] get_wait(self)\n  [status_setter] set_clk_divide(self, value)\n  [status_getter] get_clk_divide(self)\n  [status_setter] set_repeat_start(self, value)\n  [status_getter] get_repeat_start(self)\n  [status_setter] set_repeat(self, value)\n  [status_getter] get_repeat(self)\n  [command] is_done(self)\n  [status_getter] is_ready(self)\n  [status_getter] get_done(self)\n  [status_setter] set_en_ext_start(self, value)\n  [status_getter] get_en_ext_start(self)\n  [status_setter] set_nested_start(self, value)\n  [status_getter] get_nested_start(self)\n  [status_setter] set_nested_stop(self, value)\n  [status_getter] get_nested_stop(self)\n  [status_setter] set_nested_repeat(self, value)\n  [status_getter] get_nested_repeat(self)\n  [status_getter] get_mem_size(self)\n  [status_setter] set_data(self, data, addr=0)\n  [status_getter] get_data(self, size=None, addr=0)\n\nRegistry actions:\n  auto-init (from init())\n  auto-reset (from reset())\n  auto-start (from start())\n  auto-set_size (from set_size())\n  auto-set_wait (from set_wait())\n  auto-set_clk_divide (from set_clk_divide())\n  auto-set_repeat_start (from set_repeat_start())\n  auto-set_repeat (from set_repeat())\n  auto-is_done (from is_done())\n  auto-set_en_ext_start (from set_en_ext_start())\n  auto-set_nested_start (from set_nested_start())\n  auto-set_nested_stop (from set_nested_stop())\n  auto-set_nested_repeat (from set_nested_repeat())\n  auto-set_data (from set_data())\n\nRequired output action ids:\n  auto-init\n  auto-reset\n  auto-start\n  auto-set_size\n  auto-set_wait\n  auto-set_clk_divide\n  auto-set_repeat_start\n  auto-set_repeat\n  auto-is_done\n  auto-set_en_ext_start\n  auto-set_nested_start\n  auto-set_nested_stop\n  auto-set_nested_repeat\n  auto-set_data"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_08afea1ea62c58b50069d55be7ba248190993b5afb60382fda",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3304,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4898,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_08afea1ea62c58b50069d55be83dec81908e9499da800494f1",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_08afea1ea62c58b50069d55bf041b881908b1527465f1f8b58",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"FPGA时序发生器模块\",\n  \"name_en\": \"FPGA Sequencer Generator Module\",\n  \"manufacturer\": \"\",\n  \"description\": \"一种面向FPGA时序发生模块的硬件控制接口，用于在实验控制或数据采集中配置并启动可编程序列。可设置序列长度、等待时间、时钟分频、重复参数、外部启动与嵌套循环参数，并向板载存储器写入时序数据后执行输出。\",\n  \"description_en\": \"A hardware control interface for an FPGA sequencer generator module, used to configure and run programmable timing sequences in laboratory control or data acquisition setups. It supports sequence length, wait time, clock division, repeat settings, external start, nested loop parameters, and writing sequence data into onboard memory for execution.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化时序发生模块\",\n      \"description_en\": \"initialize the sequencer module\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"复位时序发生模块\",\n      \"description_en\": \"reset the sequencer module\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动序列输出\",\n      \"description_en\": \"start sequence generation\"\n    },\n    {\n      \"action_name\": \"auto-set_size\",\n      \"description\": \"设置序列长度\",\n      \"description_en\": \"set sequence length\"\n    },\n    {\n      \"action_name\": \"auto-set_wait\",\n      \"description\": \"设置等待时间\",\n      \"description_en\": \"set wait time\"\n    },\n    {\n      \"action_name\": \"auto-set_clk_divide\",\n      \"description\": \"设置时钟分频\",\n      \"description_en\": \"set clock divide factor\"\n    },\n    {\n      \"action_name\": \"auto-set_repeat_start\",\n      \"description\": \"设置重复起始位置\",\n      \"description_en\": \"set repeat start position\"\n    },\n    {\n      \"action_name\": \"auto-set_repeat\",\n      \"description\": \"设置重复次数\",\n      \"description_en\": \"set repeat count\"\n    },\n    {\n      \"action_name\": \"auto-is_done\",\n      \"description\": \"检查序列是否完成\",\n      \"description_en\": \"check whether sequence execution is done\"\n    },\n    {\n      \"action_name\": \"auto-set_en_ext_start\",\n      \"description\": \"设置是否启用外部启动\",\n      \"description_en\": \"set whether external start is enabled\"\n    },\n    {\n      \"action_name\": \"auto-set_nested_start\",\n      \"description\": \"设置嵌套循环起始位置\",\n      \"description_en\": \"set nested loop start position\"\n    },\n    {\n      \"action_name\": \"auto-set_nested_stop\",\n      \"description\": \"设置嵌套循环结束位置\",\n      \"description_en\": \"set nested loop stop position\"\n    },\n    {\n      \"action_name\": \"auto-set_nested_repeat\",\n      \"description\": \"设置嵌套循环重复次数\",\n      \"description_en\": \"set nested loop repeat count\"\n    },\n    {\n      \"action_name\": \"auto-set_data\",\n      \"description\": \"写入序列数据到存储器\",\n      \"description_en\": \"write sequence data to memory\"\n    }\n  ],\n  \"tag_hints\": [\n    \"FPGA sequencer\",\n    \"timing sequence generation\",\n    \"programmable pulse sequence\",\n    \"external trigger start\",\n    \"nested repeat loop\",\n    \"clock division\",\n    \"sequence memory\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1295,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1205,
+      "output_tokens_details": {
+        "reasoning_tokens": 436
+      },
+      "total_tokens": 2500
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1295,
+      "output_token_count": 1205,
+      "predict_time": 19.78388969
+    }
+  },
+  "output_text": "{\n  \"name\": \"FPGA时序发生器模块\",\n  \"name_en\": \"FPGA Sequencer Generator Module\",\n  \"manufacturer\": \"\",\n  \"description\": \"一种面向FPGA时序发生模块的硬件控制接口，用于在实验控制或数据采集中配置并启动可编程序列。可设置序列长度、等待时间、时钟分频、重复参数、外部启动与嵌套循环参数，并向板载存储器写入时序数据后执行输出。\",\n  \"description_en\": \"A hardware control interface for an FPGA sequencer generator module, used to configure and run programmable timing sequences in laboratory control or data acquisition setups. It supports sequence length, wait time, clock division, repeat settings, external start, nested loop parameters, and writing sequence data into onboard memory for execution.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化时序发生模块\",\n      \"description_en\": \"initialize the sequencer module\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"复位时序发生模块\",\n      \"description_en\": \"reset the sequencer module\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动序列输出\",\n      \"description_en\": \"start sequence generation\"\n    },\n    {\n      \"action_name\": \"auto-set_size\",\n      \"description\": \"设置序列长度\",\n      \"description_en\": \"set sequence length\"\n    },\n    {\n      \"action_name\": \"auto-set_wait\",\n      \"description\": \"设置等待时间\",\n      \"description_en\": \"set wait time\"\n    },\n    {\n      \"action_name\": \"auto-set_clk_divide\",\n      \"description\": \"设置时钟分频\",\n      \"description_en\": \"set clock divide factor\"\n    },\n    {\n      \"action_name\": \"auto-set_repeat_start\",\n      \"description\": \"设置重复起始位置\",\n      \"description_en\": \"set repeat start position\"\n    },\n    {\n      \"action_name\": \"auto-set_repeat\",\n      \"description\": \"设置重复次数\",\n      \"description_en\": \"set repeat count\"\n    },\n    {\n      \"action_name\": \"auto-is_done\",\n      \"description\": \"检查序列是否完成\",\n      \"description_en\": \"check whether sequence execution is done\"\n    },\n    {\n      \"action_name\": \"auto-set_en_ext_start\",\n      \"description\": \"设置是否启用外部启动\",\n      \"description_en\": \"set whether external start is enabled\"\n    },\n    {\n      \"action_name\": \"auto-set_nested_start\",\n      \"description\": \"设置嵌套循环起始位置\",\n      \"description_en\": \"set nested loop start position\"\n    },\n    {\n      \"action_name\": \"auto-set_nested_stop\",\n      \"description\": \"设置嵌套循环结束位置\",\n      \"description_en\": \"set nested loop stop position\"\n    },\n    {\n      \"action_name\": \"auto-set_nested_repeat\",\n      \"description\": \"设置嵌套循环重复次数\",\n      \"description_en\": \"set nested loop repeat count\"\n    },\n    {\n      \"action_name\": \"auto-set_data\",\n      \"description\": \"写入序列数据到存储器\",\n      \"description_en\": \"write sequence data to memory\"\n    }\n  ],\n  \"tag_hints\": [\n    \"FPGA sequencer\",\n    \"timing sequence generation\",\n    \"programmable pulse sequence\",\n    \"external trigger start\",\n    \"nested repeat loop\",\n    \"clock division\",\n    \"sequence memory\"\n  ]\n}"
+}

@@ -1,22 +1,79 @@
-Device: sealer_backend
-Registry Key: sealer_backend
-Short Description: Plate Sealer (Backend) 后端模块是一款封膜仪，主要功能包括关闭、打开、温度设置、温度读取。
-
-Categories:
-- 封膜仪
-
-Related Tags (from tag 标签列表.csv):
-- [4384] 封膜仪 / Plate Sealer (device_template_tag)
-
-Atom Actions (3):
-- auto-get_temperature -> get_temperature [UniLabJsonCommand] goal_params: none
-- auto-seal -> seal [UniLabJsonCommand] goal_params: duration, temperature
-- auto-set_temperature -> set_temperature [UniLabJsonCommand] goal_params: temperature
-
-Driver Functions (6):
-- SealerBackend.__init__(self, *args, **kwargs) (line 77)
-- SealerBackend.seal(self, temperature, duration) [async] (line 81)
-- SealerBackend.open(self) [async] (line 86)
-- SealerBackend.close(self) [async] (line 91)
-- SealerBackend.set_temperature(self, temperature) [async] (line 96)
-- SealerBackend.get_temperature(self) [async] (line 101)
+sealer_backend:
+  name: 封膜机后端控制组件
+  name_en: Sealer Backend Control Component
+  manufacturer: ''
+  category:
+  - 实验室封膜机控制接口
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验仪器数据采集与联机控制
+  - 微孔板封膜与样品保护
+  - 实验室封膜机控制接口
+  description: 这是一个非实体的软件控制组件，用于定义实验室封膜机的基础控制接口，包括封膜、温度设置与温度读取，供上层实验流程或具体硬件实现调用。
+  description_en: This is a non-physical software control component that defines the
+    basic control interface for a laboratory sealer, including sealing, temperature
+    setting, and temperature readback, for use by higher-level workflows or concrete
+    hardware implementations.
+  class:
+    action_value_mappings:
+      auto-seal:
+        schema:
+          description: 按给定温度和持续时间执行一次封膜操作。
+          description_en: Execute one sealing operation using the specified temperature
+            and duration.
+      auto-set_temperature:
+        schema:
+          description: 设置封膜温度。
+          description_en: Set the sealing temperature.
+      auto-get_temperature:
+        schema:
+          description: 读取当前封膜温度。
+          description_en: Get the current sealing temperature.
+auto_annotation_metadata:
+  registry_key: sealer_backend
+  annotation_workflow_version: v4
+  tag_hints:
+  - sealer control interface
+  - thermal sealing
+  - temperature control
+  - lab automation
+  - non-physical software component
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该软件组件定义封膜与温控接口，直接服务于自动化实验执行。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 组件供上层实验流程调用，属于实验室自动化控制集成。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 组件提供封膜机温度设置、温度读取和执行控制接口，面向联机控制场景。
+  proposed_new_tags:
+  - id: P-990904
+    name: 微孔板封膜与样品保护
+    name_en: Microplate Sealing & Sample Protection
+    type: experimental_scene
+    rationale: 该后端接口专用于微孔板封膜流程控制，服务于板式样品保护场景。
+  - id: P-990905
+    name: 实验室封膜机控制接口
+    name_en: Laboratory Sealer Control Interface
+    type: device_template_tag
+    rationale: 该组件不是实体封膜机，而是可被多种封膜机实现复用的软件控制接口模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

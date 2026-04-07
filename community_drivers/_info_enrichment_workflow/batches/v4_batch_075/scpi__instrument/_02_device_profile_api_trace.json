@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: scpi__instrument\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/easy_scpi/scpi_instrument.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.scpi__instrument:SCPI_Instrument\n\nClass: Property \n  Bases: ['object']\n  Docstring: Represents a SCPI property of the instrument\n\nClass: SCPI_Instrument (focal)\n  Bases: []\n  Docstring: Represents an instrument\n\nArbitrary SCPI commands can be performed\ntreating the hieracrchy of the command as attributes.\n\nTo read an property:  inst.p1.p2.p3()\nTo call a function:   inst.p1.p2( 'value' )\nTo execute a command: inst.p1.p2.p3( '' )\n\nFocal class methods:\n  [command] backend(self)\n  [command] instrument(self)\n  [command] port(self)\n  [command] port(self, port)\n    comment: Connects to the given port based on the OS.\n        [See #_set_port_windows and #_set_port_linux for more.]\n\n        :param port: The port to connect to.\n  [command] port_match(self)\n    comment: Verify the port is associated to a resource when connecting.\n  [command] port_match(self, port_match)\n    comment: :param port_match: Whether to require the port to be found before connecting.\n  [command] rid(self)\n    comment: Return the resource id of the instrument.\n  [command] rid(self, rid)\n    comment: :param rid: Resource id.\n  [command] resource_params(self)\n  [command] id(self)\n    comment: Returns the id of the instrument.\n  [command] value(self)\n    comment: Get current value.\n  [command] connected(self)\n    comment: session throws excpetion if not connected\n    comment: Returns if the instrument is connected.\n  [command] is_connected(self)\n    comment: Alias for connected.\n  [command] connect(self)\n    comment: set resource parameters\n    comment: Connects to the instrument on the given port.\n  [command] disconnect(self)\n    comment: Disconnects from the instrument, and returns local control.\n  [command] write(self, msg)\n    comment: Delegates write to resource.\n\n        :param msg: Message to send.\n        :returns: Response from the message.\n        :raises RuntimeError: If an instrument is not connected.\n  [command] read(self)\n    comment: Delegates read to resource.\n\n        :returns: Response from the read.\n        :raises RuntimeError: If an instrument is not connected.\n  [command] query(self, msg)\n    comment: Delegates query to resource.\n\n        :param msg: Message to send.\n        :returns: Response from the message.\n        :raises RuntimeError: If an instrument is not connected.\n  [command] reset(self)\n    comment: Resets the meter to inital state.\n        Sends `*RST` command.\n\n        :returns: Response from the command.\n  [command] init(self)\n    comment: Initialize the instrument.\n        Sends the `INIT` command.\n\n        :returns: Response from the command.\n\nRegistry actions:\n  auto-backend (from backend())\n  auto-instrument (from instrument())\n  auto-port (from port())\n  auto-port_match (from port_match())\n  auto-rid (from rid())\n  auto-resource_params (from resource_params())\n  auto-id (from id())\n  auto-value (from value())\n  auto-connected (from connected())\n  auto-is_connected (from is_connected())\n  auto-write (from write())\n  auto-read (from read())\n  auto-query (from query())\n  auto-reset (from reset())\n  auto-init (from init())\n\nRequired output action ids:\n  auto-backend\n  auto-instrument\n  auto-port\n  auto-port_match\n  auto-rid\n  auto-resource_params\n  auto-id\n  auto-value\n  auto-connected\n  auto-is_connected\n  auto-write\n  auto-read\n  auto-query\n  auto-reset\n  auto-init"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_05f99929a761b5f30069d559b7c674819497341a34708c0509",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4601,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6764,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_05f99929a761b5f30069d559b84b548194a8f9d1bbc3b8ec06",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_05f99929a761b5f30069d559c8bd2c8194a2a04b89556a8e02",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"SCPI通用仪器软件接口\",\n  \"name_en\": \"Generic SCPI Instrument Software Interface\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于在实验中以统一方式连接和访问支持 SCPI 命令的仪器。它提供端口、资源标识和连接参数管理，以及通用的写入、读取、查询、复位和初始化操作，适合用于构建各类仪器的上层控制流程。\",\n  \"description_en\": \"This is a non-physical software component for uniformly connecting to and accessing instruments that support SCPI commands in laboratory workflows. It manages ports, resource identifiers, and connection parameters, and provides generic write, read, query, reset, and initialization operations for higher-level instrument control.\",\n  \"tag_hints\": [\n    \"SCPI control\",\n    \"instrument communication\",\n    \"generic instrument abstraction\",\n    \"VISA resource access\",\n    \"port configuration\",\n    \"query/read/write messaging\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-backend\",\n      \"description\": \"获取通信后端\",\n      \"description_en\": \"get the communication backend\"\n    },\n    {\n      \"action_name\": \"auto-instrument\",\n      \"description\": \"获取仪器接口对象\",\n      \"description_en\": \"get the instrument interface object\"\n    },\n    {\n      \"action_name\": \"auto-port\",\n      \"description\": \"获取或设置通信端口\",\n      \"description_en\": \"get or set the communication port\"\n    },\n    {\n      \"action_name\": \"auto-port_match\",\n      \"description\": \"获取或设置连接时是否要求端口匹配已发现资源\",\n      \"description_en\": \"get or set whether port matching to a discovered resource is required when connecting\"\n    },\n    {\n      \"action_name\": \"auto-rid\",\n      \"description\": \"获取或设置资源标识\",\n      \"description_en\": \"get or set the resource identifier\"\n    },\n    {\n      \"action_name\": \"auto-resource_params\",\n      \"description\": \"获取资源连接参数\",\n      \"description_en\": \"get the resource connection parameters\"\n    },\n    {\n      \"action_name\": \"auto-id\",\n      \"description\": \"获取仪器标识\",\n      \"description_en\": \"get the instrument identification\"\n    },\n    {\n      \"action_name\": \"auto-value\",\n      \"description\": \"获取当前值\",\n      \"description_en\": \"get the current value\"\n    },\n    {\n      \"action_name\": \"auto-connected\",\n      \"description\": \"获取连接状态\",\n      \"description_en\": \"get the connection status\"\n    },\n    {\n      \"action_name\": \"auto-is_connected\",\n      \"description\": \"获取连接状态\",\n      \"description_en\": \"get the connection status\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向已连接资源写入消息\",\n      \"description_en\": \"write a message to the connected resource\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"从已连接资源读取响应\",\n      \"description_en\": \"read a response from the connected resource\"\n    },\n    {\n      \"action_name\": \"auto-query\",\n      \"description\": \"发送查询并返回响应\",\n      \"description_en\": \"send a query and return the response\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"发送复位命令\",\n      \"description_en\": \"send a reset command\"\n    },\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"发送初始化命令\",\n      \"description_en\": \"send the initialization command\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1539,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1622,
+      "output_tokens_details": {
+        "reasoning_tokens": 831
+      },
+      "total_tokens": 3161
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1539,
+      "output_token_count": 1622,
+      "predict_time": 29.497978914
+    }
+  },
+  "output_text": "{\n  \"name\": \"SCPI通用仪器软件接口\",\n  \"name_en\": \"Generic SCPI Instrument Software Interface\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于在实验中以统一方式连接和访问支持 SCPI 命令的仪器。它提供端口、资源标识和连接参数管理，以及通用的写入、读取、查询、复位和初始化操作，适合用于构建各类仪器的上层控制流程。\",\n  \"description_en\": \"This is a non-physical software component for uniformly connecting to and accessing instruments that support SCPI commands in laboratory workflows. It manages ports, resource identifiers, and connection parameters, and provides generic write, read, query, reset, and initialization operations for higher-level instrument control.\",\n  \"tag_hints\": [\n    \"SCPI control\",\n    \"instrument communication\",\n    \"generic instrument abstraction\",\n    \"VISA resource access\",\n    \"port configuration\",\n    \"query/read/write messaging\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-backend\",\n      \"description\": \"获取通信后端\",\n      \"description_en\": \"get the communication backend\"\n    },\n    {\n      \"action_name\": \"auto-instrument\",\n      \"description\": \"获取仪器接口对象\",\n      \"description_en\": \"get the instrument interface object\"\n    },\n    {\n      \"action_name\": \"auto-port\",\n      \"description\": \"获取或设置通信端口\",\n      \"description_en\": \"get or set the communication port\"\n    },\n    {\n      \"action_name\": \"auto-port_match\",\n      \"description\": \"获取或设置连接时是否要求端口匹配已发现资源\",\n      \"description_en\": \"get or set whether port matching to a discovered resource is required when connecting\"\n    },\n    {\n      \"action_name\": \"auto-rid\",\n      \"description\": \"获取或设置资源标识\",\n      \"description_en\": \"get or set the resource identifier\"\n    },\n    {\n      \"action_name\": \"auto-resource_params\",\n      \"description\": \"获取资源连接参数\",\n      \"description_en\": \"get the resource connection parameters\"\n    },\n    {\n      \"action_name\": \"auto-id\",\n      \"description\": \"获取仪器标识\",\n      \"description_en\": \"get the instrument identification\"\n    },\n    {\n      \"action_name\": \"auto-value\",\n      \"description\": \"获取当前值\",\n      \"description_en\": \"get the current value\"\n    },\n    {\n      \"action_name\": \"auto-connected\",\n      \"description\": \"获取连接状态\",\n      \"description_en\": \"get the connection status\"\n    },\n    {\n      \"action_name\": \"auto-is_connected\",\n      \"description\": \"获取连接状态\",\n      \"description_en\": \"get the connection status\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向已连接资源写入消息\",\n      \"description_en\": \"write a message to the connected resource\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"从已连接资源读取响应\",\n      \"description_en\": \"read a response from the connected resource\"\n    },\n    {\n      \"action_name\": \"auto-query\",\n      \"description\": \"发送查询并返回响应\",\n      \"description_en\": \"send a query and return the response\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"发送复位命令\",\n      \"description_en\": \"send a reset command\"\n    },\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"发送初始化命令\",\n      \"description_en\": \"send the initialization command\"\n    }\n  ]\n}"
+}

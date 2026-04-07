@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: serial_port\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: donkeycar/parts/serial_port.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.serial_port:SerialPort\n\nClass: SerialPort (focal)\n  Bases: []\n  Docstring: Wrapper for serial port connect/read/write.\nUse this rather than raw pyserial api.\nIt provides a layer that automatically \ncatches exceptions and encodes/decodes\nbetween bytes and str.  \nIt also provides a layer of indirection \nso that we can mock this for testing.\n\nClass: SerialLineReader \n  Bases: []\n  Docstring: Donkeycar part for reading lines from a serial port\n\nFocal class methods:\n  [command] start(self)\n  [command] stop(self)\n  [command] buffered(self)\n    comment: ser.in_waiting is always zero on mac, so act like we are buffered\n    comment: return: the number of buffered characters\n  [command] clear(self)\n    comment: Clear the serial read buffer\n  [command] readBytes(self, count=0)\n    comment: if there are characters waiting, \n        then read them from the serial port\n        bytes: number of bytes to read \n        return: tuple of\n                bool: True if count bytes were available ...\n  [command] read(self, count=0)\n    comment: the first read often includes mis-framed garbase\n    comment: if there are characters waiting, \n        then read them from the serial port\n        bytes: number of bytes to read \n        return: tuple of\n                bool: True if count bytes were available ...\n  [command] readln(self)\n    comment: the first read often includes mis-framed garbase\n    comment: if there are characters waiting, \n        then read a line from the serial port.\n        This will block until end-of-line can be read.\n        The end-of-line is included in the return value.\n       ...\n  [command] writeBytes(self, value)\n    comment: write byte string to serial port\n  [command] write(self, value)\n    comment: write string to serial port\n  [command] writeln(self, value)\n    comment: write line to serial port\n\nRegistry actions:\n  auto-start (from start())\n  auto-stop (from stop())\n  auto-buffered (from buffered())\n  auto-clear (from clear())\n  auto-readBytes (from readBytes())\n  auto-read (from read())\n  auto-readln (from readln())\n  auto-writeBytes (from writeBytes())\n  auto-write (from write())\n  auto-writeln (from writeln())\n\nRequired output action ids:\n  auto-start\n  auto-stop\n  auto-buffered\n  auto-clear\n  auto-readBytes\n  auto-read\n  auto-readln\n  auto-writeBytes\n  auto-write\n  auto-writeln"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0064daee266c05e90069d55bfd4ab48197a2c90df36602846d",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1801,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4927,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0064daee266c05e90069d55bfdae588197a8c50f7f37dbd543",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0064daee266c05e90069d55c06e5fc819798eb730db39fe9c6",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"串口通信组件\",\n  \"name_en\": \"Serial Port Communication Helper\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件通信组件，用于封装串口连接的启动、停止、缓冲区清理，以及按字节、字符串或整行进行读写。它主要用于实验系统与外部仪器、控制器或微控制器之间的串行数据交换，并提供异常处理以及字节与字符串之间的编码/解码支持。\",\n  \"description_en\": \"This is a non-physical software communication component that wraps serial port connection start/stop, buffer clearing, and byte-, string-, or line-based read/write operations. It is used to exchange serial data between a lab system and external instruments, controllers, or microcontrollers, while providing exception handling and byte/string encoding-decoding support.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动串口通信会话。\",\n      \"description_en\": \"Start the serial communication session.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止串口通信会话。\",\n      \"description_en\": \"Stop the serial communication session.\"\n    },\n    {\n      \"action_name\": \"auto-buffered\",\n      \"description\": \"查询当前串口接收缓冲区中的可读字符数量。\",\n      \"description_en\": \"Query the number of readable characters currently buffered in the serial receive buffer.\"\n    },\n    {\n      \"action_name\": \"auto-clear\",\n      \"description\": \"清空串口读取缓冲区。\",\n      \"description_en\": \"Clear the serial read buffer.\"\n    },\n    {\n      \"action_name\": \"auto-readBytes\",\n      \"description\": \"按指定字节数从串口读取原始字节数据。\",\n      \"description_en\": \"Read raw byte data from the serial port by the requested byte count.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"按指定长度从串口读取并解码为字符串。\",\n      \"description_en\": \"Read data from the serial port by the requested length and decode it as text.\"\n    },\n    {\n      \"action_name\": \"auto-readln\",\n      \"description\": \"从串口读取一整行文本，直到行结束符。\",\n      \"description_en\": \"Read a full line of text from the serial port until the end-of-line marker.\"\n    },\n    {\n      \"action_name\": \"auto-writeBytes\",\n      \"description\": \"向串口写入原始字节数据。\",\n      \"description_en\": \"Write raw byte data to the serial port.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向串口写入字符串数据。\",\n      \"description_en\": \"Write string data to the serial port.\"\n    },\n    {\n      \"action_name\": \"auto-writeln\",\n      \"description\": \"向串口写入一行文本数据。\",\n      \"description_en\": \"Write a line of text data to the serial port.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"serial communication\",\n    \"RS-232/USB serial\",\n    \"buffered I/O\",\n    \"line-oriented reading\",\n    \"instrument integration\",\n    \"byte-string encoding\",\n    \"communication helper\",\n    \"testing and mocking\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1286,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1210,
+      "output_tokens_details": {
+        "reasoning_tokens": 495
+      },
+      "total_tokens": 2496
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1286,
+      "output_token_count": 1210,
+      "predict_time": 21.783662423
+    }
+  },
+  "output_text": "{\n  \"name\": \"串口通信组件\",\n  \"name_en\": \"Serial Port Communication Helper\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件通信组件，用于封装串口连接的启动、停止、缓冲区清理，以及按字节、字符串或整行进行读写。它主要用于实验系统与外部仪器、控制器或微控制器之间的串行数据交换，并提供异常处理以及字节与字符串之间的编码/解码支持。\",\n  \"description_en\": \"This is a non-physical software communication component that wraps serial port connection start/stop, buffer clearing, and byte-, string-, or line-based read/write operations. It is used to exchange serial data between a lab system and external instruments, controllers, or microcontrollers, while providing exception handling and byte/string encoding-decoding support.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动串口通信会话。\",\n      \"description_en\": \"Start the serial communication session.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止串口通信会话。\",\n      \"description_en\": \"Stop the serial communication session.\"\n    },\n    {\n      \"action_name\": \"auto-buffered\",\n      \"description\": \"查询当前串口接收缓冲区中的可读字符数量。\",\n      \"description_en\": \"Query the number of readable characters currently buffered in the serial receive buffer.\"\n    },\n    {\n      \"action_name\": \"auto-clear\",\n      \"description\": \"清空串口读取缓冲区。\",\n      \"description_en\": \"Clear the serial read buffer.\"\n    },\n    {\n      \"action_name\": \"auto-readBytes\",\n      \"description\": \"按指定字节数从串口读取原始字节数据。\",\n      \"description_en\": \"Read raw byte data from the serial port by the requested byte count.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"按指定长度从串口读取并解码为字符串。\",\n      \"description_en\": \"Read data from the serial port by the requested length and decode it as text.\"\n    },\n    {\n      \"action_name\": \"auto-readln\",\n      \"description\": \"从串口读取一整行文本，直到行结束符。\",\n      \"description_en\": \"Read a full line of text from the serial port until the end-of-line marker.\"\n    },\n    {\n      \"action_name\": \"auto-writeBytes\",\n      \"description\": \"向串口写入原始字节数据。\",\n      \"description_en\": \"Write raw byte data to the serial port.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向串口写入字符串数据。\",\n      \"description_en\": \"Write string data to the serial port.\"\n    },\n    {\n      \"action_name\": \"auto-writeln\",\n      \"description\": \"向串口写入一行文本数据。\",\n      \"description_en\": \"Write a line of text data to the serial port.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"serial communication\",\n    \"RS-232/USB serial\",\n    \"buffered I/O\",\n    \"line-oriented reading\",\n    \"instrument integration\",\n    \"byte-string encoding\",\n    \"communication helper\",\n    \"testing and mocking\"\n  ]\n}"
+}

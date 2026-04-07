@@ -1,29 +1,100 @@
-Device: sensirion_sensor_bridge
-Registry Key: sensirion_sensor_bridge
-Short Description: Sensirion Sensor Bridge是由Sensirion AG生产的专业实验设备。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (7):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-disable_i2c_device -> disable_i2c_device [UniLabJsonCommand] goal_params: bridge_port, device
-- auto-init -> init [UniLabJsonCommand] goal_params: none
-- auto-print_i2c_device_information -> print_i2c_device_information [UniLabJsonCommand] goal_params: device
-- auto-read_i2c -> read_i2c [UniLabJsonCommand] goal_params: address, command, device, port, read_n_bytes, timeout_us
-- auto-setup_i2c_device -> setup_i2c_device [UniLabJsonCommand] goal_params: bridge_port, frequency, voltage
-- auto-write_i2c -> write_i2c [UniLabJsonCommand] goal_params: address, command, device, port
-
-Driver Functions (9):
-- SensirionSensorBridge.__init__(self, conf) (line 101)
-- SensirionSensorBridge.init(self) (line 105)
-- SensirionSensorBridge.setup_i2c_device(self, bridge_port, voltage, frequency, **_) (line 114)
-- SensirionSensorBridge.disable_i2c_device(self, device, bridge_port) (line 122)
-- SensirionSensorBridge.print_i2c_device_information(self, device) (line 127)
-- SensirionSensorBridge.read_i2c(self, device, port, address, command, read_n_bytes, timeout_us) (line 134)
-- SensirionSensorBridge.write_i2c(self, device, port, address, command) (line 140)
-- SensirionSensorBridge.__del__(self) (line 145)
-- SensirionSensorBridge.close(self) (line 149)
+sensirion_sensor_bridge:
+  name: Sensirion 传感器桥接器
+  name_en: Sensirion Sensor Bridge
+  manufacturer: Sensirion
+  category:
+  - USB仪器通信接口
+  - I²C主控制器
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验仪器通信与驱动集成
+  - USB仪器通信接口
+  - I²C主控制器
+  description: 一款通过 USB 连接电脑并提供双路 I2C 端口的硬件桥接设备，用于在实验中接入、配置和通信 Sensirion 或其他兼容 I2C
+    的传感器模块，便于传感器测试、数据采集与调试。
+  description_en: A hardware USB-to-I2C bridge that connects to a computer and exposes
+    two I2C ports for laboratory communication with Sensirion and other compatible
+    I2C sensor modules, enabling sensor setup, testing, data acquisition, and debugging.
+  class:
+    action_value_mappings:
+      auto-init:
+        schema:
+          description: 初始化传感器桥接器并建立通信连接。
+          description_en: Initialize the sensor bridge and establish communication.
+      auto-setup_i2c_device:
+        schema:
+          description: 配置指定桥接口的 I2C 设备参数，如供电电压和总线频率。
+          description_en: Configure an I2C device on the selected bridge port, including
+            supply voltage and bus frequency.
+      auto-disable_i2c_device:
+        schema:
+          description: 禁用指定桥接口上的 I2C 设备。
+          description_en: Disable the I2C device on the selected bridge port.
+      auto-print_i2c_device_information:
+        schema:
+          description: 输出 I2C 设备的信息以便识别和调试。
+          description_en: Print information about the I2C device for identification
+            and debugging.
+      auto-read_i2c:
+        schema:
+          description: 向指定 I2C 地址发送命令并读取返回字节数据。
+          description_en: Send a command to the specified I2C address and read back
+            response bytes.
+      auto-write_i2c:
+        schema:
+          description: 向指定 I2C 地址写入命令或数据。
+          description_en: Write a command or data payload to the specified I2C address.
+      auto-close:
+        schema:
+          description: 关闭桥接器连接并释放通信资源。
+          description_en: Close the bridge connection and release communication resources.
+auto_annotation_metadata:
+  registry_key: sensirion_sensor_bridge
+  annotation_workflow_version: v4
+  tag_hints:
+  - USB-to-I2C bridge
+  - Sensirion sensors
+  - I2C communication
+  - sensor interfacing
+  - dual I2C ports
+  - sensor testing
+  - data acquisition
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该桥接器在实验过程中承担传感器接入、配置和通信控制，属于实验执行链路中的控制接口。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 设备用于把USB主机与I2C传感器模块集成到实验系统中，典型属于仪器集成。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 其核心用途是建立主机与I2C传感器之间的通信与调试链路，匹配仪器通信集成场景。
+  - id: P-0005
+    name: USB仪器通信接口
+    name_en: USB Instrument Communication Interface
+    type: device_template_tag
+    rationale: 该设备以USB连接电脑，是面向实验仪器/传感器接入的USB通信桥接接口。
+  - id: P-60011
+    name: I²C主控制器
+    name_en: I2C Master Controller
+    type: device_template_tag
+    rationale: 设备暴露双路I2C端口并完成传感器配置与读写，具备I2C主控特征。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

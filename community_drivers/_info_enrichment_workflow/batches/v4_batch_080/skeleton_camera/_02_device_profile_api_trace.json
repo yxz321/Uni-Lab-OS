@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: skeleton_camera\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: PYME/Acquire/Hardware/CameraSkeleton.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.camera.andor_neo:SkeletonCamera\n\nClass: SkeletonCamera (focal)\n  Bases: ['object']\n\nFocal class methods:\n  [command] Init(self)\n    comment: Optional intialization function. Also called from the init script. Not really part of 'specification'\n  [status_getter] contMode(self)\n    comment: return whether the camera is runnint in continuous mode or not. This property (was previously a class member\n        variable) is required to allow the calling code to determine whether it needs to re...\n  [command] ExpReady(self)\n    comment: Checks whether there are any frames waiting in the camera buffers\n\n        Returns\n        -------\n        exposureReady : bool\n            True if there are frames waiting\n  [command] CamReady(self)\n    comment: Returns true if the camera is ready (initialized) not really used for\n        anything, but might still be checked.\n\n        Returns\n        -------\n        bool\n            Is the camera ready?\n  [command] ExtractColor(self, chSlice, mode)\n    comment: Pulls the oldest frame from the camera buffer and copies it into memory we provide. Note that the function\n        signature and parameters are a legacy of very old code written for a colour camera wi...\n  [command] GetSerialNumber(self)\n    comment: Get the camera serial number\n\n        Returns\n        -------\n        serialNum : str\n            The camera serial number\n  [command] SetIntegTime(self, iTime)\n    comment: Sets the exposure time in s. Currently assumes that we will want to go as fast as possible at this exposure time\n        and also sets the frame rate to match.\n\n        Parameters\n        ----------\n ...\n  [command] GetIntegTime(self)\n    comment: Get Camera object integration time.\n\n        Returns\n        -------\n        float\n            The exposure time in s\n\n        See Also\n        --------\n        SetIntegTime\n  [command] GetCCDWidth(self)\n    comment: Returns\n        -------\n        int\n            The sensor width in pixels\n  [command] GetCCDHeight(self)\n    comment: Returns\n        -------\n        int\n            The sensor height in pixels\n  [command] GetPicWidth(self)\n    comment: Returns the width (in pixels) of the currently selected ROI.\n\n        Returns\n        -------\n        int\n            Width of ROI (pixels)\n  [command] GetPicHeight(self)\n    comment: Returns the height (in pixels) of the currently selected ROI\n        \n        Returns\n        -------\n        int\n            Height of ROI (pixels)\n  [command] SetHorizBin(*args)\n    comment: Binning is not really supported in current software, making these commands mostly superfluous\n    comment: Being able to read out the binning (GetHorizBin, GetVertBin) is however necessary\n    comment: these should definitely be revisited\n  [command] GetHorizBin(*args)\n  [command] GetHorzBinValue(*args)\n  [command] SetVertBin(*args)\n  [command] GetVertBin(*args)\n  [command] SetROIIndex(self, index)\n    comment: ROI Functions\n    comment: Used for early Andor Neo cameras with fixed ROIs. Should not be needed for most cameras\n  [command] SetROI(self, x1, y1, x2, y2)\n    comment: Set the ROI via coordinates (as opposed to via an index).\n\n        NOTE/FIXME: this is somewhat inconsistent over cameras, with some\n        cameras using 1-based and some cameras using 0-based indexi...\n  [command] GetROIX1(self)\n    comment: Gets the position of the leftmost pixel of the ROI.\n\n        Returns\n        -------\n        int\n            Left x-coordinate of ROI.\n  [command] GetROIX2(self)\n    comment: Gets the position of the rightmost pixel of the ROI.\n\n        Returns\n        -------\n        int\n            Right x-coordinate of ROI.\n  [command] GetROIY1(self)\n    comment: Gets the position of the top row of the ROI.\n\n        Returns\n        -------\n        int\n            Top y-coordinate of ROI.\n  [command] GetROIY2(self)\n    comment: Gets the position of the bottom row of the ROI.\n\n        Returns\n        -------\n        int\n            Bottom y-coordinate of ROI.\n  [command] SetEMGain(self, gain)\n    comment: Set the electron-multiplying gain. For EMCCDs this is typically the\n        uncalibrated, gain register setting. The calibrated gain is computed\n        separately and saved in the metadata as TrueEMG...\n  [command] GetEMGain(self)\n    comment: Return electron-multiplying gain register setting. The actual gain will likely be a non-linear function of this\n        gain, so EMCCD cameras classes are encouraged to keep calibration data and to wr...\n  [command] GetElectrTemp(*args)\n    comment: Returns the temperature of the internal electronics. Legacy of PCO Sensicam support, which had separate sensors\n        for CCD and electronics. Not actually used anywhere critical (might be recorded ...\n  [command] GetCCDTemp(self)\n    comment: FIXME - this should raise a NotImplementedError\n    comment: Gets the sensor temperature.\n\n        Returns\n        -------\n        float\n            The sensor's temperature in degrees Celsius\n  [command] GetCCDTempSetPoint(self)\n    comment: Get the target camera temperature. Only currently called in Ixon\n        related code, but potentially generally useful.\n\n        Returns\n        -------\n        float\n            Target camera temper...\n  [command] SetCCDTemp(self, temp)\n    comment: Set the target camera temperature.\n\n        Parameters\n        ----------\n        temp : float\n            The target camera temperature (Celsius)\n\n        Returns\n        -------\n        None\n  [command] SetShutter(self, mode)\n    comment: Set the camera shutter (if available).\n\n        Parameters\n        ----------\n        mode : bool\n            True (1) if open\n  [command] SetBaselineClamp(self, mode)\n    comment: Set the camera baseline clamp (EMCCD). Only called from the Ixon settings panel, so not relevant for other\n        cameras.\n  [command] GetAcquisitionMode(self)\n    comment: Get the Camera object readout mode.\n\n        Returns\n        -------\n        int\n            One of self.MODE_CONTINUOUS, self.MODE_SINGLE_SHOT\n\n        See Also\n        --------\n        SetAcquisitio...\n  [command] SetAcquisitionMode(self, mode)\n    comment: Set the readout mode of the Camera object. PYME currently supports two\n        modes: single shot, where the camera takes one image, and then a new\n        exposure has to be manually triggered, or co...\n  [command] SetBurst(self, burstSize)\n    comment: Used with Andor Zyla/Neo for burst mode acquisition, can generally ignore for most cameras. Somewhat experimental\n        and does not currently have any UI bindings.\n  [command] SetActive(self, active=True)\n    comment: Flag the Camera object as active (or inactive) to dictate whether or\n        not it writes its metadata.\n\n        Parameters\n        ----------\n        active : bool\n  [command] StartExposure(self)\n    comment: Starts an acquisition.\n\n        Returns\n        -------\n        int\n            Success (0) or failure (-1) of initialization.\n  [command] StopAq(self)\n    comment: Stops acquiring.\n\n        Returns\n        -------\n        None\n  [command] GetNumImsBuffered(self)\n    comment: Return the number of images in the buffer.\n\n        Returns\n        -------\n        int\n            Number of images in buffer\n  [command] GetBufferSize(self)\n    comment: Return the total size of the buffer (in images).\n\n        Returns\n        -------\n        int\n            Number of images that can be stored in the buffer.\n  [command] GetNoiseProperties(self)\n    comment: Returns\n        -------\n\n        a dictionary with the following entries:\n\n        'ReadNoise' : camera read noise in electrons\n        'ElectronsPerCount' : AD conversion factor - how many electrons ...\n  [command] GetStatus(*args)\n    comment: Used to poll the camera for status information. Useful for some cameras where it makes sense\n        to make one API call to get the temperature, frame rate, num frames buffered etc ... and cache\n    ...\n  [command] GetFPS(self)\n    comment: FIXME - this should really raise not-implemented\n    comment: Get the camera frame rate in frames per second (float).\n\n        Returns\n        -------\n        float\n            Camera frame rate (frames per second)\n  [command] GenStartMetadata(self, mdh)\n    comment: mdh.setEntry('Camera.StartCCDTemp',  self.GetCCDTemp())\n    comment: mdh.setEntry('Camera.ADOffset', self.noiseMaker.ADOffset)\n    comment: mdh.setEntry('Simulation.Fluorophores', self.fluors.fl)\n    comment: mdh.setEntry('Simulation.LaserPowers', self.laserPowers)\n    comment: realEMGain = ccdCalibrator.getCalibratedCCDGain(self.GetEMGain(), self.GetCCDTempSetPoint())\n    comment: if not realEMGain == None:\n    comment: provide metadata\n  [command] Shutdown(self)\n    comment: Shutdown and clean up the camera\n  [command] CheckCoordinates(*args)\n    comment: legacy methods, unused\n    comment: this could possibly get a reprieve, maybe ofter re-naming. Purpose was to decide if a given\n    comment: ROI was going to be valid\n  [command] DisplayError(*args)\n    comment: Completely deprecated and never called. Artifact of very old code which had GUI mixed up with camera. Should remove\n  [command] GetBWPicture(*args)\n    comment: Legacy of old code. Not called anywhere, should remove\n  [command] GetNumberChannels(*args)\n    comment: Returns the number of colour channels in the Bayer mask. Legacy, deprecated, and not used\n\n        Returns\n        -------\n        the number of colour channels\n  [command] SetCOC(*args)\n    comment: Legacy of sensicam support. Hopefully no longer called anywhere\n  [command] StartLifePreview(*args)\n    comment: Legacy of old code. Not called anywhere, should remove\n  [command] StopLifePreview(*args)\n    comment: Legacy of old code. Not called anywhere, should remove\n\nRegistry actions:\n  auto-Init (from Init())\n  auto-ExpReady (from ExpReady())\n  auto-CamReady (from CamReady())\n  auto-ExtractColor (from ExtractColor())\n  auto-GetSerialNumber (from GetSerialNumber())\n  auto-SetIntegTime (from SetIntegTime())\n  auto-GetIntegTime (from GetIntegTime())\n  auto-GetCCDWidth (from GetCCDWidth())\n  auto-GetCCDHeight (from GetCCDHeight())\n  auto-GetPicWidth (from GetPicWidth())\n  auto-GetPicHeight (from GetPicHeight())\n  auto-SetHorizBin (from SetHorizBin())\n  auto-GetHorizBin (from GetHorizBin())\n  auto-GetHorzBinValue (from GetHorzBinValue())\n  auto-SetVertBin (from SetVertBin())\n  auto-GetVertBin (from GetVertBin())\n  auto-SetROIIndex (from SetROIIndex())\n  auto-SetROI (from SetROI())\n  auto-GetROIX1 (from GetROIX1())\n  auto-GetROIX2 (from GetROIX2())\n  auto-GetROIY1 (from GetROIY1())\n  auto-GetROIY2 (from GetROIY2())\n  auto-SetEMGain (from SetEMGain())\n  auto-GetEMGain (from GetEMGain())\n  auto-GetElectrTemp (from GetElectrTemp())\n  auto-GetCCDTemp (from GetCCDTemp())\n  auto-GetCCDTempSetPoint (from GetCCDTempSetPoint())\n  auto-SetCCDTemp (from SetCCDTemp())\n  auto-SetShutter (from SetShutter())\n  auto-SetBaselineClamp (from SetBaselineClamp())\n  auto-GetAcquisitionMode (from GetAcquisitionMode())\n  auto-SetAcquisitionMode (from SetAcquisitionMode())\n  auto-SetBurst (from SetBurst())\n  auto-SetActive (from SetActive())\n  auto-StartExposure (from StartExposure())\n  auto-StopAq (from StopAq())\n  auto-GetNumImsBuffered (from GetNumImsBuffered())\n  auto-GetBufferSize (from GetBufferSize())\n  auto-GetNoiseProperties (from GetNoiseProperties())\n  auto-GetStatus (from GetStatus())\n  auto-GetFPS (from GetFPS())\n  auto-GenStartMetadata (from GenStartMetadata())\n  auto-Shutdown (from Shutdown())\n  auto-CheckCoordinates (from CheckCoordinates())\n  auto-DisplayError (from DisplayError())\n  auto-GetBWPicture (from GetBWPicture())\n  auto-GetNumberChannels (from GetNumberChannels())\n  auto-SetCOC (from SetCOC())\n  auto-StartLifePreview (from StartLifePreview())\n  auto-StopLifePreview (from StopLifePreview())\n\nRequired output action ids:\n  auto-Init\n  auto-ExpReady\n  auto-CamReady\n  auto-ExtractColor\n  auto-GetSerialNumber\n  auto-SetIntegTime\n  auto-GetIntegTime\n  auto-GetCCDWidth\n  auto-GetCCDHeight\n  auto-GetPicWidth\n  auto-GetPicHeight\n  auto-SetHorizBin\n  auto-GetHorizBin\n  auto-GetHorzBinValue\n  auto-SetVertBin\n  auto-GetVertBin\n  auto-SetROIIndex\n  auto-SetROI\n  auto-GetROIX1\n  auto-GetROIX2\n  auto-GetROIY1\n  auto-GetROIY2\n  auto-SetEMGain\n  auto-GetEMGain\n  auto-GetElectrTemp\n  auto-GetCCDTemp\n  auto-GetCCDTempSetPoint\n  auto-SetCCDTemp\n  auto-SetShutter\n  auto-SetBaselineClamp\n  auto-GetAcquisitionMode\n  auto-SetAcquisitionMode\n  auto-SetBurst\n  auto-SetActive\n  auto-StartExposure\n  auto-StopAq\n  auto-GetNumImsBuffered\n  auto-GetBufferSize\n  auto-GetNoiseProperties\n  auto-GetStatus\n  auto-GetFPS\n  auto-GenStartMetadata\n  auto-Shutdown\n  auto-CheckCoordinates\n  auto-DisplayError\n  auto-GetBWPicture\n  auto-GetNumberChannels\n  auto-SetCOC\n  auto-StartLifePreview\n  auto-StopLifePreview"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_062d6988d7c59c5a0069d55d6ac7a48194b9657e80d0c38ab4",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1801,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 17300,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "low"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_062d6988d7c59c5a0069d55d6b2d4c81948a33892f46769b9e",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_062d6988d7c59c5a0069d55d922b0c819485de1d3bdb9cbc49",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Andor 科学相机\",\n  \"name_en\": \"Andor scientific camera\",\n  \"manufacturer\": \"Andor\",\n  \"description\": \"用于实验成像采集的科学相机，可进行曝光控制、图像帧读取、ROI（感兴趣区域）设置、缓冲区管理、传感器温度与快门相关控制，适用于显微成像等实验场景。\",\n  \"description_en\": \"A scientific imaging camera for laboratory image acquisition, supporting exposure control, frame readout, ROI configuration, buffer management, sensor temperature handling, and shutter-related control for applications such as microscopy.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-Init\",\n      \"description\": \"初始化相机。\",\n      \"description_en\": \"Initialize the camera.\"\n    },\n    {\n      \"action_name\": \"auto-ExpReady\",\n      \"description\": \"检查相机缓冲区中是否有待读取的图像帧。\",\n      \"description_en\": \"Check whether image frames are waiting in the camera buffer.\"\n    },\n    {\n      \"action_name\": \"auto-CamReady\",\n      \"description\": \"检查相机是否已初始化并处于可用状态。\",\n      \"description_en\": \"Check whether the camera is initialized and ready.\"\n    },\n    {\n      \"action_name\": \"auto-ExtractColor\",\n      \"description\": \"从相机缓冲区取出最旧的一帧并复制到提供的内存中。\",\n      \"description_en\": \"Pull the oldest frame from the camera buffer and copy it into provided memory.\"\n    },\n    {\n      \"action_name\": \"auto-GetSerialNumber\",\n      \"description\": \"获取相机序列号。\",\n      \"description_en\": \"Get the camera serial number.\"\n    },\n    {\n      \"action_name\": \"auto-SetIntegTime\",\n      \"description\": \"设置曝光时间。\",\n      \"description_en\": \"Set the exposure time.\"\n    },\n    {\n      \"action_name\": \"auto-GetIntegTime\",\n      \"description\": \"获取曝光时间。\",\n      \"description_en\": \"Get the exposure time.\"\n    },\n    {\n      \"action_name\": \"auto-GetCCDWidth\",\n      \"description\": \"获取传感器宽度（像素）。\",\n      \"description_en\": \"Get the sensor width in pixels.\"\n    },\n    {\n      \"action_name\": \"auto-GetCCDHeight\",\n      \"description\": \"获取传感器高度（像素）。\",\n      \"description_en\": \"Get the sensor height in pixels.\"\n    },\n    {\n      \"action_name\": \"auto-GetPicWidth\",\n      \"description\": \"获取当前 ROI 宽度。\",\n      \"description_en\": \"Get the current ROI width.\"\n    },\n    {\n      \"action_name\": \"auto-GetPicHeight\",\n      \"description\": \"获取当前 ROI 高度。\",\n      \"description_en\": \"Get the current ROI height.\"\n    },\n    {\n      \"action_name\": \"auto-SetHorizBin\",\n      \"description\": \"设置水平像素合并。\",\n      \"description_en\": \"Set horizontal binning.\"\n    },\n    {\n      \"action_name\": \"auto-GetHorizBin\",\n      \"description\": \"获取水平像素合并设置。\",\n      \"description_en\": \"Get the horizontal binning setting.\"\n    },\n    {\n      \"action_name\": \"auto-GetHorzBinValue\",\n      \"description\": \"获取水平像素合并值。\",\n      \"description_en\": \"Get the horizontal binning value.\"\n    },\n    {\n      \"action_name\": \"auto-SetVertBin\",\n      \"description\": \"设置垂直像素合并。\",\n      \"description_en\": \"Set vertical binning.\"\n    },\n    {\n      \"action_name\": \"auto-GetVertBin\",\n      \"description\": \"获取垂直像素合并设置。\",\n      \"description_en\": \"Get the vertical binning setting.\"\n    },\n    {\n      \"action_name\": \"auto-SetROIIndex\",\n      \"description\": \"通过索引选择 ROI。\",\n      \"description_en\": \"Select the ROI by index.\"\n    },\n    {\n      \"action_name\": \"auto-SetROI\",\n      \"description\": \"按坐标设置 ROI。\",\n      \"description_en\": \"Set the ROI by coordinates.\"\n    },\n    {\n      \"action_name\": \"auto-GetROIX1\",\n      \"description\": \"获取 ROI 左边界坐标。\",\n      \"description_en\": \"Get the left ROI boundary coordinate.\"\n    },\n    {\n      \"action_name\": \"auto-GetROIX2\",\n      \"description\": \"获取 ROI 右边界坐标。\",\n      \"description_en\": \"Get the right ROI boundary coordinate.\"\n    },\n    {\n      \"action_name\": \"auto-GetROIY1\",\n      \"description\": \"获取 ROI 上边界坐标。\",\n      \"description_en\": \"Get the top ROI boundary coordinate.\"\n    },\n    {\n      \"action_name\": \"auto-GetROIY2\",\n      \"description\": \"获取 ROI 下边界坐标。\",\n      \"description_en\": \"Get the bottom ROI boundary coordinate.\"\n    },\n    {\n      \"action_name\": \"auto-SetEMGain\",\n      \"description\": \"设置电子倍增增益。\",\n      \"description_en\": \"Set the electron-multiplying gain.\"\n    },\n    {\n      \"action_name\": \"auto-GetEMGain\",\n      \"description\": \"获取电子倍增增益设置。\",\n      \"description_en\": \"Get the electron-multiplying gain setting.\"\n    },\n    {\n      \"action_name\": \"auto-GetElectrTemp\",\n      \"description\": \"获取相机内部电子学温度。\",\n      \"description_en\": \"Get the internal electronics temperature.\"\n    },\n    {\n      \"action_name\": \"auto-GetCCDTemp\",\n      \"description\": \"获取传感器温度。\",\n      \"description_en\": \"Get the sensor temperature.\"\n    },\n    {\n      \"action_name\": \"auto-GetCCDTempSetPoint\",\n      \"description\": \"获取相机目标温度设定值。\",\n      \"description_en\": \"Get the target camera temperature setpoint.\"\n    },\n    {\n      \"action_name\": \"auto-SetCCDTemp\",\n      \"description\": \"设置相机目标温度。\",\n      \"description_en\": \"Set the target camera temperature.\"\n    },\n    {\n      \"action_name\": \"auto-SetShutter\",\n      \"description\": \"设置快门开关状态。\",\n      \"description_en\": \"Set the shutter state.\"\n    },\n    {\n      \"action_name\": \"auto-SetBaselineClamp\",\n      \"description\": \"设置基线钳位。\",\n      \"description_en\": \"Set the baseline clamp.\"\n    },\n    {\n      \"action_name\": \"auto-GetAcquisitionMode\",\n      \"description\": \"获取采集模式。\",\n      \"description_en\": \"Get the acquisition mode.\"\n    },\n    {\n      \"action_name\": \"auto-SetAcquisitionMode\",\n      \"description\": \"设置采集模式。\",\n      \"description_en\": \"Set the acquisition mode.\"\n    },\n    {\n      \"action_name\": \"auto-SetBurst\",\n      \"description\": \"设置突发采集参数。\",\n      \"description_en\": \"Set burst acquisition parameters.\"\n    },\n    {\n      \"action_name\": \"auto-SetActive\",\n      \"description\": \"设置相机对象是否处于活动状态。\",\n      \"description_en\": \"Set whether the camera object is active.\"\n    },\n    {\n      \"action_name\": \"auto-StartExposure\",\n      \"description\": \"开始曝光或采集。\",\n      \"description_en\": \"Start exposure or acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-StopAq\",\n      \"description\": \"停止采集。\",\n      \"description_en\": \"Stop acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-GetNumImsBuffered\",\n      \"description\": \"获取缓冲区中的图像数量。\",\n      \"description_en\": \"Get the number of images in the buffer.\"\n    },\n    {\n      \"action_name\": \"auto-GetBufferSize\",\n      \"description\": \"获取缓冲区总容量。\",\n      \"description_en\": \"Get the total buffer capacity.\"\n    },\n    {\n      \"action_name\": \"auto-GetNoiseProperties\",\n      \"description\": \"获取相机噪声参数。\",\n      \"description_en\": \"Get the camera noise properties.\"\n    },\n    {\n      \"action_name\": \"auto-GetStatus\",\n      \"description\": \"轮询相机状态信息。\",\n      \"description_en\": \"Poll the camera for status information.\"\n    },\n    {\n      \"action_name\": \"auto-GetFPS\",\n      \"description\": \"获取相机帧率。\",\n      \"description_en\": \"Get the camera frame rate.\"\n    },\n    {\n      \"action_name\": \"auto-GenStartMetadata\",\n      \"description\": \"生成采集开始时的相机元数据。\",\n      \"description_en\": \"Generate camera metadata for acquisition start.\"\n    },\n    {\n      \"action_name\": \"auto-Shutdown\",\n      \"description\": \"关闭并清理相机。\",\n      \"description_en\": \"Shut down and clean up the camera.\"\n    },\n    {\n      \"action_name\": \"auto-CheckCoordinates\",\n      \"description\": \"检查坐标或 ROI 是否有效（遗留接口）。\",\n      \"description_en\": \"Check whether coordinates or ROI settings are valid (legacy interface).\"\n    },\n    {\n      \"action_name\": \"auto-DisplayError\",\n      \"description\": \"显示错误信息（遗留接口）。\",\n      \"description_en\": \"Display an error message (legacy interface).\"\n    },\n    {\n      \"action_name\": \"auto-GetBWPicture\",\n      \"description\": \"获取黑白图像（遗留接口）。\",\n      \"description_en\": \"Get a monochrome image (legacy interface).\"\n    },\n    {\n      \"action_name\": \"auto-GetNumberChannels\",\n      \"description\": \"获取颜色通道数（遗留接口）。\",\n      \"description_en\": \"Get the number of color channels (legacy interface).\"\n    },\n    {\n      \"action_name\": \"auto-SetCOC\",\n      \"description\": \"设置 COC 兼容参数（遗留接口）。\",\n      \"description_en\": \"Set a legacy COC compatibility parameter.\"\n    },\n    {\n      \"action_name\": \"auto-StartLifePreview\",\n      \"description\": \"启动实时预览（遗留接口）。\",\n      \"description_en\": \"Start live preview (legacy interface).\"\n    },\n    {\n      \"action_name\": \"auto-StopLifePreview\",\n      \"description\": \"停止实时预览（遗留接口）。\",\n      \"description_en\": \"Stop live preview (legacy interface).\"\n    }\n  ],\n  \"tag_hints\": [\n    \"scientific camera\",\n    \"microscopy imaging\",\n    \"exposure control\",\n    \"ROI readout\",\n    \"sensor cooling\",\n    \"image buffer acquisition\",\n    \"camera frame rate\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 3870,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 4868,
+      "output_tokens_details": {
+        "reasoning_tokens": 2542
+      },
+      "total_tokens": 8738
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 3870,
+      "output_token_count": 4868,
+      "predict_time": 65.926840548
+    }
+  },
+  "output_text": "{\n  \"name\": \"Andor 科学相机\",\n  \"name_en\": \"Andor scientific camera\",\n  \"manufacturer\": \"Andor\",\n  \"description\": \"用于实验成像采集的科学相机，可进行曝光控制、图像帧读取、ROI（感兴趣区域）设置、缓冲区管理、传感器温度与快门相关控制，适用于显微成像等实验场景。\",\n  \"description_en\": \"A scientific imaging camera for laboratory image acquisition, supporting exposure control, frame readout, ROI configuration, buffer management, sensor temperature handling, and shutter-related control for applications such as microscopy.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-Init\",\n      \"description\": \"初始化相机。\",\n      \"description_en\": \"Initialize the camera.\"\n    },\n    {\n      \"action_name\": \"auto-ExpReady\",\n      \"description\": \"检查相机缓冲区中是否有待读取的图像帧。\",\n      \"description_en\": \"Check whether image frames are waiting in the camera buffer.\"\n    },\n    {\n      \"action_name\": \"auto-CamReady\",\n      \"description\": \"检查相机是否已初始化并处于可用状态。\",\n      \"description_en\": \"Check whether the camera is initialized and ready.\"\n    },\n    {\n      \"action_name\": \"auto-ExtractColor\",\n      \"description\": \"从相机缓冲区取出最旧的一帧并复制到提供的内存中。\",\n      \"description_en\": \"Pull the oldest frame from the camera buffer and copy it into provided memory.\"\n    },\n    {\n      \"action_name\": \"auto-GetSerialNumber\",\n      \"description\": \"获取相机序列号。\",\n      \"description_en\": \"Get the camera serial number.\"\n    },\n    {\n      \"action_name\": \"auto-SetIntegTime\",\n      \"description\": \"设置曝光时间。\",\n      \"description_en\": \"Set the exposure time.\"\n    },\n    {\n      \"action_name\": \"auto-GetIntegTime\",\n      \"description\": \"获取曝光时间。\",\n      \"description_en\": \"Get the exposure time.\"\n    },\n    {\n      \"action_name\": \"auto-GetCCDWidth\",\n      \"description\": \"获取传感器宽度（像素）。\",\n      \"description_en\": \"Get the sensor width in pixels.\"\n    },\n    {\n      \"action_name\": \"auto-GetCCDHeight\",\n      \"description\": \"获取传感器高度（像素）。\",\n      \"description_en\": \"Get the sensor height in pixels.\"\n    },\n    {\n      \"action_name\": \"auto-GetPicWidth\",\n      \"description\": \"获取当前 ROI 宽度。\",\n      \"description_en\": \"Get the current ROI width.\"\n    },\n    {\n      \"action_name\": \"auto-GetPicHeight\",\n      \"description\": \"获取当前 ROI 高度。\",\n      \"description_en\": \"Get the current ROI height.\"\n    },\n    {\n      \"action_name\": \"auto-SetHorizBin\",\n      \"description\": \"设置水平像素合并。\",\n      \"description_en\": \"Set horizontal binning.\"\n    },\n    {\n      \"action_name\": \"auto-GetHorizBin\",\n      \"description\": \"获取水平像素合并设置。\",\n      \"description_en\": \"Get the horizontal binning setting.\"\n    },\n    {\n      \"action_name\": \"auto-GetHorzBinValue\",\n      \"description\": \"获取水平像素合并值。\",\n      \"description_en\": \"Get the horizontal binning value.\"\n    },\n    {\n      \"action_name\": \"auto-SetVertBin\",\n      \"description\": \"设置垂直像素合并。\",\n      \"description_en\": \"Set vertical binning.\"\n    },\n    {\n      \"action_name\": \"auto-GetVertBin\",\n      \"description\": \"获取垂直像素合并设置。\",\n      \"description_en\": \"Get the vertical binning setting.\"\n    },\n    {\n      \"action_name\": \"auto-SetROIIndex\",\n      \"description\": \"通过索引选择 ROI。\",\n      \"description_en\": \"Select the ROI by index.\"\n    },\n    {\n      \"action_name\": \"auto-SetROI\",\n      \"description\": \"按坐标设置 ROI。\",\n      \"description_en\": \"Set the ROI by coordinates.\"\n    },\n    {\n      \"action_name\": \"auto-GetROIX1\",\n      \"description\": \"获取 ROI 左边界坐标。\",\n      \"description_en\": \"Get the left ROI boundary coordinate.\"\n    },\n    {\n      \"action_name\": \"auto-GetROIX2\",\n      \"description\": \"获取 ROI 右边界坐标。\",\n      \"description_en\": \"Get the right ROI boundary coordinate.\"\n    },\n    {\n      \"action_name\": \"auto-GetROIY1\",\n      \"description\": \"获取 ROI 上边界坐标。\",\n      \"description_en\": \"Get the top ROI boundary coordinate.\"\n    },\n    {\n      \"action_name\": \"auto-GetROIY2\",\n      \"description\": \"获取 ROI 下边界坐标。\",\n      \"description_en\": \"Get the bottom ROI boundary coordinate.\"\n    },\n    {\n      \"action_name\": \"auto-SetEMGain\",\n      \"description\": \"设置电子倍增增益。\",\n      \"description_en\": \"Set the electron-multiplying gain.\"\n    },\n    {\n      \"action_name\": \"auto-GetEMGain\",\n      \"description\": \"获取电子倍增增益设置。\",\n      \"description_en\": \"Get the electron-multiplying gain setting.\"\n    },\n    {\n      \"action_name\": \"auto-GetElectrTemp\",\n      \"description\": \"获取相机内部电子学温度。\",\n      \"description_en\": \"Get the internal electronics temperature.\"\n    },\n    {\n      \"action_name\": \"auto-GetCCDTemp\",\n      \"description\": \"获取传感器温度。\",\n      \"description_en\": \"Get the sensor temperature.\"\n    },\n    {\n      \"action_name\": \"auto-GetCCDTempSetPoint\",\n      \"description\": \"获取相机目标温度设定值。\",\n      \"description_en\": \"Get the target camera temperature setpoint.\"\n    },\n    {\n      \"action_name\": \"auto-SetCCDTemp\",\n      \"description\": \"设置相机目标温度。\",\n      \"description_en\": \"Set the target camera temperature.\"\n    },\n    {\n      \"action_name\": \"auto-SetShutter\",\n      \"description\": \"设置快门开关状态。\",\n      \"description_en\": \"Set the shutter state.\"\n    },\n    {\n      \"action_name\": \"auto-SetBaselineClamp\",\n      \"description\": \"设置基线钳位。\",\n      \"description_en\": \"Set the baseline clamp.\"\n    },\n    {\n      \"action_name\": \"auto-GetAcquisitionMode\",\n      \"description\": \"获取采集模式。\",\n      \"description_en\": \"Get the acquisition mode.\"\n    },\n    {\n      \"action_name\": \"auto-SetAcquisitionMode\",\n      \"description\": \"设置采集模式。\",\n      \"description_en\": \"Set the acquisition mode.\"\n    },\n    {\n      \"action_name\": \"auto-SetBurst\",\n      \"description\": \"设置突发采集参数。\",\n      \"description_en\": \"Set burst acquisition parameters.\"\n    },\n    {\n      \"action_name\": \"auto-SetActive\",\n      \"description\": \"设置相机对象是否处于活动状态。\",\n      \"description_en\": \"Set whether the camera object is active.\"\n    },\n    {\n      \"action_name\": \"auto-StartExposure\",\n      \"description\": \"开始曝光或采集。\",\n      \"description_en\": \"Start exposure or acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-StopAq\",\n      \"description\": \"停止采集。\",\n      \"description_en\": \"Stop acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-GetNumImsBuffered\",\n      \"description\": \"获取缓冲区中的图像数量。\",\n      \"description_en\": \"Get the number of images in the buffer.\"\n    },\n    {\n      \"action_name\": \"auto-GetBufferSize\",\n      \"description\": \"获取缓冲区总容量。\",\n      \"description_en\": \"Get the total buffer capacity.\"\n    },\n    {\n      \"action_name\": \"auto-GetNoiseProperties\",\n      \"description\": \"获取相机噪声参数。\",\n      \"description_en\": \"Get the camera noise properties.\"\n    },\n    {\n      \"action_name\": \"auto-GetStatus\",\n      \"description\": \"轮询相机状态信息。\",\n      \"description_en\": \"Poll the camera for status information.\"\n    },\n    {\n      \"action_name\": \"auto-GetFPS\",\n      \"description\": \"获取相机帧率。\",\n      \"description_en\": \"Get the camera frame rate.\"\n    },\n    {\n      \"action_name\": \"auto-GenStartMetadata\",\n      \"description\": \"生成采集开始时的相机元数据。\",\n      \"description_en\": \"Generate camera metadata for acquisition start.\"\n    },\n    {\n      \"action_name\": \"auto-Shutdown\",\n      \"description\": \"关闭并清理相机。\",\n      \"description_en\": \"Shut down and clean up the camera.\"\n    },\n    {\n      \"action_name\": \"auto-CheckCoordinates\",\n      \"description\": \"检查坐标或 ROI 是否有效（遗留接口）。\",\n      \"description_en\": \"Check whether coordinates or ROI settings are valid (legacy interface).\"\n    },\n    {\n      \"action_name\": \"auto-DisplayError\",\n      \"description\": \"显示错误信息（遗留接口）。\",\n      \"description_en\": \"Display an error message (legacy interface).\"\n    },\n    {\n      \"action_name\": \"auto-GetBWPicture\",\n      \"description\": \"获取黑白图像（遗留接口）。\",\n      \"description_en\": \"Get a monochrome image (legacy interface).\"\n    },\n    {\n      \"action_name\": \"auto-GetNumberChannels\",\n      \"description\": \"获取颜色通道数（遗留接口）。\",\n      \"description_en\": \"Get the number of color channels (legacy interface).\"\n    },\n    {\n      \"action_name\": \"auto-SetCOC\",\n      \"description\": \"设置 COC 兼容参数（遗留接口）。\",\n      \"description_en\": \"Set a legacy COC compatibility parameter.\"\n    },\n    {\n      \"action_name\": \"auto-StartLifePreview\",\n      \"description\": \"启动实时预览（遗留接口）。\",\n      \"description_en\": \"Start live preview (legacy interface).\"\n    },\n    {\n      \"action_name\": \"auto-StopLifePreview\",\n      \"description\": \"停止实时预览（遗留接口）。\",\n      \"description_en\": \"Stop live preview (legacy interface).\"\n    }\n  ],\n  \"tag_hints\": [\n    \"scientific camera\",\n    \"microscopy imaging\",\n    \"exposure control\",\n    \"ROI readout\",\n    \"sensor cooling\",\n    \"image buffer acquisition\",\n    \"camera frame rate\"\n  ]\n}"
+}
