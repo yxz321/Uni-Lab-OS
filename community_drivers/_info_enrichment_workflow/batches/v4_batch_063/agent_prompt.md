@@ -84,6 +84,8 @@ Web search is not triggered by script heuristics. Follow this logic strictly:
 Use this stricter interpretation of the trigger:
 - Do not web search just because registry values differ from Pass A on weak registry fields.
 - Do not web search just because the registry uses backend/wrapper wording but Pass A already identifies a coherent physical device.
+- Do not override a coherent software/helper Pass A profile into a physical instrument unless the evidence clearly identifies that hardware.
+- If Pass A coherently identifies a display, launcher, storage/helper object, backend, ruleset, factory, property wrapper, or other non-physical lab software component, keep that non-physical identity and leave manufacturer empty when uncertain.
 - Prefer keeping the driver-derived Pass A profile when it is internally consistent and the registry conflict appears to come from weak metadata.
 - Web search is mainly for cases where the physical device identity is still unclear, the conflict changes the device family, or key identity/description fields remain too uncertain to trust.
 
@@ -154,12 +156,12 @@ Do not make model-specific prompt changes unless you document them clearly in th
 ## Assigned Batch
 
 - batch_name: `v4_batch_063`
-- batch_dir: `/home/xzye/projects/DPTech/community_drivers/Uni-Lab-OS/community_drivers/_info_enrichment_workflow/batches/v4_batch_063`
-- devices_file: `/home/xzye/projects/DPTech/community_drivers/Uni-Lab-OS/community_drivers/_info_enrichment_workflow/batches/v4_batch_063/devices.txt`
-- manifest: `/home/xzye/projects/DPTech/community_drivers/Uni-Lab-OS/community_drivers/_info_enrichment_workflow/batches/v4_batch_063/manifest.json`
-- workflow_doc: `/home/xzye/projects/DPTech/community_drivers/Uni-Lab-OS/community_drivers/_info_enrichment_workflow/workflow_v4/workflow_v4.md`
-- state_file: `/home/xzye/projects/DPTech/community_drivers/Uni-Lab-OS/community_drivers/_info_enrichment_workflow/production_state_v4.json`
+- batch_dir: `_info_enrichment_workflow/batches/v4_batch_063`
+- devices_file: `_info_enrichment_workflow/batches/v4_batch_063/devices.txt`
+- manifest: `_info_enrichment_workflow/batches/v4_batch_063/manifest.json`
+- workflow_doc: `_info_enrichment_workflow/workflow_v4/workflow_v4.md`
+- state_file: `_info_enrichment_workflow/production_state_v4.json`
 - subagent_model: `gpt-5.3-codex`
 - api_model: `Vendor2/GPT-5.4`
 - reasoning_effort: `medium`
-- write the report to: `/home/xzye/projects/DPTech/community_drivers/Uni-Lab-OS/community_drivers/_info_enrichment_workflow/batches/v4_batch_063/report.md`
+- write the report to: `_info_enrichment_workflow/batches/v4_batch_063/report.md`

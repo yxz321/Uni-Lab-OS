@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: online_display\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: zahner_potentiostat/display/onlinedisplay.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.display.online_display:OnlineDisplay\n\nClass: OnlineDisplayStatus \n  Bases: ['Enum']\n  Docstring: Online Display Status\n\nClass: OnlineDisplayJob \n  Bases: ['Enum']\n  Docstring: Online Display Status\n\nClass: PlottingProcess \n  Bases: []\n  Docstring: Auxiliary class for displaying the plotting window.\n\nBy default, the program waits until the plotting window is closed.\nAs long as they are not closed, they have computing time and can be interacted with.\n\nHowever, if the plotting window is called as an online display, then it only gets computing time\nwhen the display pause is called. Also the plotting must always take place in the main thread.\n\nTherefore this class comes in a new process, in which only plotting is done, so you can always\ninteract with the live display and it doesn't freeze.\n\nClass: OnlineDisplay (focal)\n  Bases: ['object']\n  Docstring: Online display class, which allows to display live the measurement data while the\nmeasurement is taking place.\n\nThis class sends the data to the plotting process, which is then displayed by the other process.\n\nThis class is passed the :class:`~zahner_potentiostat.scpi_control.datareceiver.DataReceiver` object of the measuring device, then after calling the\nconstructor all data from the measuring device are displayed live.\n\nThe other possibility is to pass the data with the variable data. Then the data must be passed\nas you can read in the documentation of :func:`~zahner_potentiostat.display.dcplot.DCPlot.addData`.\n\nBy default, the X axis is time and current and voltage are each displayed on a Y axis.\n\nThe variable displayConfiguration can be used to change the display format.\nWith this variable either two default settings can be selected, or everything can be set individually.\n\ndisplayConfiguration=\"UI\": X-axis voltage, Y-axis current.\ndisplayConfiguration=\"UlogI\": X-axis voltage, Y-axis magnitude of current logarithmically scaled.\n\nInstead of the default diagram presets, the axis labeling and the data type can also be changed individually\nby passing a dictionary. All parameters from the two following examples must be passed.\nWith x/yTrackName the name of the data track is passed, which is to be displayed on the axis.\n\n.. code-block:: python\n\n    displayConfiguration = {\n        \"figureTitle\":\"My Custom Online Display\",\n        \"xAxisLabel\":\"Time\",\n        \"xAxisUnit\":\"s\",\n        \"xTrackName\":TrackTypes.TIME.toString(),\n        \"yAxis\":[\n        {\"label\": \"Cell Potential\", \"unit\": \"V\", \"trackName\":TrackTypes.VOLTAGE.toString()},\n        {\"label\": \"Cell Current\", \"unit\": \"A\", \"trackName\":TrackTypes.CURRENT.toString()}\n        ]}\n\nor\n\n.. code-block:: python\n\n    displayConfiguration = {\n        \"figureTitle\":\"Online Display\",\n        \"xAxisLabel\":\"Potential\",\n        \"xAxisUnit\":\"V\",\n        \"xTrackName\":TrackTypes.VOLTAGE.toString(),\n        \"yAxis\":[\n        {\"label\": \"Current\", \"unit\": \"A\", \"name\": \"Current\", \"log\": True, \"trackName\":TrackTypes.CURRENT.toString()}\n        ]}\n\n\n\n:param dataReceiver: Receiver object.\n:type dataReceiver: :class:`~zahner_potentiostat.scpi_control.datareceiver.DataReceiver`\n:param data: Packed into an array: [xData, yDatas]\n:param displayConfiguration: Default value None for TIU diagrams. A dict or string as explained\n    in the previous text for other representations.\n\nFocal class methods:\n  [command] stopProcessingLoop(self)\n    comment: This function must be called by another thread which tells the processing loop\n        to stop the loop to process online data. Because of the Matplotlib syntax,\n        the plot window will then also...\n  [command] setMinimumSendInterval(self, interval)\n    comment: Set the minimum interval for sending data.\n\n        Only after this time is it checked again whether data can be sent to the online display.\n\n        :param interval: Time in s.\n  [command] processingLoop(self)\n    comment: delete old replys\n    comment: delete online display data\n    comment: remove already existing data\n    comment: Measurement data processing thread.\n\n        This thread reads from the DataReceiver object. If there is new data, all points are sent to\n        the PlottingProcess, which then plots the data.\n  [command] close(self)\n    comment: Close the online display.\n\nRegistry actions:\n  auto-stopProcessingLoop (from stopProcessingLoop())\n  auto-setMinimumSendInterval (from setMinimumSendInterval())\n  auto-processingLoop (from processingLoop())\n  auto-close (from close())\n\nRequired output action ids:\n  auto-stopProcessingLoop\n  auto-setMinimumSendInterval\n  auto-processingLoop\n  auto-close"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_05e03af2a7ddd34c0069d545f737848195ac5f4d4750978f75",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5918,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3378,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_05e03af2a7ddd34c0069d545f7de5c819599ec22b103bfa512",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_05e03af2a7ddd34c0069d545ff03648195945a5610a366c3d4",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"在线测量显示组件\",\n  \"name_en\": \"Online Measurement Display\",\n  \"manufacturer\": \"Zahner\",\n  \"description\": \"这是一种非物理的软件显示组件，用于在实验进行过程中实时显示测量数据。它从测量设备的数据接收对象获取数据，并将时间、电压、电流等轨迹发送到独立的绘图进程中进行在线可视化，常用于电化学/恒电位仪测量过程的实时曲线监看。\",\n  \"description_en\": \"This is a non-physical software display component for showing measurement data live during an experiment. It receives data from a measurement device's data receiver and forwards time, voltage, current, and related traces to a separate plotting process for online visualization, typically for real-time monitoring of electrochemical/potentiostat measurements.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-stopProcessingLoop\",\n      \"description\": \"停止在线数据处理循环。\",\n      \"description_en\": \"Stop the online data processing loop.\"\n    },\n    {\n      \"action_name\": \"auto-setMinimumSendInterval\",\n      \"description\": \"设置发送到在线显示的数据最小时间间隔。\",\n      \"description_en\": \"Set the minimum time interval for sending data to the online display.\"\n    },\n    {\n      \"action_name\": \"auto-processingLoop\",\n      \"description\": \"处理接收的测量数据并将其发送到绘图进程进行实时显示。\",\n      \"description_en\": \"Process incoming measurement data and send it to the plotting process for live display.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭在线显示。\",\n      \"description_en\": \"Close the online display.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"live plotting\",\n    \"measurement visualization\",\n    \"electrochemistry data display\",\n    \"potentiostat\",\n    \"real-time monitoring\",\n    \"Matplotlib display process\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1734,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 852,
+      "output_tokens_details": {
+        "reasoning_tokens": 425
+      },
+      "total_tokens": 2586
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1734,
+      "output_token_count": 852,
+      "predict_time": 15.981837702
+    }
+  },
+  "output_text": "{\n  \"name\": \"在线测量显示组件\",\n  \"name_en\": \"Online Measurement Display\",\n  \"manufacturer\": \"Zahner\",\n  \"description\": \"这是一种非物理的软件显示组件，用于在实验进行过程中实时显示测量数据。它从测量设备的数据接收对象获取数据，并将时间、电压、电流等轨迹发送到独立的绘图进程中进行在线可视化，常用于电化学/恒电位仪测量过程的实时曲线监看。\",\n  \"description_en\": \"This is a non-physical software display component for showing measurement data live during an experiment. It receives data from a measurement device's data receiver and forwards time, voltage, current, and related traces to a separate plotting process for online visualization, typically for real-time monitoring of electrochemical/potentiostat measurements.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-stopProcessingLoop\",\n      \"description\": \"停止在线数据处理循环。\",\n      \"description_en\": \"Stop the online data processing loop.\"\n    },\n    {\n      \"action_name\": \"auto-setMinimumSendInterval\",\n      \"description\": \"设置发送到在线显示的数据最小时间间隔。\",\n      \"description_en\": \"Set the minimum time interval for sending data to the online display.\"\n    },\n    {\n      \"action_name\": \"auto-processingLoop\",\n      \"description\": \"处理接收的测量数据并将其发送到绘图进程进行实时显示。\",\n      \"description_en\": \"Process incoming measurement data and send it to the plotting process for live display.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭在线显示。\",\n      \"description_en\": \"Close the online display.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"live plotting\",\n    \"measurement visualization\",\n    \"electrochemistry data display\",\n    \"potentiostat\",\n    \"real-time monitoring\",\n    \"Matplotlib display process\"\n  ]\n}"
+}

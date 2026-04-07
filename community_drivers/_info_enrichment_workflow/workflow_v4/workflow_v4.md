@@ -263,7 +263,15 @@ Parsed fields in `02_device_profile_api.json`:
 Pass A contract:
 - if manufacturer remains uncertain, return an empty string
 - use `action_name`, not alternate keys
-- describe the physical device, not a backend/wrapper
+- if the evidence points mainly to a display, launcher, storage object,
+  backend, helper, factory, property wrapper, ruleset, or other non-physical
+  software component, describe that software/helper component directly instead
+  of inventing a physical instrument
+- when such a software/helper component is the correct identity, make the
+  description explicitly non-physical and keep manufacturer empty unless the
+  software identity is directly supported
+- do not infer a physical instrument merely because the component displays,
+  launches, stores, configures, logs, or monitors data for that instrument
 - if schema is violated, preserve the trace and fail the batch
 
 ## Step 3: Script-assisted compare artifact
@@ -319,6 +327,8 @@ Interpretation rule:
   coherent Pass A profile
 - do not web search solely because registry wording looks like a backend or
   wrapper if Pass A already identifies a plausible physical device
+- do not override a coherent software/helper Pass A profile into a physical
+  instrument unless the evidence clearly identifies that hardware
 - use web search mainly when the physical device identity is still unclear, the
   conflict would change the device family, or the key identity/description
   fields remain too uncertain to trust

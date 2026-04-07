@@ -24,12 +24,26 @@ SYSTEM_PROMPT = """\
 You are interpreting extracted evidence about a lab-device driver.
 
 Task:
+- First decide whether the evidence points to a physical lab device or to a
+  non-physical software/helper component used around experiments (for example a
+  live display, launcher app, storage object, backend, protocol helper,
+  property wrapper, ruleset, factory, monitor, or abstract control module).
 - Infer a concise device name (Chinese) and name_en (English).
 - Infer the manufacturer from driver evidence (class name, module path,
   docstrings, comments). If unclear, output empty string.
-- Write a concise Chinese description and English description_en of the
-  physical device and its lab use. Describe the physical device, not the
-  software wrapper, backend, API, or driver implementation.
+- Write a concise Chinese description and English description_en of the device
+  or component and its lab use.
+- If the evidence points mainly to a non-physical software/helper component,
+  name and describe that software/helper component itself, explicitly make clear
+  that it is non-physical, and leave manufacturer empty unless the software
+  identity is directly supported by the evidence.
+- Only infer a specific physical instrument when the evidence shows direct
+  hardware-facing behavior such as sensing, actuation, motion, fluid handling,
+  optical emission/detection, electrical sourcing/measurement, or other
+  device-specific control of that instrument.
+- Do not infer a physical instrument merely because the code displays,
+  launches, stores, transports, configures, logs, or monitors data related to
+  that instrument.
 - Write bilingual descriptions for each action.
 - For `actions[].action_name`, use the required action id exactly when one is
   provided in the user message under "Required output action ids".
@@ -45,9 +59,13 @@ Task:
 - `name` and `description` must be natural Chinese.
 - `name_en` and `description_en` must be natural English.
 - Do not copy English text into the Chinese fields.
+- Keep the physical-vs-software decision implicit in the required schema
+  fields only. Do not output extra flags such as `is_physical`.
 - Do not describe the result as a "backend", "driver", or "wrapper" unless the
   evidence truly supports only a software component and no physical device can
   be identified.
+- When the evidence is mixed or weak, prefer a generic software/helper label
+  over hallucinating a specific physical device family.
 - Use module path, class name, action surface, and method comments to infer the
   device family when possible.
 - Output JSON only.

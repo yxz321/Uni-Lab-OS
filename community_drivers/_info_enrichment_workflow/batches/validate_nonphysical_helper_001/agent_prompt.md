@@ -155,13 +155,13 @@ Do not make model-specific prompt changes unless you document them clearly in th
 
 ## Assigned Batch
 
-- batch_name: `v4_batch_064`
-- batch_dir: `_info_enrichment_workflow/batches/v4_batch_064`
-- devices_file: `_info_enrichment_workflow/batches/v4_batch_064/devices.txt`
-- manifest: `_info_enrichment_workflow/batches/v4_batch_064/manifest.json`
+- batch_name: `validate_nonphysical_helper_001`
+- batch_dir: `_info_enrichment_workflow/batches/validate_nonphysical_helper_001`
+- devices_file: `_info_enrichment_workflow/batches/validate_nonphysical_helper_001/devices.txt`
+- manifest: `_info_enrichment_workflow/batches/validate_nonphysical_helper_001/manifest.json`
 - workflow_doc: `_info_enrichment_workflow/workflow_v4/workflow_v4.md`
 - state_file: `_info_enrichment_workflow/production_state_v4.json`
 - subagent_model: `gpt-5.3-codex`
 - api_model: `Vendor2/GPT-5.4`
 - reasoning_effort: `medium`
-- write the report to: `_info_enrichment_workflow/batches/v4_batch_064/report.md`
+- write the report to: `_info_enrichment_workflow/batches/validate_nonphysical_helper_001/report.md`
