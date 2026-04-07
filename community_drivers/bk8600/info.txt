@@ -1,139 +1,104 @@
-device: bk8600
-registry_key: bk8600
-device_identity:
+bk8600:
+  name: BK 8600系列可编程直流电子负载
+  name_en: BK Precision 8600 Series Programmable DC Electronic Load
   manufacturer: B&K Precision
-  model:
-    name: B&K 8600 Series DC Electronic Load 负载 电子负载
-    type: device
-  name: B&K 8600 Series DC Electronic Load
-  module_path: unilabos.devices.custom.bk8600:BK8600
-description:
-  text_en: B&K Precision 8600 Series is a programmable DC electronic load used to test power supplies,
-    battery outputs, and other DC sources.
-  method: local
-description_evidence:
-  web: []
-  local:
-  - 'registry.description: B&K 8600 Series DC Electronic Load是由B&K Precision生产的电池测试柜，主要功能包括初始化、测量、电流设置。支持Signal,
-    Slot, lock front panel等操作。'
-  - Driver source origin points to BK8600 electronic load control implementation.
-related_tags:
-- id: 4427
-  name: 电池测试柜
-  name_en: Battery Test Cabinet
-  type: device_template_tag
-- id: 4316
-  name: 表征设备
-  name_en: Characterization Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: 4427
-  rationale: Electronic-load operation and current/voltage measurement match battery and DC source test
-    benches.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-- tag_id: 4316
-  rationale: Functions are centered on instrument readout, electrical state readback, or data capture
-    for characterization.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-initialize
-  title: initialize
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Reset load, infer model limits, and set remote controlled startup state.
-  evidence_source: code_comments
-- name: auto-lock_front_panel
-  title: lock_front_panel
-  parameters:
-  - state
-  command_type: UniLabJsonCommand
-  description_en: Enable/disable local front-panel control.
-  evidence_source: name_params
-- name: auto-measure_current
-  title: measure_current
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Measure DC load current.
-  evidence_source: name_params
-- name: auto-measure_voltage
-  title: measure_voltage
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Measure DC load voltage.
-  evidence_source: name_params
-- name: auto-remote_sense
-  title: remote_sense
-  parameters:
-  - state
-  command_type: UniLabJsonCommand
-  description_en: Enable/disable remote sense terminals.
-  evidence_source: name_params
-- name: auto-set_current
-  title: set_current
-  parameters:
-  - current_setpoint_A
-  command_type: UniLabJsonCommand
-  description_en: Set constant-current setpoint in CC mode.
-  evidence_source: code_comments
-- name: auto-set_cv_voltage
-  title: set_cv_voltage
-  parameters:
-  - voltage_setpoint_V
-  command_type: UniLabJsonCommand
-  description_en: Set constant-voltage level in CV mode.
-  evidence_source: name_params
-- name: auto-set_mode_current
-  title: set_mode_current
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Switch operating mode to constant current.
-  evidence_source: name_params
-- name: auto-set_mode_voltage
-  title: set_mode_voltage
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Switch operating mode to constant voltage.
-  evidence_source: name_params
-- name: auto-toggle_output
-  title: toggle_output
-  parameters:
-  - state
-  command_type: UniLabJsonCommand
-  description_en: Turn load input on or off.
-  evidence_source: name_params
-driver_functions:
-  compact_signatures:
-  - BK8600.__init__(self, *args, **kwargs) (line 78)
-  - BK8600.initialize(self) (line 89)
-  - BK8600.lock_front_panel(self, state) (line 182)
-  - BK8600.measure_current(self) (line 193)
-  - BK8600.measure_voltage(self) (line 189)
-  - BK8600.remote_sense(self, state) (line 175)
-  - BK8600.set_current(self, current_setpoint_A) (line 138)
-  - BK8600.set_cv_voltage(self, voltage_setpoint_V) (line 159)
-  - BK8600.set_mode_current(self) (line 147)
-  - BK8600.set_mode_voltage(self) (line 153)
-  - BK8600.toggle_output(self, state) (line 168)
-  note: Compact signatures retained; action semantics are documented in atom_actions.
-schema_version: v2
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 10
-  driver_function_count: 11
-  related_tag_count: 2
+  category:
+  - 电子负载
+  tags:
+  - 表征设备
+  - 电子与电气测试
+  - 电源与电池测试
+  - 电子负载
+  description: 这是一款可编程直流电子负载，用于对电源、适配器、电池等直流电源施加受控负载。它支持恒流和恒压工作模式，可测量输入电压与电流，并支持远端采样，适合电源性能评估、放电测试和实验室自动化测试。
+  description_en: This is a programmable DC electronic load used to apply a controlled
+    load to DC sources such as power supplies, adapters, and batteries. It supports
+    constant-current and constant-voltage operation, measures input voltage and current,
+    and offers remote sensing, making it suitable for power-source evaluation, discharge
+    testing, and automated laboratory testing.
+  class:
+    action_value_mappings:
+      auto-initialize:
+        schema:
+          description: 初始化电子负载，复位为恒流模式并切换到远程控制。
+          description_en: Initialize the electronic load, reset it to constant-current
+            mode, and switch it to remote control.
+      auto-lock_front_panel:
+        schema:
+          description: 设置前面板锁定状态。
+          description_en: Set the front-panel lock state.
+      auto-measure_current:
+        schema:
+          description: 测量输入电流。
+          description_en: Measure the input current.
+      auto-measure_voltage:
+        schema:
+          description: 测量输入电压。
+          description_en: Measure the input voltage.
+      auto-remote_sense:
+        schema:
+          description: 设置远端电压采样状态。
+          description_en: Set the remote voltage-sense state.
+      auto-set_current:
+        schema:
+          description: 设置恒流模式电流设定值。
+          description_en: Set the current setpoint for constant-current mode.
+      auto-set_cv_voltage:
+        schema:
+          description: 设置恒压模式电压设定值。
+          description_en: Set the voltage setpoint for constant-voltage mode.
+      auto-set_mode_current:
+        schema:
+          description: 切换到恒流模式。
+          description_en: Switch to constant-current mode.
+      auto-set_mode_voltage:
+        schema:
+          description: 切换到恒压模式。
+          description_en: Switch to constant-voltage mode.
+      auto-toggle_output:
+        schema:
+          description: 设置负载输入开关状态。
+          description_en: Set the load input on/off state.
+auto_annotation_metadata:
+  registry_key: bk8600
+  annotation_workflow_version: v4
+  tag_hints:
+  - programmable DC electronic load
+  - power supply load testing
+  - constant current mode
+  - constant voltage mode
+  - battery discharge testing
+  - remote sense
+  - voltage and current measurement
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该设备用于对电源、电池等施加受控负载并测量电压电流，属于测试表征设备。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: 设备面向直流电源、适配器和电池等电子电气对象的性能测试。
+  - id: P-0016
+    name: 电源与电池测试
+    name_en: Power Supply & Battery Testing
+    type: experimental_scene
+    rationale: 描述中明确包括电源评估和电池放电测试。
+  - id: P-0017
+    name: 电子负载
+    name_en: Electronic Load
+    type: device_template_tag
+    rationale: 该设备就是可编程直流电子负载。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

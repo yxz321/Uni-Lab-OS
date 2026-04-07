@@ -1,117 +1,84 @@
-device: bi_talino
-registry_key: bi_talino
-device_identity:
-  manufacturer: PLUX Biosignals
-  model:
-    name: PLUX BITalino Biomedical Development Kit
-    type: device
-  module_path: unilabos.devices.generic.bitalino:BITalino
-description:
-  text_en: BITalino BLE biosignal acquisition device driver for connect/start/stop control and callback-based
-    streaming of biomedical channels.
-  method: web+local
-description_evidence:
-  web:
-  - https://www.pluxbiosignals.com/products/board-kit-bt - BITalino (r)evolution board kit with BLE/BT
-    and ECG/EMG/EDA/EEG channels.
-  - https://bitalino.com/storage/uploads/media/revolution-bitalino-board-kit-datasheet.pdf - BITalino
-    datasheet describing biomedical signal acquisition use.
-  local:
-  - 'registry.description: BITalino Biomedical Development Kit是由PLUX Biosignals生产的专业实验设备。Async driver
-    for BITalino (BLE)'
-  - 'actions include: connect, disconnect, set_callback, start, stop'
-  - 'driver functions include: find_bitalino, generate_crc4_table, BITalino.__init__, BITalino.set_callback,
-    BITalino.connect, BITalino.disconnect'
-  - description synthesized from registry metadata + action/function evidence + web validation
-related_tags:
-- id: '4316'
-  name: 表征设备
-  name_en: Characterization Equipment
-  type: experimental_step
-- id: '4318'
-  name: 生命体系
-  name_en: Life Sciences
-  type: experimental_domain
-tag_evidence:
-- tag_id: '4316'
-  rationale: Matched from registry metadata plus action/description/module signals.
-  signals:
-  - registry.category
-  - registry.tags
-  - module_path
-  - description
-  - atom_actions
-  - web
-- tag_id: '4318'
-  rationale: Matched from registry metadata plus action/description/module signals.
-  signals:
-  - registry.category
-  - registry.tags
-  - module_path
-  - description
-  - atom_actions
-  - web
-atom_actions:
-- name: auto-connect
-  title: connect
-  parameters:
-  - timeout
-  command_type: UniLabJsonCommandAsync
-  description_en: Connect to device communication channel.
-  evidence_source: action_name_params
-- name: auto-disconnect
-  title: disconnect
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Disconnect device communication channel.
-  evidence_source: action_name_params
-- name: auto-set_callback
-  title: set_callback
-  parameters:
-  - callback
-  command_type: UniLabJsonCommand
-  description_en: Register callback for decoded sample delivery.
-  evidence_source: action_name_params
-- name: auto-start
-  title: start
-  parameters:
-  - channels
-  - sampling_rate
-  command_type: UniLabJsonCommandAsync
-  description_en: Start device streaming or acquisition.
-  evidence_source: action_name_params
-- name: auto-stop
-  title: stop
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Stop device streaming or acquisition.
-  evidence_source: action_name_params
-driver_functions:
-  compact_signatures:
-  - find_bitalino(timeout, verbose) (line 103)
-  - generate_crc4_table() (line 178)
-  - BITalino.__init__(self, address) (line 206)
-  - BITalino.set_callback(self, callback) (line 221)
-  - BITalino.connect(self, timeout) [async] (line 226)
-  - BITalino.disconnect(self) [async] (line 239)
-  - BITalino.start(self, sampling_rate, channels) [async] (line 247)
-  - BITalino.stop(self) [async] (line 284)
-  - BITalino._on_data_received(self, sender, data) (line 292)
-  - stream_bitalino(address, channels, sampling_rate, buffer_size) [async] (line 354)
-  - BitalinoViewer.__new__(cls, *args, **kwargs) (line 539)
-  - BitalinoViewer.__init__(self, *args, **kwargs) (line 547)
-  - BitalinoViewer._setup_channels(self) (line 551)
-  - view_bitalino(stream_name, window_duration) (line 599)
-  note: Compact list retained by design; action semantics are documented in atom_actions.
-schema_version: v2
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 5
-  driver_function_count: 14
-  related_tag_count: 2
+bi_talino:
+  name: BITalino 生理信号采集板
+  name_en: BITalino biosignal acquisition board
+  manufacturer: PLUX Wireless Biosignals
+  category:
+  - 模拟输入数据采集模块
+  tags:
+  - 表征设备
+  - 生命体系
+  - 实验仪器数据采集与联机控制
+  - 模拟输入数据采集模块
+  description: BITalino 是一款便携式蓝牙生理信号采集设备，提供多路模拟输入通道，可用于采集和传输实验中的生理或其他低频模拟传感器信号。它常用于教学、原型开发和可穿戴生理测量实验。
+  description_en: BITalino is a portable Bluetooth biosignal acquisition device with
+    multiple analog input channels for collecting and streaming physiological or other
+    low-frequency analog sensor signals in laboratory experiments. It is commonly
+    used for teaching, prototyping, and wearable physiology measurements.
+  class:
+    action_value_mappings:
+      auto-connect:
+        schema:
+          description: 连接到 BITalino 设备并订阅其实时数据流。
+          description_en: Connect to the BITalino device and subscribe to its live
+            data stream.
+      auto-disconnect:
+        schema:
+          description: 停止数据流并断开与 BITalino 设备的连接。
+          description_en: Stop the data stream and disconnect from the BITalino device.
+      auto-set_callback:
+        schema:
+          description: 设置用于接收设备实时采样数据的回调函数。
+          description_en: Set a callback function to receive real-time sample data
+            from the device.
+      auto-start:
+        schema:
+          description: 设置采样率和通道后，开始从设备采集数据。
+          description_en: Configure the sampling rate and channels, then start data
+            acquisition from the device.
+      auto-stop:
+        schema:
+          description: 停止设备的数据采集。
+          description_en: Stop data acquisition on the device.
+auto_annotation_metadata:
+  registry_key: bi_talino
+  annotation_workflow_version: v4
+  tag_hints:
+  - biosignal acquisition
+  - Bluetooth Low Energy
+  - analog input channels
+  - wearable sensing
+  - physiology experiments
+  - data streaming
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: BITalino用于采集和传输生理及低频传感器信号，属于实验测量与记录设备。
+  - id: '4318'
+    name: 生命体系
+    name_en: Life Sciences
+    type: experimental_domain
+    rationale: 摘要明确提到生理信号、可穿戴测量和教学原型开发，符合生命科学相关实验域。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 设备可配置采样率和通道并实时回传样本数据，属于在线数据采集场景。
+  - id: P-2001
+    name: 模拟输入数据采集模块
+    name_en: Analog Input Data Acquisition Module
+    type: device_template_tag
+    rationale: 其关键特征是多路模拟输入采集低频生理/传感器信号，与模拟输入采集模块模板高度相关。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

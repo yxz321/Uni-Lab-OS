@@ -1,301 +1,174 @@
-device: bio_tek_plate_reader_backend
-registry_key: bio_tek_plate_reader_backend
-device_identity:
+bio_tek_plate_reader_backend:
+  name: Agilent BioTek 多功能微孔板读板仪
+  name_en: Agilent BioTek multimode microplate reader
   manufacturer: Agilent BioTek
-  model:
-    name: Agilent BioTek Microplate Reader
-    type: device
-  name: Agilent BioTek Microplate Reader
-  module_path: unilabos.devices.plate_reader.biotek_plate_reader_backend:BioTekPlateReaderBackend
-description:
-  text_en: Agilent BioTek microplate readers are multimode plate instruments used for absorbance, fluorescence,
-    and luminescence readout of microplate wells.
-  method: web+local
-description_evidence:
-  web:
-  - BioTek plate reader references describe absorbance/fluorescence/luminescence microplate measurement
-    workflows.
-  local:
-  - 'registry.description: Cytek Aurora&trade; Evo 全光谱流式细胞仪是由Cytek Biosciences生产的专业实验设备。Backend for Agilent
-    BioTek plate readers'
-  - Driver class docstring states backend for Agilent BioTek plate readers.
-registry_identity_conflict:
-  registry_manufacturer: Cytek Biosciences
-  registry_model_name: Cytek Aurora&trade; Evo 全光谱流式细胞仪
-  chosen_manufacturer: Agilent BioTek
-  chosen_model_name: Agilent BioTek Microplate Reader
-  rationale: Driver module and class docstring explicitly target Agilent BioTek plate readers, and actions are microplate read/temperature/shaking operations, not flow cytometry.
-related_tags:
-- id: 4457
-  name: 酶标仪
-  name_en: Microplate Reader
-  type: device_template_tag
-- id: 4316
-  name: 表征设备
-  name_en: Characterization Equipment
-  type: experimental_step
-- id: 4318
-  name: 生命体系
-  name_en: Life Sciences
-  type: experimental_domain
-- id: 4330
-  name: 细胞生物学研究
-  name_en: Cell Biology Research
-  type: experimental_scene
-tag_evidence:
-- tag_id: 4457
-  rationale: Action set is characteristic of a microplate reader (plate open/close, absorbance, fluorescence,
-    luminescence).
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-- tag_id: 4316
-  rationale: Functions are centered on instrument readout, electrical state readback, or data capture
-    for characterization.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-- tag_id: 4318
-  rationale: Plate handling, incubation, and assay-oriented operations align with life-science laboratory
-    workflows.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-- tag_id: 4330
-  rationale: Temperature/shaking and plate-read operations are commonly used in cell-biology assay pipelines.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-close
-  title: close
-  parameters:
-  - plate
-  - slow
-  command_type: UniLabJsonCommandAsync
-  description_en: Close tray; optionally set plate definition before closing.
-  evidence_source: code_comments
-- name: auto-home
-  title: home
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Home the plate transport mechanism.
-  evidence_source: name_params
-- name: auto-open
-  title: open
-  parameters:
-  - slow
-  command_type: UniLabJsonCommandAsync
-  description_en: Open tray with optional slow mode.
-  evidence_source: name_params
-- name: auto-read_absorbance
-  title: read_absorbance
-  parameters:
-  - plate
-  - wavelength
-  - wells
-  command_type: UniLabJsonCommandAsync
-  description_en: Run absorbance read for selected wells at a configured wavelength.
-  evidence_source: name_params
-- name: auto-read_fluorescence
-  title: read_fluorescence
-  parameters:
-  - emission_wavelength
-  - excitation_wavelength
-  - focal_height
-  - plate
-  - wells
-  command_type: UniLabJsonCommandAsync
-  description_en: Run fluorescence read for selected wells with excitation/emission wavelengths.
-  evidence_source: name_params
-- name: auto-read_luminescence
-  title: read_luminescence
-  parameters:
-  - focal_height
-  - integration_time
-  - plate
-  - wells
-  command_type: UniLabJsonCommandAsync
-  description_en: Run luminescence read with focal height and integration time settings.
-  evidence_source: name_params
-- name: auto-send_command
-  title: send_command
-  parameters:
-  - command
-  - parameter
-  - timeout
-  - wait_for_response
-  command_type: UniLabJsonCommandAsync
-  description_en: Send low-level command/parameter frames and optionally wait for response.
-  evidence_source: code_comments
-- name: auto-set_plate
-  title: set_plate
-  parameters:
-  - plate
-  command_type: UniLabJsonCommandAsync
-  description_en: Upload plate geometry to instrument command format.
-  evidence_source: code_comments
-- name: auto-set_temperature
-  title: set_temperature
-  parameters:
-  - temperature
-  command_type: UniLabJsonCommandAsync
-  description_en: Set temperature target with capability/range checks.
-  evidence_source: docstring
-- name: auto-setup
-  title: setup
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Initialize FTDI transport and detect working baud configuration.
-  evidence_source: code_comments
-- name: auto-shake
-  title: shake
-  parameters:
-  - frequency
-  - shake_type
-  command_type: UniLabJsonCommandAsync
-  description_en: Start shaker loops using timed repeated maximum-duration commands.
-  evidence_source: docstring
-- name: auto-stop
-  title: stop
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Stop shaking and close I/O backend.
-  evidence_source: name_params
-- name: auto-stop_heating_or_cooling
-  title: stop_heating_or_cooling
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Stop thermal control loop.
-  evidence_source: name_params
-- name: auto-stop_shaking
-  title: stop_shaking
-  parameters: []
-  command_type: UniLabJsonCommandAsync
-  description_en: Abort and stop ongoing shaker task.
-  evidence_source: name_params
-- name: auto-version
-  title: version
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return cached firmware version string.
-  evidence_source: name_params
-- name: auto-abs_wavelength_range
-  title: abs_wavelength_range
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return supported absorbance wavelength range.
-  evidence_source: name_params
-- name: auto-focal_height_range
-  title: focal_height_range
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return supported focal-height range.
-  evidence_source: name_params
-- name: auto-excitation_range
-  title: excitation_range
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return supported excitation wavelength range.
-  evidence_source: name_params
-- name: auto-emission_range
-  title: emission_range
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return supported emission wavelength range.
-  evidence_source: name_params
-- name: auto-supports_heating
-  title: supports_heating
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Report heating capability flag.
-  evidence_source: name_params
-- name: auto-supports_cooling
-  title: supports_cooling
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Report cooling capability flag.
-  evidence_source: name_params
-- name: auto-temperature_range
-  title: temperature_range
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return effective min/max temperature limits based on capabilities.
-  evidence_source: docstring
-- name: auto-get_serial_number
-  title: get_serial_number
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Query instrument serial number.
-  evidence_source: name_params
-- name: auto-get_firmware_version
-  title: get_firmware_version
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Query firmware version identifier.
-  evidence_source: name_params
-- name: auto-get_current_temperature
-  title: get_current_temperature
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Get current temperature in degrees Celsius.
-  evidence_source: docstring
-driver_functions:
-  compact_signatures:
-  - BioTekPlateReaderBackend.__init__(self, timeout, device_id) (line 85)
-  - BioTekPlateReaderBackend.close(self, plate, slow) [async] (line 309)
-  - BioTekPlateReaderBackend.home(self) [async] (line 319)
-  - BioTekPlateReaderBackend.open(self, slow) [async] (line 304)
-  - BioTekPlateReaderBackend.read_absorbance(self, plate, wells, wavelength) [async] (line 447)
-  - BioTekPlateReaderBackend.read_fluorescence(self, plate, wells, excitation_wavelength, emission_wavelength,
-    focal_height) [async] (line 556)
-  - BioTekPlateReaderBackend.read_luminescence(self, plate, wells, focal_height, integration_time) [async]
-    (line 494)
-  - BioTekPlateReaderBackend.send_command(self, command, parameter, wait_for_response, timeout) [async]
-    (line 259)
-  - BioTekPlateReaderBackend.set_plate(self, plate) [async] (line 384)
-  - BioTekPlateReaderBackend.set_temperature(self, temperature) [async] (line 330)
-  - BioTekPlateReaderBackend.setup(self) [async] (line 151)
-  - BioTekPlateReaderBackend.shake(self, shake_type, frequency) [async] (line 635)
-  - BioTekPlateReaderBackend.stop(self) [async] (line 174)
-  - BioTekPlateReaderBackend.stop_heating_or_cooling(self) [async] (line 352)
-  - BioTekPlateReaderBackend.stop_shaking(self) [async] (line 685)
-  - BioTekPlateReaderBackend.version(self) (line 183)
-  - BioTekPlateReaderBackend.abs_wavelength_range(self) (line 190)
-  - BioTekPlateReaderBackend.focal_height_range(self) (line 195)
-  - BioTekPlateReaderBackend.excitation_range(self) (line 200)
-  - BioTekPlateReaderBackend.emission_range(self) (line 205)
-  - BioTekPlateReaderBackend.supports_heating(self) (line 210)
-  - BioTekPlateReaderBackend.supports_cooling(self) (line 215)
-  - BioTekPlateReaderBackend.temperature_range(self) (line 220)
-  - BioTekPlateReaderBackend.get_serial_number(self) [async] (line 285)
-  - BioTekPlateReaderBackend.get_firmware_version(self) [async] (line 291)
-  - BioTekPlateReaderBackend.get_current_temperature(self) [async] (line 323)
-  - BioTekPlateReaderBackend._purge_buffers(self) [async] (line 230)
-  - BioTekPlateReaderBackend._read_until(self, terminator, timeout) [async] (line 237)
-  - BioTekPlateReaderBackend._parse_body(self, body) (line 356)
-  note: Compact signatures retained; action semantics are documented in atom_actions.
-schema_version: v3
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 25
-  driver_function_count: 29
-  related_tag_count: 4
+  category:
+  - 酶标仪
+  tags:
+  - 表征设备
+  - 生命体系
+  - 智慧表征与检测中心
+  - 细胞生物学研究
+  - 酶标仪
+  - 微孔板检测与高通量筛选
+  description: 这是一种台式微孔板读板仪，用于对微孔板中的样品进行吸光度、荧光和发光检测。设备通常带有载板抽屉、温度控制和振荡功能，适用于生化分析、细胞实验和高通量筛选等实验室检测工作。
+  description_en: A benchtop multimode microplate reader used to measure absorbance,
+    fluorescence, and luminescence from samples in microplates. It typically includes
+    a plate tray, temperature control, and shaking, and is used for biochemical assays,
+    cell-based experiments, and high-throughput screening.
+  class:
+    action_value_mappings:
+      auto-close:
+        schema:
+          description: 关闭微孔板载板抽屉。
+          description_en: Close the microplate tray.
+      auto-home:
+        schema:
+          description: 使设备运动机构回零。
+          description_en: Home the device motion system.
+      auto-open:
+        schema:
+          description: 打开微孔板载板抽屉。
+          description_en: Open the microplate tray.
+      auto-read_absorbance:
+        schema:
+          description: 测量指定孔位的吸光度。
+          description_en: Measure absorbance in the specified wells.
+      auto-read_fluorescence:
+        schema:
+          description: 测量指定孔位的荧光信号。
+          description_en: Measure fluorescence in the specified wells.
+      auto-read_luminescence:
+        schema:
+          description: 测量指定孔位的发光信号。
+          description_en: Measure luminescence in the specified wells.
+      auto-send_command:
+        schema:
+          description: 向仪器发送原始控制命令。
+          description_en: Send a raw control command to the instrument.
+      auto-set_plate:
+        schema:
+          description: 定义当前微孔板的几何参数。
+          description_en: Define the geometry of the current microplate.
+      auto-set_temperature:
+        schema:
+          description: 设置温控温度。
+          description_en: Set the temperature control setpoint.
+      auto-setup:
+        schema:
+          description: 初始化读板仪并建立通信。
+          description_en: Initialize the plate reader and establish communication.
+      auto-shake:
+        schema:
+          description: 启动微孔板振荡。
+          description_en: Start shaking the microplate.
+      auto-stop:
+        schema:
+          description: 停止设备当前操作。
+          description_en: Stop the current device operation.
+      auto-stop_heating_or_cooling:
+        schema:
+          description: 停止加热或制冷。
+          description_en: Stop heating or cooling.
+      auto-stop_shaking:
+        schema:
+          description: 停止微孔板振荡。
+          description_en: Stop shaking the microplate.
+      auto-version:
+        schema:
+          description: 获取设备版本信息。
+          description_en: Get the device version information.
+      auto-abs_wavelength_range:
+        schema:
+          description: 获取吸光度测量波长范围。
+          description_en: Get the absorbance wavelength range.
+      auto-focal_height_range:
+        schema:
+          description: 获取焦距高度范围。
+          description_en: Get the focal height range.
+      auto-excitation_range:
+        schema:
+          description: 获取激发波长范围。
+          description_en: Get the excitation wavelength range.
+      auto-emission_range:
+        schema:
+          description: 获取发射波长范围。
+          description_en: Get the emission wavelength range.
+      auto-supports_heating:
+        schema:
+          description: 获取是否支持加热。
+          description_en: Get whether heating is supported.
+      auto-supports_cooling:
+        schema:
+          description: 获取是否支持制冷。
+          description_en: Get whether cooling is supported.
+      auto-temperature_range:
+        schema:
+          description: 获取温控范围。
+          description_en: Get the temperature control range.
+      auto-get_serial_number:
+        schema:
+          description: 获取序列号。
+          description_en: Get the serial number.
+      auto-get_firmware_version:
+        schema:
+          description: 获取固件版本。
+          description_en: Get the firmware version.
+      auto-get_current_temperature:
+        schema:
+          description: 获取当前温度。
+          description_en: Get the current temperature.
+auto_annotation_metadata:
+  registry_key: bio_tek_plate_reader_backend
+  annotation_workflow_version: v4
+  tag_hints:
+  - microplate reader
+  - multimode plate reading
+  - absorbance measurement
+  - fluorescence assays
+  - luminescence assays
+  - temperature control
+  - plate shaking
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该设备对微孔板样品进行吸光度、荧光和发光检测，属于典型检测表征环节。
+  - id: '4318'
+    name: 生命体系
+    name_en: Life Sciences
+    type: experimental_domain
+    rationale: 描述明确用于生化分析和细胞实验等生命科学检测工作。
+  - id: '4325'
+    name: 智慧表征与检测中心
+    name_en: Intelligent Characterization & Testing Center
+    type: experimental_domain
+    rationale: 多模式读板和高通量检测能力与智能检测平台场景高度契合。
+  - id: '4330'
+    name: 细胞生物学研究
+    name_en: Cell Biology Research
+    type: experimental_scene
+    rationale: 设备说明中明确提到可用于细胞实验。
+  - id: '4457'
+    name: 酶标仪
+    name_en: Microplate Reader
+    type: device_template_tag
+    rationale: 该设备本质上就是多功能微孔板读板仪，与酶标仪模板直接对应。
+  proposed_new_tags:
+  - id: P-5003
+    name: 微孔板检测与高通量筛选
+    name_en: Microplate Detection & High-Throughput Screening
+    type: experimental_scene
+    rationale: 设备面向多模式板检测和高通量筛选，现有场景标签不够完整覆盖。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

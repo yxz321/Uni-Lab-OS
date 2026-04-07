@@ -1,0 +1,265 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "batch_tag_results",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "devices": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "device": {
+                    "type": "string"
+                  },
+                  "existing_tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "name_en": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "rationale": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "name_en",
+                        "type",
+                        "rationale"
+                      ]
+                    }
+                  },
+                  "proposed_new_tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "name_en": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "rationale": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "name_en",
+                        "type",
+                        "rationale"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "device",
+                  "existing_tags",
+                  "proposed_new_tags"
+                ]
+              }
+            }
+          },
+          "required": [
+            "devices"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are assigning tags to lab devices using extracted evidence and a provided full tag list.\n\nRules:\n- The response MUST follow the requested JSON schema exactly.\n- The top-level object must be: {\"devices\": [ ... ]}.\n- Each device result object must contain exactly these keys:\n  `device`, `existing_tags`, `proposed_new_tags`.\n- Every tag object in both `existing_tags` and `proposed_new_tags` must contain exactly:\n  `id`, `name`, `name_en`, `type`, `rationale`.\n- The `type` field is mandatory on every tag object and must be one of:\n  `experimental_step`, `experimental_domain`, `experimental_scene`, `device_template_tag`.\n- The combined set of `existing_tags` and `proposed_new_tags` must contain at least one tag of each required type.\n- Prefer existing tags when reasonably relevant.\n- Include all relevant tags, not exactly one per type.\n- A practical default is roughly 1-4 relevant tags per type when supported.\n- For `experimental_step`: choose only from existing tags. Do not propose new ones.\n- For `experimental_domain`, `experimental_scene`, and `device_template_tag`:\n  choose from existing tags first, but you may propose multiple new tags if the existing list is insufficient.\n- Proposed new tags are allowed only for:\n  `experimental_domain`, `experimental_scene`, `device_template_tag`.\n- A proposed tag must be broad enough that:\n  - multiple real-world devices would fall under `device_template_tag`\n  - multiple device templates would fall under `experimental_scene`\n  - multiple scenes would fall under `experimental_domain`\n- Every tag object's `id` must be a string.\n- For existing tags, copy the provided tag id as a string.\n- For proposed new tags, create a string id like `P-0001`, `P-0002`, etc.\n- `name` should be Chinese-preferred and `name_en` should be English.\n- Every selected or proposed tag must include a short, device-specific rationale.\n- Do not output IDs only. Return full tag objects.\n- Do not use bilingual mixed strings inside `name`.\n- Prefer recall over precision, but do not select obviously unrelated tags.\n- Use only the evidence provided in the device summaries. Do not assume hidden registry priors.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Available tags:\n  [4312] 备料&前处理设备 / Material Preparation & Pre-processing Equipment (experimental_step)\n  [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)\n  [4314] 后处理设备 / Post-processing Equipment (experimental_step)\n  [4315] 器件/细胞设备 / Device / Cell Equipment (experimental_step)\n  [4316] 表征设备 / Characterization Equipment (experimental_step)\n  [4317] 物流/机械 / Logistics / Machinery (experimental_step)\n  [4318] 生命体系 / Life Sciences (experimental_domain)\n  [4319] 溶液配制与反应 / Solution Preparation & Reaction (experimental_domain)\n  [4320] 溶液→固体反应 / Solution-to-Solid Reaction (experimental_domain)\n  [4321] 熔体/高粘体系 / Melt / High-Viscosity System (experimental_domain)\n  [4322] 表面/薄膜体系 / Surface / Thin Film System (experimental_domain)\n  [4323] 粉体&固相反应 / Powder & Solid-Phase Reaction (experimental_domain)\n  [4324] 金属熔炼/增材制造 / Metal Smelting / Additive Manufacturing (experimental_domain)\n  [4325] 智慧表征与检测中心 / Intelligent Characterization & Testing Center (experimental_domain)\n  [4326] 化工放大与连续工艺优化 / Chemical Scale-up & Continuous Process Optimization (experimental_domain)\n  [4327] 基因编辑、分子生物学与育种 / Gene Editing, Molecular Biology & Breeding (experimental_scene)\n  [4328] DNA文库构建测序与蛋白设计 / DNA Library Construction, Sequencing & Protein Design (experimental_scene)\n  [4329] 代谢组学研究 / Metabolomics Research (experimental_scene)\n  [4330] 细胞生物学研究 / Cell Biology Research (experimental_scene)\n  [4331] 动物实验 / Animal Experiments (experimental_scene)\n  [4332] 广州 π-hub / Guangzhou π-hub (experimental_scene)\n  [4333] 深研院 AI4LifeScience / SIAIS AI4LifeScience (experimental_scene)\n  [4334] 移液站产品 / Liquid Handling Station Products (experimental_scene)\n  [4335] ADC药物 / ADC Drugs (experimental_scene)\n  [4336] 多肽药物 / Peptide Drugs (experimental_scene)\n  [4337] 电解液配方与工艺 / Electrolyte Formulation & Process (experimental_scene)\n  [4338] 有机 SuperChemputer / Organic SuperChemputer (experimental_scene)\n  [4339] 流动化学 / Flow Chemistry (experimental_scene)\n  [4340] 小分子药物和PROTAC药物 / Small Molecule & PROTAC Drugs (experimental_scene)\n  [4341] 溶液反应教学 / Solution Reaction Teaching (experimental_scene)\n  [4342] 智能香氛仪 / Intelligent Fragrance Diffuser (experimental_scene)\n  [4343] 水热无机合成-纳米粒子MOF/COF / Hydrothermal Inorganic Synthesis - Nanoparticle MOF/COF (experimental_scene)\n  [4344] 涂层材料 / Coating Materials (experimental_scene)\n  [4345] 高分子/树脂粉末 / Polymer / Resin Powder (experimental_scene)\n  [4346] 水热无机合成-多孔催化剂 / Hydrothermal Inorganic Synthesis - Porous Catalyst (experimental_scene)\n  [4347] 钙钛矿薄膜电池 / Perovskite Thin Film Battery (experimental_scene)\n  [4348] 有机光伏材料（OPV和OLED） / Organic Photovoltaic Materials (OPV & OLED) (experimental_scene)\n  [4349] 二维材料 / 2D Materials (experimental_scene)\n  [4350] 稀土永磁与超导材料 / Rare Earth Permanent Magnet & Superconducting Materials (experimental_scene)\n  [4351] 固态电解质大装置 / Solid-State Electrolyte Large-Scale Facility (experimental_scene)\n  [4352] 硅酸盐与陶瓷材料 / Silicate & Ceramic Materials (experimental_scene)\n  [4353] 热处理工艺研发 / Heat Treatment Process R&D (experimental_scene)\n  [4354] 金属检测中心 / Metal Testing Center (experimental_scene)\n  [4355] 钢铁材料 / Steel Materials (experimental_scene)\n  [4356] 合金研发 / Alloy R&D (experimental_scene)\n  [4357] 物化表征测试中心 / Physicochemical Characterization & Testing Center (experimental_scene)\n  [4358] Hyper-FIB / Hyper-FIB (experimental_scene)\n  [4359] 纤维纺丝 / Fiber Spinning (experimental_scene)\n  [4360] AGV / AGV (device_template_tag)\n  [4361] DNA测序仪 / DNA Sequencer (device_template_tag)\n  [4362] X射线衍射仪 / X-Ray Diffractometer (device_template_tag)\n  [4363] 一体化配粉配液站 / Integrated Powder & Liquid Dispensing Station (device_template_tag)\n  [4426] 电子天平 / Electronic Balance (device_template_tag)\n  [4364] 万能试验机标准机 / Universal Testing Machine (device_template_tag)\n  [4365] 介电常数测定仪 / Dielectric Constant Meter (device_template_tag)\n  [4366] 低温/冷冻离心机 / Refrigerated Centrifuge (device_template_tag)\n  [4367] 低温冰箱 / Low-Temperature Freezer (device_template_tag)\n  [4368] 光化学反应器 / Photochemical Reactor (device_template_tag)\n  [4369] 冷热水机 / Chiller / Heater Unit (device_template_tag)\n  [4370] 凝胶渗透色谱仪 / Gel Permeation Chromatograph (device_template_tag)\n  [4371] 制备色谱仪 / Preparative Chromatograph (device_template_tag)\n  [4372] 匀胶机 / Spin Coater (device_template_tag)\n  [4373] 化学气相沉积设备 / Chemical Vapor Deposition System (device_template_tag)\n  [4374] 压片机 / Tablet Press (device_template_tag)\n  [4375] 反应釜 / Reactor Vessel (device_template_tag)\n  [4376] 合成反应仪 / Synthesis Reactor (device_template_tag)\n  [4377] 喷雾沉淀装置 / Spray Precipitation System (device_template_tag)\n  [4378] 固体称量工作站 / Solid Weighing Workstation (device_template_tag)\n  [4379] 固相萃取设备 / Solid Phase Extraction System (device_template_tag)\n  [4380] 基质辅助激光解吸电离飞行时间质谱仪 / MALDI-TOF Mass Spectrometer (device_template_tag)\n  [4381] 多肽合成仪 / Peptide Synthesizer (device_template_tag)\n  [4382] 多通阀 / Multi-Port Valve (device_template_tag)\n  [4383] 实时定量PCR仪 / Real-Time Quantitative PCR (device_template_tag)\n  [4384] 封膜仪 / Plate Sealer (device_template_tag)\n  [4385] 并行反应仪 / Parallel Reactor (device_template_tag)\n  [4386] 开关盖加液模块 / Cap/Decap Liquid Dispensing Module (device_template_tag)\n  [4387] 微生物培养箱 / Microbial Incubator (device_template_tag)\n  [4388] 微通道反应器 / Microreactor (device_template_tag)\n  [4389] 恒温摇床 / Constant Temperature Shaker (device_template_tag)\n  [4390] 扫描电子显微镜 / Scanning Electron Microscope (device_template_tag)\n  [4391] 抽提萃取设备 / Extraction Equipment (device_template_tag)\n  [4392] 拉曼光谱仪 / Raman Spectrometer (device_template_tag)\n  [4393] 振荡器（非恒温） / Oscillator (Non-Thermostatic) (device_template_tag)\n  [4394] 接种仪 / Inoculator (device_template_tag)\n  [4395] 控温磁力搅拌器 / Temperature-Controlled Magnetic Stirrer (device_template_tag)\n  [4396] 撕膜仪 / Plate Desealer (device_template_tag)\n  [4397] 旋转蒸发器 / Rotary Evaporator (device_template_tag)\n  [4398] 旋转黏度计 / Rotational Viscometer (device_template_tag)\n  [4399] 普通PCR仪 / Thermal Cycler (device_template_tag)\n  [4400] 普通光学显微镜 / Optical Microscope (device_template_tag)\n  [4401] 机械搅拌反应釜 / Mechanical Stirring Reactor (device_template_tag)\n  [4402] 机械臂 / Robotic Arm (device_template_tag)\n  [4403] 柱塞泵 / Plunger Pump (device_template_tag)\n  [4404] 核磁共振波谱仪 / NMR Spectrometer (device_template_tag)\n  [4405] 核酸合成仪 / Nucleic Acid Synthesizer (device_template_tag)\n  [4406] 核酸纯化仪 / Nucleic Acid Purification System (device_template_tag)\n  [4407] 模具电池组装工站 / Mold Cell Assembly Workstation (device_template_tag)\n  [4408] 毛细管电泳仪 / Capillary Electrophoresis System (device_template_tag)\n  [4409] 毛细管黏度计 / Capillary Viscometer (device_template_tag)\n  [4410] 气体保护干燥箱 / Gas-Protected Drying Oven (device_template_tag)\n  [4411] 气相色谱质谱联用仪 / GC-MS (device_template_tag)\n  [4412] 氮吹仪 / Nitrogen Evaporator (device_template_tag)\n  [4413] 注射泵 / Syringe Pump (device_template_tag)\n  [4414] 洗板机 / Microplate Washer (device_template_tag)\n  [4415] 流化床反应器 / Fluidized Bed Reactor (device_template_tag)\n  [4416] 流式细胞仪 / Flow Cytometer (device_template_tag)\n  [4417] 液体密度计 / Liquid Density Meter (device_template_tag)\n  [4418] 液相色谱质谱联用仪 / LC-MS (device_template_tag)\n  [4419] 深低温冰箱 / Ultra-Low Temperature Freezer (device_template_tag)\n  [4420] 热分析联用仪 / Thermal Analysis System (device_template_tag)\n  [4421] 热混匀仪 / Thermomixer (device_template_tag)\n  [4422] 球磨机 / Ball Mill (device_template_tag)\n  [4423] 生物分子相互作用分析仪 / Biomolecular Interaction Analyzer (device_template_tag)\n  [4424] 电化学反应器 / Electrochemical Reactor (device_template_tag)\n  [4425] 电化学工作站 / Electrochemical Workstation (device_template_tag)\n  [4427] 电池测试柜 / Battery Test Cabinet (device_template_tag)\n  [4428] 电热板 / Hot Plate (device_template_tag)\n  [4429] 电穿孔仪（电转化仪） / Electroporator (device_template_tag)\n  [4430] 真空干燥箱 / Vacuum Drying Oven (device_template_tag)\n  [4431] 真空离心浓缩仪 / Vacuum Centrifugal Concentrator (device_template_tag)\n  [4432] 磁珠纯化模块 / Magnetic Bead Purification Module (device_template_tag)\n  [4433] 示差扫描量热仪 / Differential Scanning Calorimeter (device_template_tag)\n  [4434] 离心机 / Centrifuge (device_template_tag)\n  [4435] 移液器 / Pipette (device_template_tag)\n  [4436] 移液工作站 / Liquid Handling Workstation (device_template_tag)\n  [4437] 移液管 / Pipette Tube (device_template_tag)\n  [4438] 箱式电阻炉 / Box Resistance Furnace (device_template_tag)\n  [4439] 紫外-可见分光光谱仪 / UV-Vis Spectrophotometer (device_template_tag)\n  [4440] 红外光谱仪 / Infrared Spectrometer (device_template_tag)\n  [4441] 纽扣电池组装工站 / Coin Cell Assembly Workstation (device_template_tag)\n  [4442] 组织培养试验箱 / Tissue Culture Chamber (device_template_tag)\n  [4443] 组织破碎机 / Tissue Homogenizer (device_template_tag)\n  [4444] 细胞分析仪 / Cell Analyzer (device_template_tag)\n  [4445] 细胞融合仪 / Cell Fusion System (device_template_tag)\n  [4446] 自动化耗材堆栈 / Automated Consumable Stack (device_template_tag)\n  [4447] 荧光显微镜 / Fluorescence Microscope (device_template_tag)\n  [4448] 落球黏度计 / Falling Ball Viscometer (device_template_tag)\n  [4449] 蒸镀仪 / Evaporation Coater (device_template_tag)\n  [4450] 薄层色谱仪 / Thin Layer Chromatograph (device_template_tag)\n  [4451] 蠕动泵 / Peristaltic Pump (device_template_tag)\n  [4452] 表面等离子体谐振分析仪 / Surface Plasmon Resonance Analyzer (device_template_tag)\n  [4453] 超声破碎仪 / Ultrasonic Homogenizer (device_template_tag)\n  [4454] 软包电池组装工站 / Pouch Cell Assembly Workstation (device_template_tag)\n  [4455] 过滤器 / Filter (device_template_tag)\n  [4456] 透射电子显微镜 / Transmission Electron Microscope (device_template_tag)\n  [4457] 酶标仪 / Microplate Reader (device_template_tag)\n  [4458] 顶置失重固体投料模块 / Overhead Loss-in-Weight Solid Feeder (device_template_tag)\n  [4459] 高低温金属浴 / High/Low Temperature Metal Bath (device_template_tag)\n  [4460] 高内涵细胞成像分析系统 / High Content Cell Imaging Analysis System (device_template_tag)\n  [4461] 高压反应器 / High Pressure Reactor (device_template_tag)\n  [4462] 蛋白质组学研究 / Proteomics Research (experimental_scene)\n  [4463] 高粘度高分子树脂/薄膜 / High-Viscosity Polymer Resin / Film (experimental_scene)\n  [4464] 粘接剂 / Adhesive (experimental_scene)\n  [P-0001] 实验室自动化与仪器集成 / Laboratory Automation & Instrument Integration (experimental_domain)\n  [P-0002] 实验仪器数据采集与联机控制 / Instrument Data Acquisition & Online Control (experimental_scene)\n  [P-0004] 数据采集与控制接口 / Data Acquisition and Control Interface (device_template_tag)\n  [P-0001] 实验室自动化与仪器集成 / Laboratory Automation & Instrument Integration (experimental_domain)\n  [P-0003] 实验仪器通信与驱动集成 / Instrument Communication & Driver Integration (experimental_scene)\n  [P-0005] USB仪器通信接口 / USB Instrument Communication Interface (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0007] 显微镜自动化控制器 / Microscope Automation Controller (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0007] 显微镜自动化控制器 / Microscope Automation Controller (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0009] LED光源控制器 / LED Light Controller (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0007] 显微镜自动化控制器 / Microscope Automation Controller (device_template_tag)\n  [P-0006] 显微成像与光学显微实验 / Microscopy Imaging & Optical Microscopy Experiments (experimental_scene)\n  [P-0010] 二极管激光器 / Diode Laser (device_template_tag)\n  [P-0011] 电子与电气测试 / Electronics & Electrical Testing (experimental_domain)\n  [P-0012] 射频与电子电路测试 / RF & Electronic Circuit Testing (experimental_scene)\n  [P-0013] 射频信号发生器 / RF Signal Generator (device_template_tag)\n  [P-0014] 电压监测与传感器信号采集 / Voltage Monitoring & Sensor Signal Acquisition (experimental_scene)\n  [P-0015] 电压采集模块 / Voltage Acquisition Module (device_template_tag)\n  [P-0011] 电子与电气测试 / Electronics & Electrical Testing (experimental_domain)\n  [P-0016] 电源与电池测试 / Power Supply & Battery Testing (experimental_scene)\n  [P-0017] 电子负载 / Electronic Load (device_template_tag)\n  [P-0016] 电源与电池测试 / Power Supply & Battery Testing (experimental_scene)\n  [P-0018] 继电器切换板 / Relay Switching Board (device_template_tag)\n  [P-0019] 源测单元模块 / Source-Measure Unit Module (device_template_tag)\n  [P-0020] 机器人与移动平台 / Robotics & Mobile Platforms (experimental_domain)\n  [P-0021] 移动机器人与自动驾驶实验 / Mobile Robotics & Autonomous Vehicle Experiments (experimental_scene)\n  [P-0022] 轮速编码器 / Wheel Speed Encoder (device_template_tag)\n  [P-0023] 声光可调滤波器 / Acousto-Optic Tunable Filter (device_template_tag)\n  [P-0024] 瞬态信号采集与同步触发测量 / Transient Signal Acquisition & Synchronized Triggered Measurement (experimental_scene)\n  [P-0025] 高速数据采集系统 / High-Speed Data Acquisition System (device_template_tag)\n  [P-0024] 瞬态信号采集与同步触发测量 / Transient Signal Acquisition & Synchronized Triggered Measurement (experimental_scene)\n  [P-0026] 模块化高速数据采集机箱 / Modular High-Speed Data Acquisition Chassis (device_template_tag)\n  [P-0028] 数据采集流水线处理节点 / Data Acquisition Pipeline Processing Node (device_template_tag)\n  [P-0029] X射线成像与束线探测 / X-Ray Imaging & Beamline Detection (experimental_scene)\n  [P-0030] 面阵探测器 / Area Detector (device_template_tag)\n  [P-0031] OPC-UA服务器建模与地址空间管理 / OPC-UA Server Modeling & Address Space Management (experimental_scene)\n  [P-0032] OPC-UA地址空间构建器 / OPC-UA Address Space Builder (device_template_tag)\n  [P-0033] 高速数字链路路由与调试 / High-Speed Digital Link Routing & Debugging (experimental_scene)\n  [P-0034] 数字交叉点开关 / Digital Crosspoint Switch (device_template_tag)\n  [P-0035] PLC控制与设备联锁 / PLC Control & Equipment Interlock (experimental_scene)\n  [P-0036] PLC控制器 / PLC Controller (device_template_tag)\n  [P-0037] 任意函数发生器 / Arbitrary Function Generator (device_template_tag)\n  [P-0038] 样品/探针定位与运动控制 / Sample / Probe Positioning & Motion Control (experimental_scene)\n  [P-0039] 电动直线位移台 / Motorized Linear Translation Stage (device_template_tag)\n  [P-1001] 数字万用表 / Digital Multimeter (device_template_tag)\n  [P-1002] 数字存储示波器 / Digital Storage Oscilloscope (device_template_tag)\n  [P-1003] 矢量信号分析仪 / Vector Signal Analyzer (device_template_tag)\n  [P-1004] 频谱分析仪 / Spectrum Analyzer (device_template_tag)\n  [P-1005] 矢量网络分析仪 / Vector Network Analyzer (device_template_tag)\n  [P-1004] 频谱分析仪 / Spectrum Analyzer (device_template_tag)\n  [P-1006] 真空系统与高真空实验 / Vacuum Systems & High-Vacuum Experiments (experimental_domain)\n  [P-1007] 高真空/超高真空腔体与仪器配套 / High/Ultra-High Vacuum Chamber & Instrument Support (experimental_scene)\n  [P-1008] 涡轮分子真空泵 / Turbomolecular Vacuum Pump (device_template_tag)\n  [P-1009] 精密定位与运动控制 / Precision Positioning & Motion Control (experimental_domain)\n  [P-1011] 压电步进位移台控制器 / Piezo Stepper Stage Controller (device_template_tag)\n  [P-2001] 模拟输入数据采集模块 / Analog Input Data Acquisition Module (device_template_tag)\n  [P-2012] 可编程直流电源 / Programmable DC Power Supply (device_template_tag)\n  [P-2013] 串行仪器通信接口 / Serial Instrument Communication Interface (device_template_tag)\n  [P-2014] 高光谱成像与反射/辐射表征 / Hyperspectral Imaging & Reflectance/Radiance Characterization (experimental_scene)\n  [P-2002] 高光谱相机 / Hyperspectral Camera (device_template_tag)\n  [P-2003] 低温与量子测量 / Cryogenic & Quantum Measurements (experimental_domain)\n  [P-2004] 超导磁体与低温磁场控制 / Superconducting Magnet & Cryogenic Magnetic Field Control (experimental_scene)\n  [P-2005] 磁体电源程序控制器 / Magnet Power Supply Programmer (device_template_tag)\n  [P-2003] 低温与量子测量 / Cryogenic & Quantum Measurements (experimental_domain)\n  [P-2004] 超导磁体与低温磁场控制 / Superconducting Magnet & Cryogenic Magnetic Field Control (experimental_scene)\n  [P-2006] 超导磁体系统 / Superconducting Magnet System (device_template_tag)\n  [P-2003] 低温与量子测量 / Cryogenic & Quantum Measurements (experimental_domain)\n  [P-2004] 超导磁体与低温磁场控制 / Superconducting Magnet & Cryogenic Magnetic Field Control (experimental_scene)\n  [P-2006] 超导磁体系统 / Superconducting Magnet System (device_template_tag)\n  [P-2003] 低温与量子测量 / Cryogenic & Quantum Measurements (experimental_domain)\n  [P-2004] 超导磁体与低温磁场控制 / Superconducting Magnet & Cryogenic Magnetic Field Control (experimental_scene)\n  [P-2007] 矢量磁场与角分辨测量 / Vector Magnetic Field & Angular-Resolved Measurement (experimental_scene)\n  [P-2006] 超导磁体系统 / Superconducting Magnet System (device_template_tag)\n  [P-2008] 矢量超导磁体系统 / Vector Superconducting Magnet System (device_template_tag)\n  [P-2009] X射线与辐射能谱测量 / X-Ray & Radiation Spectroscopy (experimental_scene)\n  [P-2010] 多道分析器 / Multi-Channel Analyzer (device_template_tag)\n  [P-2011] 步进电机控制器 / Stepper Motor Controller (device_template_tag)\n  [P-3001] 科学相机 / Scientific Camera (device_template_tag)\n  [P-3002] 光谱采集与检测 / Spectral Acquisition & Detection (experimental_scene)\n  [P-3001] 科学相机 / Scientific Camera (device_template_tag)\n  [P-3002] 光谱采集与检测 / Spectral Acquisition & Detection (experimental_scene)\n  [P-3008] 电动位移台控制器 / Motorized Stage Controller (device_template_tag)\n  [P-3006] 量子比特脉冲控制与读出 / Qubit Pulse Control & Readout (experimental_scene)\n  [P-3007] 量子实验控制器 / Quantum Experiment Controller (device_template_tag)\n  [P-3003] 光学与光谱实验 / Optical & Spectroscopy Experiments (experimental_domain)\n  [P-3004] 激光激发与光谱测量 / Laser Excitation & Spectroscopic Measurement (experimental_scene)\n  [P-3005] 实验室激光光源 / Laboratory Laser Source (device_template_tag)\n  [P-5001] 实验室机器人操作与样品转运 / Laboratory Robotic Manipulation & Sample Transfer (experimental_scene)\n  [P-5002] 光谱传感器 / Spectral Sensor (device_template_tag)\n  [P-5003] 电动定位台 / Motorized Positioning Stage (device_template_tag)\n  [P-5004] 实验扫描数据文件 / Experimental Scan Data File (device_template_tag)\n  [P-5003] 电动定位台 / Motorized Positioning Stage (device_template_tag)\n  [P-5006] 实验装置数字化设计与制造数据 / Digital Design & Manufacturing Data for Experimental Apparatus (experimental_domain)\n  [P-5007] 三维几何建模与STL导出 / 3D Geometry Modeling & STL Export (experimental_scene)\n  [P-5008] STL网格文件写出器 / STL Mesh File Exporter (device_template_tag)\n  [P-5009] Modbus TCP现场设备 / Modbus TCP Field Device (device_template_tag)\n  [P-5010] X射线束线光路与衰减控制 / X-Ray Beamline Optics & Attenuation Control (experimental_scene)\n  [P-5011] 电动固体衰减器 / Motorized Solid Attenuator (device_template_tag)\n  [P-5001] 微孔板样品孵育与混匀 / Microplate Sample Incubation & Mixing (experimental_scene)\n  [P-5002] 微孔板恒温振荡器 / Microplate Thermoshaker (device_template_tag)\n  [P-5003] 微孔板检测与高通量筛选 / Microplate Detection & High-Throughput Screening (experimental_scene)\n  [P-5001] 微孔板样品孵育与混匀 / Microplate Sample Incubation & Mixing (experimental_scene)\n  [P-5002] 微孔板恒温振荡器 / Microplate Thermoshaker (device_template_tag)\n  [P-5004] USB GPIO接口模块 / USB GPIO Interface Module (device_template_tag)\n  [P-5011] 电子器件供电与台架测试 / Electronic Device Powering & Bench Testing (experimental_scene)\n  [P-5005] CAN总线通信记录与离线分析 / CAN Bus Communication Logging & Offline Analysis (experimental_scene)\n  [P-5006] CAN总线日志记录器 / CAN Bus Logger (device_template_tag)\n  [P-5007] 实验室机械臂自动化与样品搬运 / Laboratory Robotic Arm Automation & Sample Handling (experimental_scene)\n  [P-5008] 激光功率/能量计 / Laser Power / Energy Meter (device_template_tag)\n  [P-5009] 激光功率监测与能量校准 / Laser Power Monitoring & Energy Calibration (experimental_scene)\n  [P-5010] 频率响应分析仪 / Frequency Response Analyzer (device_template_tag)\n\n---\nDevices to tag:\n\nDevice: base_julabo\n  name: Julabo 温度循环控制器\n  name_en: Julabo temperature circulator controller\n  manufacturer: JULABO\n  description_zh: JULABO 温度循环控制设备是一类实验室台式液体温控装置，包括加热循环器、制冷/加热循环器、低温紧凑型循环器和再循环冷却器。它通过循环传热液体为外部设备或样品提供稳定的加热、制冷或恒温控制，常用于反应釜、冷凝器、分析仪器和其他需要精确温度管理的实验系统。\n  description_en: JULABO temperature circulation equipment is a family of benchtop liquid temperature control devices, including heating circulators, refrigerated/heating circulators, cryo-compact circulators, and recirculating coolers. They circulate a heat-transfer fluid to provide stable heating, cooling, or constant-temperature control for external equipment or samples, commonly used with reactors, condensers, analytical instruments, and other laboratory systems requiring precise temperature management.\n  tag_hints: ['temperature control', 'liquid circulator', 'recirculating chiller', 'heating circulator', 'refrigerated circulator', 'lab cooling', 'constant temperature bath']\n  actions:\n    - auto-decode: Decode data or messages returned by the device.\n    - auto-write: Send a command to the device.\n    - auto-write_readline: Send a command to the device and read a single-line response.\n\nDevice: base_streamer\n  name: 通用蓝牙流式采集设备\n  name_en: Generic BLE Streaming Acquisition Device\n  manufacturer: \n  description_zh: 一种通用的蓝牙传感器或采集设备，可连续向实验计算机发送测量数据，并作为 LSL 数据流用于同步记录、在线监测和联合实验。适用于生理信号、运动信号或其他实时传感数据的采集。\n  description_en: A generic Bluetooth sensor or acquisition device that continuously sends measurement data to a lab computer and publishes it as an LSL stream for synchronized recording, online monitoring, and multimodal experiments. It is suitable for acquiring biosignals, motion signals, or other real-time sensor data.\n  tag_hints: ['BLE sensing', 'LSL streaming', 'real-time data acquisition', 'wearable biosignals', 'multimodal experiment synchronization', 'sensor data streaming']\n  actions:\n    - auto-start: Start streaming data through the LSL outlet.\n    - auto-stop: Stop or pause streaming through the LSL outlet.\n    - auto-subscriptions: Get the names of the subscribed streams.\n    - auto-send_command: Send a command to the connected device.\n    - auto-backend: Get/set/define the communication backend.\n    - auto-address: Get/set/define the device address.\n    - auto-make_chunk: Generate a chunk of data for streaming.\n\nDevice: basic_serial_instrument\n  name: 串口实验仪器\n  name_en: Serial Laboratory Instrument\n  manufacturer: \n  description_zh: 一种通过串行端口与计算机交换文本命令和响应的通用实验室仪器或控制器。它通常用于接收控制指令、返回测量值或状态信息，并可进行端口发现、通信测试和设备识别。该类设备常见于各类实验室控制器、位移台控制器及其他基于串口通信的仪器。\n  description_en: A general laboratory instrument or controller that exchanges text commands and responses with a computer over a serial port. It is typically used to accept control commands, return measurements or status information, and support port discovery, communication testing, and device identification. Devices of this kind are common among lab controllers, stage controllers, and other serially connected instruments.\n  tag_hints: ['serial communication', 'text command interface', 'lab instrument control', 'device status query', 'serial port autodetection', 'stage controller']\n  actions:\n    - auto-open: Open the serial communication connection to the instrument.\n    - auto-close: Close the serial communication connection to the instrument.\n    - auto-write: Send a text command to the instrument over the serial port.\n    - auto-flush_input_buffer: Clear any pending data from the instrument's serial input buffer.\n    - auto-readline: Read a single line of serial response from the instrument.\n    - auto-read_multiline: Read multiple lines of serial response from the instrument.\n    - auto-query: Send a query command to the instrument and read its response.\n    - auto-parsed_query: Send a query command to the instrument and parse the returned result in a specified format.\n    - auto-int_query: Query the instrument and parse the returned value as an integer.\n    - auto-float_query: Query the instrument and parse the returned value as a floating-point number.\n    - auto-test_communications: Test whether serial communication with the instrument is working correctly.\n    - auto-find_port: Search for and identify the serial port to which the instrument is connected.\n    - auto-communications_lock: get the communication bus access lock state\n    - auto-available: Check whether the device is available.\n    - auto-confirm_available: Confirm that the device is currently available and responsive.\n    - auto-describe: Get a textual description or identification information for the device.\n\nDevice: bi_talino\n  name: BITalino 生理信号采集板\n  name_en: BITalino biosignal acquisition board\n  manufacturer: PLUX Wireless Biosignals\n  description_zh: BITalino 是一款便携式蓝牙生理信号采集设备，提供多路模拟输入通道，可用于采集和传输实验中的生理或其他低频模拟传感器信号。它常用于教学、原型开发和可穿戴生理测量实验。\n  description_en: BITalino is a portable Bluetooth biosignal acquisition device with multiple analog input channels for collecting and streaming physiological or other low-frequency analog sensor signals in laboratory experiments. It is commonly used for teaching, prototyping, and wearable physiology measurements.\n  tag_hints: ['biosignal acquisition', 'Bluetooth Low Energy', 'analog input channels', 'wearable sensing', 'physiology experiments', 'data streaming']\n  actions:\n    - auto-connect: Connect to the BITalino device and subscribe to its live data stream.\n    - auto-disconnect: Stop the data stream and disconnect from the BITalino device.\n    - auto-set_callback: Set a callback function to receive real-time sample data from the device.\n    - auto-start: Configure the sampling rate and channels, then start data acquisition from the device.\n    - auto-stop: Stop data acquisition on the device.\n\nDevice: bimo\n  name: Bimo机器人套件\n  name_en: Bimo Robotics Kit\n  manufacturer: Mekion\n  description_zh: Bimo 是由 Mekion 推出的开源双足机器人套件，配有舵机驱动关节、惯性测量单元、测距传感器与摄像头，并通过主控板进行通信控制。它适用于机器人教学与实验中的姿态估计、运动控制、关节校准、避障感知和视觉数据采集。\n  description_en: Bimo is an open-source bipedal robotics kit by Mekion, with servo-actuated joints, an IMU, distance sensors, and onboard cameras controlled through an MCU. It is used in robotics teaching and laboratory work for posture estimation, motion control, joint calibration, obstacle sensing, and vision data acquisition.\n  tag_hints: ['educational robotics', 'legged robot', 'servo actuation', 'IMU sensing', 'distance sensing', 'robot vision', 'motion control']\n  actions:\n    - auto-initialize: Initialize the robot and optionally calibrate it, returning it to the sitting start posture.\n    - auto-calibrate: Perform interactive calibration of the robot's ankles and servos.\n    - auto-update_imu_offsets: Update the offset parameters of the inertial measurement unit.\n    - auto-init_mcu_comms: Establish communication with the robot's MCU.\n    - auto-request_state_data: Read robot state data, including orientation, distance measurements, servo positions, and servo speeds.\n    - auto-send_positions: Send target joint-angle commands to the robot servos.\n    - auto-calibrate_servos: Calibrate the robot servos.\n    - auto-available: Check whether the robot MCU is ready for use.\n    - auto-port: Get the communication port information for the robot MCU.\n    - auto-init_cameras: Initialize the robot cameras.\n    - auto-capture_image: Capture a single image frame from a robot camera.\n    - auto-scale_value: Scale control values or sensor values according to a given range.\n    - auto-clip_actions: Limit robot joint action angles to the allowed range.\n    - auto-quaternion_to_euler: Convert the robot orientation from quaternion form to Euler angles.\n    - auto-servo2deg: Convert servo readings into joint angles.\n    - auto-deg2servo: Convert target joint angles into servo position values.\n"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_054efe727ed3f6b80069d486111bbc8190b40b9c0304499707",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 27945,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 28266,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_054efe727ed3f6b80069d48615799881908d8476a3e57cc9ac",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_054efe727ed3f6b80069d486d386c48190aea1b08ab61c507f",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"devices\":[{\"device\":\"base_julabo\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备为反应釜、冷凝器等外部实验系统提供稳定加热/制冷，主要服务于实验过程执行。\"},{\"id\":\"4319\",\"name\":\"溶液配制与反应\",\"name_en\":\"Solution Preparation & Reaction\",\"type\":\"experimental_domain\",\"rationale\":\"循环传热液体进行恒温控制，和溶液反应体系中的温度管理直接相关。\"},{\"id\":\"4369\",\"name\":\"冷热水机\",\"name_en\":\"Chiller / Heater Unit\",\"type\":\"device_template_tag\",\"rationale\":\"描述明确包含加热循环器、制冷/加热循环器和再循环冷却器，与冷热水机类模板高度一致。\"}],\"proposed_new_tags\":[{\"id\":\"P-6002\",\"name\":\"外接设备恒温控制\",\"name_en\":\"External Equipment Thermostating\",\"type\":\"experimental_scene\",\"rationale\":\"该控制器核心用途是为反应器、冷凝器和分析仪器等外接设备提供恒温循环配套。\"}]},{\"device\":\"base_streamer\",\"existing_tags\":[{\"id\":\"4316\",\"name\":\"表征设备\",\"name_en\":\"Characterization Equipment\",\"type\":\"experimental_step\",\"rationale\":\"设备持续采集并输出实验测量数据，主要承担信号获取与记录功能。\"},{\"id\":\"4318\",\"name\":\"生命体系\",\"name_en\":\"Life Sciences\",\"type\":\"experimental_domain\",\"rationale\":\"摘要明确提到可用于生理信号与可穿戴相关测量，符合生命科学实验场景。\"},{\"id\":\"P-0001\",\"name\":\"实验室自动化与仪器集成\",\"name_en\":\"Laboratory Automation & Instrument Integration\",\"type\":\"experimental_domain\",\"rationale\":\"设备将蓝牙测量数据发布到实验计算机并接入LSL，体现了实验自动化与多设备集成。\"},{\"id\":\"P-0002\",\"name\":\"实验仪器数据采集与联机控制\",\"name_en\":\"Instrument Data Acquisition & Online Control\",\"type\":\"experimental_scene\",\"rationale\":\"其用途就是同步记录、在线监测和联合实验中的实时数据流采集。\"}],\"proposed_new_tags\":[{\"id\":\"P-6001\",\"name\":\"蓝牙流式采集设备\",\"name_en\":\"Bluetooth Streaming Acquisition Device\",\"type\":\"device_template_tag\",\"rationale\":\"该设备是面向实验实时监测的通用BLE连续流式传感/采集终端，适合作为一类设备模板。\"}]},{\"device\":\"basic_serial_instrument\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该类串口仪器可接收控制命令并驱动实验控制器或执行部件，常参与实验运行过程。\"},{\"id\":\"4316\",\"name\":\"表征设备\",\"name_en\":\"Characterization Equipment\",\"type\":\"experimental_step\",\"rationale\":\"它也会返回测量值和状态信息，具备典型的数据读取与检测接口特征。\"},{\"id\":\"P-0001\",\"name\":\"实验室自动化与仪器集成\",\"name_en\":\"Laboratory Automation & Instrument Integration\",\"type\":\"experimental_domain\",\"rationale\":\"设备以串口方式与计算机联机，支持发现、识别、查询和控制，是典型的实验仪器集成对象。\"},{\"id\":\"P-0002\",\"name\":\"实验仪器数据采集与联机控制\",\"name_en\":\"Instrument Data Acquisition & Online Control\",\"type\":\"experimental_scene\",\"rationale\":\"支持查询测量值、状态读取和在线控制，符合联机采集与控制场景。\"},{\"id\":\"P-0003\",\"name\":\"实验仪器通信与驱动集成\",\"name_en\":\"Instrument Communication & Driver Integration\",\"type\":\"experimental_scene\",\"rationale\":\"其核心能力就是基于文本串口协议进行设备通信、驱动封装和可用性确认。\"},{\"id\":\"P-2013\",\"name\":\"串行仪器通信接口\",\"name_en\":\"Serial Instrument Communication Interface\",\"type\":\"device_template_tag\",\"rationale\":\"设备本质上是通过串行端口收发命令与响应的实验仪器/控制器，和串行仪器通信接口模板直接对应。\"}],\"proposed_new_tags\":[]},{\"device\":\"bi_talino\",\"existing_tags\":[{\"id\":\"4316\",\"name\":\"表征设备\",\"name_en\":\"Characterization Equipment\",\"type\":\"experimental_step\",\"rationale\":\"BITalino用于采集和传输生理及低频传感器信号，属于实验测量与记录设备。\"},{\"id\":\"4318\",\"name\":\"生命体系\",\"name_en\":\"Life Sciences\",\"type\":\"experimental_domain\",\"rationale\":\"摘要明确提到生理信号、可穿戴测量和教学原型开发，符合生命科学相关实验域。\"},{\"id\":\"P-0002\",\"name\":\"实验仪器数据采集与联机控制\",\"name_en\":\"Instrument Data Acquisition & Online Control\",\"type\":\"experimental_scene\",\"rationale\":\"设备可配置采样率和通道并实时回传样本数据，属于在线数据采集场景。\"},{\"id\":\"P-2001\",\"name\":\"模拟输入数据采集模块\",\"name_en\":\"Analog Input Data Acquisition Module\",\"type\":\"device_template_tag\",\"rationale\":\"其关键特征是多路模拟输入采集低频生理/传感器信号，与模拟输入采集模块模板高度相关。\"}],\"proposed_new_tags\":[]},{\"device\":\"bimo\",\"existing_tags\":[{\"id\":\"4317\",\"name\":\"物流/机械\",\"name_en\":\"Logistics / Machinery\",\"type\":\"experimental_step\",\"rationale\":\"Bimo是带舵机关节和主控板的机器人套件，属于机械/机器人实验装置。\"},{\"id\":\"P-0020\",\"name\":\"机器人与移动平台\",\"name_en\":\"Robotics & Mobile Platforms\",\"type\":\"experimental_domain\",\"rationale\":\"该设备是双足机器人平台，直接面向机器人运动控制、姿态估计和感知实验。\"},{\"id\":\"P-0021\",\"name\":\"移动机器人与自动驾驶实验\",\"name_en\":\"Mobile Robotics & Autonomous Vehicle Experiments\",\"type\":\"experimental_scene\",\"rationale\":\"设备涉及运动控制、避障感知和视觉采集，和移动机器人类教学实验有明显重合。\"}],\"proposed_new_tags\":[{\"id\":\"P-6003\",\"name\":\"足式机器人控制与感知实验\",\"name_en\":\"Legged Robot Control & Perception Experiments\",\"type\":\"experimental_scene\",\"rationale\":\"Bimo特有的双足步态、姿态估计、舵机关节控制和障碍感知更贴合足式机器人实验场景。\"},{\"id\":\"P-6004\",\"name\":\"双足机器人套件\",\"name_en\":\"Bipedal Robotics Kit\",\"type\":\"device_template_tag\",\"rationale\":\"该设备是包含舵机、IMU、测距传感器、摄像头和主控通信的开源双足机器人平台，可归为一类通用模板。\"}]}]}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 8716,
+      "input_tokens_details": {
+        "cached_tokens": 7936
+      },
+      "output_tokens": 7162,
+      "output_tokens_details": {
+        "reasoning_tokens": 5597
+      },
+      "total_tokens": 15878
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 8716,
+      "output_token_count": 7162,
+      "predict_time": 239.237002439
+    }
+  },
+  "output_text": "{\"devices\":[{\"device\":\"base_julabo\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该设备为反应釜、冷凝器等外部实验系统提供稳定加热/制冷，主要服务于实验过程执行。\"},{\"id\":\"4319\",\"name\":\"溶液配制与反应\",\"name_en\":\"Solution Preparation & Reaction\",\"type\":\"experimental_domain\",\"rationale\":\"循环传热液体进行恒温控制，和溶液反应体系中的温度管理直接相关。\"},{\"id\":\"4369\",\"name\":\"冷热水机\",\"name_en\":\"Chiller / Heater Unit\",\"type\":\"device_template_tag\",\"rationale\":\"描述明确包含加热循环器、制冷/加热循环器和再循环冷却器，与冷热水机类模板高度一致。\"}],\"proposed_new_tags\":[{\"id\":\"P-6002\",\"name\":\"外接设备恒温控制\",\"name_en\":\"External Equipment Thermostating\",\"type\":\"experimental_scene\",\"rationale\":\"该控制器核心用途是为反应器、冷凝器和分析仪器等外接设备提供恒温循环配套。\"}]},{\"device\":\"base_streamer\",\"existing_tags\":[{\"id\":\"4316\",\"name\":\"表征设备\",\"name_en\":\"Characterization Equipment\",\"type\":\"experimental_step\",\"rationale\":\"设备持续采集并输出实验测量数据，主要承担信号获取与记录功能。\"},{\"id\":\"4318\",\"name\":\"生命体系\",\"name_en\":\"Life Sciences\",\"type\":\"experimental_domain\",\"rationale\":\"摘要明确提到可用于生理信号与可穿戴相关测量，符合生命科学实验场景。\"},{\"id\":\"P-0001\",\"name\":\"实验室自动化与仪器集成\",\"name_en\":\"Laboratory Automation & Instrument Integration\",\"type\":\"experimental_domain\",\"rationale\":\"设备将蓝牙测量数据发布到实验计算机并接入LSL，体现了实验自动化与多设备集成。\"},{\"id\":\"P-0002\",\"name\":\"实验仪器数据采集与联机控制\",\"name_en\":\"Instrument Data Acquisition & Online Control\",\"type\":\"experimental_scene\",\"rationale\":\"其用途就是同步记录、在线监测和联合实验中的实时数据流采集。\"}],\"proposed_new_tags\":[{\"id\":\"P-6001\",\"name\":\"蓝牙流式采集设备\",\"name_en\":\"Bluetooth Streaming Acquisition Device\",\"type\":\"device_template_tag\",\"rationale\":\"该设备是面向实验实时监测的通用BLE连续流式传感/采集终端，适合作为一类设备模板。\"}]},{\"device\":\"basic_serial_instrument\",\"existing_tags\":[{\"id\":\"4313\",\"name\":\"实验执行&合成设备\",\"name_en\":\"Experiment Execution & Synthesis Equipment\",\"type\":\"experimental_step\",\"rationale\":\"该类串口仪器可接收控制命令并驱动实验控制器或执行部件，常参与实验运行过程。\"},{\"id\":\"4316\",\"name\":\"表征设备\",\"name_en\":\"Characterization Equipment\",\"type\":\"experimental_step\",\"rationale\":\"它也会返回测量值和状态信息，具备典型的数据读取与检测接口特征。\"},{\"id\":\"P-0001\",\"name\":\"实验室自动化与仪器集成\",\"name_en\":\"Laboratory Automation & Instrument Integration\",\"type\":\"experimental_domain\",\"rationale\":\"设备以串口方式与计算机联机，支持发现、识别、查询和控制，是典型的实验仪器集成对象。\"},{\"id\":\"P-0002\",\"name\":\"实验仪器数据采集与联机控制\",\"name_en\":\"Instrument Data Acquisition & Online Control\",\"type\":\"experimental_scene\",\"rationale\":\"支持查询测量值、状态读取和在线控制，符合联机采集与控制场景。\"},{\"id\":\"P-0003\",\"name\":\"实验仪器通信与驱动集成\",\"name_en\":\"Instrument Communication & Driver Integration\",\"type\":\"experimental_scene\",\"rationale\":\"其核心能力就是基于文本串口协议进行设备通信、驱动封装和可用性确认。\"},{\"id\":\"P-2013\",\"name\":\"串行仪器通信接口\",\"name_en\":\"Serial Instrument Communication Interface\",\"type\":\"device_template_tag\",\"rationale\":\"设备本质上是通过串行端口收发命令与响应的实验仪器/控制器，和串行仪器通信接口模板直接对应。\"}],\"proposed_new_tags\":[]},{\"device\":\"bi_talino\",\"existing_tags\":[{\"id\":\"4316\",\"name\":\"表征设备\",\"name_en\":\"Characterization Equipment\",\"type\":\"experimental_step\",\"rationale\":\"BITalino用于采集和传输生理及低频传感器信号，属于实验测量与记录设备。\"},{\"id\":\"4318\",\"name\":\"生命体系\",\"name_en\":\"Life Sciences\",\"type\":\"experimental_domain\",\"rationale\":\"摘要明确提到生理信号、可穿戴测量和教学原型开发，符合生命科学相关实验域。\"},{\"id\":\"P-0002\",\"name\":\"实验仪器数据采集与联机控制\",\"name_en\":\"Instrument Data Acquisition & Online Control\",\"type\":\"experimental_scene\",\"rationale\":\"设备可配置采样率和通道并实时回传样本数据，属于在线数据采集场景。\"},{\"id\":\"P-2001\",\"name\":\"模拟输入数据采集模块\",\"name_en\":\"Analog Input Data Acquisition Module\",\"type\":\"device_template_tag\",\"rationale\":\"其关键特征是多路模拟输入采集低频生理/传感器信号，与模拟输入采集模块模板高度相关。\"}],\"proposed_new_tags\":[]},{\"device\":\"bimo\",\"existing_tags\":[{\"id\":\"4317\",\"name\":\"物流/机械\",\"name_en\":\"Logistics / Machinery\",\"type\":\"experimental_step\",\"rationale\":\"Bimo是带舵机关节和主控板的机器人套件，属于机械/机器人实验装置。\"},{\"id\":\"P-0020\",\"name\":\"机器人与移动平台\",\"name_en\":\"Robotics & Mobile Platforms\",\"type\":\"experimental_domain\",\"rationale\":\"该设备是双足机器人平台，直接面向机器人运动控制、姿态估计和感知实验。\"},{\"id\":\"P-0021\",\"name\":\"移动机器人与自动驾驶实验\",\"name_en\":\"Mobile Robotics & Autonomous Vehicle Experiments\",\"type\":\"experimental_scene\",\"rationale\":\"设备涉及运动控制、避障感知和视觉采集，和移动机器人类教学实验有明显重合。\"}],\"proposed_new_tags\":[{\"id\":\"P-6003\",\"name\":\"足式机器人控制与感知实验\",\"name_en\":\"Legged Robot Control & Perception Experiments\",\"type\":\"experimental_scene\",\"rationale\":\"Bimo特有的双足步态、姿态估计、舵机关节控制和障碍感知更贴合足式机器人实验场景。\"},{\"id\":\"P-6004\",\"name\":\"双足机器人套件\",\"name_en\":\"Bipedal Robotics Kit\",\"type\":\"device_template_tag\",\"rationale\":\"该设备是包含舵机、IMU、测距传感器、摄像头和主控通信的开源双足机器人平台，可归为一类通用模板。\"}]}]}"
+}

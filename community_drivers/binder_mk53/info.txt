@@ -1,126 +1,94 @@
-device: binder_mk53
-registry_key: binder_mk53
-device_identity:
-  manufacturer: BINDER GmbH
-  model:
-    name: Binder Mk53
-    type: device
-  name: BINDER GmbH Binder MK 53 climate chamber
-  module_path: unilabos.devices.generic.binder_mk53:binderMK53
-description:
-  text_en: BINDER MK 53 is a dynamic climate chamber used for controlled heating/cooling and temperature-cycling
-    tests on laboratory samples.
-  method: local
-description_evidence:
-  web: []
-  local:
-  - 'registry.description: Binder Mk53是由BINDER GmbH生产的实验执行&合成设备，主要功能包括写入数据、初始化、打开、温度设置、温度读取、读取数据。支持Signal,
-    Slot, get mode等操作。'
-  - Driver class docstring identifies Binder MK 53 climate chamber over RS-422.
-related_tags:
-- id: 4313
-  name: 实验执行&合成设备
-  name_en: Experiment Execution & Synthesis Equipment
-  type: experimental_step
-- id: 4387
-  name: 微生物培养箱
-  name_en: Microbial Incubator
-  type: device_template_tag
-tag_evidence:
-- tag_id: 4313
-  rationale: Device role and actions match experiment execution/control workflows.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-- tag_id: 4387
-  rationale: Chamber behavior and temperature-setpoint control fit incubator-style environmental conditioning.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-init
-  title: init
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Initialize chamber communication and configured safety limits.
-  evidence_source: code_comments
-- name: auto-get_temperature
-  title: get_temperature
-  parameters:
-  - reps
-  command_type: UniLabJsonCommand
-  description_en: Read current chamber temperature with retry attempts.
-  evidence_source: name_params
-- name: auto-get_temperature_target
-  title: get_temperature_target
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read configured temperature setpoint.
-  evidence_source: name_params
-- name: auto-get_door_open
-  title: get_door_open
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read door-open state flag.
-  evidence_source: name_params
-- name: auto-get_mode
-  title: get_mode
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Read active chamber control mode bits and decode mode labels.
-  evidence_source: code
-- name: auto-set_temperature
-  title: set_temperature
-  parameters:
-  - temperature
-  command_type: UniLabJsonCommand
-  description_en: Set manual/basic temperature setpoints after min/max range checks.
-  evidence_source: code_comments
-- name: auto-read
-  title: read
-  parameters:
-  - addr
-  - n_words
-  command_type: UniLabJsonCommand
-  description_en: Read register words from chamber controller.
-  evidence_source: name_params
-- name: auto-write
-  title: write
-  parameters:
-  - addr
-  - value
-  command_type: UniLabJsonCommand
-  description_en: Write register words to chamber controller with response check.
-  evidence_source: name_params
-driver_functions:
-  compact_signatures:
-  - binderMK53.__init__(self, intf, conf) (line 110)
-  - binderMK53.init(self) (line 114)
-  - binderMK53.get_temperature(self, reps) (line 122)
-  - binderMK53.get_temperature_target(self) (line 133)
-  - binderMK53.get_door_open(self) (line 137)
-  - binderMK53.get_mode(self) (line 140)
-  - binderMK53.set_temperature(self, temperature) (line 154)
-  - binderMK53.read(self, addr, n_words) (line 166)
-  - binderMK53.write(self, addr, value) (line 177)
-  - binderMK53._make_read_request(self, addr, n_words) (line 244)
-  - binderMK53._make_write_request(self, addr, words) (line 236)
-  note: Compact signatures retained; action semantics are documented in atom_actions.
-schema_version: v2
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 8
-  driver_function_count: 11
-  related_tag_count: 2
+binder_mk53:
+  name: Binder MK 53 气候箱
+  name_en: Binder MK 53 climate chamber
+  manufacturer: BINDER
+  category:
+  - 气候箱
+  tags:
+  - 实验执行&合成设备
+  - 环境控制与稳定性测试
+  - 气候箱培养与稳定性试验
+  - 气候箱
+  description: Binder MK 53 是一款实验室气候箱/环境试验箱，用于在受控温度条件下放置样品并进行培养、预处理或稳定性测试。该设备具备温度设定与监测功能，并可反馈门状态和运行模式等基本状态信息。
+  description_en: The Binder MK 53 is a laboratory climate chamber used to hold samples
+    under controlled temperature conditions for incubation, conditioning, and stability
+    testing. It supports temperature setpoint control and monitoring, and provides
+    basic status information such as door state and operating mode.
+  class:
+    action_value_mappings:
+      auto-init:
+        schema:
+          description: 初始化气候箱通信与操作地址配置。
+          description_en: Initialize the climate chamber communication and operation
+            address configuration.
+      auto-get_temperature:
+        schema:
+          description: 获取箱体当前温度。
+          description_en: Get the current chamber temperature.
+      auto-get_temperature_target:
+        schema:
+          description: 获取温度设定值。
+          description_en: Get the temperature setpoint.
+      auto-get_door_open:
+        schema:
+          description: 获取箱门是否打开。
+          description_en: Get whether the chamber door is open.
+      auto-get_mode:
+        schema:
+          description: 获取当前运行模式。
+          description_en: Get the current operating mode.
+      auto-set_temperature:
+        schema:
+          description: 设置温度设定值。
+          description_en: Set the temperature setpoint.
+      auto-read:
+        schema:
+          description: 读取设备寄存器数据。
+          description_en: Read device register data.
+      auto-write:
+        schema:
+          description: 写入设备寄存器值。
+          description_en: Write a device register value.
+auto_annotation_metadata:
+  registry_key: binder_mk53
+  annotation_workflow_version: v4
+  tag_hints:
+  - climate chamber
+  - environmental testing
+  - temperature control
+  - sample incubation
+  - stability testing
+  - laboratory oven chamber
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 设备在受控温度条件下对样品进行培养、预处理和稳定性测试，属于实验执行阶段设备。
+  proposed_new_tags:
+  - id: P-9004
+    name: 环境控制与稳定性测试
+    name_en: Environmental Control & Stability Testing
+    type: experimental_domain
+    rationale: 该气候箱通过受控温度环境支持样品调理和稳定性评估，适合归入环境控制与稳定性测试领域。
+  - id: P-9005
+    name: 气候箱培养与稳定性试验
+    name_en: Climate Chamber Incubation & Stability Testing
+    type: experimental_scene
+    rationale: 设备说明明确包括培养、预处理和稳定性测试，都是典型气候箱实验场景。
+  - id: P-9006
+    name: 气候箱
+    name_en: Climate Chamber
+    type: device_template_tag
+    rationale: Binder MK53本身就是具备温度设定、监测和门状态反馈的实验室气候箱。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

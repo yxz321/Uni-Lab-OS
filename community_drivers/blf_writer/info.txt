@@ -1,83 +1,83 @@
-device: blf_writer
-registry_key: blf_writer
-device_identity:
-  manufacturer: Open Source
-  model:
-    name: BLF Writer
-    type: device
-  name: Blf Writer
-  module_path: unilabos.devices.generic.blf_writer:BLFWriter
-description:
-  text_en: A Vector BLF CAN logging writer that records CAN/CAN-FD traffic into Binary Logging Format
-    files for later analysis.
-  method: local
-description_evidence:
-  web: []
-  local:
-  - 'registry.description: BLF Writer是一款实验执行&合成设备，主要功能包括停止、日志记录。支持Signal, Slot, file size等操作。'
-  - Module docstring states BLF is Vector CAN binary logging format and implements log writing.
-related_tags:
-- id: 4316
-  name: 表征设备
-  name_en: Characterization Equipment
-  type: experimental_step
-tag_evidence:
-- tag_id: 4316
-  rationale: Functions are centered on instrument readout, electrical state readback, or data capture
-    for characterization.
-  signals:
-  - registry.category
-  - registry.tags
-  - description
-  - atom_actions
-  - driver_functions
-atom_actions:
-- name: auto-on_message_received
-  title: on_message_received
-  parameters:
-  - msg
-  command_type: UniLabJsonCommand
-  description_en: Encode incoming CAN/CAN-FD message objects into BLF records.
-  evidence_source: code_comments
-- name: auto-log_event
-  title: log_event
-  parameters:
-  - text
-  - timestamp
-  command_type: UniLabJsonCommand
-  description_en: Add a text event marker into the BLF file timeline.
-  evidence_source: docstring
-- name: auto-file_size
-  title: file_size
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Return estimated current BLF file size in bytes.
-  evidence_source: docstring
-- name: auto-stop
-  title: stop
-  parameters: []
-  command_type: UniLabJsonCommand
-  description_en: Flush buffered objects, finalize header, and close writer.
-  evidence_source: docstring
-driver_functions:
-  compact_signatures:
-  - BLFWriter.__init__(self, file, append, channel, compression_level, **kwargs) (line 455)
-  - BLFWriter.on_message_received(self, msg) (line 529)
-  - BLFWriter.log_event(self, text, timestamp) (line 582)
-  - BLFWriter.file_size(self) (line 670)
-  - BLFWriter.stop(self) (line 675)
-  - BLFWriter._add_object(self, obj_type, data, timestamp) (line 604)
-  - BLFWriter._flush(self) (line 636)
-  note: Compact signatures retained; action semantics are documented in atom_actions.
-schema_version: v2
-processing_pass_order:
-- local_evidence_collection
-- action_summary
-- driver_function_summary
-- description_extraction
-- tag_determination
-- final_formatting_validation
-stats:
-  atom_action_count: 4
-  driver_function_count: 7
-  related_tag_count: 1
+blf_writer:
+  name: CAN总线BLF日志记录器
+  name_en: CAN BLF Log Writer
+  manufacturer: ''
+  category:
+  - CAN总线日志记录器
+  tags:
+  - 表征设备
+  - 电子与电气测试
+  - 实验仪器数据采集与联机控制
+  - CAN总线通信记录与离线分析
+  - CAN总线日志记录器
+  description: 用于将CAN总线消息和错误帧记录为BLF（二进制日志）文件的软件记录器，可生成与Vector工具兼容的日志，常用于车辆网络、嵌入式通信和实验台架中的总线数据采集与离线分析。
+  description_en: A software logger that records CAN bus messages and error frames
+    into BLF (Binary Logging File) format, producing logs compatible with Vector tools.
+    It is commonly used for vehicle network testing, embedded communication experiments,
+    and bench-side bus data capture for offline analysis.
+  class:
+    action_value_mappings:
+      auto-on_message_received:
+        schema:
+          description: 将接收到的CAN消息写入BLF日志文件。
+          description_en: Write a received CAN message into the BLF log file.
+      auto-log_event:
+        schema:
+          description: 向BLF日志添加文本事件标记。
+          description_en: Add a text event marker to the BLF log.
+      auto-file_size:
+        schema:
+          description: 获取当前日志文件大小估计值。
+          description_en: Get the estimated current log file size.
+      auto-stop:
+        schema:
+          description: 停止记录并关闭BLF日志文件。
+          description_en: Stop logging and close the BLF log file.
+auto_annotation_metadata:
+  registry_key: blf_writer
+  annotation_workflow_version: v4
+  tag_hints:
+  - CAN bus logging
+  - BLF file format
+  - vehicle network testing
+  - Vector tools compatibility
+  - bus message recording
+  - offline CAN analysis
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该记录器对CAN总线消息和错误帧进行采集记录，属于测试与数据表征环节。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: 设备面向车辆网络和嵌入式通信等电子总线测试场景。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 其核心功能是联机接收总线消息并持续写入日志文件。
+  proposed_new_tags:
+  - id: P-5005
+    name: CAN总线通信记录与离线分析
+    name_en: CAN Bus Communication Logging & Offline Analysis
+    type: experimental_scene
+    rationale: 设备专门用于CAN消息记录、错误帧保存和后续离线分析，现有场景不够具体。
+  - id: P-5006
+    name: CAN总线日志记录器
+    name_en: CAN Bus Logger
+    type: device_template_tag
+    rationale: 该软件记录器的功能边界清晰，适合作为独立的CAN日志记录设备模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review
