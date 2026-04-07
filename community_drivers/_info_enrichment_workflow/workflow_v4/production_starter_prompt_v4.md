@@ -64,15 +64,16 @@ Critical loop rule:
 - append next-cycle TODOs before waiting on subagents
 - append next-cycle TODOs before dispatching the next normal batch
 - append next-cycle TODOs before entering workflow-update mode
-- keep the IDE todo stack in sync with the active next-cycle steps; do not let it go empty while waiting or during workflow-update mode
+- keep the Codex todo manager in sync with the active next-cycle steps; do not let it go empty while waiting or during workflow-update mode
 - do not begin working on the current last TODO unless you have already appended at least one fresh future-cycle TODO after it
 - keep an explicit TODO near the tail whose job is to append more next-cycle TODOs before the tail runs out
+- when the current last task in the Codex todo manager is a dispatch/wait/review step, append at least one newer future-cycle Codex todo-manager task before you start that last task
 
 This rule applies even when no workflow change is needed.
 
 After automatic context compaction:
 - reread `_info_enrichment_workflow/workflow_v4/production_starter_prompt_v4.md` before continuing the autonomous loop
-- then reread the persistent state file and rebuild the IDE todo stack from the current next-cycle actions
+- then reread the persistent state file and rebuild the Codex todo manager from the current next-cycle actions
 
 ## Autonomy and workflow updates
 

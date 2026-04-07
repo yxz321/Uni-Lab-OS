@@ -134,16 +134,17 @@ Control rule:
 - append next-cycle TODOs before waiting on subagents
 - append next-cycle TODOs before dispatching the next normal batch
 - append next-cycle TODOs before entering workflow-update mode
-- keep the IDE todo stack synchronized with those same next-cycle actions so the autonomous loop can resume reliably across turn boundaries
+- keep the Codex todo manager synchronized with those same next-cycle actions so the autonomous loop can resume reliably across turn boundaries
 - do not start work on the current last TODO unless at least one newer future-cycle TODO has already been appended after it
 - keep an explicit tail TODO whose purpose is to append more next-cycle TODOs before the stack runs dry
+- when the current last task in the Codex todo manager is a dispatch/wait/review step, append at least one newer future-cycle Codex todo-manager task before you start that last task
 
 This rule applies whether or not a workflow update is needed.
 
 After automatic context compaction:
 - reread `production_starter_prompt_v4.md`
 - reread `production_state_v4.json`
-- reconstruct the IDE todo stack from the current next-cycle actions before continuing
+- reconstruct the Codex todo manager from the current next-cycle actions before continuing
 
 ## Information priority
 
@@ -314,8 +315,6 @@ Interpretation rule:
   coherent Pass A profile
 - do not web search solely because registry wording looks like a backend or
   wrapper if Pass A already identifies a plausible physical device
-- do not web search solely to fill manufacturer when the device family and
-  description are already coherent; empty manufacturer is acceptable
 - use web search mainly when the physical device identity is still unclear, the
   conflict would change the device family, or the key identity/description
   fields remain too uncertain to trust

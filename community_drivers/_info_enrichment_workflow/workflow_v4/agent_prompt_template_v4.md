@@ -83,7 +83,6 @@ Web search is not triggered by script heuristics. Follow this logic strictly:
 Use this stricter interpretation of the trigger:
 - Do not web search just because registry values differ from Pass A on weak registry fields.
 - Do not web search just because the registry uses backend/wrapper wording but Pass A already identifies a coherent physical device.
-- Do not web search solely to fill manufacturer when the device family and description are already coherent; leaving manufacturer empty is acceptable.
 - Prefer keeping the driver-derived Pass A profile when it is internally consistent and the registry conflict appears to come from weak metadata.
 - Web search is mainly for cases where the physical device identity is still unclear, the conflict changes the device family, or key identity/description fields remain too uncertain to trust.
 

@@ -63,6 +63,10 @@ Versioning rule:
 - Clarified that the todo tail must be self-renewing: append fresh future-cycle
   TODOs before starting the current last TODO, and reread the production
   starter prompt after automatic context compaction.
+- Clarified that these self-renewing TODO rules apply explicitly to the Codex
+  todo manager, not only the persistent JSON TODO queue.
+- Removed the prompt rule that forbade web search solely for empty
+  manufacturer, so manufacturer can again be researched when useful.
 
 ## v3
 
