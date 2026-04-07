@@ -61,14 +61,15 @@ To find current work: read the **last 10-20 entries** of `todo_queue` in the sta
 - You are **NOT done** when you start a long-running command.
 - You are **NOT done** after a short status poll.
 - You are **NOT done** when you see only partial artifacts.
-- You **ARE done** only after: subagent reaches completed/failed **AND** you have reviewed validator output **AND** you have reviewed the batch report.
+- You are **NOT done** after reviewed the bacth report.
+- You **ARE done** only after: subagent reaches completed/failed **AND** you have reviewed the batch report **AND** there is no queued_batches in production_state_v4.json. In **ALL OTHER CASES** continue by either starting the workflow update cycle or start the next batch processing cycle and replace the finished subagent by dispatching a new subagent for the next patch.
 
 Do not emit final completion, declare the task finished, or stop working after dispatching a subagent or starting a long-running command. That is the beginning of the work, not the end.
 
 ### Wait behavior
 
 - Slow API work is normal. Pass A or Pass B may take 10-20 minutes or longer on slow internet.
-- If a `wait_agent` poll times out, treat that as "still running", **not** as completion. Poll again.
+- Increase the `wait_agent` poll timeout to 40min. If a `wait_agent` poll times out, treat that as "still running", **not** as completion. Poll again.
 - If a shell command is quiet, keep polling the session until the process exits or a concrete failure is observed.
 - Do not interrupt quiet runs merely because they are silent.
 - Only react early to **concrete failures**: HTTP/API errors, explicit timeouts, schema failures, missing required output artifacts.
@@ -88,6 +89,8 @@ Normal continuation:
 Workflow-update continuation:
 `wait for completion → read validator → read report → if workflow update needed → enter update cycle → validate change → adopt only if visibly better → dispatch fresh agents`
 
+The cotinuation only finishes until **ALL** devices have been processed and there is no queued_batches in production_state_v4.json.
+
 ## 5. Normal production loop
 
 Follow these steps in order. See `workflow_v4.md` for exact CLI commands.
@@ -98,10 +101,10 @@ Follow these steps in order. See `workflow_v4.md` for exact CLI commands.
 4. **Update state**: set `mode=batch_running`, record `current_batch_id` and `active_agents`
 5. **Append next-cycle TODOs** (self-renewing tail — section 9)
 6. **Dispatch subagent(s)**: number determined by `target_parallelism`
-7. **WAIT** for all subagents to complete (follow wait contract — section 4)
+7. **WAIT** for each subagent to complete (follow wait contract — section 4)
 8. **Review** each completed batch (section 6)
 9. **Update state**: advance `next_device` cursor, update `success_streak` / `target_parallelism`, set `mode=normal_batch_ready`
-10. **Loop** to step 1
+10. **Loop** to step 1 and do not emit final completion unless **ALL** devices have been processed and there is no queued_batches or pending todos in production_state_v4.json.
 
 Batch creation rules:
 - Create each batch under `_info_enrichment_workflow/batches/<batch_id>/`
@@ -180,6 +183,7 @@ Enter the workflow-update cycle if **any one** of the following is true:
 8. Adopt the update **ONLY** if the new result is visibly better
 9. Continue from current `next_device` cursor — do not restart the corpus
 10. Reset `success_streak` to 0 and `target_parallelism` to 1
+11. Continue with new batch production cycle and **DO NOT** emit final completion unless **ALL** devices have been processed and there is no queued_batches or pending todos in production_state_v4.json
 
 ### Scope constraints
 

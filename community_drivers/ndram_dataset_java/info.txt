@@ -1,28 +1,99 @@
-Device: ndram_dataset_java
-Registry Key: ndram_dataset_java
-Short Description: Ndram Dataset Java是由Diamond Light Source生产的专业实验设备。
-
-Categories:
-- 后处理设备
-
-Related Tags (from tag 标签列表.csv):
-- [4314] 后处理设备 / Post-processing Equipment (experimental_step)
-
-Atom Actions (6):
-- auto-add_available_axes -> add_available_axes [UniLabJsonCommand] goal_params: image_coordinates
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-has_image -> has_image [UniLabJsonCommand] goal_params: channel, column, position, row, time, z
-- auto-is_finished -> is_finished [UniLabJsonCommand] goal_params: none
-- auto-read_image -> read_image [UniLabJsonCommand] goal_params: channel, column, position, row, time, z
-- auto-read_metadata -> read_metadata [UniLabJsonCommand] goal_params: channel, column, position, row, time, z
-
-Driver Functions (9):
-- NDRAMDatasetJava.__init__(self, java_RAM_data_storage) (line 80)
-- NDRAMDatasetJava.__del__(self) (line 86)
-- NDRAMDatasetJava.close(self) (line 90)
-- NDRAMDatasetJava.add_available_axes(self, image_coordinates) (line 94)
-- NDRAMDatasetJava.get_image_coordinates_list(self) (line 107)
-- NDRAMDatasetJava.is_finished(self) (line 116)
-- NDRAMDatasetJava.has_image(self, channel, z, time, position, row, column, **kwargs) (line 120)
-- NDRAMDatasetJava.read_image(self, channel, z, time, position, row, column, **kwargs) (line 126)
-- NDRAMDatasetJava.read_metadata(self, channel, z, time, position, row, column, **kwargs) (line 140)
+ndram_dataset_java:
+  name: 内存多维图像数据集存储
+  name_en: In-Memory Multidimensional Image Dataset Storage
+  manufacturer: ''
+  category:
+  - 内存实验项目存储后端
+  - 实验数据集对象
+  tags:
+  - 表征设备
+  - 实验数据管理与记录
+  - 显微成像与光学显微实验
+  - 实验项目数据缓存与临时持久化
+  - 内存实验项目存储后端
+  - 实验数据集对象
+  description: 这是一个用于显微成像采集流程的软件数据存储组件，在 RAM 中保存多维图像及其元数据，并按通道、Z 层、时间点、位置、行列等坐标建立索引，便于实验过程中快速判断图像是否存在、读取图像内容以及读取对应元数据。
+  description_en: This is a software data storage component for microscopy acquisition
+    workflows. It stores multidimensional images and their metadata in RAM and indexes
+    them by coordinates such as channel, z, time, position, row, and column for fast
+    checking, retrieval of image data, and retrieval of metadata during experiments.
+  class:
+    action_value_mappings:
+      auto-close:
+        schema:
+          description: 关闭内存数据集存储
+          description_en: Close the in-memory dataset storage.
+      auto-add_available_axes:
+        schema:
+          description: 登记新图像对应的可用坐标轴组合
+          description_en: Register the available axis-coordinate combination for a
+            newly received image.
+      auto-is_finished:
+        schema:
+          description: 检查数据集写入是否已完成
+          description_en: Check whether dataset writing has finished.
+      auto-has_image:
+        schema:
+          description: 检查指定坐标是否存在图像
+          description_en: Check whether an image exists at the specified coordinates.
+      auto-read_image:
+        schema:
+          description: 读取指定坐标的图像数据
+          description_en: Read image data at the specified coordinates.
+      auto-read_metadata:
+        schema:
+          description: 读取指定坐标的图像元数据
+          description_en: Read image metadata at the specified coordinates.
+auto_annotation_metadata:
+  registry_key: ndram_dataset_java
+  annotation_workflow_version: v4
+  tag_hints:
+  - RAM image storage
+  - multidimensional microscopy datasets
+  - image metadata retrieval
+  - acquisition data indexing
+  - in-memory dataset
+  - coordinate-based image access
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该组件服务于显微成像采集流程中的图像数据存储与读取，支撑表征实验的数据获取环节。
+  - id: P-9103
+    name: 实验数据管理与记录
+    name_en: Experimental Data Management & Logging
+    type: experimental_domain
+    rationale: 其核心职责是在实验过程中保存多维图像及元数据并支持索引访问，属于实验数据管理。
+  - id: P-0006
+    name: 显微成像与光学显微实验
+    name_en: Microscopy Imaging & Optical Microscopy Experiments
+    type: experimental_scene
+    rationale: 描述明确说明该组件用于显微成像采集工作流。
+  - id: P-500101
+    name: 实验项目数据缓存与临时持久化
+    name_en: Experimental Project Data Caching & Temporary Persistence
+    type: experimental_scene
+    rationale: 该组件将数据保存在RAM中并按坐标索引，体现了实验过程中的缓存与临时存储。
+  - id: P-500102
+    name: 内存实验项目存储后端
+    name_en: In-Memory Experimental Project Storage Backend
+    type: device_template_tag
+    rationale: 设备本质是驻留内存的数据存储后端，直接符合内存型实验项目存储模板。
+  - id: P-10002
+    name: 实验数据集对象
+    name_en: Experimental Dataset Object
+    type: device_template_tag
+    rationale: 其对多维图像及元数据进行统一组织和按坐标访问，具有实验数据集对象特征。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

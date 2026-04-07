@@ -1,45 +1,142 @@
-Device: nanonis_tcp
-Registry Key: nanonis_tcp
-Short Description: Nanonis TCP是由Specs Zurich (Nanonis)生产的专业实验设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (15):
-- auto-check_error -> check_error [UniLabJsonCommand] goal_params: error_index, response
-- auto-close_connection -> close_connection [UniLabJsonCommand] goal_params: none
-- auto-float32_to_hex -> float32_to_hex [UniLabJsonCommand] goal_params: f32
-- auto-float64_to_hex -> float64_to_hex [UniLabJsonCommand] goal_params: f64
-- auto-hex_to_float32 -> hex_to_float32 [UniLabJsonCommand] goal_params: h32
-- auto-hex_to_float64 -> hex_to_float64 [UniLabJsonCommand] goal_params: h64
-- auto-hex_to_int16 -> hex_to_int16 [UniLabJsonCommand] goal_params: h16
-- auto-hex_to_int32 -> hex_to_int32 [UniLabJsonCommand] goal_params: h32
-- auto-hex_to_uint16 -> hex_to_uint16 [UniLabJsonCommand] goal_params: h16
-- auto-hex_to_uint32 -> hex_to_uint32 [UniLabJsonCommand] goal_params: h32
-- auto-make_header -> make_header [UniLabJsonCommand] goal_params: body_size, command_name, resp
-- auto-receive_response -> receive_response [UniLabJsonCommand] goal_params: error_index, keep_header
-- auto-send_command -> send_command [UniLabJsonCommand] goal_params: message
-- auto-string_to_hex -> string_to_hex [UniLabJsonCommand] goal_params: string
-- auto-to_hex -> to_hex [UniLabJsonCommand] goal_params: conv, num_bytes
-
-Driver Functions (17):
-- nanonisTCP.__init__(self, IP, PORT, max_buf_size, version) (line 82)
-- nanonisTCP.make_header(self, command_name, body_size, resp) (line 100)
-- nanonisTCP.hex_to_int16(self, h16) (line 123)
-- nanonisTCP.hex_to_uint16(self, h16) (line 127)
-- nanonisTCP.hex_to_int32(self, h32) (line 131)
-- nanonisTCP.hex_to_uint32(self, h32) (line 135)
-- nanonisTCP.hex_to_float64(self, h64) (line 139)
-- nanonisTCP.hex_to_float32(self, h32) (line 144)
-- nanonisTCP.float64_to_hex(self, f64) (line 150)
-- nanonisTCP.float32_to_hex(self, f32) (line 156)
-- nanonisTCP.to_hex(self, conv, num_bytes) (line 162)
-- nanonisTCP.string_to_hex(self, string) (line 167)
-- nanonisTCP.send_command(self, message) (line 171)
-- nanonisTCP.receive_response(self, error_index, keep_header) (line 179)
-- nanonisTCP.check_error(self, response, error_index) (line 203)
-- nanonisTCP.connect(self) (line 252)
-- nanonisTCP.close_connection(self) (line 260)
+nanonis_tcp:
+  name: Nanonis扫描探针显微镜控制器
+  name_en: Nanonis scanning probe microscope controller
+  manufacturer: Nanonis
+  category:
+  - 显微镜自动化控制器
+  - 扫描采集控制模块
+  tags:
+  - 表征设备
+  - 实验室自动化与仪器集成
+  - 智慧表征与检测中心
+  - 实验仪器数据采集与联机控制
+  - 显微镜自动化控制器
+  - 扫描采集控制模块
+  description: 这是一类用于扫描探针显微镜实验的控制器与控制电子学设备，常见于扫描隧道显微镜和原子力显微镜平台。它用于连接主机与显微镜系统，执行实验控制、扫描过程协调以及测量数据交互，适合实验室中的自动化显微测量与仪器联动。
+  description_en: This is a controller and control-electronics unit used in scanning
+    probe microscopy experiments, commonly paired with STM and AFM platforms. It connects
+    the host computer to the microscope system and is used for experiment control,
+    scan coordination, and measurement data exchange in automated laboratory microscopy
+    workflows.
+  class:
+    action_value_mappings:
+      auto-make_header:
+        schema:
+          description: 构造发送到 Nanonis 控制器的 TCP 消息头。
+          description_en: Construct the TCP message header for a command sent to the
+            Nanonis controller.
+      auto-hex_to_int16:
+        schema:
+          description: 将 16 位十六进制数据转换为有符号整数。
+          description_en: Convert 16-bit hexadecimal data to a signed integer.
+      auto-hex_to_uint16:
+        schema:
+          description: 将 16 位十六进制数据转换为无符号整数。
+          description_en: Convert 16-bit hexadecimal data to an unsigned integer.
+      auto-hex_to_int32:
+        schema:
+          description: 将 32 位十六进制数据转换为有符号整数。
+          description_en: Convert 32-bit hexadecimal data to a signed integer.
+      auto-hex_to_uint32:
+        schema:
+          description: 将 32 位十六进制数据转换为无符号整数。
+          description_en: Convert 32-bit hexadecimal data to an unsigned integer.
+      auto-hex_to_float64:
+        schema:
+          description: 将 64 位十六进制数据转换为双精度浮点数。
+          description_en: Convert 64-bit hexadecimal data to a double-precision floating-point
+            value.
+      auto-hex_to_float32:
+        schema:
+          description: 将 32 位十六进制数据转换为单精度浮点数。
+          description_en: Convert 32-bit hexadecimal data to a single-precision floating-point
+            value.
+      auto-float64_to_hex:
+        schema:
+          description: 将双精度浮点数转换为 64 位十六进制数据。
+          description_en: Convert a double-precision floating-point value to 64-bit
+            hexadecimal data.
+      auto-float32_to_hex:
+        schema:
+          description: 将单精度浮点数转换为 32 位十六进制数据。
+          description_en: Convert a single-precision floating-point value to 32-bit
+            hexadecimal data.
+      auto-to_hex:
+        schema:
+          description: 按指定字节长度将数值编码为十六进制数据。
+          description_en: Encode a value as hexadecimal data with the specified byte
+            length.
+      auto-string_to_hex:
+        schema:
+          description: 将字符串编码为十六进制数据。
+          description_en: Encode a string as hexadecimal data.
+      auto-send_command:
+        schema:
+          description: 向 Nanonis 控制器发送 TCP 命令消息。
+          description_en: Send a TCP command message to the Nanonis controller.
+      auto-receive_response:
+        schema:
+          description: 接收 Nanonis 控制器返回的响应数据。
+          description_en: Receive the response data returned by the Nanonis controller.
+      auto-check_error:
+        schema:
+          description: 检查控制器响应中的错误状态与错误信息。
+          description_en: Check the controller response for error status and error
+            messages.
+      auto-close_connection:
+        schema:
+          description: 关闭与 Nanonis 控制器的 TCP 连接。
+          description_en: Close the TCP connection to the Nanonis controller.
+auto_annotation_metadata:
+  registry_key: nanonis_tcp
+  annotation_workflow_version: v4
+  tag_hints:
+  - scanning probe microscopy
+  - SPM controller
+  - STM control
+  - AFM control
+  - instrument control electronics
+  - TCP remote control
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该控制器服务于扫描探针显微镜实验与测量数据交互，属于表征测试系统核心控制设备。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 设备连接主机与显微镜系统并执行自动化控制，符合仪器集成与自动化域。
+  - id: '4325'
+    name: 智慧表征与检测中心
+    name_en: Intelligent Characterization & Testing Center
+    type: experimental_domain
+    rationale: 扫描探针显微镜属于高级表征平台，该控制器用于其自动化测试流程。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 描述明确提到实验控制、扫描过程协调和测量数据交换，符合联机控制场景。
+  - id: P-0007
+    name: 显微镜自动化控制器
+    name_en: Microscope Automation Controller
+    type: device_template_tag
+    rationale: 该设备是显微镜平台的专用控制器，负责与主机联机并执行实验控制。
+  - id: P-9906
+    name: 扫描采集控制模块
+    name_en: Scan Acquisition Control Module
+    type: device_template_tag
+    rationale: 设备承担扫描协调与响应收发功能，和扫描采集控制模块模板相符。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

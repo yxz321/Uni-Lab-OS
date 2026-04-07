@@ -1,24 +1,81 @@
-Device: minipump
-Registry Key: minipump
-Short Description: Miniature Pump是一款注射泵，主要功能包括停止、泵送、读取数据。
-
-Categories:
-- 注射泵
-
-Related Tags (from tag 标签列表.csv):
-- [4413] 注射泵 / Syringe Pump (device_template_tag)
-
-Atom Actions (5):
-- auto-primePump -> primePump [UniLabJsonCommand] goal_params: direction, read, speed, volume
-- auto-read -> read [UniLabJsonCommand] goal_params: none
-- auto-readPump -> readPump [UniLabJsonCommand] goal_params: none
-- auto-runPump -> runPump [UniLabJsonCommand] goal_params: read
-- auto-stopPump -> stopPump [UniLabJsonCommand] goal_params: read
-
-Driver Functions (6):
-- minipump.__init__(self, conf) (line 73)
-- minipump.primePump(self, volume, speed, direction, read) (line 77)
-- minipump.runPump(self, read) (line 90)
-- minipump.stopPump(self, read) (line 95)
-- minipump.readPump(self) (line 100)
-- minipump.read(self) (line 112)
+minipump:
+  name: 微量液体泵
+  name_en: Microfluidic Pump
+  manufacturer: ''
+  category:
+  - 微流控液体泵
+  tags:
+  - 实验执行&合成设备
+  - 溶液配制与反应
+  - 液体输送与定量分配
+  - 微流控液体泵
+  description: 一种用于输送微升级液体的实验室泵，可按设定体积、流速和方向推动液体通过管路。常用于微流控、样品传输、试剂加样和流路预充等实验操作。
+  description_en: A laboratory pump for moving microliter-scale liquids through tubing
+    with defined volume, flow rate, and direction. It is commonly used for microfluidics,
+    sample transfer, reagent delivery, and priming fluid lines.
+  class:
+    action_value_mappings:
+      auto-primePump:
+        schema:
+          description: 按设定体积、流速和方向对泵路进行预充液。
+          description_en: Prime the pump line with the specified volume, flow rate,
+            and direction.
+      auto-runPump:
+        schema:
+          description: 启动液体泵运行。
+          description_en: Start the pump.
+      auto-stopPump:
+        schema:
+          description: 停止液体泵运行。
+          description_en: Stop the pump.
+      auto-readPump:
+        schema:
+          description: 读取液体泵的当前状态或返回信息。
+          description_en: Read the current pump status or returned information.
+      auto-read:
+        schema:
+          description: 读取设备当前返回信息。
+          description_en: Read the current response from the device.
+auto_annotation_metadata:
+  registry_key: minipump
+  annotation_workflow_version: v4
+  tag_hints:
+  - microfluidics
+  - liquid handling
+  - microliter pumping
+  - flow control
+  - sample transfer
+  - line priming
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该泵在实验中执行微升级液体输送、加样和流路预充。
+  - id: '4319'
+    name: 溶液配制与反应
+    name_en: Solution Preparation & Reaction
+    type: experimental_domain
+    rationale: 其用途集中在液体样品和试剂的输送处理，属于溶液体系实验域。
+  - id: P-300006
+    name: 液体输送与定量分配
+    name_en: Liquid Transfer & Metered Dispensing
+    type: experimental_scene
+    rationale: 设备可按设定体积、流速和方向推动液体 through tubing，符合定量输送场景。
+  proposed_new_tags:
+  - id: P-31001
+    name: 微流控液体泵
+    name_en: Microfluidic Liquid Pump
+    type: device_template_tag
+    rationale: 该设备面向微升级液体、管路输送和预充操作，适合作为微流控液体泵这一通用设备模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review
