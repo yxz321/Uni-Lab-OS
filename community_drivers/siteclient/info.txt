@@ -1,43 +1,88 @@
-Device: siteclient
-Registry Key: siteclient
-Short Description: Siteclient是由D-TACQ Solutions生产的专业实验设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (6):
-- auto-build_knobs -> build_knobs [UniLabJsonCommand] goal_params: knobstr
-- auto-get_knob -> get_knob [UniLabJsonCommand] goal_params: name
-- auto-help -> help [UniLabJsonCommand] goal_params: regex
-- auto-set_knob -> set_knob [UniLabJsonCommand] goal_params: name, value
-- auto-sr -> sr [UniLabJsonCommand] goal_params: message
-- auto-synchronized -> synchronized [UniLabJsonCommand] goal_params: f
-
-Driver Functions (24):
-- Netclient.receive_message(self, termex, maxlen) (line 109)
-- Netclient.send(self, message) (line 133)
-- Netclient.has_data(self) (line 138)
-- Netclient.__init__(self, addr, port) (line 145)
-- Netclient.__enter__(self) (line 164)
-- Netclient.close(self) (line 167)
-- Netclient.__exit__(self, exc_type, exc_value, traceback) (line 176)
-- Netclient.addr(self) (line 185)
-- Netclient.port(self) (line 189)
-- Netclient.__repr__(self) (line 192)
-- Netclient.closeall() (line 196)
-- Logclient.__init__(self, addr, port) (line 202)
-- Logclient.poll(self) (line 206)
-- Siteclient.synchronized(f) (line 213)
-- Siteclient.sr(self, message) (line 236)
-- Siteclient.build_knobs(self, knobstr) (line 257)
-- Siteclient.help(self, regex) (line 262)
-- Siteclient.__getattr__(self, name) (line 280)
-- Siteclient.__setattr__(self, name, value) (line 290)
-- Siteclient.get_knob(self, name) (line 303)
-- Siteclient.set_knob(self, name, value) (line 306)
-- Siteclient.__repr__(self) (line 309)
-- Siteclient.__init__(self, addr, port) (line 315)
-- run_unit_test() (line 334)
+siteclient:
+  name: 站点控制网络客户端
+  name_en: Site Control Network Client
+  manufacturer: ''
+  category:
+  - 远程实验控制客户端
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 分布式实验控制与远程过程调用
+  - 远程实验控制客户端
+  description: 用于通过套接字连接实验站点服务并保持会话的非实体软件组件，可发送命令、接收响应，并按“knob”名称查询或设置远程配置项，适合实验控制系统中的远程参数访问与管理。
+  description_en: A non-physical software component that connects to a site service
+    over a socket and keeps the session open. It can send commands, receive replies,
+    and query or set remote configuration items by "knob" name for remote parameter
+    access and management in lab control software.
+  class:
+    action_value_mappings:
+      auto-synchronized:
+        schema:
+          description: 对客户端操作进行同步，避免并发访问同一网络连接时发生冲突。
+          description_en: Synchronize client operations to avoid conflicts when multiple
+            calls access the same network connection concurrently.
+      auto-sr:
+        schema:
+          description: 发送一条命令消息并接收返回响应。
+          description_en: Send a command message and receive the reply.
+      auto-build_knobs:
+        schema:
+          description: 根据提供的 knob 字符串动态构建可访问的参数项。
+          description_en: Dynamically build accessible knob properties from a provided
+            knob string.
+      auto-help:
+        schema:
+          description: 列出可用的 knob 参数项，并可按正则表达式过滤。
+          description_en: List available knob items, optionally filtered by a regular
+            expression.
+      auto-get_knob:
+        schema:
+          description: 读取指定名称的远程 knob 参数值。
+          description_en: Get the value of a named remote knob parameter.
+      auto-set_knob:
+        schema:
+          description: 设置指定名称的远程 knob 参数值。
+          description_en: Set the value of a named remote knob parameter.
+auto_annotation_metadata:
+  registry_key: siteclient
+  annotation_workflow_version: v4
+  tag_hints:
+  - socket client
+  - remote parameter access
+  - knob configuration
+  - lab control software
+  - command-response interface
+  - network session
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该客户端在实验运行中负责与站点服务保持会话并读写远程参数，支撑执行期控制。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它把本地实验控制软件与远程站点控制服务连接起来，属于实验自动化集成。
+  - id: P-500903
+    name: 分布式实验控制与远程过程调用
+    name_en: Distributed Experiment Control & Remote Procedure Calls
+    type: experimental_scene
+    rationale: 其命令发送、响应接收和远程knob查询/设置能力，符合分布式远程控制场景。
+  - id: P-990201
+    name: 远程实验控制客户端
+    name_en: Remote Experiment Control Client
+    type: device_template_tag
+    rationale: 该组件本质上是一个保持网络会话、访问远程配置参数的实验控制客户端。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

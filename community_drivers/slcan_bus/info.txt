@@ -1,37 +1,125 @@
-Device: slcan_bus
-Registry Key: slcan_bus
-Short Description: Slcan BUS是由Open Standard (SLCAN)生产的专业实验设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (10):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-fileno -> fileno [UniLabJsonCommand] goal_params: none
-- auto-flush -> flush [UniLabJsonCommand] goal_params: none
-- auto-get_serial_number -> get_serial_number [UniLabJsonCommand] goal_params: timeout
-- auto-get_version -> get_version [UniLabJsonCommand] goal_params: timeout
-- auto-open -> open [UniLabJsonCommand] goal_params: none
-- auto-send -> send [UniLabJsonCommand] goal_params: msg, timeout
-- auto-set_bitrate -> set_bitrate [UniLabJsonCommand] goal_params: bitrate, data_bitrate
-- auto-set_bitrate_reg -> set_bitrate_reg [UniLabJsonCommand] goal_params: btr
-- auto-shutdown -> shutdown [UniLabJsonCommand] goal_params: none
-
-Driver Functions (14):
-- slcanBus.__init__(self, channel, tty_baudrate, bitrate, timing, sleep_after_open, rtscts, listen_only, timeout, **kwargs) (line 142)
-- slcanBus.set_bitrate(self, bitrate, data_bitrate) (line 238)
-- slcanBus.set_bitrate_reg(self, btr) (line 269)
-- slcanBus._write(self, string) (line 280)
-- slcanBus._read(self, timeout) (line 286)
-- slcanBus.flush(self) (line 308)
-- slcanBus.open(self) (line 314)
-- slcanBus.close(self) (line 321)
-- slcanBus._recv_internal(self, timeout) (line 325)
-- slcanBus.send(self, msg, timeout) (line 409)
-- slcanBus.shutdown(self) (line 440)
-- slcanBus.fileno(self) (line 447)
-- slcanBus.get_version(self, timeout) (line 458)
-- slcanBus.get_serial_number(self, timeout) (line 487)
+slcan_bus:
+  name: SLCAN CAN总线接口
+  name_en: SLCAN CAN Bus Interface
+  manufacturer: ''
+  category:
+  - CAN总线接口适配器
+  - CAN总线接口
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 电子与电气测试
+  - CAN总线设备调试与集成
+  - 实验仪器通信与驱动集成
+  - CAN总线接口适配器
+  - CAN总线接口
+  description: 用于通过兼容 SLCAN 协议的串口/CAN 适配器与 CAN 总线设备通信。可在实验系统中完成总线连接打开与关闭、位速率配置、报文发送，以及读取接口版本和序列号等操作，适合连接和调试各类基于
+    CAN 的实验装置。
+  description_en: A CAN bus interface for communicating with CAN devices through an
+    adapter compatible with the SLCAN protocol. In laboratory setups, it is used to
+    open and close the bus connection, configure bitrate, send frames, and read interface
+    version and serial number for connecting and debugging CAN-based experimental
+    equipment.
+  class:
+    action_value_mappings:
+      auto-set_bitrate:
+        schema:
+          description: 设置 CAN 总线位速率，必要时同时设置 CAN FD 数据位速率。
+          description_en: Set the CAN bus bitrate and optionally the CAN FD data bitrate.
+      auto-set_bitrate_reg:
+        schema:
+          description: 通过 BTR 寄存器值设置自定义 CAN 位时序参数。
+          description_en: Set a custom CAN bit timing configuration using the BTR
+            register value.
+      auto-flush:
+        schema:
+          description: 清空接口缓冲区中的待处理数据。
+          description_en: Flush pending data in the interface buffer.
+      auto-open:
+        schema:
+          description: 打开 SLCAN 接口并建立总线通信连接。
+          description_en: Open the SLCAN interface and establish bus communication.
+      auto-close:
+        schema:
+          description: 关闭 SLCAN 接口连接。
+          description_en: Close the SLCAN interface connection.
+      auto-send:
+        schema:
+          description: 向 CAN 总线发送一帧报文。
+          description_en: Send a message frame onto the CAN bus.
+      auto-shutdown:
+        schema:
+          description: 关闭并停用接口通信会话。
+          description_en: Shut down and deactivate the interface communication session.
+      auto-fileno:
+        schema:
+          description: 获取底层通信句柄的文件描述符。
+          description_en: Get the file descriptor of the underlying communication
+            handle.
+      auto-get_version:
+        schema:
+          description: 读取 SLCAN 接口的硬件版本和软件版本。
+          description_en: Read the hardware and software version of the SLCAN interface.
+      auto-get_serial_number:
+        schema:
+          description: 读取 SLCAN 接口的序列号。
+          description_en: Read the serial number of the SLCAN interface.
+auto_annotation_metadata:
+  registry_key: slcan_bus
+  annotation_workflow_version: v4
+  tag_hints:
+  - CAN bus communication
+  - SLCAN adapter
+  - serial-to-CAN interface
+  - bitrate configuration
+  - CAN frame transmission
+  - interface version query
+  - serial number identification
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该接口在实验运行中负责打开总线、配置位速率和发送CAN报文，属于执行期控制接口。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它用于把实验系统与CAN总线设备接入集成，是典型的自动化通信适配组件。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: CAN总线通信、位速率配置和接口版本查询都常见于电子装置联调与测试场景。
+  - id: P-20004
+    name: CAN总线设备调试与集成
+    name_en: CAN Device Debugging & Integration
+    type: experimental_scene
+    rationale: 描述明确提到用于连接和调试基于CAN的实验装置，直接匹配CAN设备调试与集成。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: SLCAN接口本质上是将串口适配器与CAN设备纳入实验软件驱动体系。
+  - id: P-900104
+    name: CAN总线接口适配器
+    name_en: CAN Bus Interface Adapter
+    type: device_template_tag
+    rationale: 该组件通过SLCAN兼容适配器实现CAN通信，最符合CAN总线接口适配器模板。
+  - id: P-700002
+    name: CAN总线接口
+    name_en: CAN Bus Interface
+    type: device_template_tag
+    rationale: 从功能上看，它直接提供CAN总线打开、关闭、配置和发送功能，也符合CAN总线接口模板。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review
