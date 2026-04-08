@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: triton200\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: labdrivers/oxford/triton200.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.cryogenic.triton200:Triton200\n\nClass: Triton200 (focal)\n  Bases: []\n  Docstring: Create an instance of the Triton200 class.\n\nSupported modes: IP\n\n:param str ip_address: The IP address of the Triton 200.\n:param int port_number: The associated port number of the Triton 200 (default: 33576)\n:param int timeout: How long to wait for a response (default: 10000)\n:param int bytes_to_read: How many bytes to accept from the response (default: 2048)\n\nFocal class methods:\n  [status_getter] temperature_channel(self)\n    comment: :returns str: The temperature channel, either the cernox (5) or the RuO2 (6)\n  [status_setter] temperature_channel(self, value)\n  [status_getter] temperature_setpoint(self)\n  [status_setter] temperature_setpoint(self, value)\n  [status_getter] temperature(self)\n    comment: The temperature reading from the current temperature channel.\n  [command] update_heater(self)\n    comment: Associates the heater with the current temperature channel and changes the heater current to\n        preset values given the temperature set point.\n  [command] controlled_ramp_on(self)\n    comment: Starts a temperature sweep for the current temperature channel.\n  [command] controlled_ramp_off(self)\n    comment: Stops a temperature sweep for the current temperature channel.\n  [command] turbo_on(self)\n    comment: Turns on a turbo pump.\n\n        WARNING: Do not use this unless you know what you are doing.\n  [command] turbo_off(self)\n    comment: Turns off a turbo pump.\n\n        WARNING: Do not use this unless you know what you are doing.\n  [command] query_and_receive(self, command)\n    comment: Queries the Oxford Triton 200 with the given command.\n\n        :param command: Specifies a read/write of a property.\n  [command] extract_value(response, noun, unit)\n\nRegistry actions:\n  auto-controlled_ramp_off (from controlled_ramp_off())\n  auto-controlled_ramp_on (from controlled_ramp_on())\n  auto-query_and_receive (from query_and_receive())\n  auto-temperature_channel (from temperature_channel())\n  auto-temperature_setpoint (from temperature_setpoint())\n  auto-turbo_off (from turbo_off())\n  auto-turbo_on (from turbo_on())\n  auto-update_heater (from update_heater())\n  auto-temperature (from temperature())\n  auto-extract_value (from extract_value())\n\nRequired output action ids:\n  auto-controlled_ramp_off\n  auto-controlled_ramp_on\n  auto-query_and_receive\n  auto-temperature_channel\n  auto-temperature_setpoint\n  auto-turbo_off\n  auto-turbo_on\n  auto-update_heater\n  auto-temperature\n  auto-extract_value"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_05e3ff973d01f1fd0069d568a9e0508197bdfaa56b09b272db",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3732,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5020,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_05e3ff973d01f1fd0069d568aa501c819791278fe5a818d9c6",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_05e3ff973d01f1fd0069d568b3c06081978e1c8a807f0c9f63",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Triton 200低温制冷系统\",\n  \"name_en\": \"Triton 200 Cryogenic Refrigeration System\",\n  \"manufacturer\": \"Oxford Instruments\",\n  \"description\": \"用于超低温实验的Triton 200低温制冷系统，可读取Cernox或RuO2温度通道、设置温度设定值、更新加热器、执行受控升降温，并控制涡轮泵等低温系统部件。\",\n  \"description_en\": \"The Triton 200 is a cryogenic refrigeration system for ultra-low-temperature experiments. It supports reading Cernox or RuO2 temperature channels, setting temperature setpoints, updating heater behavior, running controlled temperature ramps, and controlling subsystems such as a turbo pump.\",\n  \"tag_hints\": [\n    \"cryogenic system\",\n    \"ultra-low temperature\",\n    \"temperature control\",\n    \"dilution refrigerator\",\n    \"heater control\",\n    \"turbo pump\",\n    \"Cernox sensor\",\n    \"RuO2 sensor\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-controlled_ramp_off\",\n      \"description\": \"停止当前温度通道的受控温度扫描。\",\n      \"description_en\": \"Stop a controlled temperature sweep on the current temperature channel.\"\n    },\n    {\n      \"action_name\": \"auto-controlled_ramp_on\",\n      \"description\": \"启动当前温度通道的受控温度扫描。\",\n      \"description_en\": \"Start a controlled temperature sweep on the current temperature channel.\"\n    },\n    {\n      \"action_name\": \"auto-query_and_receive\",\n      \"description\": \"向Triton 200发送原始查询命令并接收响应。\",\n      \"description_en\": \"Send a raw query command to the Triton 200 and receive the response.\"\n    },\n    {\n      \"action_name\": \"auto-temperature_channel\",\n      \"description\": \"获取/设置温度通道（Cernox 5或RuO2 6）。\",\n      \"description_en\": \"Get/set the temperature channel (Cernox 5 or RuO2 6).\"\n    },\n    {\n      \"action_name\": \"auto-temperature_setpoint\",\n      \"description\": \"获取/设置温度设定值。\",\n      \"description_en\": \"Get/set the temperature setpoint.\"\n    },\n    {\n      \"action_name\": \"auto-turbo_off\",\n      \"description\": \"关闭涡轮泵。\",\n      \"description_en\": \"Turn off the turbo pump.\"\n    },\n    {\n      \"action_name\": \"auto-turbo_on\",\n      \"description\": \"开启涡轮泵。\",\n      \"description_en\": \"Turn on the turbo pump.\"\n    },\n    {\n      \"action_name\": \"auto-update_heater\",\n      \"description\": \"将加热器关联到当前温度通道，并按当前温度设定值更新加热电流。\",\n      \"description_en\": \"Associate the heater with the current temperature channel and update the heater current according to the current temperature setpoint.\"\n    },\n    {\n      \"action_name\": \"auto-temperature\",\n      \"description\": \"获取当前温度通道的温度读数。\",\n      \"description_en\": \"Get the temperature reading from the current temperature channel.\"\n    },\n    {\n      \"action_name\": \"auto-extract_value\",\n      \"description\": \"从设备响应中提取指定名词和单位对应的数值。\",\n      \"description_en\": \"Extract the value corresponding to a specified noun and unit from a device response.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1313,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1279,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2592
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1313,
+      "output_token_count": 1279,
+      "predict_time": 19.87135506
+    }
+  },
+  "output_text": "{\n  \"name\": \"Triton 200低温制冷系统\",\n  \"name_en\": \"Triton 200 Cryogenic Refrigeration System\",\n  \"manufacturer\": \"Oxford Instruments\",\n  \"description\": \"用于超低温实验的Triton 200低温制冷系统，可读取Cernox或RuO2温度通道、设置温度设定值、更新加热器、执行受控升降温，并控制涡轮泵等低温系统部件。\",\n  \"description_en\": \"The Triton 200 is a cryogenic refrigeration system for ultra-low-temperature experiments. It supports reading Cernox or RuO2 temperature channels, setting temperature setpoints, updating heater behavior, running controlled temperature ramps, and controlling subsystems such as a turbo pump.\",\n  \"tag_hints\": [\n    \"cryogenic system\",\n    \"ultra-low temperature\",\n    \"temperature control\",\n    \"dilution refrigerator\",\n    \"heater control\",\n    \"turbo pump\",\n    \"Cernox sensor\",\n    \"RuO2 sensor\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-controlled_ramp_off\",\n      \"description\": \"停止当前温度通道的受控温度扫描。\",\n      \"description_en\": \"Stop a controlled temperature sweep on the current temperature channel.\"\n    },\n    {\n      \"action_name\": \"auto-controlled_ramp_on\",\n      \"description\": \"启动当前温度通道的受控温度扫描。\",\n      \"description_en\": \"Start a controlled temperature sweep on the current temperature channel.\"\n    },\n    {\n      \"action_name\": \"auto-query_and_receive\",\n      \"description\": \"向Triton 200发送原始查询命令并接收响应。\",\n      \"description_en\": \"Send a raw query command to the Triton 200 and receive the response.\"\n    },\n    {\n      \"action_name\": \"auto-temperature_channel\",\n      \"description\": \"获取/设置温度通道（Cernox 5或RuO2 6）。\",\n      \"description_en\": \"Get/set the temperature channel (Cernox 5 or RuO2 6).\"\n    },\n    {\n      \"action_name\": \"auto-temperature_setpoint\",\n      \"description\": \"获取/设置温度设定值。\",\n      \"description_en\": \"Get/set the temperature setpoint.\"\n    },\n    {\n      \"action_name\": \"auto-turbo_off\",\n      \"description\": \"关闭涡轮泵。\",\n      \"description_en\": \"Turn off the turbo pump.\"\n    },\n    {\n      \"action_name\": \"auto-turbo_on\",\n      \"description\": \"开启涡轮泵。\",\n      \"description_en\": \"Turn on the turbo pump.\"\n    },\n    {\n      \"action_name\": \"auto-update_heater\",\n      \"description\": \"将加热器关联到当前温度通道，并按当前温度设定值更新加热电流。\",\n      \"description_en\": \"Associate the heater with the current temperature channel and update the heater current according to the current temperature setpoint.\"\n    },\n    {\n      \"action_name\": \"auto-temperature\",\n      \"description\": \"获取当前温度通道的温度读数。\",\n      \"description_en\": \"Get the temperature reading from the current temperature channel.\"\n    },\n    {\n      \"action_name\": \"auto-extract_value\",\n      \"description\": \"从设备响应中提取指定名词和单位对应的数值。\",\n      \"description_en\": \"Extract the value corresponding to a specified noun and unit from a device response.\"\n    }\n  ]\n}"
+}

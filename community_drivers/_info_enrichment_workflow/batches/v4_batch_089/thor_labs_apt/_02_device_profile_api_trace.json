@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: thor_labs_apt\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/thorlabs/thorlabsapt.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.thorlabs_apt.thorlabs_apt:ThorLabsAPT\n\nClass: ThorLabsAPT (focal)\n  Bases: ['_abstract.ThorLabsInstrument']\n  Docstring: Generic ThorLabs APT hardware device controller. Communicates using the\nThorLabs APT communications protocol, whose documentation is found in the\nthorlabs source folder.\n\nClass: APTPiezoDevice \n  Bases: ['ThorLabsAPT']\n  Docstring: Generic ThorLabs APT piezo device, superclass of more specific piezo\ndevices.\n\nClass: APTPiezoInertiaActuator \n  Bases: ['APTPiezoDevice']\n  Docstring: Represent a Thorlabs APT piezo inertia actuator.\n\nCurrently only the KIM piezo inertia actuator is implemented.\nSome routines will work with the TIM actuator as well. Routines\nthat are specific for the KIM101 controller will raise a TypeError\nif not implemented for this controller. Unfortunately, handling all\nthese controller specific functions is fairly messy, but necessary.\n\nExample for a KIM101 controller:\n    >>> import instruments as ik\n    >>> import instruments.units as u\n    >>> # call the controller\n    >>> kim = ik.thorlabs.APTPiezoInertiaActuator.open_serial(\"/dev/ttyUSB0\", baud=115200)\n    >>> # set first channel to enabled\n    >>> ch = kim.channel[0]\n    >>> ch.enabled_single = True\n    >>> # define and set drive parameters\n    >>> max_volts = u.Quantity(110, u.V)\n    >>> step_rate = u.Quantity(1000, 1/u.s)\n    >>> acceleration = u.Quantity(10000, 1/u.s**2)\n    >>> ch.drive_op_parameters = [max_volts, step_rate, acceleration]\n    >>> # aboslute move to 1000 steps\n    >>> ch.move_abs(1000)\n\nClass: APTPiezoStage \n  Bases: ['APTPiezoDevice']\n  Docstring: Class representing a Thorlabs APT piezo stage\n\nClass: APTStrainGaugeReader \n  Bases: ['APTPiezoDevice']\n  Docstring: Class representing a Thorlabs APT strain gauge reader.\n\n.. warning:: This is not currently implemented\n\nClass: APTMotorController \n  Bases: ['ThorLabsAPT']\n  Docstring: Class representing a Thorlabs APT motor controller.\n\n.. note:: A motor model must be selected in order to use unitful\n    distances.\n\nExample:\n    >>> import instruments as ik\n    >>> import instruments.units as u\n\n    >>> # load the controller, a KDC101 cube\n    >>> kdc = ik.thorlabs.APTMotorController.open_serial(\"/dev/ttyUSB0\", baud=115200)\n    >>> # assign a channel to `ch`\n    >>> ch = kdc.channel[0]\n    >>> # select the stage that is connected to the controller\n    >>> ch.motor_model = 'PRM1-Z8'  # a rotation stage\n\n    >>> # home the stage\n    >>> ch.go_home()\n    >>> # move to 52 degrees absolute position\n    >>> ch.move(u.Quantity(52, u.deg))\n    >>> # move 10 degrees back from current position\n    >>> ch.move(u.Quantity(-10, u.deg), absolute=False)\n\nFocal class methods:\n  [status_getter] serial_number(self)\n    comment: Gets the serial number for the APT controller\n\n        :type: `str`\n  [status_getter] model_number(self)\n    comment: Gets the model number for the APT controller\n\n        :type: `str`\n  [status_getter] name(self)\n    comment: Gets the name of the APT controller. This is a human readable string\n        containing the model, serial number, hardware version, and firmware\n        version.\n\n        :type: `str`\n  [status_getter] channel(self)\n    comment: Gets the list of channel objects attached to the APT controller.\n\n        A specific channel object can then be accessed like one would access\n        a list.\n\n        :type: `tuple` of `APTChannel`\n  [status_getter] n_channels(self)\n    comment: Gets/sets the number of channels attached to the APT controller\n\n        :type: `int`\n  [status_setter] n_channels(self, nch)\n    comment: Change the number of channels so as not to modify those instances\n    comment: already existing:\n    comment: If we add more channels, append them to the list,\n    comment: If we remove channels, remove them from the end of the list.\n  [command] identify(self)\n    comment: Causes a light on the APT instrument to blink, so that it can be\n        identified.\n  [status_getter] destination(self)\n    comment: Gets the destination for the APT controller\n\n        :type: `int`\n\nRegistry actions:\n  auto-identify (from identify())\n  auto-n_channels (from n_channels())\n  auto-serial_number (from serial_number())\n  auto-model_number (from model_number())\n  auto-name (from name())\n  auto-channel (from channel())\n  auto-destination (from destination())\n  auto-led_intensity (from led_intensity())\n  auto-enabled_multi (from enabled_multi())\n  auto-enabled (from enabled())\n  auto-max_travel (from max_travel())\n  auto-drive_op_parameters (from drive_op_parameters())\n  auto-enabled_single (from enabled_single())\n  auto-jog_parameters (from jog_parameters())\n  auto-position_count (from position_count())\n  auto-move_abs (from move_abs())\n  auto-move_jog (from move_jog())\n  auto-move_jog_stop (from move_jog_stop())\n  auto-position_control_closed (from position_control_closed())\n  auto-change_position_control_mode (from change_position_control_mode())\n  auto-output_position (from output_position())\n  auto-motion_timeout (from motion_timeout())\n  auto-set_scale (from set_scale())\n  auto-motor_model (from motor_model())\n  auto-backlash_correction (from backlash_correction())\n  auto-home_parameters (from home_parameters())\n  auto-status_bits (from status_bits())\n  auto-position (from position())\n  auto-position_encoder (from position_encoder())\n  auto-go_home (from go_home())\n  auto-move (from move())\n\nRequired output action ids:\n  auto-identify\n  auto-n_channels\n  auto-serial_number\n  auto-model_number\n  auto-name\n  auto-channel\n  auto-destination\n  auto-led_intensity\n  auto-enabled_multi\n  auto-enabled\n  auto-max_travel\n  auto-drive_op_parameters\n  auto-enabled_single\n  auto-jog_parameters\n  auto-position_count\n  auto-move_abs\n  auto-move_jog\n  auto-move_jog_stop\n  auto-position_control_closed\n  auto-change_position_control_mode\n  auto-output_position\n  auto-motion_timeout\n  auto-set_scale\n  auto-motor_model\n  auto-backlash_correction\n  auto-home_parameters\n  auto-status_bits\n  auto-position\n  auto-position_encoder\n  auto-go_home\n  auto-move"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0f2fd43f7375a6040069d566b8ed448190acffc96b14af4839",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7361,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 11454,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0f2fd43f7375a6040069d566b957f481909d25eea115490829",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0f2fd43f7375a6040069d566d145408190a38cc25302d791a6",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"索雷博APT运动与压电控制器\",\n  \"name_en\": \"Thorlabs APT Motion and Piezo Controller\",\n  \"manufacturer\": \"Thorlabs\",\n  \"description\": \"基于APT通信协议的索雷博多通道硬件控制器，用于驱动电机位移台、旋转台、压电台和压电惯性执行器等运动设备。可进行设备识别、通道管理、回零、绝对与相对运动、点动运动，以及位置和控制参数读取与设置。\",\n  \"description_en\": \"A Thorlabs multi-channel hardware controller using the APT communication protocol to drive motion devices such as motorized stages, rotation stages, piezo stages, and piezo inertia actuators. It supports device identification, channel management, homing, absolute and relative moves, jog motion, and reading or setting position and control parameters.\",\n  \"tag_hints\": [\n    \"APT protocol\",\n    \"motion control\",\n    \"piezo actuation\",\n    \"motorized stage\",\n    \"multi-channel controller\",\n    \"homing\",\n    \"position control\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-identify\",\n      \"description\": \"使控制器指示灯闪烁以识别设备。\",\n      \"description_en\": \"Blink the controller indicator so the device can be identified.\"\n    },\n    {\n      \"action_name\": \"auto-n_channels\",\n      \"description\": \"获取/设置通道数量。\",\n      \"description_en\": \"Get/set the number of channels.\"\n    },\n    {\n      \"action_name\": \"auto-serial_number\",\n      \"description\": \"获取序列号。\",\n      \"description_en\": \"Get the serial number.\"\n    },\n    {\n      \"action_name\": \"auto-model_number\",\n      \"description\": \"获取型号编号。\",\n      \"description_en\": \"Get the model number.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取控制器名称。\",\n      \"description_en\": \"Get the controller name.\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取通道对象列表。\",\n      \"description_en\": \"Get the list of channel objects.\"\n    },\n    {\n      \"action_name\": \"auto-destination\",\n      \"description\": \"获取目标地址。\",\n      \"description_en\": \"Get the destination address.\"\n    },\n    {\n      \"action_name\": \"auto-led_intensity\",\n      \"description\": \"获取/设置LED亮度。\",\n      \"description_en\": \"Get/set the LED intensity.\"\n    },\n    {\n      \"action_name\": \"auto-enabled_multi\",\n      \"description\": \"获取/设置多通道使能状态。\",\n      \"description_en\": \"Get/set the multi-channel enable state.\"\n    },\n    {\n      \"action_name\": \"auto-enabled\",\n      \"description\": \"获取/设置使能状态。\",\n      \"description_en\": \"Get/set the enabled state.\"\n    },\n    {\n      \"action_name\": \"auto-max_travel\",\n      \"description\": \"获取/设置最大行程。\",\n      \"description_en\": \"Get/set the maximum travel.\"\n    },\n    {\n      \"action_name\": \"auto-drive_op_parameters\",\n      \"description\": \"获取/设置驱动运行参数。\",\n      \"description_en\": \"Get/set the drive operating parameters.\"\n    },\n    {\n      \"action_name\": \"auto-enabled_single\",\n      \"description\": \"获取/设置单通道使能状态。\",\n      \"description_en\": \"Get/set the single-channel enable state.\"\n    },\n    {\n      \"action_name\": \"auto-jog_parameters\",\n      \"description\": \"获取/设置点动参数。\",\n      \"description_en\": \"Get/set the jog parameters.\"\n    },\n    {\n      \"action_name\": \"auto-position_count\",\n      \"description\": \"获取位置计数值。\",\n      \"description_en\": \"Get the position count.\"\n    },\n    {\n      \"action_name\": \"auto-move_abs\",\n      \"description\": \"移动到绝对计数位置。\",\n      \"description_en\": \"Move to an absolute count position.\"\n    },\n    {\n      \"action_name\": \"auto-move_jog\",\n      \"description\": \"执行点动运动。\",\n      \"description_en\": \"Perform a jog move.\"\n    },\n    {\n      \"action_name\": \"auto-move_jog_stop\",\n      \"description\": \"停止点动运动。\",\n      \"description_en\": \"Stop jog motion.\"\n    },\n    {\n      \"action_name\": \"auto-position_control_closed\",\n      \"description\": \"获取/设置闭环位置控制状态。\",\n      \"description_en\": \"Get/set the closed-loop position control state.\"\n    },\n    {\n      \"action_name\": \"auto-change_position_control_mode\",\n      \"description\": \"切换位置控制模式。\",\n      \"description_en\": \"Change the position control mode.\"\n    },\n    {\n      \"action_name\": \"auto-output_position\",\n      \"description\": \"获取/设置输出位置。\",\n      \"description_en\": \"Get/set the output position.\"\n    },\n    {\n      \"action_name\": \"auto-motion_timeout\",\n      \"description\": \"获取/设置运动超时时间。\",\n      \"description_en\": \"Get/set the motion timeout.\"\n    },\n    {\n      \"action_name\": \"auto-set_scale\",\n      \"description\": \"定义运动刻度转换。\",\n      \"description_en\": \"Define the motion scale conversion.\"\n    },\n    {\n      \"action_name\": \"auto-motor_model\",\n      \"description\": \"获取/设置电机或平台型号。\",\n      \"description_en\": \"Get/set the motor or stage model.\"\n    },\n    {\n      \"action_name\": \"auto-backlash_correction\",\n      \"description\": \"获取/设置反向间隙补偿。\",\n      \"description_en\": \"Get/set the backlash correction.\"\n    },\n    {\n      \"action_name\": \"auto-home_parameters\",\n      \"description\": \"获取/设置回零参数。\",\n      \"description_en\": \"Get/set the homing parameters.\"\n    },\n    {\n      \"action_name\": \"auto-status_bits\",\n      \"description\": \"获取状态位。\",\n      \"description_en\": \"Get the status bits.\"\n    },\n    {\n      \"action_name\": \"auto-position\",\n      \"description\": \"获取当前位置。\",\n      \"description_en\": \"Get the current position.\"\n    },\n    {\n      \"action_name\": \"auto-position_encoder\",\n      \"description\": \"获取编码器位置。\",\n      \"description_en\": \"Get the encoder position.\"\n    },\n    {\n      \"action_name\": \"auto-go_home\",\n      \"description\": \"执行回零。\",\n      \"description_en\": \"Home the axis or stage.\"\n    },\n    {\n      \"action_name\": \"auto-move\",\n      \"description\": \"执行绝对或相对移动。\",\n      \"description_en\": \"Move to an absolute or relative position.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2225,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2800,
+      "output_tokens_details": {
+        "reasoning_tokens": 1347
+      },
+      "total_tokens": 5025
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2225,
+      "output_token_count": 2800,
+      "predict_time": 44.670913105
+    }
+  },
+  "output_text": "{\n  \"name\": \"索雷博APT运动与压电控制器\",\n  \"name_en\": \"Thorlabs APT Motion and Piezo Controller\",\n  \"manufacturer\": \"Thorlabs\",\n  \"description\": \"基于APT通信协议的索雷博多通道硬件控制器，用于驱动电机位移台、旋转台、压电台和压电惯性执行器等运动设备。可进行设备识别、通道管理、回零、绝对与相对运动、点动运动，以及位置和控制参数读取与设置。\",\n  \"description_en\": \"A Thorlabs multi-channel hardware controller using the APT communication protocol to drive motion devices such as motorized stages, rotation stages, piezo stages, and piezo inertia actuators. It supports device identification, channel management, homing, absolute and relative moves, jog motion, and reading or setting position and control parameters.\",\n  \"tag_hints\": [\n    \"APT protocol\",\n    \"motion control\",\n    \"piezo actuation\",\n    \"motorized stage\",\n    \"multi-channel controller\",\n    \"homing\",\n    \"position control\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-identify\",\n      \"description\": \"使控制器指示灯闪烁以识别设备。\",\n      \"description_en\": \"Blink the controller indicator so the device can be identified.\"\n    },\n    {\n      \"action_name\": \"auto-n_channels\",\n      \"description\": \"获取/设置通道数量。\",\n      \"description_en\": \"Get/set the number of channels.\"\n    },\n    {\n      \"action_name\": \"auto-serial_number\",\n      \"description\": \"获取序列号。\",\n      \"description_en\": \"Get the serial number.\"\n    },\n    {\n      \"action_name\": \"auto-model_number\",\n      \"description\": \"获取型号编号。\",\n      \"description_en\": \"Get the model number.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取控制器名称。\",\n      \"description_en\": \"Get the controller name.\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取通道对象列表。\",\n      \"description_en\": \"Get the list of channel objects.\"\n    },\n    {\n      \"action_name\": \"auto-destination\",\n      \"description\": \"获取目标地址。\",\n      \"description_en\": \"Get the destination address.\"\n    },\n    {\n      \"action_name\": \"auto-led_intensity\",\n      \"description\": \"获取/设置LED亮度。\",\n      \"description_en\": \"Get/set the LED intensity.\"\n    },\n    {\n      \"action_name\": \"auto-enabled_multi\",\n      \"description\": \"获取/设置多通道使能状态。\",\n      \"description_en\": \"Get/set the multi-channel enable state.\"\n    },\n    {\n      \"action_name\": \"auto-enabled\",\n      \"description\": \"获取/设置使能状态。\",\n      \"description_en\": \"Get/set the enabled state.\"\n    },\n    {\n      \"action_name\": \"auto-max_travel\",\n      \"description\": \"获取/设置最大行程。\",\n      \"description_en\": \"Get/set the maximum travel.\"\n    },\n    {\n      \"action_name\": \"auto-drive_op_parameters\",\n      \"description\": \"获取/设置驱动运行参数。\",\n      \"description_en\": \"Get/set the drive operating parameters.\"\n    },\n    {\n      \"action_name\": \"auto-enabled_single\",\n      \"description\": \"获取/设置单通道使能状态。\",\n      \"description_en\": \"Get/set the single-channel enable state.\"\n    },\n    {\n      \"action_name\": \"auto-jog_parameters\",\n      \"description\": \"获取/设置点动参数。\",\n      \"description_en\": \"Get/set the jog parameters.\"\n    },\n    {\n      \"action_name\": \"auto-position_count\",\n      \"description\": \"获取位置计数值。\",\n      \"description_en\": \"Get the position count.\"\n    },\n    {\n      \"action_name\": \"auto-move_abs\",\n      \"description\": \"移动到绝对计数位置。\",\n      \"description_en\": \"Move to an absolute count position.\"\n    },\n    {\n      \"action_name\": \"auto-move_jog\",\n      \"description\": \"执行点动运动。\",\n      \"description_en\": \"Perform a jog move.\"\n    },\n    {\n      \"action_name\": \"auto-move_jog_stop\",\n      \"description\": \"停止点动运动。\",\n      \"description_en\": \"Stop jog motion.\"\n    },\n    {\n      \"action_name\": \"auto-position_control_closed\",\n      \"description\": \"获取/设置闭环位置控制状态。\",\n      \"description_en\": \"Get/set the closed-loop position control state.\"\n    },\n    {\n      \"action_name\": \"auto-change_position_control_mode\",\n      \"description\": \"切换位置控制模式。\",\n      \"description_en\": \"Change the position control mode.\"\n    },\n    {\n      \"action_name\": \"auto-output_position\",\n      \"description\": \"获取/设置输出位置。\",\n      \"description_en\": \"Get/set the output position.\"\n    },\n    {\n      \"action_name\": \"auto-motion_timeout\",\n      \"description\": \"获取/设置运动超时时间。\",\n      \"description_en\": \"Get/set the motion timeout.\"\n    },\n    {\n      \"action_name\": \"auto-set_scale\",\n      \"description\": \"定义运动刻度转换。\",\n      \"description_en\": \"Define the motion scale conversion.\"\n    },\n    {\n      \"action_name\": \"auto-motor_model\",\n      \"description\": \"获取/设置电机或平台型号。\",\n      \"description_en\": \"Get/set the motor or stage model.\"\n    },\n    {\n      \"action_name\": \"auto-backlash_correction\",\n      \"description\": \"获取/设置反向间隙补偿。\",\n      \"description_en\": \"Get/set the backlash correction.\"\n    },\n    {\n      \"action_name\": \"auto-home_parameters\",\n      \"description\": \"获取/设置回零参数。\",\n      \"description_en\": \"Get/set the homing parameters.\"\n    },\n    {\n      \"action_name\": \"auto-status_bits\",\n      \"description\": \"获取状态位。\",\n      \"description_en\": \"Get the status bits.\"\n    },\n    {\n      \"action_name\": \"auto-position\",\n      \"description\": \"获取当前位置。\",\n      \"description_en\": \"Get the current position.\"\n    },\n    {\n      \"action_name\": \"auto-position_encoder\",\n      \"description\": \"获取编码器位置。\",\n      \"description_en\": \"Get the encoder position.\"\n    },\n    {\n      \"action_name\": \"auto-go_home\",\n      \"description\": \"执行回零。\",\n      \"description_en\": \"Home the axis or stage.\"\n    },\n    {\n      \"action_name\": \"auto-move\",\n      \"description\": \"执行绝对或相对移动。\",\n      \"description_en\": \"Move to an absolute or relative position.\"\n    }\n  ]\n}"
+}

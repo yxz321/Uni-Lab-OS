@@ -1,38 +1,112 @@
-Device: tomato_jumo__device
-Registry Key: tomato_jumo__device
-Short Description: Device
-
-Categories:
-- universal
-- temperature_controller
-
-Related Tags (from tag 标签列表.csv):
-- (none matched by category)
-
-Atom Actions (7):
-- auto-attrs -> attrs [UniLabJsonCommand] goal_params: none
-- auto-capabilities -> capabilities [UniLabJsonCommand] goal_params: none
-- auto-do_measure -> do_measure [UniLabJsonCommand] goal_params: none
-- auto-prepare_task -> prepare_task [UniLabJsonCommand] goal_params: task
-- auto-reset -> reset [UniLabJsonCommand] goal_params: none
-- auto-set_attr -> set_attr [UniLabJsonCommand] goal_params: attr, val
-- auto-stop_task -> stop_task [UniLabJsonCommand] goal_params: none
-
-Driver Functions (17):
-- modbus_delay(func) (line 109)
-- modbus_retry(func) (line 120)
-- DriverInterface.DeviceFactory(self, key, **kwargs) (line 138)
-- Device.temperature(self) (line 167)
-- Device.setpoint(self) (line 179)
-- Device.duty_cycle(self) (line 198)
-- Device.heater_on(self) (line 210)
-- Device.__init__(self, driver, key, **kwargs) (line 222)
-- Device.attrs(self, **kwargs) (line 249)
-- Device.set_attr(self, attr, val, **kwargs) (line 287)
-- Device.get_attr(self, attr, **kwargs) (line 308)
-- Device.capabilities(self, **kwargs) (line 314)
-- Device.do_measure(self, **kwargs) (line 319)
-- Device.prepare_task(self, task, **kwargs) (line 340)
-- Device.stop_task(self, **kwargs) (line 351)
-- Device.reset(self, **kwargs) (line 358)
-- Device._temperature_ramp(self) (line 367)
+tomato_jumo__device:
+  name: JUMO Quantrol温度控制器
+  name_en: JUMO Quantrol Temperature Controller
+  manufacturer: JUMO
+  category:
+  - 温度控制器
+  - PID过程控制器
+  tags:
+  - 实验执行&合成设备
+  - 环境控制与稳定性测试
+  - 过程控制与工业仪表实验
+  - 外接设备恒温控制
+  - 热管理与温升监测
+  - 温度控制器
+  - PID过程控制器
+  description: 用于实验室温度调节与监测的温度控制器，可读取当前温度、设定值、加热输出占空比和加热器开关状态，并支持任务准备、测量、停止和复位等控制操作。
+  description_en: A temperature controller for laboratory temperature regulation and
+    monitoring. It can read the current temperature, setpoint, heater output duty
+    cycle, and heater on/off state, and supports task preparation, measurement, stopping,
+    and reset operations.
+  class:
+    action_value_mappings:
+      auto-attrs:
+        schema:
+          description: 返回该温度控制器可用属性的字典。
+          description_en: Return a dictionary of available attributes for the temperature
+            controller.
+      auto-set_attr:
+        schema:
+          description: 设置或定义该温度控制器的属性值。
+          description_en: Set or define an attribute value of the temperature controller.
+      auto-capabilities:
+        schema:
+          description: 返回该温度控制器支持的功能与能力信息。
+          description_en: Return the supported functions and capabilities of the temperature
+            controller.
+      auto-do_measure:
+        schema:
+          description: 执行一次测量或状态采集，获取温度控制器的当前读数。
+          description_en: Perform a measurement or status acquisition to obtain current
+            readings from the temperature controller.
+      auto-prepare_task:
+        schema:
+          description: 为温度控制任务或实验步骤进行准备。
+          description_en: Prepare a temperature control task or experimental step.
+      auto-stop_task:
+        schema:
+          description: 停止当前温度控制任务或相关操作。
+          description_en: Stop the current temperature control task or related operation.
+      auto-reset:
+        schema:
+          description: 复位温度控制器。
+          description_en: Reset the temperature controller.
+auto_annotation_metadata:
+  registry_key: tomato_jumo__device
+  annotation_workflow_version: v4
+  tag_hints:
+  - temperature control
+  - process temperature monitoring
+  - setpoint control
+  - heater duty cycle
+  - heater on/off status
+  - PID temperature controller
+  - JUMO Quantrol
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该设备负责实验过程中的温度调节与控制，属于实验执行阶段的过程控制设备。
+  - id: P-9004
+    name: 环境控制与稳定性测试
+    name_en: Environmental Control & Stability Testing
+    type: experimental_domain
+    rationale: 设备用于温度调节与监测，符合环境控制与稳定性保障相关领域。
+  - id: P-0040
+    name: 过程控制与工业仪表实验
+    name_en: Process Control & Industrial Instrumentation
+    type: experimental_domain
+    rationale: JUMO Quantrol 具备设定值、加热输出和复位控制，属于典型过程控制仪表。
+  - id: P-6002
+    name: 外接设备恒温控制
+    name_en: External Equipment Thermostating
+    type: experimental_scene
+    rationale: 该控制器用于实验装置的恒温控制和任务准备，直接对应外接设备恒温场景。
+  - id: P-0202
+    name: 热管理与温升监测
+    name_en: Thermal Management & Temperature Rise Monitoring
+    type: experimental_scene
+    rationale: 设备可读取当前温度、设定值和加热占空比，适用于热管理闭环监测。
+  - id: P-90001
+    name: 温度控制器
+    name_en: Temperature Controller
+    type: device_template_tag
+    rationale: 设备名称和功能均表明其本质就是实验温度控制器。
+  - id: P-11003
+    name: PID过程控制器
+    name_en: PID Process Controller
+    type: device_template_tag
+    rationale: 具有设定值控制、加热输出和状态监测特征，符合 PID 过程控制器范畴。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

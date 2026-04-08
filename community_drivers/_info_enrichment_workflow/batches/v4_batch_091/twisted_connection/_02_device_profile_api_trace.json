@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: twisted_connection\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: labrad/backend.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.common.twisted_connection:TwistedConnection\n\nClass: TwistedConnection (focal)\n  Bases: ['object']\n\nClass: ManagerService \n  Bases: []\n  Docstring: Wraps a backend connection to provide a basic synchronous interface to the Manager.\n\nFocal class methods:\n  [status_getter] connected(self)\n  [command] disconnect(self)\n    comment: Wait for the connected flag to go False.\n  [command] spawn(self, timeout=C.TIMEOUT)\n    comment: Start a new independent backend connection to the same manager.\n  [command] context(self)\n    comment: Create a new context for use with this connection\n  [command] sendRequest(self, target, records, *args, **kw)\n  [command] sendMessage(self, target, records, *args, **kw)\n\nRegistry actions:\n  auto-disconnect (from disconnect())\n  auto-spawn (from spawn())\n  auto-context (from context())\n  auto-sendRequest (from sendRequest())\n  auto-sendMessage (from sendMessage())\n  auto-connected (from connected())\n  auto-getServersList (from getServersList())\n  auto-getServerInfo (from getServerInfo())\n  auto-getSettingsList (from getSettingsList())\n  auto-getSettingInfo (from getSettingInfo())\n  auto-getSettingInfoByName (from getSettingInfoByName())\n\nRequired output action ids:\n  auto-disconnect\n  auto-spawn\n  auto-context\n  auto-sendRequest\n  auto-sendMessage\n  auto-connected\n  auto-getServersList\n  auto-getServerInfo\n  auto-getSettingsList\n  auto-getSettingInfo\n  auto-getSettingInfoByName"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0cef0a343dc6a3c20069d568c7b1a481958a735423e36ea247",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1802,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5229,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0cef0a343dc6a3c20069d568c827f08195be871b958a31e265",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0cef0a343dc6a3c20069d568d229548195badb635bfa14b15f",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"LabRAD Twisted连接组件\",\n  \"name_en\": \"LabRAD Twisted Connection Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件连接组件，用于与LabRAD管理器建立和维护同步连接、派生新连接、创建通信上下文，并向目标服务发送请求或消息。它主要用于实验控制软件中的服务发现、设置查询和进程间通信，而不是直接控制某台实体仪器。\",\n  \"description_en\": \"A non-physical software connection component for establishing and maintaining a synchronous connection to a LabRAD manager, spawning new connections, creating communication contexts, and sending requests or messages to target services. It is mainly used for service discovery, setting inspection, and inter-process communication in lab automation software, rather than for direct control of a physical instrument.\",\n  \"tag_hints\": [\n    \"LabRAD manager connection\",\n    \"Twisted networking\",\n    \"service discovery\",\n    \"request messaging\",\n    \"experiment control software\",\n    \"context management\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开与LabRAD管理器的连接。\",\n      \"description_en\": \"Disconnect from the LabRAD manager.\"\n    },\n    {\n      \"action_name\": \"auto-spawn\",\n      \"description\": \"派生一个连接到同一管理器的新独立连接。\",\n      \"description_en\": \"Spawn a new independent connection to the same manager.\"\n    },\n    {\n      \"action_name\": \"auto-context\",\n      \"description\": \"创建一个用于该连接的通信上下文。\",\n      \"description_en\": \"Create a communication context for this connection.\"\n    },\n    {\n      \"action_name\": \"auto-sendRequest\",\n      \"description\": \"向目标服务发送请求记录并等待响应。\",\n      \"description_en\": \"Send request records to a target service and wait for a response.\"\n    },\n    {\n      \"action_name\": \"auto-sendMessage\",\n      \"description\": \"向目标服务发送消息记录。\",\n      \"description_en\": \"Send message records to a target service.\"\n    },\n    {\n      \"action_name\": \"auto-connected\",\n      \"description\": \"获取连接状态。\",\n      \"description_en\": \"get connection status\"\n    },\n    {\n      \"action_name\": \"auto-getServersList\",\n      \"description\": \"获取管理器中可用服务列表。\",\n      \"description_en\": \"Get the list of available services from the manager.\"\n    },\n    {\n      \"action_name\": \"auto-getServerInfo\",\n      \"description\": \"获取指定服务的信息。\",\n      \"description_en\": \"Get information about a specified service.\"\n    },\n    {\n      \"action_name\": \"auto-getSettingsList\",\n      \"description\": \"获取指定服务的设置列表。\",\n      \"description_en\": \"Get the list of settings for a specified service.\"\n    },\n    {\n      \"action_name\": \"auto-getSettingInfo\",\n      \"description\": \"获取指定设置的信息。\",\n      \"description_en\": \"Get information about a specified setting.\"\n    },\n    {\n      \"action_name\": \"auto-getSettingInfoByName\",\n      \"description\": \"按名称获取指定设置的信息。\",\n      \"description_en\": \"Get information about a specified setting by name.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1062,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1208,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2270
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1062,
+      "output_token_count": 1208,
+      "predict_time": 20.043546142
+    }
+  },
+  "output_text": "{\n  \"name\": \"LabRAD Twisted连接组件\",\n  \"name_en\": \"LabRAD Twisted Connection Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件连接组件，用于与LabRAD管理器建立和维护同步连接、派生新连接、创建通信上下文，并向目标服务发送请求或消息。它主要用于实验控制软件中的服务发现、设置查询和进程间通信，而不是直接控制某台实体仪器。\",\n  \"description_en\": \"A non-physical software connection component for establishing and maintaining a synchronous connection to a LabRAD manager, spawning new connections, creating communication contexts, and sending requests or messages to target services. It is mainly used for service discovery, setting inspection, and inter-process communication in lab automation software, rather than for direct control of a physical instrument.\",\n  \"tag_hints\": [\n    \"LabRAD manager connection\",\n    \"Twisted networking\",\n    \"service discovery\",\n    \"request messaging\",\n    \"experiment control software\",\n    \"context management\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开与LabRAD管理器的连接。\",\n      \"description_en\": \"Disconnect from the LabRAD manager.\"\n    },\n    {\n      \"action_name\": \"auto-spawn\",\n      \"description\": \"派生一个连接到同一管理器的新独立连接。\",\n      \"description_en\": \"Spawn a new independent connection to the same manager.\"\n    },\n    {\n      \"action_name\": \"auto-context\",\n      \"description\": \"创建一个用于该连接的通信上下文。\",\n      \"description_en\": \"Create a communication context for this connection.\"\n    },\n    {\n      \"action_name\": \"auto-sendRequest\",\n      \"description\": \"向目标服务发送请求记录并等待响应。\",\n      \"description_en\": \"Send request records to a target service and wait for a response.\"\n    },\n    {\n      \"action_name\": \"auto-sendMessage\",\n      \"description\": \"向目标服务发送消息记录。\",\n      \"description_en\": \"Send message records to a target service.\"\n    },\n    {\n      \"action_name\": \"auto-connected\",\n      \"description\": \"获取连接状态。\",\n      \"description_en\": \"get connection status\"\n    },\n    {\n      \"action_name\": \"auto-getServersList\",\n      \"description\": \"获取管理器中可用服务列表。\",\n      \"description_en\": \"Get the list of available services from the manager.\"\n    },\n    {\n      \"action_name\": \"auto-getServerInfo\",\n      \"description\": \"获取指定服务的信息。\",\n      \"description_en\": \"Get information about a specified service.\"\n    },\n    {\n      \"action_name\": \"auto-getSettingsList\",\n      \"description\": \"获取指定服务的设置列表。\",\n      \"description_en\": \"Get the list of settings for a specified service.\"\n    },\n    {\n      \"action_name\": \"auto-getSettingInfo\",\n      \"description\": \"获取指定设置的信息。\",\n      \"description_en\": \"Get information about a specified setting.\"\n    },\n    {\n      \"action_name\": \"auto-getSettingInfoByName\",\n      \"description\": \"按名称获取指定设置的信息。\",\n      \"description_en\": \"Get information about a specified setting by name.\"\n    }\n  ]\n}"
+}

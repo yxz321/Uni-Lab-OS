@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: tron1_odom_bridge\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: limx/tron_sdk/tron_sdk/tron_odom.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.tron1_odom_bridge:Tron1OdomBridge\n\nClass: Tron1OdomBridge (focal)\n  Bases: ['Node']\n  Docstring: ROS2 node that bridges Tron1 WebSocket odometry to ROS2 /odom topic.\n\nFocal class methods:\n  [command] connect(self)\n    comment: Connect to Tron1 WebSocket.\n  [command] on_open(self, ws)\n    comment: Send request to enable odometry\n    comment: Called when WebSocket connection is established.\n  [command] on_message(self, ws, message)\n    comment: Called when a message is received.\n  [command] on_error(self, ws, error)\n    comment: Called when an error occurs.\n  [command] on_close(self, ws, close_status_code, close_msg)\n    comment: Called when connection is closed.\n  [command] send_enable_odom(self, enable)\n    comment: Send request to enable/disable odometry streaming.\n  [command] handle_odom(self, data)\n    comment: Extract data\n    comment: Create Odometry message\n    comment: Header\n    comment: Pose\n    comment: Twist\n    comment: Publish\n    comment: Convert WebSocket odom data to ROS2 Odometry message and publish.\n  [command] websocket_loop(self)\n    comment: Main WebSocket loop with reconnection.\n  [command] destroy_node(self)\n    comment: Disable odom streaming\n    comment: Cleanup on shutdown.\n\nRegistry actions:\n  auto-on_open (from on_open())\n  auto-on_message (from on_message())\n  auto-on_error (from on_error())\n  auto-on_close (from on_close())\n  auto-send_enable_odom (from send_enable_odom())\n  auto-handle_odom (from handle_odom())\n  auto-websocket_loop (from websocket_loop())\n  auto-destroy_node (from destroy_node())\n\nRequired output action ids:\n  auto-on_open\n  auto-on_message\n  auto-on_error\n  auto-on_close\n  auto-send_enable_odom\n  auto-handle_odom\n  auto-websocket_loop\n  auto-destroy_node"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0eaadb6c9902fa880069d568a99d308190824301c5a81af2f2",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1796,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4281,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0eaadb6c9902fa880069d568aa06b48190854ef85e5ac1a684",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0eaadb6c9902fa880069d568b301e8819087f1a403b78489dc",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Tron1 里程计桥接节点\",\n  \"name_en\": \"Tron1 Odometry Bridge Node\",\n  \"manufacturer\": \"limx\",\n  \"description\": \"这是一个非实体的软件组件：ROS2 节点，用于把 Tron1 的 WebSocket 里程计数据转换并发布为 ROS2 的 /odom 话题消息，供机器人定位、导航与状态集成使用。\",\n  \"description_en\": \"This is a non-physical software component: a ROS2 node that converts Tron1 odometry data from WebSocket into ROS2 /odom topic messages for robot localization, navigation, and system integration.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-on_open\",\n      \"description\": \"在 WebSocket 连接建立后发送启用里程计数据流的请求。\",\n      \"description_en\": \"Send a request to enable odometry streaming after the WebSocket connection is established.\"\n    },\n    {\n      \"action_name\": \"auto-on_message\",\n      \"description\": \"接收 WebSocket 消息并处理收到的里程计相关数据。\",\n      \"description_en\": \"Receive WebSocket messages and process incoming odometry-related data.\"\n    },\n    {\n      \"action_name\": \"auto-on_error\",\n      \"description\": \"处理 WebSocket 通信过程中发生的错误。\",\n      \"description_en\": \"Handle errors that occur during WebSocket communication.\"\n    },\n    {\n      \"action_name\": \"auto-on_close\",\n      \"description\": \"处理 WebSocket 连接关闭事件。\",\n      \"description_en\": \"Handle the WebSocket connection close event.\"\n    },\n    {\n      \"action_name\": \"auto-send_enable_odom\",\n      \"description\": \"发送启用或禁用里程计数据流的请求。\",\n      \"description_en\": \"Send a request to enable or disable odometry streaming.\"\n    },\n    {\n      \"action_name\": \"auto-handle_odom\",\n      \"description\": \"将 WebSocket 里程计数据转换为 ROS2 Odometry 消息并发布。\",\n      \"description_en\": \"Convert WebSocket odometry data into a ROS2 Odometry message and publish it.\"\n    },\n    {\n      \"action_name\": \"auto-websocket_loop\",\n      \"description\": \"运行带重连机制的 WebSocket 主循环。\",\n      \"description_en\": \"Run the main WebSocket loop with reconnection handling.\"\n    },\n    {\n      \"action_name\": \"auto-destroy_node\",\n      \"description\": \"在节点关闭时禁用里程计数据流并清理资源。\",\n      \"description_en\": \"Disable odometry streaming and clean up resources when the node shuts down.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"ROS2 odometry bridge\",\n    \"WebSocket telemetry\",\n    \"/odom publishing\",\n    \"mobile robot localization\",\n    \"Tron1 robot\",\n    \"Odometry message conversion\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1173,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1134,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2307
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1173,
+      "output_token_count": 1134,
+      "predict_time": 17.589662027
+    }
+  },
+  "output_text": "{\n  \"name\": \"Tron1 里程计桥接节点\",\n  \"name_en\": \"Tron1 Odometry Bridge Node\",\n  \"manufacturer\": \"limx\",\n  \"description\": \"这是一个非实体的软件组件：ROS2 节点，用于把 Tron1 的 WebSocket 里程计数据转换并发布为 ROS2 的 /odom 话题消息，供机器人定位、导航与状态集成使用。\",\n  \"description_en\": \"This is a non-physical software component: a ROS2 node that converts Tron1 odometry data from WebSocket into ROS2 /odom topic messages for robot localization, navigation, and system integration.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-on_open\",\n      \"description\": \"在 WebSocket 连接建立后发送启用里程计数据流的请求。\",\n      \"description_en\": \"Send a request to enable odometry streaming after the WebSocket connection is established.\"\n    },\n    {\n      \"action_name\": \"auto-on_message\",\n      \"description\": \"接收 WebSocket 消息并处理收到的里程计相关数据。\",\n      \"description_en\": \"Receive WebSocket messages and process incoming odometry-related data.\"\n    },\n    {\n      \"action_name\": \"auto-on_error\",\n      \"description\": \"处理 WebSocket 通信过程中发生的错误。\",\n      \"description_en\": \"Handle errors that occur during WebSocket communication.\"\n    },\n    {\n      \"action_name\": \"auto-on_close\",\n      \"description\": \"处理 WebSocket 连接关闭事件。\",\n      \"description_en\": \"Handle the WebSocket connection close event.\"\n    },\n    {\n      \"action_name\": \"auto-send_enable_odom\",\n      \"description\": \"发送启用或禁用里程计数据流的请求。\",\n      \"description_en\": \"Send a request to enable or disable odometry streaming.\"\n    },\n    {\n      \"action_name\": \"auto-handle_odom\",\n      \"description\": \"将 WebSocket 里程计数据转换为 ROS2 Odometry 消息并发布。\",\n      \"description_en\": \"Convert WebSocket odometry data into a ROS2 Odometry message and publish it.\"\n    },\n    {\n      \"action_name\": \"auto-websocket_loop\",\n      \"description\": \"运行带重连机制的 WebSocket 主循环。\",\n      \"description_en\": \"Run the main WebSocket loop with reconnection handling.\"\n    },\n    {\n      \"action_name\": \"auto-destroy_node\",\n      \"description\": \"在节点关闭时禁用里程计数据流并清理资源。\",\n      \"description_en\": \"Disable odometry streaming and clean up resources when the node shuts down.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"ROS2 odometry bridge\",\n    \"WebSocket telemetry\",\n    \"/odom publishing\",\n    \"mobile robot localization\",\n    \"Tron1 robot\",\n    \"Odometry message conversion\"\n  ]\n}"
+}

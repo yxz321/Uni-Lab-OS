@@ -1,55 +1,111 @@
-Device: udp_value_sub
-Registry Key: udp_value_sub
-Short Description: UDP Value SUB是由Open Standard生产的实验执行&合成设备，主要功能包括复位、设备连接、读取数据、运行。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (5):
-- auto-poll -> poll [UniLabJsonCommand] goal_params: none
-- auto-run -> run [UniLabJsonCommand] goal_params: none
-- auto-run_threaded -> run_threaded [UniLabJsonCommand] goal_params: none
-- auto-shutdown -> shutdown [UniLabJsonCommand] goal_params: none
-- auto-update -> update [UniLabJsonCommand] goal_params: none
-
-Driver Functions (37):
-- ZMQValuePub.__init__(self, name, port, hwm) (line 78)
-- ZMQValuePub.run(self, values) (line 85)
-- ZMQValuePub.shutdown(self) (line 91)
-- ZMQValueSub.__init__(self, name, ip, port, hwm, return_last) (line 101)
-- ZMQValueSub.run(self) (line 111)
-- ZMQValueSub.shutdown(self) (line 135)
-- UDPValuePub.__init__(self, name, port) (line 144)
-- UDPValuePub.run(self, values) (line 152)
-- UDPValuePub.shutdown(self) (line 159)
-- UDPValueSub.__init__(self, name, port, def_value) (line 166)
-- UDPValueSub.run(self) (line 176)
-- UDPValueSub.run_threaded(self) (line 181)
-- UDPValueSub.update(self) (line 185)
-- UDPValueSub.poll(self) (line 190)
-- UDPValueSub.shutdown(self) (line 202)
-- TCPServeValue.__init__(self, name, port) (line 213)
-- TCPServeValue.send(self, sock, msg) (line 225)
-- TCPServeValue.run(self, values) (line 234)
-- TCPServeValue.shutdown(self) (line 264)
-- TCPClientValue.__init__(self, name, host, port) (line 272)
-- TCPClientValue.connect(self) (line 281)
-- TCPClientValue.is_connected(self) (line 295)
-- TCPClientValue.read(self, sock) (line 298)
-- TCPClientValue.reset(self) (line 323)
-- TCPClientValue.run(self) (line 329)
-- TCPClientValue.shutdown(self) (line 376)
-- MQTTValuePub.__init__(self, name, broker) (line 384)
-- MQTTValuePub.run(self, values) (line 395)
-- MQTTValuePub.shutdown(self) (line 401)
-- MQTTValueSub.__init__(self, name, broker, def_value) (line 411)
-- MQTTValueSub.on_message(self, client, userdata, message) (line 425)
-- MQTTValueSub.run(self) (line 428)
-- MQTTValueSub.shutdown(self) (line 442)
-- test_pub_sub(ip) (line 447)
-- test_udp_broadcast(ip) (line 472)
-- test_tcp_client_server(ip) (line 499)
-- test_mqtt_pub_sub(ip) (line 519)
+udp_value_sub:
+  name: UDP广播数值订阅组件
+  name_en: UDP Broadcast Value Subscriber
+  manufacturer: ''
+  category:
+  - 系统状态监测伪设备
+  - UDP数值订阅器
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验数据管理与记录
+  - 实验仪器数据采集与联机控制
+  - 仪表读数与状态监测
+  - 系统状态监测伪设备
+  - 局域网实验数值广播与订阅
+  - UDP数值订阅器
+  description: 这是一个非物理软件组件，用于在局域网中监听UDP广播数据包并接收远程发布的数值消息。在实验环境中可用于在不同主机或进程之间传递传感器读数、状态量或控制参数，便于监视、联动和数据整合。
+  description_en: This is a non-physical software component that listens for UDP broadcast
+    packets on a local network and receives value messages from a remote publisher.
+    In lab workflows, it can be used to pass sensor readings, status values, or control
+    parameters between hosts or processes for monitoring, coordination, and data integration.
+  class:
+    action_value_mappings:
+      auto-run:
+        schema:
+          description: 同步监听一次UDP广播消息并返回接收到的值。
+          description_en: Synchronously listen for one UDP broadcast message and return
+            the received value.
+      auto-run_threaded:
+        schema:
+          description: 读取后台更新线程当前缓存的最新值。
+          description_en: Read the latest value currently cached by the background
+            update thread.
+      auto-update:
+        schema:
+          description: 持续轮询UDP广播并更新内部保存的最新值。
+          description_en: Continuously poll UDP broadcasts and update the internally
+            stored latest value.
+      auto-poll:
+        schema:
+          description: 阻塞等待一条UDP广播数据包并解析其中的值。
+          description_en: Block until a UDP broadcast packet is received and parse
+            the value it contains.
+      auto-shutdown:
+        schema:
+          description: 停止订阅循环并关闭该接收组件的运行过程。
+          description_en: Stop the subscription loop and shut down the receiver component's
+            operation.
+auto_annotation_metadata:
+  registry_key: udp_value_sub
+  annotation_workflow_version: v4
+  tag_hints:
+  - UDP broadcast
+  - network value subscription
+  - local network messaging
+  - telemetry reception
+  - inter-process data transfer
+  - experiment software helper
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件在实验运行期监听并接收远程发布的数值消息。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 用于在不同主机或进程之间联通实验状态和参数。
+  - id: P-9103
+    name: 实验数据管理与记录
+    name_en: Experimental Data Management & Logging
+    type: experimental_domain
+    rationale: 它接收并缓存实验数值，服务于监视和数据整合。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 组件在线监听UDP广播并更新最新接收值。
+  - id: P-500004
+    name: 仪表读数与状态监测
+    name_en: Meter Readout & Status Monitoring
+    type: experimental_scene
+    rationale: 典型用途就是接收传感器读数、状态量或控制参数。
+  - id: P-50001
+    name: 系统状态监测伪设备
+    name_en: System State Monitoring Pseudo-Device
+    type: device_template_tag
+    rationale: 它以软件方式缓存并提供最新状态值，符合状态监测伪设备特征。
+  proposed_new_tags:
+  - id: P-3001002
+    name: 局域网实验数值广播与订阅
+    name_en: LAN Experimental Value Broadcast & Subscription
+    type: experimental_scene
+    rationale: 本组件专门对应局域网广播值的接收与订阅环节。
+  - id: P-3001004
+    name: UDP数值订阅器
+    name_en: UDP Value Subscriber
+    type: device_template_tag
+    rationale: 设备核心行为是监听UDP广播并解析远程发布的数值。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

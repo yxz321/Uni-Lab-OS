@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: thermocycler\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pylabrobot/thermocycling/thermocycler.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.thermocycler.generic_thermocycler:Thermocycler\n\nClass: Thermocycler (focal)\n  Bases: ['ResourceHolder', 'Machine']\n  Docstring: Generic Thermocycler: block + lid + profile + status queries.\n\nFocal class methods:\n  [command] open_lid(self, **backend_kwargs)\n  [command] close_lid(self, **backend_kwargs)\n  [command] set_block_temperature(self, temperature, **backend_kwargs)\n    comment: Set the block temperature.\n\n    Args:\n      temperature: List of target temperatures in °C for multiple zones.\n  [command] set_lid_temperature(self, temperature, **backend_kwargs)\n    comment: Set the lid temperature.\n\n    Args:\n      temperature: List of target temperatures in °C for multiple zones.\n  [command] deactivate_block(self, **backend_kwargs)\n    comment: Turn off the block heater.\n  [command] deactivate_lid(self, **backend_kwargs)\n    comment: Turn off the lid heater.\n  [command] run_protocol(self, protocol, block_max_volume, **backend_kwargs)\n    comment: Enqueue a multi-stage temperature protocol (fire-and-forget).\n\n    Args:\n      protocol: Protocol object containing stages with steps and repeats.\n      block_max_volume: Maximum block volume (µL) for...\n  [command] run_pcr_profile(self, denaturation_temp, denaturation_time, annealing_temp, annealing_time, extension_temp, extension_time, num_cycles, block_max_volume, lid_temperature, pre_denaturation_temp=None, pre_denaturation_time=None, final_extension_temp=None, final_extension_time=None, storage_temp=None, storage_time=None, **backend_kwargs)\n    comment: Pre-denaturation stage (if specified)\n    comment: Main PCR cycles stage\n    comment: Final extension stage (if specified)\n    comment: Storage stage (if specified)\n    comment: Run a PCR profile with specified parameters.\n\n    Args:\n      denaturation_temp: List of denaturation temperatures in °C.\n      denaturation_time: Denaturation time in seconds.\n      annealing_temp: L...\n  [command] get_block_current_temperature(self, **backend_kwargs)\n    comment: Get the current block temperature(s) (°C).\n  [command] get_block_target_temperature(self, **backend_kwargs)\n    comment: Get the block's target temperature(s) (°C).\n  [command] get_lid_current_temperature(self, **backend_kwargs)\n    comment: Get the current lid temperature(s) (°C).\n  [command] get_lid_target_temperature(self, **backend_kwargs)\n    comment: Get the lid's target temperature(s) (°C), if supported.\n  [command] get_lid_open(self, **backend_kwargs)\n    comment: Return ``True`` if the lid is open.\n  [command] get_lid_status(self, **backend_kwargs)\n    comment: Get the lid temperature status.\n  [command] get_block_status(self, **backend_kwargs)\n    comment: Get the block status.\n  [command] get_hold_time(self, **backend_kwargs)\n    comment: Get remaining hold time (s) for the current step.\n  [command] get_current_cycle_index(self, **backend_kwargs)\n    comment: Get the one-based index of the current cycle.\n  [command] get_total_cycle_count(self, **backend_kwargs)\n    comment: Get the total number of cycles.\n  [command] get_current_step_index(self, **backend_kwargs)\n    comment: Get the one-based index of the current step.\n  [command] get_total_step_count(self, **backend_kwargs)\n    comment: Get the total number of steps in the current cycle.\n  [command] wait_for_block(self, timeout=600, tolerance=0.5, **backend_kwargs)\n    comment: Wait until block temp reaches target ± tolerance for all zones.\n  [command] wait_for_lid(self, timeout=1200, tolerance=0.5, **backend_kwargs)\n    comment: If no target temperature, check status\n    comment: Wait until the lid temperature reaches target ± ``tolerance`` or the lid temperature status is idle/holding at target.\n  [command] is_profile_running(self, **backend_kwargs)\n    comment: if still holding in a step, it's running\n    comment: if haven't reached last cycle (zero-based indexing)\n    comment: last cycle but not last step (zero-based indexing)\n    comment: Return True if a profile is still in progress.\n  [command] wait_for_profile_completion(self, poll_interval=60.0, **backend_kwargs)\n    comment: Block until the profile finishes, polling at `poll_interval` seconds.\n  [command] serialize(self)\n    comment: JSON-serializable representation.\n\nRegistry actions:\n  auto-open_lid (from open_lid())\n  auto-close_lid (from close_lid())\n  auto-set_block_temperature (from set_block_temperature())\n  auto-set_lid_temperature (from set_lid_temperature())\n  auto-deactivate_block (from deactivate_block())\n  auto-deactivate_lid (from deactivate_lid())\n  auto-run_protocol (from run_protocol())\n  auto-run_pcr_profile (from run_pcr_profile())\n  auto-get_block_current_temperature (from get_block_current_temperature())\n  auto-get_block_target_temperature (from get_block_target_temperature())\n  auto-get_lid_current_temperature (from get_lid_current_temperature())\n  auto-get_lid_target_temperature (from get_lid_target_temperature())\n  auto-get_lid_open (from get_lid_open())\n  auto-get_lid_status (from get_lid_status())\n  auto-get_block_status (from get_block_status())\n  auto-get_hold_time (from get_hold_time())\n  auto-get_current_cycle_index (from get_current_cycle_index())\n  auto-get_total_cycle_count (from get_total_cycle_count())\n  auto-get_current_step_index (from get_current_step_index())\n  auto-get_total_step_count (from get_total_step_count())\n  auto-wait_for_block (from wait_for_block())\n  auto-wait_for_lid (from wait_for_lid())\n  auto-is_profile_running (from is_profile_running())\n  auto-wait_for_profile_completion (from wait_for_profile_completion())\n  auto-serialize (from serialize())\n\nRequired output action ids:\n  auto-open_lid\n  auto-close_lid\n  auto-set_block_temperature\n  auto-set_lid_temperature\n  auto-deactivate_block\n  auto-deactivate_lid\n  auto-run_protocol\n  auto-run_pcr_profile\n  auto-get_block_current_temperature\n  auto-get_block_target_temperature\n  auto-get_lid_current_temperature\n  auto-get_lid_target_temperature\n  auto-get_lid_open\n  auto-get_lid_status\n  auto-get_block_status\n  auto-get_hold_time\n  auto-get_current_cycle_index\n  auto-get_total_cycle_count\n  auto-get_current_step_index\n  auto-get_total_step_count\n  auto-wait_for_block\n  auto-wait_for_lid\n  auto-is_profile_running\n  auto-wait_for_profile_completion\n  auto-serialize"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_007e09be6cc5fafb0069d566b8ef808190af722f454526b610",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1800,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6678,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_007e09be6cc5fafb0069d566b955b88190b21b1b0f1ee63fef",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_007e09be6cc5fafb0069d566c18d648190b554eea17003a23b",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"热循环仪\",\n  \"name_en\": \"Thermocycler\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于 PCR 等热循环实验的通用热循环仪，支持加热块与热盖温度控制、开合盖、运行多阶段温控程序，并查询当前温度、循环进度与运行状态。\",\n  \"description_en\": \"A generic thermocycler for PCR and other thermal cycling workflows. It supports block and heated-lid temperature control, lid open/close operations, execution of multi-stage temperature protocols, and queries of current temperature, cycle progress, and run status.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-open_lid\",\n      \"description\": \"打开热循环仪上盖。\",\n      \"description_en\": \"Open the thermocycler lid.\"\n    },\n    {\n      \"action_name\": \"auto-close_lid\",\n      \"description\": \"关闭热循环仪上盖。\",\n      \"description_en\": \"Close the thermocycler lid.\"\n    },\n    {\n      \"action_name\": \"auto-set_block_temperature\",\n      \"description\": \"设置加热块目标温度。\",\n      \"description_en\": \"Set the target temperature of the block.\"\n    },\n    {\n      \"action_name\": \"auto-set_lid_temperature\",\n      \"description\": \"设置热盖目标温度。\",\n      \"description_en\": \"Set the target temperature of the heated lid.\"\n    },\n    {\n      \"action_name\": \"auto-deactivate_block\",\n      \"description\": \"关闭加热块加热。\",\n      \"description_en\": \"Deactivate block heating.\"\n    },\n    {\n      \"action_name\": \"auto-deactivate_lid\",\n      \"description\": \"关闭热盖加热。\",\n      \"description_en\": \"Deactivate lid heating.\"\n    },\n    {\n      \"action_name\": \"auto-run_protocol\",\n      \"description\": \"运行多阶段温控程序。\",\n      \"description_en\": \"Run a multi-stage temperature protocol.\"\n    },\n    {\n      \"action_name\": \"auto-run_pcr_profile\",\n      \"description\": \"运行 PCR 热循环程序。\",\n      \"description_en\": \"Run a PCR thermal cycling profile.\"\n    },\n    {\n      \"action_name\": \"auto-get_block_current_temperature\",\n      \"description\": \"获取加热块当前温度。\",\n      \"description_en\": \"Get the current block temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_block_target_temperature\",\n      \"description\": \"获取加热块目标温度。\",\n      \"description_en\": \"Get the target block temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_lid_current_temperature\",\n      \"description\": \"获取热盖当前温度。\",\n      \"description_en\": \"Get the current lid temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_lid_target_temperature\",\n      \"description\": \"获取热盖目标温度。\",\n      \"description_en\": \"Get the target lid temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_lid_open\",\n      \"description\": \"获取上盖是否打开。\",\n      \"description_en\": \"Get whether the lid is open.\"\n    },\n    {\n      \"action_name\": \"auto-get_lid_status\",\n      \"description\": \"获取热盖状态。\",\n      \"description_en\": \"Get the lid status.\"\n    },\n    {\n      \"action_name\": \"auto-get_block_status\",\n      \"description\": \"获取加热块状态。\",\n      \"description_en\": \"Get the block status.\"\n    },\n    {\n      \"action_name\": \"auto-get_hold_time\",\n      \"description\": \"获取当前步骤剩余保持时间。\",\n      \"description_en\": \"Get the remaining hold time for the current step.\"\n    },\n    {\n      \"action_name\": \"auto-get_current_cycle_index\",\n      \"description\": \"获取当前循环编号。\",\n      \"description_en\": \"Get the current cycle index.\"\n    },\n    {\n      \"action_name\": \"auto-get_total_cycle_count\",\n      \"description\": \"获取总循环次数。\",\n      \"description_en\": \"Get the total cycle count.\"\n    },\n    {\n      \"action_name\": \"auto-get_current_step_index\",\n      \"description\": \"获取当前步骤编号。\",\n      \"description_en\": \"Get the current step index.\"\n    },\n    {\n      \"action_name\": \"auto-get_total_step_count\",\n      \"description\": \"获取当前循环中的总步骤数。\",\n      \"description_en\": \"Get the total number of steps in the current cycle.\"\n    },\n    {\n      \"action_name\": \"auto-wait_for_block\",\n      \"description\": \"等待加热块达到目标温度。\",\n      \"description_en\": \"Wait for the block to reach its target temperature.\"\n    },\n    {\n      \"action_name\": \"auto-wait_for_lid\",\n      \"description\": \"等待热盖达到目标温度。\",\n      \"description_en\": \"Wait for the lid to reach its target temperature.\"\n    },\n    {\n      \"action_name\": \"auto-is_profile_running\",\n      \"description\": \"获取温控程序是否仍在运行。\",\n      \"description_en\": \"Get whether a temperature profile is still running.\"\n    },\n    {\n      \"action_name\": \"auto-wait_for_profile_completion\",\n      \"description\": \"等待温控程序运行完成。\",\n      \"description_en\": \"Wait for the temperature profile to complete.\"\n    },\n    {\n      \"action_name\": \"auto-serialize\",\n      \"description\": \"导出设备的 JSON 可序列化表示。\",\n      \"description_en\": \"Serialize the device to a JSON-compatible representation.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"PCR thermocycling\",\n    \"heated lid\",\n    \"block temperature control\",\n    \"thermal cycling profiles\",\n    \"multi-stage protocol execution\",\n    \"cycle progress monitoring\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2197,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1647,
+      "output_tokens_details": {
+        "reasoning_tokens": 425
+      },
+      "total_tokens": 3844
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2197,
+      "output_token_count": 1647,
+      "predict_time": 25.425968372
+    }
+  },
+  "output_text": "{\n  \"name\": \"热循环仪\",\n  \"name_en\": \"Thermocycler\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于 PCR 等热循环实验的通用热循环仪，支持加热块与热盖温度控制、开合盖、运行多阶段温控程序，并查询当前温度、循环进度与运行状态。\",\n  \"description_en\": \"A generic thermocycler for PCR and other thermal cycling workflows. It supports block and heated-lid temperature control, lid open/close operations, execution of multi-stage temperature protocols, and queries of current temperature, cycle progress, and run status.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-open_lid\",\n      \"description\": \"打开热循环仪上盖。\",\n      \"description_en\": \"Open the thermocycler lid.\"\n    },\n    {\n      \"action_name\": \"auto-close_lid\",\n      \"description\": \"关闭热循环仪上盖。\",\n      \"description_en\": \"Close the thermocycler lid.\"\n    },\n    {\n      \"action_name\": \"auto-set_block_temperature\",\n      \"description\": \"设置加热块目标温度。\",\n      \"description_en\": \"Set the target temperature of the block.\"\n    },\n    {\n      \"action_name\": \"auto-set_lid_temperature\",\n      \"description\": \"设置热盖目标温度。\",\n      \"description_en\": \"Set the target temperature of the heated lid.\"\n    },\n    {\n      \"action_name\": \"auto-deactivate_block\",\n      \"description\": \"关闭加热块加热。\",\n      \"description_en\": \"Deactivate block heating.\"\n    },\n    {\n      \"action_name\": \"auto-deactivate_lid\",\n      \"description\": \"关闭热盖加热。\",\n      \"description_en\": \"Deactivate lid heating.\"\n    },\n    {\n      \"action_name\": \"auto-run_protocol\",\n      \"description\": \"运行多阶段温控程序。\",\n      \"description_en\": \"Run a multi-stage temperature protocol.\"\n    },\n    {\n      \"action_name\": \"auto-run_pcr_profile\",\n      \"description\": \"运行 PCR 热循环程序。\",\n      \"description_en\": \"Run a PCR thermal cycling profile.\"\n    },\n    {\n      \"action_name\": \"auto-get_block_current_temperature\",\n      \"description\": \"获取加热块当前温度。\",\n      \"description_en\": \"Get the current block temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_block_target_temperature\",\n      \"description\": \"获取加热块目标温度。\",\n      \"description_en\": \"Get the target block temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_lid_current_temperature\",\n      \"description\": \"获取热盖当前温度。\",\n      \"description_en\": \"Get the current lid temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_lid_target_temperature\",\n      \"description\": \"获取热盖目标温度。\",\n      \"description_en\": \"Get the target lid temperature.\"\n    },\n    {\n      \"action_name\": \"auto-get_lid_open\",\n      \"description\": \"获取上盖是否打开。\",\n      \"description_en\": \"Get whether the lid is open.\"\n    },\n    {\n      \"action_name\": \"auto-get_lid_status\",\n      \"description\": \"获取热盖状态。\",\n      \"description_en\": \"Get the lid status.\"\n    },\n    {\n      \"action_name\": \"auto-get_block_status\",\n      \"description\": \"获取加热块状态。\",\n      \"description_en\": \"Get the block status.\"\n    },\n    {\n      \"action_name\": \"auto-get_hold_time\",\n      \"description\": \"获取当前步骤剩余保持时间。\",\n      \"description_en\": \"Get the remaining hold time for the current step.\"\n    },\n    {\n      \"action_name\": \"auto-get_current_cycle_index\",\n      \"description\": \"获取当前循环编号。\",\n      \"description_en\": \"Get the current cycle index.\"\n    },\n    {\n      \"action_name\": \"auto-get_total_cycle_count\",\n      \"description\": \"获取总循环次数。\",\n      \"description_en\": \"Get the total cycle count.\"\n    },\n    {\n      \"action_name\": \"auto-get_current_step_index\",\n      \"description\": \"获取当前步骤编号。\",\n      \"description_en\": \"Get the current step index.\"\n    },\n    {\n      \"action_name\": \"auto-get_total_step_count\",\n      \"description\": \"获取当前循环中的总步骤数。\",\n      \"description_en\": \"Get the total number of steps in the current cycle.\"\n    },\n    {\n      \"action_name\": \"auto-wait_for_block\",\n      \"description\": \"等待加热块达到目标温度。\",\n      \"description_en\": \"Wait for the block to reach its target temperature.\"\n    },\n    {\n      \"action_name\": \"auto-wait_for_lid\",\n      \"description\": \"等待热盖达到目标温度。\",\n      \"description_en\": \"Wait for the lid to reach its target temperature.\"\n    },\n    {\n      \"action_name\": \"auto-is_profile_running\",\n      \"description\": \"获取温控程序是否仍在运行。\",\n      \"description_en\": \"Get whether a temperature profile is still running.\"\n    },\n    {\n      \"action_name\": \"auto-wait_for_profile_completion\",\n      \"description\": \"等待温控程序运行完成。\",\n      \"description_en\": \"Wait for the temperature profile to complete.\"\n    },\n    {\n      \"action_name\": \"auto-serialize\",\n      \"description\": \"导出设备的 JSON 可序列化表示。\",\n      \"description_en\": \"Serialize the device to a JSON-compatible representation.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"PCR thermocycling\",\n    \"heated lid\",\n    \"block temperature control\",\n    \"thermal cycling profiles\",\n    \"multi-stage protocol execution\",\n    \"cycle progress monitoring\"\n  ]\n}"
+}

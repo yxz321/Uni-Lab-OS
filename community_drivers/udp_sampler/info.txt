@@ -1,39 +1,127 @@
-Device: udp_sampler
-Registry Key: udp_sampler
-Short Description: UDP Sampler是由Open Standard生产的专业实验设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (10):
-- auto-close_file -> close_file [UniLabJsonCommand] goal_params: value
-- auto-create_socket_connection -> create_socket_connection [UniLabJsonCommand] goal_params: address
-- auto-enable -> enable [UniLabJsonCommand] goal_params: value
-- auto-get_useful_packets -> get_useful_packets [UniLabJsonCommand] goal_params: packet
-- auto-init_new_process -> init_new_process [UniLabJsonCommand] goal_params: none
-- auto-outfile_name -> outfile_name [UniLabJsonCommand] goal_params: fileN
-- auto-post_run -> post_run [UniLabJsonCommand] goal_params: none
-- auto-pre_run -> pre_run [UniLabJsonCommand] goal_params: none
-- auto-record -> record [UniLabJsonCommand] goal_params: value
-- auto-run -> run [UniLabJsonCommand] goal_params: none
-
-Driver Functions (16):
-- UdpSampler.__init__(self, address, longtime, chunk_size, flush_timeout, input_queue, create_output, num_outputs, shared_output) (line 112)
-- UdpSampler.init_new_process(self) (line 141)
-- UdpSampler.create_socket_connection(self, address) (line 174)
-- UdpSampler.get_useful_packets(self, packet) (line 188)
-- UdpSampler.enable(self) (line 200)
-- UdpSampler.enable(self, value) (line 225)
-- UdpSampler.record(self) (line 231)
-- UdpSampler.record(self, value) (line 253)
-- UdpSampler.close_file(self) (line 259)
-- UdpSampler.close_file(self, value) (line 264)
-- UdpSampler.outfile_name(self) (line 270)
-- UdpSampler.outfile_name(self, fileN) (line 275)
-- UdpSampler.pre_run(self) (line 283)
-- UdpSampler.post_run(self) (line 290)
-- UdpSampler.run(self) (line 328)
-- main() (line 424)
+udp_sampler:
+  name: UDP数据采样进程
+  name_en: UDP Sampler Process
+  manufacturer: ''
+  category:
+  - 实验数据流传输器
+  tags:
+  - 表征设备
+  - 实验计算与数据处理
+  - 实验数据管理与记录
+  - 像素探测器采集与读出
+  - 分布式实验数据处理
+  - 追加式实验记录与索引访问
+  - 实验数据流传输器
+  description: 这是一个非实体的软件组件，用于从 SPIDR 接收 Timepix 相关的 UDP 数据包，进行基础预处理、缓冲、转发以及可选的原始数据落盘，通常用于实验数据采集流水线中的前端接收环节。
+  description_en: This is a non-physical software component that receives UDP packets
+    from SPIDR carrying Timepix-related data, performs basic preprocessing, buffering,
+    forwarding, and optional raw-data recording to disk. It is typically used as a
+    front-end acquisition stage in an experimental data-processing pipeline.
+  class:
+    action_value_mappings:
+      auto-init_new_process:
+        schema:
+          description: 初始化新进程中的连接与内部变量，并建立与后续数据处理模块的通信。
+          description_en: Initialize connections and internal variables in the new
+            process, and create communication with the downstream packet processor.
+      auto-create_socket_connection:
+        schema:
+          description: 创建到 SPIDR 的 UDP 套接字连接，用于接收实验数据包。
+          description_en: Create a UDP socket connection to SPIDR for receiving experimental
+            data packets.
+      auto-get_useful_packets:
+        schema:
+          description: 从接收到的数据包中提取有用内容和报头，供后续处理使用。
+          description_en: Extract useful content and headers from a received packet
+            for downstream processing.
+      auto-enable:
+        schema:
+          description: 获取或设置数据处理使能状态。
+          description_en: Get or set the processing enabled state.
+      auto-record:
+        schema:
+          description: 获取或设置原始数据写入磁盘的记录状态。
+          description_en: Get or set the raw-data recording state for saving to disk.
+      auto-close_file:
+        schema:
+          description: 获取或设置原始数据文件关闭请求。
+          description_en: Get or set the raw-data file close request.
+      auto-outfile_name:
+        schema:
+          description: 获取或设置输出文件名。
+          description_en: Get or set the output file name.
+      auto-pre_run:
+        schema:
+          description: 在子进程正式运行前完成仅在新进程中可用的初始化准备。
+          description_en: Perform initialization steps before execution that should
+            only be available inside the child process.
+      auto-post_run:
+        schema:
+          description: 在运行结束或超时后执行收尾处理，例如整理缓冲数据并处理文件关闭逻辑。
+          description_en: Perform post-run cleanup after execution or timeout, such
+            as finalizing buffered data and handling file-closing logic.
+      auto-run:
+        schema:
+          description: 启动采样进程的主循环，持续接收 UDP 数据、筛选有效包、打包缓冲并转发或记录数据。
+          description_en: Run the main acquisition loop that continuously receives
+            UDP data, filters useful packets, buffers them, and forwards or records
+            the data.
+auto_annotation_metadata:
+  registry_key: udp_sampler
+  annotation_workflow_version: v4
+  tag_hints:
+  - UDP data acquisition
+  - SPIDR packet receiver
+  - Timepix data pipeline
+  - raw data recording
+  - multiprocessing worker
+  - packet preprocessing
+  - socket-based acquisition
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该进程直接接收探测器相关UDP数据包，是测量采集前端的一部分。
+  - id: P-700004
+    name: 实验计算与数据处理
+    name_en: Experimental Computing & Data Processing
+    type: experimental_domain
+    rationale: 主要职责是预处理、缓冲、转发实验数据。
+  - id: P-9103
+    name: 实验数据管理与记录
+    name_en: Experimental Data Management & Logging
+    type: experimental_domain
+    rationale: 支持原始数据落盘与文件管理，具备实验记录属性。
+  - id: P-990203
+    name: 像素探测器采集与读出
+    name_en: Pixel Detector Acquisition & Readout
+    type: experimental_scene
+    rationale: 描述明确指出接收SPIDR发送的Timepix相关数据包。
+  - id: P-60008
+    name: 分布式实验数据处理
+    name_en: Distributed Experimental Data Processing
+    type: experimental_scene
+    rationale: 它作为多进程前端节点，把数据转发给下游处理器。
+  - id: P-9104
+    name: 追加式实验记录与索引访问
+    name_en: Append-Only Experimental Logging & Indexed Access
+    type: experimental_scene
+    rationale: 可选原始数据记录到磁盘，符合连续采集日志化记录。
+  - id: P-990205
+    name: 实验数据流传输器
+    name_en: Experimental Data Streamer
+    type: device_template_tag
+    rationale: 组件持续接收、缓存并转发数据流，典型数据流传输器。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

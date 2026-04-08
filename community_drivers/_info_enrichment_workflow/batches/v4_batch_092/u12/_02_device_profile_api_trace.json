@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: u12\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: lantz/drivers/labjack/u12.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.data_acquisition.u12:U12\n\nClass: U12 (focal)\n  Bases: ['Driver']\n  Docstring: Driver for the Labjack U12 data acquisition device.\nhttp://labjack.com/support/u12/users-guide\nFor details about the commands, refer to the users guide.\n\nFocal class methods:\n  [command] initialize(self)\n  [command] finalize(self)\n  [command] analog_in(self, key)\n  [command] analog_dif_in(self, key, gain=1)\n    comment: Differential channels can make use of the low noise precision PGA to provide gains up to 20. In differential mode, the voltage of each AI with respect to ground must be between +20 and -10 volts, but ...\n  [command] analog_out(self, key, value)\n    comment: Easy function. This is a simplified version of AOUpdate. Sets the voltage of both analog outputs.\n        Execution time for this function is 20 milliseconds or less (typically 16 milliseconds in Wind...\n  [command] digital_in_out(self, key)\n    comment: Easy function. This is a simplified version of DigitalIO that reads the state of one digital input. Also configures the requested pin to input and leaves it that way.\n        Execution time for this f...\n  [command] digital_in_out(self, key, value)\n    comment: Easy function. This is a simplified version of DigitalIO that sets/clears the state of one digital output. Also configures the requested pin to output and leaves it that way.\n        Execution time fo...\n\nRegistry actions:\n  auto-initialize (from initialize())\n  auto-finalize (from finalize())\n  auto-analog_in (from analog_in())\n  auto-analog_dif_in (from analog_dif_in())\n  auto-analog_out (from analog_out())\n  auto-digital_in_out (from digital_in_out())\n  auto-U12 (from U12())\n\nRequired output action ids:\n  auto-initialize\n  auto-finalize\n  auto-analog_in\n  auto-analog_dif_in\n  auto-analog_out\n  auto-digital_in_out\n  auto-U12"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_03df12d73e657e4d0069d56a4988c081979e80fb1691538879",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1791,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4226,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_03df12d73e657e4d0069d56a4adc5c8197a74d7fbd2c45512d",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_03df12d73e657e4d0069d56a5459288197a554c6e13c33ce72",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"LabJack U12 数据采集设备\",\n  \"name_en\": \"LabJack U12 Data Acquisition Device\",\n  \"manufacturer\": \"LabJack\",\n  \"description\": \"LabJack U12 是一款 USB 数据采集设备，可进行模拟量输入、差分模拟输入、模拟量输出和数字输入/输出，适用于实验中的电压采集、低噪声差分测量、简单信号输出以及开关量控制。\",\n  \"description_en\": \"The LabJack U12 is a USB data acquisition device that supports analog input, differential analog input, analog output, and digital input/output. It is used in laboratories for voltage acquisition, low-noise differential measurements, simple signal output, and digital switching/control.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"初始化 U12 设备连接。\",\n      \"description_en\": \"Initialize the U12 device connection.\"\n    },\n    {\n      \"action_name\": \"auto-finalize\",\n      \"description\": \"关闭并结束 U12 设备连接。\",\n      \"description_en\": \"Close and finalize the U12 device connection.\"\n    },\n    {\n      \"action_name\": \"auto-analog_in\",\n      \"description\": \"读取指定通道的单端模拟输入电压。\",\n      \"description_en\": \"Read the single-ended analog input voltage from the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-analog_dif_in\",\n      \"description\": \"读取指定通道的差分模拟输入电压，并可设置增益。\",\n      \"description_en\": \"Read the differential analog input voltage from the specified channel, with configurable gain.\"\n    },\n    {\n      \"action_name\": \"auto-analog_out\",\n      \"description\": \"设置指定模拟输出通道的输出电压。\",\n      \"description_en\": \"Set the output voltage of the specified analog output channel.\"\n    },\n    {\n      \"action_name\": \"auto-digital_in_out\",\n      \"description\": \"读取指定数字引脚输入状态，或设置其数字输出状态。\",\n      \"description_en\": \"Read the input state of a specified digital pin, or set its digital output state.\"\n    },\n    {\n      \"action_name\": \"auto-U12\",\n      \"description\": \"创建设备对象以控制 LabJack U12 数据采集设备。\",\n      \"description_en\": \"Create a device object for controlling the LabJack U12 data acquisition device.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB DAQ\",\n    \"LabJack U12\",\n    \"analog input\",\n    \"differential measurement\",\n    \"analog output\",\n    \"digital I/O\",\n    \"voltage acquisition\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1168,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1076,
+      "output_tokens_details": {
+        "reasoning_tokens": 497
+      },
+      "total_tokens": 2244
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1168,
+      "output_token_count": 1076,
+      "predict_time": 19.915691446
+    }
+  },
+  "output_text": "{\n  \"name\": \"LabJack U12 数据采集设备\",\n  \"name_en\": \"LabJack U12 Data Acquisition Device\",\n  \"manufacturer\": \"LabJack\",\n  \"description\": \"LabJack U12 是一款 USB 数据采集设备，可进行模拟量输入、差分模拟输入、模拟量输出和数字输入/输出，适用于实验中的电压采集、低噪声差分测量、简单信号输出以及开关量控制。\",\n  \"description_en\": \"The LabJack U12 is a USB data acquisition device that supports analog input, differential analog input, analog output, and digital input/output. It is used in laboratories for voltage acquisition, low-noise differential measurements, simple signal output, and digital switching/control.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"初始化 U12 设备连接。\",\n      \"description_en\": \"Initialize the U12 device connection.\"\n    },\n    {\n      \"action_name\": \"auto-finalize\",\n      \"description\": \"关闭并结束 U12 设备连接。\",\n      \"description_en\": \"Close and finalize the U12 device connection.\"\n    },\n    {\n      \"action_name\": \"auto-analog_in\",\n      \"description\": \"读取指定通道的单端模拟输入电压。\",\n      \"description_en\": \"Read the single-ended analog input voltage from the specified channel.\"\n    },\n    {\n      \"action_name\": \"auto-analog_dif_in\",\n      \"description\": \"读取指定通道的差分模拟输入电压，并可设置增益。\",\n      \"description_en\": \"Read the differential analog input voltage from the specified channel, with configurable gain.\"\n    },\n    {\n      \"action_name\": \"auto-analog_out\",\n      \"description\": \"设置指定模拟输出通道的输出电压。\",\n      \"description_en\": \"Set the output voltage of the specified analog output channel.\"\n    },\n    {\n      \"action_name\": \"auto-digital_in_out\",\n      \"description\": \"读取指定数字引脚输入状态，或设置其数字输出状态。\",\n      \"description_en\": \"Read the input state of a specified digital pin, or set its digital output state.\"\n    },\n    {\n      \"action_name\": \"auto-U12\",\n      \"description\": \"创建设备对象以控制 LabJack U12 数据采集设备。\",\n      \"description_en\": \"Create a device object for controlling the LabJack U12 data acquisition device.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB DAQ\",\n    \"LabJack U12\",\n    \"analog input\",\n    \"differential measurement\",\n    \"analog output\",\n    \"digital I/O\",\n    \"voltage acquisition\"\n  ]\n}"
+}

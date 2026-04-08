@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: timepix_device\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pymepix/timepixdevice.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.timepix.timepix_device:TimepixDevice\n\nClass: ConfigClassException \n  Bases: ['Exception']\n\nClass: BadPixelFormat \n  Bases: ['Exception']\n\nClass: TimepixDevice (focal)\n  Bases: ['Logger']\n  Docstring: Provides high level control of a timepix/medipix object \n\nFocal class methods:\n  [command] update_timer(self)\n    comment: Heartbeat thread\n  [status_getter] config(self)\n  [status_getter] maskPixelsJsonable(self)\n  [status_setter] maskPixelsJsonable(self, value)\n  [command] setupAcquisition(self, acquisition_klass, *args, **kwargs)\n  [command] setConfigClass(self, klass)\n  [command] loadConfig(self, *args, **kwargs)\n    comment: Loads dac settings from the Config class\n  [command] setupDevice(self)\n    comment: Sets up valid paramters for acquisition\n\n        This will be manual when other acqusition parameters are working\n  [status_getter] acquisition(self)\n    comment: Returns the acquisition object\n\n        Can be used to set parameters in the acqusition directly for example,\n        to setup TOF calculation when using a :class:`PixelPipeline`\n\n        >>> tpx.acqu...\n  [command] pauseHeartbeat(self)\n  [command] resumeHeartbeat(self)\n  [command] devIdToString(self)\n    comment: Converts device ID into readable string\n\n        Returns\n        --------\n        str\n            Device string identifier\n  [status_getter] deviceName(self)\n  [command] setEthernetFilter(self, eth_filter)\n    comment: Sets the packet filter, usually set to 0xFFFF to all packets\n  [command] resetPixels(self)\n    comment: Clears pixel configuration\n  [status_getter] pixelThreshold(self)\n    comment: self._device.getPixelConfig()\n    comment: Threshold set for timepix device\n\n        Parameters\n        ----------\n        value : :obj:`numpy.array` of :obj:`int`\n            256x256 uint8 threshold to set locally\n\n\n        Returns\n        --...\n  [status_setter] pixelThreshold(self, value)\n  [status_getter] pixelMask(self)\n    comment: self._device.getPixelConfig()\n    comment: Pixel mask set for timepix device\n\n        Parameters\n        ----------\n        value : :obj:`numpy.array` of :obj:`int`\n            256x256 uint8 threshold mask to set locally\n\n        Returns\n     ...\n  [status_setter] pixelMask(self, value)\n  [status_getter] pixelTest(self)\n    comment: self._device.getPixelConfig()\n    comment: Pixel test set for timepix device\n\n        Parameters\n        ----------\n        value : :obj:`numpy.array` of :obj:`int`\n            256x256 uint8 pixel test to set locally\n\n\n        Returns\n        ...\n  [status_setter] pixelTest(self, value)\n  [command] uploadPixels(self)\n    comment: Uploads local pixel configuration to timepix\n  [command] refreshPixels(self)\n    comment: Loads timepix pixel configuration to local array\n  [command] start(self)\n  [command] stop(self)\n  [command] start_recording(self, path)\n  [command] stop_recording(self)\n  [status_getter] polarity(self)\n  [status_setter] polarity(self, value)\n  [status_getter] operationMode(self)\n  [status_setter] operationMode(self, value)\n  [status_getter] grayCounter(self)\n  [status_setter] grayCounter(self, value)\n  [status_getter] testPulse(self)\n  [status_setter] testPulse(self, value)\n  [status_getter] superPixel(self)\n  [status_setter] superPixel(self, value)\n  [status_getter] timerOverflowControl(self)\n  [status_setter] timerOverflowControl(self, value)\n  [status_getter] testPulseDigitalAnalog(self)\n  [status_setter] testPulseDigitalAnalog(self, value)\n  [status_getter] testPulseGeneratorSource(self)\n  [status_setter] testPulseGeneratorSource(self, value)\n  [status_getter] timeOfArrivalClock(self)\n  [status_setter] timeOfArrivalClock(self, value)\n  [status_getter] Ibias_Preamp_ON(self)\n    comment: [0, 255]\n  [status_setter] Ibias_Preamp_ON(self, value)\n    comment: [0, 255]\n  [status_getter] Ibias_Preamp_OFF(self)\n    comment: [0, 15]\n  [status_setter] Ibias_Preamp_OFF(self, value)\n    comment: [0, 15]\n  [status_getter] VPreamp_NCAS(self)\n    comment: [0, 255]\n  [status_setter] VPreamp_NCAS(self, value)\n    comment: [0, 255]\n  [status_getter] Ibias_Ikrum(self)\n    comment: [0, 255]\n  [status_setter] Ibias_Ikrum(self, value)\n    comment: [0, 255]\n  [status_getter] Vfbk(self)\n    comment: [0, 255]\n  [status_setter] Vfbk(self, value)\n    comment: [0, 255]\n  [status_getter] Vthreshold_fine(self)\n    comment: [0, 511]\n  [status_setter] Vthreshold_fine(self, value)\n    comment: [0, 511]\n  [status_getter] Vthreshold_coarse(self)\n    comment: [0, 15]\n  [status_setter] Vthreshold_coarse(self, value)\n    comment: [0, 15]\n  [status_getter] Ibias_DiscS1_ON(self)\n    comment: [0, 255]\n  [status_setter] Ibias_DiscS1_ON(self, value)\n    comment: [0, 255]\n  [status_getter] Ibias_DiscS1_OFF(self)\n    comment: [0, 15]\n  [status_setter] Ibias_DiscS1_OFF(self, value)\n    comment: [0, 15]\n  [status_getter] Ibias_DiscS2_ON(self)\n    comment: [0, 255]\n  [status_setter] Ibias_DiscS2_ON(self, value)\n    comment: [0, 255]\n  [status_getter] Ibias_DiscS2_OFF(self)\n    comment: [0, 15]\n  [status_setter] Ibias_DiscS2_OFF(self, value)\n    comment: [0, 15]\n  [status_getter] Ibias_PixelDAC(self)\n    comment: [0, 255]\n  [status_setter] Ibias_PixelDAC(self, value)\n    comment: [0, 255]\n  [status_getter] Ibias_TPbufferIn(self)\n    comment: [0, 255]\n  [status_setter] Ibias_TPbufferIn(self, value)\n    comment: [0, 255]\n  [status_getter] Ibias_TPbufferOut(self)\n    comment: [0, 255]\n  [status_setter] Ibias_TPbufferOut(self, value)\n    comment: [0, 255]\n  [status_getter] VTP_coarse(self)\n    comment: [0, 255]\n  [status_setter] VTP_coarse(self, value)\n    comment: [0, 255]\n  [status_getter] VTP_fine(self)\n    comment: [0, 511]\n  [status_setter] VTP_fine(self, value)\n    comment: [0, 511]\n  [command] setDac(self, code, value)\n    comment: Sets the DAC parameter using codes\n\n        Parameters\n        ----------\n        code: :obj:`int`\n            DAC code to set\n\n        value: :obj:`int`\n            value to set\n\nRegistry actions:\n  auto-update_timer (from update_timer())\n  auto-maskPixelsJsonable (from maskPixelsJsonable())\n  auto-setupAcquisition (from setupAcquisition())\n  auto-setConfigClass (from setConfigClass())\n  auto-loadConfig (from loadConfig())\n  auto-setupDevice (from setupDevice())\n  auto-pauseHeartbeat (from pauseHeartbeat())\n  auto-resumeHeartbeat (from resumeHeartbeat())\n  auto-devIdToString (from devIdToString())\n  auto-setEthernetFilter (from setEthernetFilter())\n  auto-resetPixels (from resetPixels())\n  auto-pixelThreshold (from pixelThreshold())\n  auto-pixelMask (from pixelMask())\n  auto-pixelTest (from pixelTest())\n  auto-uploadPixels (from uploadPixels())\n  auto-refreshPixels (from refreshPixels())\n  auto-start (from start())\n  auto-stop (from stop())\n  auto-start_recording (from start_recording())\n  auto-stop_recording (from stop_recording())\n  auto-polarity (from polarity())\n  auto-operationMode (from operationMode())\n  auto-grayCounter (from grayCounter())\n  auto-testPulse (from testPulse())\n  auto-superPixel (from superPixel())\n  auto-timerOverflowControl (from timerOverflowControl())\n  auto-testPulseDigitalAnalog (from testPulseDigitalAnalog())\n  auto-testPulseGeneratorSource (from testPulseGeneratorSource())\n  auto-timeOfArrivalClock (from timeOfArrivalClock())\n  auto-Ibias_Preamp_ON (from Ibias_Preamp_ON())\n  auto-Ibias_Preamp_OFF (from Ibias_Preamp_OFF())\n  auto-VPreamp_NCAS (from VPreamp_NCAS())\n  auto-Ibias_Ikrum (from Ibias_Ikrum())\n  auto-Vfbk (from Vfbk())\n  auto-Vthreshold_fine (from Vthreshold_fine())\n  auto-Vthreshold_coarse (from Vthreshold_coarse())\n  auto-Ibias_DiscS1_ON (from Ibias_DiscS1_ON())\n  auto-Ibias_DiscS1_OFF (from Ibias_DiscS1_OFF())\n  auto-Ibias_DiscS2_ON (from Ibias_DiscS2_ON())\n  auto-Ibias_DiscS2_OFF (from Ibias_DiscS2_OFF())\n  auto-Ibias_PixelDAC (from Ibias_PixelDAC())\n  auto-Ibias_TPbufferIn (from Ibias_TPbufferIn())\n  auto-Ibias_TPbufferOut (from Ibias_TPbufferOut())\n  auto-VTP_coarse (from VTP_coarse())\n  auto-VTP_fine (from VTP_fine())\n  auto-setDac (from setDac())\n\nRequired output action ids:\n  auto-update_timer\n  auto-maskPixelsJsonable\n  auto-setupAcquisition\n  auto-setConfigClass\n  auto-loadConfig\n  auto-setupDevice\n  auto-pauseHeartbeat\n  auto-resumeHeartbeat\n  auto-devIdToString\n  auto-setEthernetFilter\n  auto-resetPixels\n  auto-pixelThreshold\n  auto-pixelMask\n  auto-pixelTest\n  auto-uploadPixels\n  auto-refreshPixels\n  auto-start\n  auto-stop\n  auto-start_recording\n  auto-stop_recording\n  auto-polarity\n  auto-operationMode\n  auto-grayCounter\n  auto-testPulse\n  auto-superPixel\n  auto-timerOverflowControl\n  auto-testPulseDigitalAnalog\n  auto-testPulseGeneratorSource\n  auto-timeOfArrivalClock\n  auto-Ibias_Preamp_ON\n  auto-Ibias_Preamp_OFF\n  auto-VPreamp_NCAS\n  auto-Ibias_Ikrum\n  auto-Vfbk\n  auto-Vthreshold_fine\n  auto-Vthreshold_coarse\n  auto-Ibias_DiscS1_ON\n  auto-Ibias_DiscS1_OFF\n  auto-Ibias_DiscS2_ON\n  auto-Ibias_DiscS2_OFF\n  auto-Ibias_PixelDAC\n  auto-Ibias_TPbufferIn\n  auto-Ibias_TPbufferOut\n  auto-VTP_coarse\n  auto-VTP_fine\n  auto-setDac"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_013ba74193a64a550069d5687b565c8196975149294cc53272",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1801,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 15447,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_013ba74193a64a550069d5687bbc548196b25ca2605d88baee",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_013ba74193a64a550069d56894ddfc8196a6f4e42c1b5c55b2",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Timepix/Medipix 像素探测器\",\n  \"name_en\": \"Timepix/Medipix pixel detector\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于控制 Timepix/Medipix 像素探测器的高层接口，可配置像素阈值、掩膜、测试脉冲和多项 DAC 偏置参数，并执行设备设置、采集启动/停止、数据记录及以太网通信配置，适用于辐射探测、粒子成像和时间相关测量实验。\",\n  \"description_en\": \"A high-level control interface for a Timepix/Medipix pixel detector. It supports configuring pixel thresholds, masks, test pulses, and multiple DAC bias parameters, as well as device setup, acquisition start/stop, data recording, and Ethernet communication settings for radiation detection, particle imaging, and time-related measurements.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-update_timer\",\n      \"description\": \"更新设备心跳定时器。\",\n      \"description_en\": \"Update the device heartbeat timer.\"\n    },\n    {\n      \"action_name\": \"auto-maskPixelsJsonable\",\n      \"description\": \"获取/设置可 JSON 序列化的像素掩膜配置。\",\n      \"description_en\": \"Get/set the JSON-serializable pixel mask configuration.\"\n    },\n    {\n      \"action_name\": \"auto-setupAcquisition\",\n      \"description\": \"配置探测器数据采集对象。\",\n      \"description_en\": \"Configure the detector acquisition object.\"\n    },\n    {\n      \"action_name\": \"auto-setConfigClass\",\n      \"description\": \"设置设备配置类。\",\n      \"description_en\": \"Set the device configuration class.\"\n    },\n    {\n      \"action_name\": \"auto-loadConfig\",\n      \"description\": \"从配置类加载 DAC 设置。\",\n      \"description_en\": \"Load DAC settings from the configuration class.\"\n    },\n    {\n      \"action_name\": \"auto-setupDevice\",\n      \"description\": \"设置设备采集参数。\",\n      \"description_en\": \"Set up the device acquisition parameters.\"\n    },\n    {\n      \"action_name\": \"auto-pauseHeartbeat\",\n      \"description\": \"暂停设备心跳。\",\n      \"description_en\": \"Pause the device heartbeat.\"\n    },\n    {\n      \"action_name\": \"auto-resumeHeartbeat\",\n      \"description\": \"恢复设备心跳。\",\n      \"description_en\": \"Resume the device heartbeat.\"\n    },\n    {\n      \"action_name\": \"auto-devIdToString\",\n      \"description\": \"将设备 ID 转换为可读字符串。\",\n      \"description_en\": \"Convert the device ID to a human-readable string.\"\n    },\n    {\n      \"action_name\": \"auto-setEthernetFilter\",\n      \"description\": \"设置以太网数据包过滤器。\",\n      \"description_en\": \"Set the Ethernet packet filter.\"\n    },\n    {\n      \"action_name\": \"auto-resetPixels\",\n      \"description\": \"清除像素配置。\",\n      \"description_en\": \"Clear the pixel configuration.\"\n    },\n    {\n      \"action_name\": \"auto-pixelThreshold\",\n      \"description\": \"获取/设置像素阈值矩阵。\",\n      \"description_en\": \"Get/set the pixel threshold map.\"\n    },\n    {\n      \"action_name\": \"auto-pixelMask\",\n      \"description\": \"获取/设置像素掩膜矩阵。\",\n      \"description_en\": \"Get/set the pixel mask map.\"\n    },\n    {\n      \"action_name\": \"auto-pixelTest\",\n      \"description\": \"获取/设置像素测试矩阵。\",\n      \"description_en\": \"Get/set the pixel test map.\"\n    },\n    {\n      \"action_name\": \"auto-uploadPixels\",\n      \"description\": \"将本地像素配置上传到探测器。\",\n      \"description_en\": \"Upload the local pixel configuration to the detector.\"\n    },\n    {\n      \"action_name\": \"auto-refreshPixels\",\n      \"description\": \"从探测器刷新本地像素配置。\",\n      \"description_en\": \"Refresh the local pixel configuration from the detector.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动探测器采集。\",\n      \"description_en\": \"Start detector acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止探测器采集。\",\n      \"description_en\": \"Stop detector acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-start_recording\",\n      \"description\": \"开始将探测器数据记录到指定路径。\",\n      \"description_en\": \"Start recording detector data to the specified path.\"\n    },\n    {\n      \"action_name\": \"auto-stop_recording\",\n      \"description\": \"停止记录探测器数据。\",\n      \"description_en\": \"Stop recording detector data.\"\n    },\n    {\n      \"action_name\": \"auto-polarity\",\n      \"description\": \"获取/设置极性。\",\n      \"description_en\": \"Get/set the polarity.\"\n    },\n    {\n      \"action_name\": \"auto-operationMode\",\n      \"description\": \"获取/设置工作模式。\",\n      \"description_en\": \"Get/set the operation mode.\"\n    },\n    {\n      \"action_name\": \"auto-grayCounter\",\n      \"description\": \"获取/设置 Gray counter 模式。\",\n      \"description_en\": \"Get/set the gray counter mode.\"\n    },\n    {\n      \"action_name\": \"auto-testPulse\",\n      \"description\": \"获取/设置测试脉冲设置。\",\n      \"description_en\": \"Get/set the test pulse setting.\"\n    },\n    {\n      \"action_name\": \"auto-superPixel\",\n      \"description\": \"获取/设置 superpixel 模式。\",\n      \"description_en\": \"Get/set the superpixel mode.\"\n    },\n    {\n      \"action_name\": \"auto-timerOverflowControl\",\n      \"description\": \"获取/设置计时器溢出控制。\",\n      \"description_en\": \"Get/set the timer overflow control.\"\n    },\n    {\n      \"action_name\": \"auto-testPulseDigitalAnalog\",\n      \"description\": \"获取/设置测试脉冲数字/模拟选择。\",\n      \"description_en\": \"Get/set the test pulse digital/analog selection.\"\n    },\n    {\n      \"action_name\": \"auto-testPulseGeneratorSource\",\n      \"description\": \"获取/设置测试脉冲发生器源。\",\n      \"description_en\": \"Get/set the test pulse generator source.\"\n    },\n    {\n      \"action_name\": \"auto-timeOfArrivalClock\",\n      \"description\": \"获取/设置到达时间时钟设置。\",\n      \"description_en\": \"Get/set the time-of-arrival clock setting.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_Preamp_ON\",\n      \"description\": \"获取/设置前置放大器开启偏置电流。\",\n      \"description_en\": \"Get/set the preamplifier ON bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_Preamp_OFF\",\n      \"description\": \"获取/设置前置放大器关闭偏置电流。\",\n      \"description_en\": \"Get/set the preamplifier OFF bias current.\"\n    },\n    {\n      \"action_name\": \"auto-VPreamp_NCAS\",\n      \"description\": \"获取/设置前置放大器 NCAS 电压。\",\n      \"description_en\": \"Get/set the preamplifier NCAS voltage.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_Ikrum\",\n      \"description\": \"获取/设置 Ikrum 偏置电流。\",\n      \"description_en\": \"Get/set the Ikrum bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Vfbk\",\n      \"description\": \"获取/设置反馈电压。\",\n      \"description_en\": \"Get/set the feedback voltage.\"\n    },\n    {\n      \"action_name\": \"auto-Vthreshold_fine\",\n      \"description\": \"获取/设置细调阈值电压。\",\n      \"description_en\": \"Get/set the fine threshold voltage.\"\n    },\n    {\n      \"action_name\": \"auto-Vthreshold_coarse\",\n      \"description\": \"获取/设置粗调阈值电压。\",\n      \"description_en\": \"Get/set the coarse threshold voltage.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_DiscS1_ON\",\n      \"description\": \"获取/设置鉴别器 S1 开启偏置电流。\",\n      \"description_en\": \"Get/set the discriminator S1 ON bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_DiscS1_OFF\",\n      \"description\": \"获取/设置鉴别器 S1 关闭偏置电流。\",\n      \"description_en\": \"Get/set the discriminator S1 OFF bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_DiscS2_ON\",\n      \"description\": \"获取/设置鉴别器 S2 开启偏置电流。\",\n      \"description_en\": \"Get/set the discriminator S2 ON bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_DiscS2_OFF\",\n      \"description\": \"获取/设置鉴别器 S2 关闭偏置电流。\",\n      \"description_en\": \"Get/set the discriminator S2 OFF bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_PixelDAC\",\n      \"description\": \"获取/设置像素 DAC 偏置电流。\",\n      \"description_en\": \"Get/set the pixel DAC bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_TPbufferIn\",\n      \"description\": \"获取/设置测试脉冲缓冲输入偏置电流。\",\n      \"description_en\": \"Get/set the test pulse buffer input bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_TPbufferOut\",\n      \"description\": \"获取/设置测试脉冲缓冲输出偏置电流。\",\n      \"description_en\": \"Get/set the test pulse buffer output bias current.\"\n    },\n    {\n      \"action_name\": \"auto-VTP_coarse\",\n      \"description\": \"获取/设置粗调测试脉冲电压。\",\n      \"description_en\": \"Get/set the coarse test pulse voltage.\"\n    },\n    {\n      \"action_name\": \"auto-VTP_fine\",\n      \"description\": \"获取/设置细调测试脉冲电压。\",\n      \"description_en\": \"Get/set the fine test pulse voltage.\"\n    },\n    {\n      \"action_name\": \"auto-setDac\",\n      \"description\": \"按代码设置 DAC 参数。\",\n      \"description_en\": \"Set a DAC parameter by code.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Timepix\",\n    \"Medipix\",\n    \"pixel detector\",\n    \"radiation detection\",\n    \"per-pixel threshold and mask\",\n    \"detector DAC tuning\",\n    \"time-of-arrival measurement\",\n    \"Ethernet data acquisition\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 3294,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 4012,
+      "output_tokens_details": {
+        "reasoning_tokens": 1689
+      },
+      "total_tokens": 7306
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 3294,
+      "output_token_count": 4012,
+      "predict_time": 54.709757947
+    }
+  },
+  "output_text": "{\n  \"name\": \"Timepix/Medipix 像素探测器\",\n  \"name_en\": \"Timepix/Medipix pixel detector\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于控制 Timepix/Medipix 像素探测器的高层接口，可配置像素阈值、掩膜、测试脉冲和多项 DAC 偏置参数，并执行设备设置、采集启动/停止、数据记录及以太网通信配置，适用于辐射探测、粒子成像和时间相关测量实验。\",\n  \"description_en\": \"A high-level control interface for a Timepix/Medipix pixel detector. It supports configuring pixel thresholds, masks, test pulses, and multiple DAC bias parameters, as well as device setup, acquisition start/stop, data recording, and Ethernet communication settings for radiation detection, particle imaging, and time-related measurements.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-update_timer\",\n      \"description\": \"更新设备心跳定时器。\",\n      \"description_en\": \"Update the device heartbeat timer.\"\n    },\n    {\n      \"action_name\": \"auto-maskPixelsJsonable\",\n      \"description\": \"获取/设置可 JSON 序列化的像素掩膜配置。\",\n      \"description_en\": \"Get/set the JSON-serializable pixel mask configuration.\"\n    },\n    {\n      \"action_name\": \"auto-setupAcquisition\",\n      \"description\": \"配置探测器数据采集对象。\",\n      \"description_en\": \"Configure the detector acquisition object.\"\n    },\n    {\n      \"action_name\": \"auto-setConfigClass\",\n      \"description\": \"设置设备配置类。\",\n      \"description_en\": \"Set the device configuration class.\"\n    },\n    {\n      \"action_name\": \"auto-loadConfig\",\n      \"description\": \"从配置类加载 DAC 设置。\",\n      \"description_en\": \"Load DAC settings from the configuration class.\"\n    },\n    {\n      \"action_name\": \"auto-setupDevice\",\n      \"description\": \"设置设备采集参数。\",\n      \"description_en\": \"Set up the device acquisition parameters.\"\n    },\n    {\n      \"action_name\": \"auto-pauseHeartbeat\",\n      \"description\": \"暂停设备心跳。\",\n      \"description_en\": \"Pause the device heartbeat.\"\n    },\n    {\n      \"action_name\": \"auto-resumeHeartbeat\",\n      \"description\": \"恢复设备心跳。\",\n      \"description_en\": \"Resume the device heartbeat.\"\n    },\n    {\n      \"action_name\": \"auto-devIdToString\",\n      \"description\": \"将设备 ID 转换为可读字符串。\",\n      \"description_en\": \"Convert the device ID to a human-readable string.\"\n    },\n    {\n      \"action_name\": \"auto-setEthernetFilter\",\n      \"description\": \"设置以太网数据包过滤器。\",\n      \"description_en\": \"Set the Ethernet packet filter.\"\n    },\n    {\n      \"action_name\": \"auto-resetPixels\",\n      \"description\": \"清除像素配置。\",\n      \"description_en\": \"Clear the pixel configuration.\"\n    },\n    {\n      \"action_name\": \"auto-pixelThreshold\",\n      \"description\": \"获取/设置像素阈值矩阵。\",\n      \"description_en\": \"Get/set the pixel threshold map.\"\n    },\n    {\n      \"action_name\": \"auto-pixelMask\",\n      \"description\": \"获取/设置像素掩膜矩阵。\",\n      \"description_en\": \"Get/set the pixel mask map.\"\n    },\n    {\n      \"action_name\": \"auto-pixelTest\",\n      \"description\": \"获取/设置像素测试矩阵。\",\n      \"description_en\": \"Get/set the pixel test map.\"\n    },\n    {\n      \"action_name\": \"auto-uploadPixels\",\n      \"description\": \"将本地像素配置上传到探测器。\",\n      \"description_en\": \"Upload the local pixel configuration to the detector.\"\n    },\n    {\n      \"action_name\": \"auto-refreshPixels\",\n      \"description\": \"从探测器刷新本地像素配置。\",\n      \"description_en\": \"Refresh the local pixel configuration from the detector.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动探测器采集。\",\n      \"description_en\": \"Start detector acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止探测器采集。\",\n      \"description_en\": \"Stop detector acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-start_recording\",\n      \"description\": \"开始将探测器数据记录到指定路径。\",\n      \"description_en\": \"Start recording detector data to the specified path.\"\n    },\n    {\n      \"action_name\": \"auto-stop_recording\",\n      \"description\": \"停止记录探测器数据。\",\n      \"description_en\": \"Stop recording detector data.\"\n    },\n    {\n      \"action_name\": \"auto-polarity\",\n      \"description\": \"获取/设置极性。\",\n      \"description_en\": \"Get/set the polarity.\"\n    },\n    {\n      \"action_name\": \"auto-operationMode\",\n      \"description\": \"获取/设置工作模式。\",\n      \"description_en\": \"Get/set the operation mode.\"\n    },\n    {\n      \"action_name\": \"auto-grayCounter\",\n      \"description\": \"获取/设置 Gray counter 模式。\",\n      \"description_en\": \"Get/set the gray counter mode.\"\n    },\n    {\n      \"action_name\": \"auto-testPulse\",\n      \"description\": \"获取/设置测试脉冲设置。\",\n      \"description_en\": \"Get/set the test pulse setting.\"\n    },\n    {\n      \"action_name\": \"auto-superPixel\",\n      \"description\": \"获取/设置 superpixel 模式。\",\n      \"description_en\": \"Get/set the superpixel mode.\"\n    },\n    {\n      \"action_name\": \"auto-timerOverflowControl\",\n      \"description\": \"获取/设置计时器溢出控制。\",\n      \"description_en\": \"Get/set the timer overflow control.\"\n    },\n    {\n      \"action_name\": \"auto-testPulseDigitalAnalog\",\n      \"description\": \"获取/设置测试脉冲数字/模拟选择。\",\n      \"description_en\": \"Get/set the test pulse digital/analog selection.\"\n    },\n    {\n      \"action_name\": \"auto-testPulseGeneratorSource\",\n      \"description\": \"获取/设置测试脉冲发生器源。\",\n      \"description_en\": \"Get/set the test pulse generator source.\"\n    },\n    {\n      \"action_name\": \"auto-timeOfArrivalClock\",\n      \"description\": \"获取/设置到达时间时钟设置。\",\n      \"description_en\": \"Get/set the time-of-arrival clock setting.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_Preamp_ON\",\n      \"description\": \"获取/设置前置放大器开启偏置电流。\",\n      \"description_en\": \"Get/set the preamplifier ON bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_Preamp_OFF\",\n      \"description\": \"获取/设置前置放大器关闭偏置电流。\",\n      \"description_en\": \"Get/set the preamplifier OFF bias current.\"\n    },\n    {\n      \"action_name\": \"auto-VPreamp_NCAS\",\n      \"description\": \"获取/设置前置放大器 NCAS 电压。\",\n      \"description_en\": \"Get/set the preamplifier NCAS voltage.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_Ikrum\",\n      \"description\": \"获取/设置 Ikrum 偏置电流。\",\n      \"description_en\": \"Get/set the Ikrum bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Vfbk\",\n      \"description\": \"获取/设置反馈电压。\",\n      \"description_en\": \"Get/set the feedback voltage.\"\n    },\n    {\n      \"action_name\": \"auto-Vthreshold_fine\",\n      \"description\": \"获取/设置细调阈值电压。\",\n      \"description_en\": \"Get/set the fine threshold voltage.\"\n    },\n    {\n      \"action_name\": \"auto-Vthreshold_coarse\",\n      \"description\": \"获取/设置粗调阈值电压。\",\n      \"description_en\": \"Get/set the coarse threshold voltage.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_DiscS1_ON\",\n      \"description\": \"获取/设置鉴别器 S1 开启偏置电流。\",\n      \"description_en\": \"Get/set the discriminator S1 ON bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_DiscS1_OFF\",\n      \"description\": \"获取/设置鉴别器 S1 关闭偏置电流。\",\n      \"description_en\": \"Get/set the discriminator S1 OFF bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_DiscS2_ON\",\n      \"description\": \"获取/设置鉴别器 S2 开启偏置电流。\",\n      \"description_en\": \"Get/set the discriminator S2 ON bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_DiscS2_OFF\",\n      \"description\": \"获取/设置鉴别器 S2 关闭偏置电流。\",\n      \"description_en\": \"Get/set the discriminator S2 OFF bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_PixelDAC\",\n      \"description\": \"获取/设置像素 DAC 偏置电流。\",\n      \"description_en\": \"Get/set the pixel DAC bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_TPbufferIn\",\n      \"description\": \"获取/设置测试脉冲缓冲输入偏置电流。\",\n      \"description_en\": \"Get/set the test pulse buffer input bias current.\"\n    },\n    {\n      \"action_name\": \"auto-Ibias_TPbufferOut\",\n      \"description\": \"获取/设置测试脉冲缓冲输出偏置电流。\",\n      \"description_en\": \"Get/set the test pulse buffer output bias current.\"\n    },\n    {\n      \"action_name\": \"auto-VTP_coarse\",\n      \"description\": \"获取/设置粗调测试脉冲电压。\",\n      \"description_en\": \"Get/set the coarse test pulse voltage.\"\n    },\n    {\n      \"action_name\": \"auto-VTP_fine\",\n      \"description\": \"获取/设置细调测试脉冲电压。\",\n      \"description_en\": \"Get/set the fine test pulse voltage.\"\n    },\n    {\n      \"action_name\": \"auto-setDac\",\n      \"description\": \"按代码设置 DAC 参数。\",\n      \"description_en\": \"Set a DAC parameter by code.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Timepix\",\n    \"Medipix\",\n    \"pixel detector\",\n    \"radiation detection\",\n    \"per-pixel threshold and mask\",\n    \"detector DAC tuning\",\n    \"time-of-arrival measurement\",\n    \"Ethernet data acquisition\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: udp_sampler\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pymepix/processing/udpsampler.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.udp_sampler:UdpSampler\n\nClass: UdpSampler (focal)\n  Bases: ['multiprocessing.Process', 'ProcessLogger']\n  Docstring: Recieves udp packets from SPDIR\n\nThis class, creates a UDP socket connection to SPIDR and recivies the UDP packets from Timepix\nIt them pre-processes them and sends them off for more processing\n\nFocal class methods:\n  [command] init_new_process(self)\n    comment: create connection to packetprocessor\n    comment: create connections and initialize variables in new process\n  [command] create_socket_connection(self, address)\n    comment: Establishes a UDP connection to spidr\n  [command] get_useful_packets(self, packet)\n    comment: Get the header\n  [command] enable(self)\n    comment: Enables processing\n\n        Determines whether the class will perform processing, this has the result of signalling the process to terminate.\n        If there are objects ahead of it then they will st...\n  [command] enable(self, value)\n  [command] record(self)\n    comment: Enables saving data to disk\n\n        Determines whether the class will perform processing, this has the result of signalling the process to terminate.\n        If there are objects ahead of it then the...\n  [command] record(self, value)\n  [command] close_file(self)\n  [command] close_file(self, value)\n  [command] outfile_name(self)\n  [command] outfile_name(self, fileN)\n  [command] pre_run(self)\n    comment: init stuff which should only be available in new process\n  [command] post_run(self)\n    comment: return MessageType.RawData, (\n    comment: self._packet_buffer_list[curr_list_idx][:bytes_to_send], self._longtime.value)\n    comment: method get's called either at the very end of the process live or\n        if there's a socket timeout and raw2disk file should be closed\n  [command] run(self)\n    comment: put close file here to get the cases where there's no data coming and file should be closed\n    comment: mainly there for test to succeed\n    comment: if self._packets_collected % 1000 == 0:\n    comment: self.debug('Packets collected {}'.format(self._packets_collected))\n    comment: self.debug('Total time {} s'.format(self._total_time))\n    comment: sends empty packets if flush_timeout==True but no data was received\n    comment: tpx_packets = self.get_useful_packets(packet)\n    comment: send stuff to packet processor only every 10th iteration\n    comment: elif self._buffer_list_idx == 9:\n    comment: add longtime to buffers end\n    comment: if len(packet) > 1:\n    comment: if not curr_list_idx % 20:\n    comment: return MessageType.RawData, (self._packet_buffer_list[curr_list_idx][:bytes_to_send], self._longtime.value)\n    comment: else:\n    comment: return None, None\n    comment: else:\n    comment: return None, None\n    comment: else:\n    comment: return None, None\n    comment: method which is executed in new process via multiprocessing.Process.start\n\nRegistry actions:\n  auto-init_new_process (from init_new_process())\n  auto-create_socket_connection (from create_socket_connection())\n  auto-get_useful_packets (from get_useful_packets())\n  auto-enable (from enable())\n  auto-record (from record())\n  auto-close_file (from close_file())\n  auto-outfile_name (from outfile_name())\n  auto-pre_run (from pre_run())\n  auto-post_run (from post_run())\n  auto-run (from run())\n\nRequired output action ids:\n  auto-init_new_process\n  auto-create_socket_connection\n  auto-get_useful_packets\n  auto-enable\n  auto-record\n  auto-close_file\n  auto-outfile_name\n  auto-pre_run\n  auto-post_run\n  auto-run"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0930e1182823bb3b0069d56a5717e88193b79fcd8dbd3136cd",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4741,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5519,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0930e1182823bb3b0069d56a5781f88193af2004f712269719",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0930e1182823bb3b0069d56a6201e88193bb839e208cb9c695",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"UDP数据采样进程\",\n  \"name_en\": \"UDP Sampler Process\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非实体的软件组件，用于从 SPIDR 接收 Timepix 相关的 UDP 数据包，进行基础预处理、缓冲、转发以及可选的原始数据落盘，通常用于实验数据采集流水线中的前端接收环节。\",\n  \"description_en\": \"This is a non-physical software component that receives UDP packets from SPIDR carrying Timepix-related data, performs basic preprocessing, buffering, forwarding, and optional raw-data recording to disk. It is typically used as a front-end acquisition stage in an experimental data-processing pipeline.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init_new_process\",\n      \"description\": \"初始化新进程中的连接与内部变量，并建立与后续数据处理模块的通信。\",\n      \"description_en\": \"Initialize connections and internal variables in the new process, and create communication with the downstream packet processor.\"\n    },\n    {\n      \"action_name\": \"auto-create_socket_connection\",\n      \"description\": \"创建到 SPIDR 的 UDP 套接字连接，用于接收实验数据包。\",\n      \"description_en\": \"Create a UDP socket connection to SPIDR for receiving experimental data packets.\"\n    },\n    {\n      \"action_name\": \"auto-get_useful_packets\",\n      \"description\": \"从接收到的数据包中提取有用内容和报头，供后续处理使用。\",\n      \"description_en\": \"Extract useful content and headers from a received packet for downstream processing.\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"获取或设置数据处理使能状态。\",\n      \"description_en\": \"Get or set the processing enabled state.\"\n    },\n    {\n      \"action_name\": \"auto-record\",\n      \"description\": \"获取或设置原始数据写入磁盘的记录状态。\",\n      \"description_en\": \"Get or set the raw-data recording state for saving to disk.\"\n    },\n    {\n      \"action_name\": \"auto-close_file\",\n      \"description\": \"获取或设置原始数据文件关闭请求。\",\n      \"description_en\": \"Get or set the raw-data file close request.\"\n    },\n    {\n      \"action_name\": \"auto-outfile_name\",\n      \"description\": \"获取或设置输出文件名。\",\n      \"description_en\": \"Get or set the output file name.\"\n    },\n    {\n      \"action_name\": \"auto-pre_run\",\n      \"description\": \"在子进程正式运行前完成仅在新进程中可用的初始化准备。\",\n      \"description_en\": \"Perform initialization steps before execution that should only be available inside the child process.\"\n    },\n    {\n      \"action_name\": \"auto-post_run\",\n      \"description\": \"在运行结束或超时后执行收尾处理，例如整理缓冲数据并处理文件关闭逻辑。\",\n      \"description_en\": \"Perform post-run cleanup after execution or timeout, such as finalizing buffered data and handling file-closing logic.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"启动采样进程的主循环，持续接收 UDP 数据、筛选有效包、打包缓冲并转发或记录数据。\",\n      \"description_en\": \"Run the main acquisition loop that continuously receives UDP data, filters useful packets, buffers them, and forwards or records the data.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"UDP data acquisition\",\n    \"SPIDR packet receiver\",\n    \"Timepix data pipeline\",\n    \"raw data recording\",\n    \"multiprocessing worker\",\n    \"packet preprocessing\",\n    \"socket-based acquisition\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1542,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1312,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2854
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1542,
+      "output_token_count": 1312,
+      "predict_time": 22.050037177
+    }
+  },
+  "output_text": "{\n  \"name\": \"UDP数据采样进程\",\n  \"name_en\": \"UDP Sampler Process\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非实体的软件组件，用于从 SPIDR 接收 Timepix 相关的 UDP 数据包，进行基础预处理、缓冲、转发以及可选的原始数据落盘，通常用于实验数据采集流水线中的前端接收环节。\",\n  \"description_en\": \"This is a non-physical software component that receives UDP packets from SPIDR carrying Timepix-related data, performs basic preprocessing, buffering, forwarding, and optional raw-data recording to disk. It is typically used as a front-end acquisition stage in an experimental data-processing pipeline.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init_new_process\",\n      \"description\": \"初始化新进程中的连接与内部变量，并建立与后续数据处理模块的通信。\",\n      \"description_en\": \"Initialize connections and internal variables in the new process, and create communication with the downstream packet processor.\"\n    },\n    {\n      \"action_name\": \"auto-create_socket_connection\",\n      \"description\": \"创建到 SPIDR 的 UDP 套接字连接，用于接收实验数据包。\",\n      \"description_en\": \"Create a UDP socket connection to SPIDR for receiving experimental data packets.\"\n    },\n    {\n      \"action_name\": \"auto-get_useful_packets\",\n      \"description\": \"从接收到的数据包中提取有用内容和报头，供后续处理使用。\",\n      \"description_en\": \"Extract useful content and headers from a received packet for downstream processing.\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"获取或设置数据处理使能状态。\",\n      \"description_en\": \"Get or set the processing enabled state.\"\n    },\n    {\n      \"action_name\": \"auto-record\",\n      \"description\": \"获取或设置原始数据写入磁盘的记录状态。\",\n      \"description_en\": \"Get or set the raw-data recording state for saving to disk.\"\n    },\n    {\n      \"action_name\": \"auto-close_file\",\n      \"description\": \"获取或设置原始数据文件关闭请求。\",\n      \"description_en\": \"Get or set the raw-data file close request.\"\n    },\n    {\n      \"action_name\": \"auto-outfile_name\",\n      \"description\": \"获取或设置输出文件名。\",\n      \"description_en\": \"Get or set the output file name.\"\n    },\n    {\n      \"action_name\": \"auto-pre_run\",\n      \"description\": \"在子进程正式运行前完成仅在新进程中可用的初始化准备。\",\n      \"description_en\": \"Perform initialization steps before execution that should only be available inside the child process.\"\n    },\n    {\n      \"action_name\": \"auto-post_run\",\n      \"description\": \"在运行结束或超时后执行收尾处理，例如整理缓冲数据并处理文件关闭逻辑。\",\n      \"description_en\": \"Perform post-run cleanup after execution or timeout, such as finalizing buffered data and handling file-closing logic.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"启动采样进程的主循环，持续接收 UDP 数据、筛选有效包、打包缓冲并转发或记录数据。\",\n      \"description_en\": \"Run the main acquisition loop that continuously receives UDP data, filters useful packets, buffers them, and forwards or records the data.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"UDP data acquisition\",\n    \"SPIDR packet receiver\",\n    \"Timepix data pipeline\",\n    \"raw data recording\",\n    \"multiprocessing worker\",\n    \"packet preprocessing\",\n    \"socket-based acquisition\"\n  ]\n}"
+}

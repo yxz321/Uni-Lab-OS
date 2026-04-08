@@ -1,30 +1,97 @@
-Device: udp_multicast_bus
-Registry Key: udp_multicast_bus
-Short Description: UDP Multicast BUS是由Open Standard生产的实验执行&合成设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (4):
-- auto-fileno -> fileno [UniLabJsonCommand] goal_params: none
-- auto-is_fd -> is_fd [UniLabJsonCommand] goal_params: none
-- auto-send -> send [UniLabJsonCommand] goal_params: msg, timeout
-- auto-shutdown -> shutdown [UniLabJsonCommand] goal_params: none
-
-Driver Functions (13):
-- UdpMulticastBus.__init__(self, channel, port, hop_limit, receive_own_messages, fd, **kwargs) (line 162)
-- UdpMulticastBus.is_fd(self) (line 188)
-- UdpMulticastBus._recv_internal(self, timeout) (line 199)
-- UdpMulticastBus.send(self, msg, timeout) (line 220)
-- UdpMulticastBus.fileno(self) (line 230)
-- UdpMulticastBus.shutdown(self) (line 235)
-- UdpMulticastBus._detect_available_configs() (line 245)
-- GeneralPurposeUdpMulticastBus.__init__(self, group, port, hop_limit, max_buffer) (line 269)
-- GeneralPurposeUdpMulticastBus._create_socket(self, address_family) (line 320)
-- GeneralPurposeUdpMulticastBus.send(self, data, timeout) (line 395)
-- GeneralPurposeUdpMulticastBus.recv(self, timeout) (line 417)
-- GeneralPurposeUdpMulticastBus.fileno(self) (line 508)
-- GeneralPurposeUdpMulticastBus.shutdown(self) (line 512)
+udp_multicast_bus:
+  name: UDP组播CAN虚拟总线
+  name_en: UDP Multicast CAN Virtual Bus
+  manufacturer: ''
+  category:
+  - UDP组播通信接口
+  - CAN总线接口
+  tags:
+  - 实验执行&合成设备
+  - 实验网络与协议集成
+  - 实验室自动化与仪器集成
+  - CAN总线设备调试与集成
+  - 虚拟网络接口与协议联调
+  - UDP组播通信接口
+  - CAN总线接口
+  description: 用于实验软件中的非物理虚拟通信组件，通过 IP/UDP 组播在多个进程或主机之间传输 CAN 或 CAN-FD 报文。适合局域网内的分布式测试、仿真和进程间总线消息交换，不对应具体硬件仪器。
+  description_en: A non-physical virtual communication component used in lab software
+    to exchange CAN or CAN-FD messages between multiple processes or hosts over IP/UDP
+    multicast. It is suited for distributed testing, simulation, and inter-process
+    bus messaging on a LAN, and does not correspond to a specific hardware instrument.
+  class:
+    action_value_mappings:
+      auto-is_fd:
+        schema:
+          description: 检查是否支持 CAN-FD 帧。
+          description_en: Check whether CAN-FD frames are supported.
+      auto-send:
+        schema:
+          description: 通过 UDP 组播虚拟总线发送 CAN 或 CAN-FD 报文。
+          description_en: Send a CAN or CAN-FD message over the UDP multicast virtual
+            bus.
+      auto-fileno:
+        schema:
+          description: 获取内部 UDP 套接字的文件描述符。
+          description_en: Get the file descriptor of the internal UDP socket.
+      auto-shutdown:
+        schema:
+          description: 关闭所有套接字并释放相关资源。
+          description_en: Close all sockets and release associated resources.
+auto_annotation_metadata:
+  registry_key: udp_multicast_bus
+  annotation_workflow_version: v4
+  tag_hints:
+  - virtual CAN bus
+  - UDP multicast
+  - CAN-FD messaging
+  - inter-process communication
+  - distributed test systems
+  - LAN multicast
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该虚拟总线在实验运行时承担分布式CAN/CAN-FD消息交换。
+  - id: P-99010005
+    name: 实验网络与协议集成
+    name_en: Experimental Networking & Protocol Integration
+    type: experimental_domain
+    rationale: 核心是把CAN消息映射到IP/UDP组播网络中传输。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 用于跨进程、跨主机集成多个实验软件节点。
+  - id: P-20004
+    name: CAN总线设备调试与集成
+    name_en: CAN Device Debugging & Integration
+    type: experimental_scene
+    rationale: 组件服务于CAN设备或仿真节点之间的消息互联与联调。
+  - id: P-99010006
+    name: 虚拟网络接口与协议联调
+    name_en: Virtual Network Interface & Protocol Interoperability Testing
+    type: experimental_scene
+    rationale: 其描述强调局域网分布式测试、仿真和虚拟总线通信。
+  - id: P-13007
+    name: UDP组播通信接口
+    name_en: UDP Multicast Communication Interface
+    type: device_template_tag
+    rationale: 底层通信机制就是IP/UDP组播。
+  - id: P-700002
+    name: CAN总线接口
+    name_en: CAN Bus Interface
+    type: device_template_tag
+    rationale: 对上层暴露的是CAN或CAN-FD报文总线语义。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

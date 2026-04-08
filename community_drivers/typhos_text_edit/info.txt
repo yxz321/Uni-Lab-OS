@@ -1,32 +1,77 @@
-Device: typhos_text_edit
-Registry Key: typhos_text_edit
-Short Description: Typhos/EPICS设备参数文本编辑界面组件，用于同步辐射光源控制系统。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (4):
-- auto-send_value -> send_value [UniLabJsonCommand] goal_params: none
-- auto-set_display -> set_display [UniLabJsonCommand] goal_params: none
-- auto-value_changed -> value_changed [UniLabJsonCommand] goal_params: value
-- auto-write_access_changed -> write_access_changed [UniLabJsonCommand] goal_params: new_write_access
-
-Driver Functions (15):
-- TyphosTextEdit.__init__(self, parent, init_channel, variety_metadata, ophyd_signal) (line 101)
-- TyphosTextEdit._setup_ui(self) (line 119)
-- TyphosTextEdit._revert_clicked(self) (line 139)
-- TyphosTextEdit._send_clicked(self) (line 143)
-- TyphosTextEdit.value_changed(self, value) (line 147)
-- TyphosTextEdit._to_wire(self, text) (line 154)
-- TyphosTextEdit._from_wire(self, value) (line 165)
-- TyphosTextEdit._set_text(self, text) (line 172)
-- TyphosTextEdit.send_value(self) (line 176)
-- TyphosTextEdit.write_access_changed(self, new_write_access) (line 192)
-- TyphosTextEdit.set_display(self) (line 202)
-- TyphosTextEdit._reinterpret_text(self) (line 213)
-- TyphosTextEdit._variety_key_handler_delimiter(self, delimiter) (line 220)
-- TyphosTextEdit._variety_key_handler_encoding(self, encoding) (line 225)
-- TyphosTextEdit._variety_key_handler_format(self, format_) (line 231)
+typhos_text_edit:
+  name: Typhos多行文本编辑组件
+  name_en: Typhos Text Edit Widget
+  manufacturer: ''
+  category:
+  - 实验多行文本输入组件
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 人工输入与实验交互控制
+  - 实验多行文本输入组件
+  description: 一个非物理实验软件界面组件，用于通过 PyDM 通道显示、编辑并提交多行文本内容。它可根据通道写权限切换为只读模式，适合在实验控制界面中输入或查看备注、配置文本或其他字符串数据。
+  description_en: A non-physical laboratory software UI component for displaying,
+    editing, and sending multiline text through PyDM channels. It can switch to read-only
+    mode based on channel write access, making it suitable for entering or viewing
+    notes, configuration text, or other string data in experiment control interfaces.
+  class:
+    action_value_mappings:
+      auto-value_changed:
+        schema:
+          description: 接收新的通道值并更新文本显示
+          description_en: Receive a new channel value and update the text display
+      auto-send_value:
+        schema:
+          description: 发送当前文本到通道以更新数值
+          description_en: Send the current text to the channel to update the value
+      auto-write_access_changed:
+        schema:
+          description: 根据写入权限切换编辑器的只读状态
+          description_en: Change the editor read-only state based on write access
+      auto-set_display:
+        schema:
+          description: 设置文本编辑器的显示内容
+          description_en: Set the displayed content of the text editor
+auto_annotation_metadata:
+  registry_key: typhos_text_edit
+  annotation_workflow_version: v4
+  tag_hints:
+  - Typhos UI
+  - PyDM channel
+  - multiline text editing
+  - write access control
+  - Qt widget
+  - experiment control interface
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该文本组件用于实验控制界面中的备注、配置文本输入与提交，属于实验执行阶段的人机交互部件。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 组件通过PyDM通道与实验控制系统交互，属于实验室自动化软件界面的一部分。
+  - id: P-40007
+    name: 人工输入与实验交互控制
+    name_en: Manual Input & Experimental Interaction Control
+    type: experimental_scene
+    rationale: 其主要作用是允许用户查看、编辑并提交多行文本，完全符合人工输入与实验交互场景。
+  proposed_new_tags:
+  - id: P-99010009
+    name: 实验多行文本输入组件
+    name_en: Experimental Multiline Text Input Widget
+    type: device_template_tag
+    rationale: 该组件是实验控制软件中通过通道进行多行字符串显示与编辑的通用输入控件类型。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

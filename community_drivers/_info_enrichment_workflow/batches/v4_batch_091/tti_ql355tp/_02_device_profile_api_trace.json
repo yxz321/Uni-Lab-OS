@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: tti_ql355tp\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: basil/HL/tti_ql355tp.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.tti_ql355tp:ttiQl355tp\n\nClass: ttiQl355tp (focal)\n  Bases: ['HardwareLayer']\n  Docstring: HL for the TTi QL355TP.\n    \n\nFocal class methods:\n  [command] init(self)\n  [command] reinit(self)\n  [command] write(self, command)\n  [command] ask(self, command)\n  [command] read(self)\n  [command] set_enable(self, on, channel=1)\n    comment: channel: 1=OP1, 2=OP2, 3=AUX, ALL=all channels\n  [command] get_name(self)\n  [command] get_current(self, channel)\n    comment: channel: 1=OP1, 2=OP2, AUX is not supported\n  [command] get_voltage(self, channel)\n    comment: channel: 1=OP1, 2=OP2, AUX is not supported\n  [command] get_set_voltage(self, channel)\n    comment: channel: 1=OP1, 2=OP2, AUX is not supported\n  [command] get_current_limit(self, channel)\n    comment: channel: 1=OP1, 2=OP2, AUX is not supported\n  [command] set_voltage(self, value, channel=1)\n    comment: channel: 1=OP1, 2=OP2, AUX is not supported\n  [command] set_current_limit(self, value, channel=1)\n    comment: channel: 1=OP1, 2=OP2, AUX is not supported\n  [command] reset_trip(self)\n\nRegistry actions:\n  auto-init (from init())\n  auto-reinit (from reinit())\n  auto-write (from write())\n  auto-ask (from ask())\n  auto-read (from read())\n  auto-set_enable (from set_enable())\n  auto-get_name (from get_name())\n  auto-get_current (from get_current())\n  auto-get_voltage (from get_voltage())\n  auto-get_set_voltage (from get_set_voltage())\n  auto-get_current_limit (from get_current_limit())\n  auto-set_voltage (from set_voltage())\n  auto-set_current_limit (from set_current_limit())\n  auto-reset_trip (from reset_trip())\n\nRequired output action ids:\n  auto-init\n  auto-reinit\n  auto-write\n  auto-ask\n  auto-read\n  auto-set_enable\n  auto-get_name\n  auto-get_current\n  auto-get_voltage\n  auto-get_set_voltage\n  auto-get_current_limit\n  auto-set_voltage\n  auto-set_current_limit\n  auto-reset_trip"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0d8340624d4909fa0069d568aa6fe08194ba537754c0f8595f",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1781,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6407,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0d8340624d4909fa0069d568ab03b08194b0fa744509edf477",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0d8340624d4909fa0069d568b91ebc81948a2ec603c2c098e3",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"TTi QL355TP 可编程多路直流电源\",\n  \"name_en\": \"TTi QL355TP Programmable Multi-Output DC Power Supply\",\n  \"manufacturer\": \"TTi (Thurlby Thandar Instruments)\",\n  \"description\": \"用于实验室供电的台式可编程直流电源，支持多个输出通道的开关控制，并可设置与读取电压、电流及限流参数，适合电子器件测试、原型验证和实验系统供电。\",\n  \"description_en\": \"A bench programmable DC power supply for laboratory use. It supports enabling multiple output channels and setting or reading voltage, current, and current-limit parameters, making it suitable for electronics testing, prototyping, and powering experimental setups.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化电源通信并准备设备使用。\",\n      \"description_en\": \"Initialize communication with the power supply and prepare it for use.\"\n    },\n    {\n      \"action_name\": \"auto-reinit\",\n      \"description\": \"重新初始化电源连接与设备状态。\",\n      \"description_en\": \"Reinitialize the power supply connection and device state.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向电源发送底层控制命令。\",\n      \"description_en\": \"Send a low-level control command to the power supply.\"\n    },\n    {\n      \"action_name\": \"auto-ask\",\n      \"description\": \"向电源发送查询命令并获取响应。\",\n      \"description_en\": \"Send a query command to the power supply and get the response.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取电源返回的数据。\",\n      \"description_en\": \"Read response data returned by the power supply.\"\n    },\n    {\n      \"action_name\": \"auto-set_enable\",\n      \"description\": \"打开或关闭指定输出通道，可作用于 OP1、OP2、AUX 或全部通道。\",\n      \"description_en\": \"Enable or disable a selected output channel, including OP1, OP2, AUX, or all channels.\"\n    },\n    {\n      \"action_name\": \"auto-get_name\",\n      \"description\": \"读取电源名称或型号标识。\",\n      \"description_en\": \"Read the power supply name or model identification.\"\n    },\n    {\n      \"action_name\": \"auto-get_current\",\n      \"description\": \"读取指定输出通道（OP1 或 OP2）的输出电流。\",\n      \"description_en\": \"Read the output current of the selected channel (OP1 or OP2).\"\n    },\n    {\n      \"action_name\": \"auto-get_voltage\",\n      \"description\": \"读取指定输出通道（OP1 或 OP2）的输出电压。\",\n      \"description_en\": \"Read the output voltage of the selected channel (OP1 or OP2).\"\n    },\n    {\n      \"action_name\": \"auto-get_set_voltage\",\n      \"description\": \"读取指定输出通道（OP1 或 OP2）的电压设定值。\",\n      \"description_en\": \"Read the configured voltage setpoint of the selected channel (OP1 or OP2).\"\n    },\n    {\n      \"action_name\": \"auto-get_current_limit\",\n      \"description\": \"读取指定输出通道（OP1 或 OP2）的限流设定值。\",\n      \"description_en\": \"Read the current-limit setting of the selected channel (OP1 or OP2).\"\n    },\n    {\n      \"action_name\": \"auto-set_voltage\",\n      \"description\": \"设置指定输出通道（OP1 或 OP2）的输出电压。\",\n      \"description_en\": \"Set the output voltage of the selected channel (OP1 or OP2).\"\n    },\n    {\n      \"action_name\": \"auto-set_current_limit\",\n      \"description\": \"设置指定输出通道（OP1 或 OP2）的电流限制。\",\n      \"description_en\": \"Set the current limit of the selected channel (OP1 or OP2).\"\n    },\n    {\n      \"action_name\": \"auto-reset_trip\",\n      \"description\": \"复位电源的跳闸或保护状态。\",\n      \"description_en\": \"Reset the power supply trip or protection state.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"programmable DC power supply\",\n    \"bench power supply\",\n    \"multi-output power supply\",\n    \"voltage sourcing\",\n    \"current limiting\",\n    \"electrical test equipment\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1284,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1702,
+      "output_tokens_details": {
+        "reasoning_tokens": 740
+      },
+      "total_tokens": 2986
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1284,
+      "output_token_count": 1702,
+      "predict_time": 29.65387378
+    }
+  },
+  "output_text": "{\n  \"name\": \"TTi QL355TP 可编程多路直流电源\",\n  \"name_en\": \"TTi QL355TP Programmable Multi-Output DC Power Supply\",\n  \"manufacturer\": \"TTi (Thurlby Thandar Instruments)\",\n  \"description\": \"用于实验室供电的台式可编程直流电源，支持多个输出通道的开关控制，并可设置与读取电压、电流及限流参数，适合电子器件测试、原型验证和实验系统供电。\",\n  \"description_en\": \"A bench programmable DC power supply for laboratory use. It supports enabling multiple output channels and setting or reading voltage, current, and current-limit parameters, making it suitable for electronics testing, prototyping, and powering experimental setups.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化电源通信并准备设备使用。\",\n      \"description_en\": \"Initialize communication with the power supply and prepare it for use.\"\n    },\n    {\n      \"action_name\": \"auto-reinit\",\n      \"description\": \"重新初始化电源连接与设备状态。\",\n      \"description_en\": \"Reinitialize the power supply connection and device state.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向电源发送底层控制命令。\",\n      \"description_en\": \"Send a low-level control command to the power supply.\"\n    },\n    {\n      \"action_name\": \"auto-ask\",\n      \"description\": \"向电源发送查询命令并获取响应。\",\n      \"description_en\": \"Send a query command to the power supply and get the response.\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"读取电源返回的数据。\",\n      \"description_en\": \"Read response data returned by the power supply.\"\n    },\n    {\n      \"action_name\": \"auto-set_enable\",\n      \"description\": \"打开或关闭指定输出通道，可作用于 OP1、OP2、AUX 或全部通道。\",\n      \"description_en\": \"Enable or disable a selected output channel, including OP1, OP2, AUX, or all channels.\"\n    },\n    {\n      \"action_name\": \"auto-get_name\",\n      \"description\": \"读取电源名称或型号标识。\",\n      \"description_en\": \"Read the power supply name or model identification.\"\n    },\n    {\n      \"action_name\": \"auto-get_current\",\n      \"description\": \"读取指定输出通道（OP1 或 OP2）的输出电流。\",\n      \"description_en\": \"Read the output current of the selected channel (OP1 or OP2).\"\n    },\n    {\n      \"action_name\": \"auto-get_voltage\",\n      \"description\": \"读取指定输出通道（OP1 或 OP2）的输出电压。\",\n      \"description_en\": \"Read the output voltage of the selected channel (OP1 or OP2).\"\n    },\n    {\n      \"action_name\": \"auto-get_set_voltage\",\n      \"description\": \"读取指定输出通道（OP1 或 OP2）的电压设定值。\",\n      \"description_en\": \"Read the configured voltage setpoint of the selected channel (OP1 or OP2).\"\n    },\n    {\n      \"action_name\": \"auto-get_current_limit\",\n      \"description\": \"读取指定输出通道（OP1 或 OP2）的限流设定值。\",\n      \"description_en\": \"Read the current-limit setting of the selected channel (OP1 or OP2).\"\n    },\n    {\n      \"action_name\": \"auto-set_voltage\",\n      \"description\": \"设置指定输出通道（OP1 或 OP2）的输出电压。\",\n      \"description_en\": \"Set the output voltage of the selected channel (OP1 or OP2).\"\n    },\n    {\n      \"action_name\": \"auto-set_current_limit\",\n      \"description\": \"设置指定输出通道（OP1 或 OP2）的电流限制。\",\n      \"description_en\": \"Set the current limit of the selected channel (OP1 or OP2).\"\n    },\n    {\n      \"action_name\": \"auto-reset_trip\",\n      \"description\": \"复位电源的跳闸或保护状态。\",\n      \"description_en\": \"Reset the power supply trip or protection state.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"programmable DC power supply\",\n    \"bench power supply\",\n    \"multi-output power supply\",\n    \"voltage sourcing\",\n    \"current limiting\",\n    \"electrical test equipment\"\n  ]\n}"
+}

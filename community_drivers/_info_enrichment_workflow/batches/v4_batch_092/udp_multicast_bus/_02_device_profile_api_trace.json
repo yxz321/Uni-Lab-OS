@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: udp_multicast_bus\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: can/interfaces/udp_multicast/bus.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.udp_multicast_bus:UdpMulticastBus\n\nClass: UdpMulticastBus (focal)\n  Bases: ['BusABC']\n  Docstring: A virtual interface for CAN communications between multiple processes using UDP over Multicast IP.\n\nIt supports IPv4 and IPv6, specified via the channel (which really is just a multicast IP address as a\nstring). You can also specify the port and the IPv6 *hop limit*/the IPv4 *time to live* (TTL).\n\nThis bus does not support filtering based on message IDs on the kernel level but instead provides it in\nuser space (in Python) as a fallback.\n\nBoth default addresses should allow for multi-host CAN networks in a normal local area network (LAN) where\nmulticast is enabled.\n\n.. note::\n    The auto-detection of available interfaces (see) is implemented using heuristic that checks if the\n    required socket operations are available. It then returns two configurations, one based on\n    the :attr:`~UdpMulticastBus.DEFAULT_GROUP_IPv6` address and another one based on\n    the :attr:`~UdpMulticastBus.DEFAULT_GROUP_IPv4` address.\n\n.. warning::\n    The parameter `receive_own_messages` is currently unsupported and setting it to `True` will raise an\n    exception.\n\n.. warning::\n    This interface does not make guarantees on reliable delivery and message ordering, and also does not\n    implement rate limiting or ID arbitration/prioritization under high loads. Please refer to the section\n    :ref:`virtual_interfaces_doc` for more information on this and a comparison to alternatives.\n\n:param channel: A multicast IPv4 address (in `224.0.0.0/4`) or an IPv6 address (in `ff00::/8`).\n                This defines which version of IP is used. See\n                `Wikipedia (\"Multicast address\") <https://en.wikipedia.org/wiki/Multicast_address>`__\n                for more details on the addressing schemes.\n                Defaults to :attr:`~UdpMulticastBus.DEFAULT_GROUP_IPv6`.\n:param port: The IP port to read from and write to.\n:param hop_limit: The hop limit in IPv6 or in IPv4 the time to live (TTL).\n:param receive_own_messages: If transmitted messages should also be received by this bus.\n                             CURRENTLY UNSUPPORTED.\n:param fd:\n    If CAN-FD frames should be supported. If set to false, an error will be raised upon sending such a\n    frame and such received frames will be ignored.\n:param can_filters: See :meth:`~can.BusABC.set_filters`.\n\n:raises RuntimeError: If the *msgpack*-dependency is not available. It should be installed on all\n                      non Windows platforms via the `setup.py` requirements.\n:raises NotImplementedError: If the `receive_own_messages` is passed as `True`.\n\nClass: GeneralPurposeUdpMulticastBus \n  Bases: []\n  Docstring: A general purpose send and receive handler for multicast over IP/UDP.\n\nHowever, it raises CAN-specific exceptions for convenience.\n\nFocal class methods:\n  [command] is_fd(self)\n  [command] send(self, msg, timeout=None)\n  [command] fileno(self)\n    comment: Provides the internally used file descriptor of the socket or `-1` if not available.\n  [command] shutdown(self)\n    comment: Close all sockets and free up any resources.\n\n        Never throws errors and only logs them.\n\nRegistry actions:\n  auto-is_fd (from is_fd())\n  auto-send (from send())\n  auto-fileno (from fileno())\n  auto-shutdown (from shutdown())\n\nRequired output action ids:\n  auto-is_fd\n  auto-send\n  auto-fileno\n  auto-shutdown"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0c564e8d3fa7f28b0069d56a53b1b48190862f47db98aa353f",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4631,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4198,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0c564e8d3fa7f28b0069d56a5429e48190a78de0aace7ac74f",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0c564e8d3fa7f28b0069d56a60125c8190b97ea313fb177cb7",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"UDP组播CAN虚拟总线\",\n  \"name_en\": \"UDP Multicast CAN Virtual Bus\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验软件中的非物理虚拟通信组件，通过 IP/UDP 组播在多个进程或主机之间传输 CAN 或 CAN-FD 报文。适合局域网内的分布式测试、仿真和进程间总线消息交换，不对应具体硬件仪器。\",\n  \"description_en\": \"A non-physical virtual communication component used in lab software to exchange CAN or CAN-FD messages between multiple processes or hosts over IP/UDP multicast. It is suited for distributed testing, simulation, and inter-process bus messaging on a LAN, and does not correspond to a specific hardware instrument.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-is_fd\",\n      \"description\": \"检查是否支持 CAN-FD 帧。\",\n      \"description_en\": \"Check whether CAN-FD frames are supported.\"\n    },\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"通过 UDP 组播虚拟总线发送 CAN 或 CAN-FD 报文。\",\n      \"description_en\": \"Send a CAN or CAN-FD message over the UDP multicast virtual bus.\"\n    },\n    {\n      \"action_name\": \"auto-fileno\",\n      \"description\": \"获取内部 UDP 套接字的文件描述符。\",\n      \"description_en\": \"Get the file descriptor of the internal UDP socket.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭所有套接字并释放相关资源。\",\n      \"description_en\": \"Close all sockets and release associated resources.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"virtual CAN bus\",\n    \"UDP multicast\",\n    \"CAN-FD messaging\",\n    \"inter-process communication\",\n    \"distributed test systems\",\n    \"LAN multicast\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1500,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1059,
+      "output_tokens_details": {
+        "reasoning_tokens": 640
+      },
+      "total_tokens": 2559
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1500,
+      "output_token_count": 1059,
+      "predict_time": 20.863187467
+    }
+  },
+  "output_text": "{\n  \"name\": \"UDP组播CAN虚拟总线\",\n  \"name_en\": \"UDP Multicast CAN Virtual Bus\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验软件中的非物理虚拟通信组件，通过 IP/UDP 组播在多个进程或主机之间传输 CAN 或 CAN-FD 报文。适合局域网内的分布式测试、仿真和进程间总线消息交换，不对应具体硬件仪器。\",\n  \"description_en\": \"A non-physical virtual communication component used in lab software to exchange CAN or CAN-FD messages between multiple processes or hosts over IP/UDP multicast. It is suited for distributed testing, simulation, and inter-process bus messaging on a LAN, and does not correspond to a specific hardware instrument.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-is_fd\",\n      \"description\": \"检查是否支持 CAN-FD 帧。\",\n      \"description_en\": \"Check whether CAN-FD frames are supported.\"\n    },\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"通过 UDP 组播虚拟总线发送 CAN 或 CAN-FD 报文。\",\n      \"description_en\": \"Send a CAN or CAN-FD message over the UDP multicast virtual bus.\"\n    },\n    {\n      \"action_name\": \"auto-fileno\",\n      \"description\": \"获取内部 UDP 套接字的文件描述符。\",\n      \"description_en\": \"Get the file descriptor of the internal UDP socket.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭所有套接字并释放相关资源。\",\n      \"description_en\": \"Close all sockets and release associated resources.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"virtual CAN bus\",\n    \"UDP multicast\",\n    \"CAN-FD messaging\",\n    \"inter-process communication\",\n    \"distributed test systems\",\n    \"LAN multicast\"\n  ]\n}"
+}

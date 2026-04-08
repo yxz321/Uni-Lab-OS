@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: timepix4_device\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pymepix/timepix4device.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.timepix4_device:Timepix4Device\n\nClass: ConfigClassException \n  Bases: ['Exception']\n\nClass: BadPixelFormat \n  Bases: ['Exception']\n\nClass: Timepix4Device (focal)\n  Bases: ['Logger']\n  Docstring: Provides a control of a timepix4 object \n\nFocal class methods:\n  [command] config(self)\n  [command] setupAcquisition(self, acquisition_klass, *args, **kwargs)\n  [command] setConfigClass(self)\n    comment: self.setConfigClass(DefaultConfig)\n    comment: self.loadConfig()\n    comment: self.setConfigClass(SophyConfig)\n  [command] loadConfig(self, *args, **kwargs)\n    comment: if issubclass(klass, TimepixConfig):\n    comment: self._config_class = klass\n    comment: else:\n    comment: raise ConfigClassException\n    comment: Loads dac settings from the Config class\n  [command] setupDevice(self)\n    comment: Sets up valid parameters for acquisition\n\n        This will be manual when other acquisition parameters are working\n  [command] acquisition(self)\n    comment: Returns the acquisition object\n\n        Can be used to set parameters in the acqusition directly for example,\n        to setup TOF calculation when using a :class:`PixelPipeline`\n\n        >>> tpx.acqu...\n  [command] pauseHeartbeat(self)\n  [command] resumeHeartbeat(self)\n  [command] devIdToString(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Converts device ID into readable string\n\n        Returns\n        --------\n        str\n            Device string identifier\n  [command] deviceName(self)\n  [command] setEthernetFilter(self, eth_filter)\n    comment: Sets the packet filter, usually set to 0xFFFF to all all packets\n  [command] resetPixels(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Clears pixel configuration\n  [command] pixelThreshold(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Threshold set for timepix device\n\n        Parameters\n        ----------\n        value : :obj:`numpy.array` of :obj:`int`\n            256x256 uint8 threshold to set locally\n\n\n        Returns\n        --...\n  [command] pixelThreshold(self, value)\n    comment: NEEDS IMPLEMENTATION\n  [command] pixelMask(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Pixel mask set for timepix device\n\n        Parameters\n        ----------\n        value : :obj:`numpy.array` of :obj:`int`\n            256x256 uint8 threshold mask to set locally\n\n\n        Returns\n    ...\n  [command] pixelMask(self, value)\n    comment: NEEDS IMPLEMENTATION\n  [command] pixelTest(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Pixel test set for timepix device\n\n        Parameters\n        ----------\n        value : :obj:`numpy.array` of :obj:`int`\n            256x256 uint8 pixel test to set locally\n\n\n        Returns\n        ...\n  [command] pixelTest(self, value)\n  [command] uploadPixels(self)\n    comment: self._device._pixel_test = value\n    comment: Uploads local pixel configuration to timepix\n  [command] refreshPixels(self)\n    comment: self._device.uploadPixelConfig()\n    comment: Loads timepix pixel configuration to local array\n  [command] start(self)\n    comment: self._device.getPixelConfig()\n  [command] stop(self)\n  [command] start_recording(self, path)\n  [command] stop_recording(self)\n  [command] Vthreshold_fine(self)\n    comment: NEEDS IMPLEMENTATION\n  [command] Vthreshold_fine(self, value)\n    comment: NEEDS IMPLEMENTATION\n  [command] Vthreshold_coarse(self)\n    comment: NEEDS IMPLEMENTATION\n  [command] Vthreshold_coarse(self, value)\n    comment: NEEDS IMPLEMENTATION\n\nRegistry actions:\n  auto-config (from config())\n  auto-setupAcquisition (from setupAcquisition())\n  auto-setConfigClass (from setConfigClass())\n  auto-loadConfig (from loadConfig())\n  auto-setupDevice (from setupDevice())\n  auto-acquisition (from acquisition())\n  auto-pauseHeartbeat (from pauseHeartbeat())\n  auto-resumeHeartbeat (from resumeHeartbeat())\n  auto-devIdToString (from devIdToString())\n  auto-deviceName (from deviceName())\n  auto-setEthernetFilter (from setEthernetFilter())\n  auto-resetPixels (from resetPixels())\n  auto-pixelThreshold (from pixelThreshold())\n  auto-pixelMask (from pixelMask())\n  auto-pixelTest (from pixelTest())\n  auto-uploadPixels (from uploadPixels())\n  auto-refreshPixels (from refreshPixels())\n  auto-start (from start())\n  auto-stop (from stop())\n  auto-start_recording (from start_recording())\n  auto-stop_recording (from stop_recording())\n  auto-Vthreshold_fine (from Vthreshold_fine())\n  auto-Vthreshold_coarse (from Vthreshold_coarse())\n\nRequired output action ids:\n  auto-config\n  auto-setupAcquisition\n  auto-setConfigClass\n  auto-loadConfig\n  auto-setupDevice\n  auto-acquisition\n  auto-pauseHeartbeat\n  auto-resumeHeartbeat\n  auto-devIdToString\n  auto-deviceName\n  auto-setEthernetFilter\n  auto-resetPixels\n  auto-pixelThreshold\n  auto-pixelMask\n  auto-pixelTest\n  auto-uploadPixels\n  auto-refreshPixels\n  auto-start\n  auto-stop\n  auto-start_recording\n  auto-stop_recording\n  auto-Vthreshold_fine\n  auto-Vthreshold_coarse"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0202cedd6fa048c00069d5687b32e881949d396e4914ef7adc",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1798,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 8736,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0202cedd6fa048c00069d5687d864c8194a6c0698da336c3ad",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0202cedd6fa048c00069d5688da7e88194bcfcf79ed3b2c574",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Timepix4 像素探测器\",\n  \"name_en\": \"Timepix4 pixel detector\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验中 Timepix4 像素探测器的控制与数据采集，可加载配置、设置像素阈值/掩膜/测试参数、管理以太网数据过滤，并启动、停止和记录探测数据。\",\n  \"description_en\": \"Controls a Timepix4 pixel detector for laboratory data acquisition, including loading configuration, setting pixel threshold/mask/test parameters, managing Ethernet data filtering, and starting, stopping, and recording detector data.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-config\",\n      \"description\": \"按当前配置对 Timepix4 探测器执行配置。\",\n      \"description_en\": \"Apply the current configuration to the Timepix4 detector.\"\n    },\n    {\n      \"action_name\": \"auto-setupAcquisition\",\n      \"description\": \"创建并设置探测器的数据采集对象或采集流程。\",\n      \"description_en\": \"Create and set up the detector acquisition object or acquisition pipeline.\"\n    },\n    {\n      \"action_name\": \"auto-setConfigClass\",\n      \"description\": \"选择用于管理探测器设置的配置类。\",\n      \"description_en\": \"Select the configuration class used to manage detector settings.\"\n    },\n    {\n      \"action_name\": \"auto-loadConfig\",\n      \"description\": \"从配置类加载探测器配置和 DAC 设置。\",\n      \"description_en\": \"Load detector configuration and DAC settings from the selected configuration class.\"\n    },\n    {\n      \"action_name\": \"auto-setupDevice\",\n      \"description\": \"初始化探测器可用的采集参数。\",\n      \"description_en\": \"Initialize valid acquisition parameters for the detector.\"\n    },\n    {\n      \"action_name\": \"auto-acquisition\",\n      \"description\": \"获取当前采集对象，以便直接调整采集参数。\",\n      \"description_en\": \"Access the current acquisition object for direct adjustment of acquisition parameters.\"\n    },\n    {\n      \"action_name\": \"auto-pauseHeartbeat\",\n      \"description\": \"暂停探测器心跳通信。\",\n      \"description_en\": \"Pause the detector heartbeat communication.\"\n    },\n    {\n      \"action_name\": \"auto-resumeHeartbeat\",\n      \"description\": \"恢复探测器心跳通信。\",\n      \"description_en\": \"Resume the detector heartbeat communication.\"\n    },\n    {\n      \"action_name\": \"auto-devIdToString\",\n      \"description\": \"将设备 ID 转换为可读字符串。\",\n      \"description_en\": \"Convert the device ID into a human-readable string.\"\n    },\n    {\n      \"action_name\": \"auto-deviceName\",\n      \"description\": \"获取探测器设备名称。\",\n      \"description_en\": \"Get the detector device name.\"\n    },\n    {\n      \"action_name\": \"auto-setEthernetFilter\",\n      \"description\": \"设置探测器以太网数据包过滤规则。\",\n      \"description_en\": \"Set the Ethernet packet filter for the detector data stream.\"\n    },\n    {\n      \"action_name\": \"auto-resetPixels\",\n      \"description\": \"清除像素配置。\",\n      \"description_en\": \"Clear the pixel configuration.\"\n    },\n    {\n      \"action_name\": \"auto-pixelThreshold\",\n      \"description\": \"获取或设置逐像素阈值配置。\",\n      \"description_en\": \"Get or set the per-pixel threshold configuration.\"\n    },\n    {\n      \"action_name\": \"auto-pixelMask\",\n      \"description\": \"获取或设置逐像素掩膜配置。\",\n      \"description_en\": \"Get or set the per-pixel mask configuration.\"\n    },\n    {\n      \"action_name\": \"auto-pixelTest\",\n      \"description\": \"获取或设置逐像素测试配置。\",\n      \"description_en\": \"Get or set the per-pixel test configuration.\"\n    },\n    {\n      \"action_name\": \"auto-uploadPixels\",\n      \"description\": \"将本地像素配置上传到探测器。\",\n      \"description_en\": \"Upload the local pixel configuration to the detector.\"\n    },\n    {\n      \"action_name\": \"auto-refreshPixels\",\n      \"description\": \"从探测器读取像素配置并刷新到本地。\",\n      \"description_en\": \"Read the pixel configuration from the detector and refresh the local copy.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动探测器采集。\",\n      \"description_en\": \"Start detector acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止探测器采集。\",\n      \"description_en\": \"Stop detector acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-start_recording\",\n      \"description\": \"开始将探测器数据记录到指定路径。\",\n      \"description_en\": \"Start recording detector data to the specified path.\"\n    },\n    {\n      \"action_name\": \"auto-stop_recording\",\n      \"description\": \"停止记录探测器数据。\",\n      \"description_en\": \"Stop recording detector data.\"\n    },\n    {\n      \"action_name\": \"auto-Vthreshold_fine\",\n      \"description\": \"获取或设置细调阈值参数。\",\n      \"description_en\": \"Get or set the fine threshold parameter.\"\n    },\n    {\n      \"action_name\": \"auto-Vthreshold_coarse\",\n      \"description\": \"获取或设置粗调阈值参数。\",\n      \"description_en\": \"Get or set the coarse threshold parameter.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"pixel detector\",\n    \"Timepix4\",\n    \"radiation detection\",\n    \"per-pixel configuration\",\n    \"threshold tuning\",\n    \"Ethernet data acquisition\",\n    \"detector recording\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1918,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2139,
+      "output_tokens_details": {
+        "reasoning_tokens": 911
+      },
+      "total_tokens": 4057
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1918,
+      "output_token_count": 2139,
+      "predict_time": 34.879950971
+    }
+  },
+  "output_text": "{\n  \"name\": \"Timepix4 像素探测器\",\n  \"name_en\": \"Timepix4 pixel detector\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验中 Timepix4 像素探测器的控制与数据采集，可加载配置、设置像素阈值/掩膜/测试参数、管理以太网数据过滤，并启动、停止和记录探测数据。\",\n  \"description_en\": \"Controls a Timepix4 pixel detector for laboratory data acquisition, including loading configuration, setting pixel threshold/mask/test parameters, managing Ethernet data filtering, and starting, stopping, and recording detector data.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-config\",\n      \"description\": \"按当前配置对 Timepix4 探测器执行配置。\",\n      \"description_en\": \"Apply the current configuration to the Timepix4 detector.\"\n    },\n    {\n      \"action_name\": \"auto-setupAcquisition\",\n      \"description\": \"创建并设置探测器的数据采集对象或采集流程。\",\n      \"description_en\": \"Create and set up the detector acquisition object or acquisition pipeline.\"\n    },\n    {\n      \"action_name\": \"auto-setConfigClass\",\n      \"description\": \"选择用于管理探测器设置的配置类。\",\n      \"description_en\": \"Select the configuration class used to manage detector settings.\"\n    },\n    {\n      \"action_name\": \"auto-loadConfig\",\n      \"description\": \"从配置类加载探测器配置和 DAC 设置。\",\n      \"description_en\": \"Load detector configuration and DAC settings from the selected configuration class.\"\n    },\n    {\n      \"action_name\": \"auto-setupDevice\",\n      \"description\": \"初始化探测器可用的采集参数。\",\n      \"description_en\": \"Initialize valid acquisition parameters for the detector.\"\n    },\n    {\n      \"action_name\": \"auto-acquisition\",\n      \"description\": \"获取当前采集对象，以便直接调整采集参数。\",\n      \"description_en\": \"Access the current acquisition object for direct adjustment of acquisition parameters.\"\n    },\n    {\n      \"action_name\": \"auto-pauseHeartbeat\",\n      \"description\": \"暂停探测器心跳通信。\",\n      \"description_en\": \"Pause the detector heartbeat communication.\"\n    },\n    {\n      \"action_name\": \"auto-resumeHeartbeat\",\n      \"description\": \"恢复探测器心跳通信。\",\n      \"description_en\": \"Resume the detector heartbeat communication.\"\n    },\n    {\n      \"action_name\": \"auto-devIdToString\",\n      \"description\": \"将设备 ID 转换为可读字符串。\",\n      \"description_en\": \"Convert the device ID into a human-readable string.\"\n    },\n    {\n      \"action_name\": \"auto-deviceName\",\n      \"description\": \"获取探测器设备名称。\",\n      \"description_en\": \"Get the detector device name.\"\n    },\n    {\n      \"action_name\": \"auto-setEthernetFilter\",\n      \"description\": \"设置探测器以太网数据包过滤规则。\",\n      \"description_en\": \"Set the Ethernet packet filter for the detector data stream.\"\n    },\n    {\n      \"action_name\": \"auto-resetPixels\",\n      \"description\": \"清除像素配置。\",\n      \"description_en\": \"Clear the pixel configuration.\"\n    },\n    {\n      \"action_name\": \"auto-pixelThreshold\",\n      \"description\": \"获取或设置逐像素阈值配置。\",\n      \"description_en\": \"Get or set the per-pixel threshold configuration.\"\n    },\n    {\n      \"action_name\": \"auto-pixelMask\",\n      \"description\": \"获取或设置逐像素掩膜配置。\",\n      \"description_en\": \"Get or set the per-pixel mask configuration.\"\n    },\n    {\n      \"action_name\": \"auto-pixelTest\",\n      \"description\": \"获取或设置逐像素测试配置。\",\n      \"description_en\": \"Get or set the per-pixel test configuration.\"\n    },\n    {\n      \"action_name\": \"auto-uploadPixels\",\n      \"description\": \"将本地像素配置上传到探测器。\",\n      \"description_en\": \"Upload the local pixel configuration to the detector.\"\n    },\n    {\n      \"action_name\": \"auto-refreshPixels\",\n      \"description\": \"从探测器读取像素配置并刷新到本地。\",\n      \"description_en\": \"Read the pixel configuration from the detector and refresh the local copy.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动探测器采集。\",\n      \"description_en\": \"Start detector acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止探测器采集。\",\n      \"description_en\": \"Stop detector acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-start_recording\",\n      \"description\": \"开始将探测器数据记录到指定路径。\",\n      \"description_en\": \"Start recording detector data to the specified path.\"\n    },\n    {\n      \"action_name\": \"auto-stop_recording\",\n      \"description\": \"停止记录探测器数据。\",\n      \"description_en\": \"Stop recording detector data.\"\n    },\n    {\n      \"action_name\": \"auto-Vthreshold_fine\",\n      \"description\": \"获取或设置细调阈值参数。\",\n      \"description_en\": \"Get or set the fine threshold parameter.\"\n    },\n    {\n      \"action_name\": \"auto-Vthreshold_coarse\",\n      \"description\": \"获取或设置粗调阈值参数。\",\n      \"description_en\": \"Get or set the coarse threshold parameter.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"pixel detector\",\n    \"Timepix4\",\n    \"radiation detection\",\n    \"per-pixel configuration\",\n    \"threshold tuning\",\n    \"Ethernet data acquisition\",\n    \"detector recording\"\n  ]\n}"
+}

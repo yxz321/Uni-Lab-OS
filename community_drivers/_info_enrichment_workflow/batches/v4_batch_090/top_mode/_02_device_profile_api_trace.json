@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: top_mode\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/toptica/topmode.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.laser.toptica_topmode:TopMode\n\nClass: TopMode (focal)\n  Bases: ['Instrument']\n  Docstring: Communicates with a `Toptica Topmode`_ instrument.\n\nThe TopMode is a diode laser with active stabilization, produced by Toptica.\n\nExample usage:\n\n>>> import instruments as ik\n>>> tm = ik.toptica.TopMode.open_serial('/dev/ttyUSB0', 115200)\n>>> print(tm.laser[0].wavelength)\n\nFocal class methods:\n  [command] execute(self, command)\n    comment: TOPMODE CONTROL LANGUAGE #\n    comment: Sends an execute command to the Topmode. This is used to automatically\n        append (exec ' + command + ) to your command.\n\n        :param str command: The command to be executed.\n  [command] set(self, param, value)\n    comment: Sends a param-set command to the Topmode. This is used to automatically\n        handle appending \"param-set!\" and the rest of the param-set message\n        structure to your message.\n\n        :param s...\n  [command] reference(self, param)\n    comment: Sends a reference commands to the Topmode. This is effectively a query\n        request. It will append the required (param-ref ' + param + ).\n\n        :param str param: Parameter that should be querie...\n  [command] display(self, param)\n    comment: Sends a display command to the Topmode.\n\n        :param str param: Parameter that will be sent with a display request\n        :return: Response to the display request\n  [status_getter] laser(self)\n    comment: Gets a specific Topmode laser object. The desired laser is\n        specified like one would access a list.\n\n        For example, the following would print the wavelength from laser 1:\n\n        >>> imp...\n  [status_getter] enable(self)\n    comment: is the laser lasing?\n        :return:\n  [status_setter] enable(self, newval)\n  [status_getter] locked(self)\n    comment: Gets the key switch lock status\n\n        :return: `True` if key switch is locked, `False` otherwise\n        :type: `bool`\n  [status_getter] interlock(self)\n    comment: Gets the interlock switch open state\n\n        :return: `True` if interlock switch is open, `False` otherwise\n        :type: `bool`\n  [status_getter] firmware(self)\n    comment: Gets the firmware version of the charm controller\n\n        :return: The firmware version of the charm controller\n        :type: `tuple`\n  [status_getter] fpga_status(self)\n    comment: Gets the FPGA health status\n\n        :return: `False` if there has been a failure for the FPGA,\n            `True` otherwise\n        :type: `bool`\n  [status_getter] serial_number(self)\n    comment: Gets the serial number of the charm controller\n\n        :return: The serial number of the charm controller\n        :type: `str`\n  [status_getter] temperature_status(self)\n    comment: Gets the temperature controller board health status\n\n        :return: `False` if there has been a failure for the temperature\n            controller board, `True` otherwise\n        :type: `bool`\n  [status_getter] current_status(self)\n    comment: Gets the current controller board health status\n\n        :return: `False` if there has been a failure for the current controller\n            board, `True` otherwise\n        :type: `bool`\n  [command] reboot(self)\n    comment: METHODS #\n    comment: Reboots the system (note that the serial connect might have to be\n        re-opened after this)\n\nRegistry actions:\n  auto-display (from display())\n  auto-enable (from enable())\n  auto-execute (from execute())\n  auto-reboot (from reboot())\n  auto-reference (from reference())\n  auto-set (from set())\n  auto-laser (from laser())\n  auto-locked (from locked())\n  auto-interlock (from interlock())\n  auto-firmware (from firmware())\n  auto-fpga_status (from fpga_status())\n  auto-serial_number (from serial_number())\n  auto-temperature_status (from temperature_status())\n  auto-current_status (from current_status())\n  auto-model (from model())\n  auto-wavelength (from wavelength())\n  auto-production_date (from production_date())\n  auto-is_connected (from is_connected())\n  auto-on_time (from on_time())\n  auto-charm_status (from charm_status())\n  auto-temperature_control_status (from temperature_control_status())\n  auto-current_control_status (from current_control_status())\n  auto-tec_status (from tec_status())\n  auto-intensity (from intensity())\n  auto-mode_hop (from mode_hop())\n  auto-lock_start (from lock_start())\n  auto-first_mode_hop_time (from first_mode_hop_time())\n  auto-latest_mode_hop_time (from latest_mode_hop_time())\n  auto-correction_status (from correction_status())\n  auto-correction (from correction())\n\nRequired output action ids:\n  auto-display\n  auto-enable\n  auto-execute\n  auto-reboot\n  auto-reference\n  auto-set\n  auto-laser\n  auto-locked\n  auto-interlock\n  auto-firmware\n  auto-fpga_status\n  auto-serial_number\n  auto-temperature_status\n  auto-current_status\n  auto-model\n  auto-wavelength\n  auto-production_date\n  auto-is_connected\n  auto-on_time\n  auto-charm_status\n  auto-temperature_control_status\n  auto-current_control_status\n  auto-tec_status\n  auto-intensity\n  auto-mode_hop\n  auto-lock_start\n  auto-first_mode_hop_time\n  auto-latest_mode_hop_time\n  auto-correction_status\n  auto-correction"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_033d7c4fc64258190069d5689ea3e4819691eedc2a1f390e66",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1802,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 9473,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_033d7c4fc64258190069d5689f0d4881969677bbef232aa1d2",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_033d7c4fc64258190069d568ad9e9881968fcb2efbcec18dbd",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"TopMode 主动稳频二极管激光器\",\n  \"name_en\": \"TopMode Actively Stabilized Diode Laser\",\n  \"manufacturer\": \"TOPTICA\",\n  \"description\": \"TOPTICA 的 TopMode 是一款带主动稳定功能的二极管激光器。该设备可通过串口控制激光使能、查询控制器与各控制板状态，并读取激光波长、强度、模式跳变及校正相关信息，适用于需要稳定窄线宽激光输出的实验场景。\",\n  \"description_en\": \"The TOPTICA TopMode is an actively stabilized diode laser. It can be controlled over a serial interface to enable laser emission, query controller and board health, and read wavelength, intensity, mode-hop, and correction-related information for experiments requiring stable narrow-linewidth laser output.\",\n  \"tag_hints\": [\n    \"diode laser\",\n    \"active laser stabilization\",\n    \"narrow-linewidth laser\",\n    \"serial instrument control\",\n    \"laser wavelength monitoring\",\n    \"mode-hop monitoring\",\n    \"TEC and current control\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-display\",\n      \"description\": \"发送参数显示请求\",\n      \"description_en\": \"send a display request for a parameter\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"获取/设置激光出光使能状态\",\n      \"description_en\": \"get/set laser emission enable state\"\n    },\n    {\n      \"action_name\": \"auto-execute\",\n      \"description\": \"执行 TopMode 控制语言命令\",\n      \"description_en\": \"execute a TopMode control-language command\"\n    },\n    {\n      \"action_name\": \"auto-reboot\",\n      \"description\": \"重启系统控制器\",\n      \"description_en\": \"reboot the system controller\"\n    },\n    {\n      \"action_name\": \"auto-reference\",\n      \"description\": \"查询参数参考值\",\n      \"description_en\": \"query a parameter reference value\"\n    },\n    {\n      \"action_name\": \"auto-set\",\n      \"description\": \"设置参数值\",\n      \"description_en\": \"set a parameter value\"\n    },\n    {\n      \"action_name\": \"auto-laser\",\n      \"description\": \"获取指定激光通道对象\",\n      \"description_en\": \"get a specific laser channel object\"\n    },\n    {\n      \"action_name\": \"auto-locked\",\n      \"description\": \"获取钥匙开关锁定状态\",\n      \"description_en\": \"get key-switch lock status\"\n    },\n    {\n      \"action_name\": \"auto-interlock\",\n      \"description\": \"获取联锁开关开路状态\",\n      \"description_en\": \"get interlock open state\"\n    },\n    {\n      \"action_name\": \"auto-firmware\",\n      \"description\": \"获取控制器固件版本\",\n      \"description_en\": \"get controller firmware version\"\n    },\n    {\n      \"action_name\": \"auto-fpga_status\",\n      \"description\": \"获取 FPGA 健康状态\",\n      \"description_en\": \"get FPGA health status\"\n    },\n    {\n      \"action_name\": \"auto-serial_number\",\n      \"description\": \"获取控制器序列号\",\n      \"description_en\": \"get controller serial number\"\n    },\n    {\n      \"action_name\": \"auto-temperature_status\",\n      \"description\": \"获取温度控制板健康状态\",\n      \"description_en\": \"get temperature controller board health status\"\n    },\n    {\n      \"action_name\": \"auto-current_status\",\n      \"description\": \"获取电流控制板健康状态\",\n      \"description_en\": \"get current controller board health status\"\n    },\n    {\n      \"action_name\": \"auto-model\",\n      \"description\": \"获取设备型号\",\n      \"description_en\": \"get device model\"\n    },\n    {\n      \"action_name\": \"auto-wavelength\",\n      \"description\": \"获取激光波长\",\n      \"description_en\": \"get laser wavelength\"\n    },\n    {\n      \"action_name\": \"auto-production_date\",\n      \"description\": \"获取生产日期\",\n      \"description_en\": \"get production date\"\n    },\n    {\n      \"action_name\": \"auto-is_connected\",\n      \"description\": \"获取连接状态\",\n      \"description_en\": \"get connection status\"\n    },\n    {\n      \"action_name\": \"auto-on_time\",\n      \"description\": \"获取累计上电时间\",\n      \"description_en\": \"get accumulated power-on time\"\n    },\n    {\n      \"action_name\": \"auto-charm_status\",\n      \"description\": \"获取 Charm 控制器状态\",\n      \"description_en\": \"get Charm controller status\"\n    },\n    {\n      \"action_name\": \"auto-temperature_control_status\",\n      \"description\": \"获取温度控制状态\",\n      \"description_en\": \"get temperature control status\"\n    },\n    {\n      \"action_name\": \"auto-current_control_status\",\n      \"description\": \"获取电流控制状态\",\n      \"description_en\": \"get current control status\"\n    },\n    {\n      \"action_name\": \"auto-tec_status\",\n      \"description\": \"获取 TEC 状态\",\n      \"description_en\": \"get TEC status\"\n    },\n    {\n      \"action_name\": \"auto-intensity\",\n      \"description\": \"获取激光强度\",\n      \"description_en\": \"get laser intensity\"\n    },\n    {\n      \"action_name\": \"auto-mode_hop\",\n      \"description\": \"获取模式跳变状态\",\n      \"description_en\": \"get mode-hop status\"\n    },\n    {\n      \"action_name\": \"auto-lock_start\",\n      \"description\": \"获取锁定开始信息\",\n      \"description_en\": \"get lock start information\"\n    },\n    {\n      \"action_name\": \"auto-first_mode_hop_time\",\n      \"description\": \"获取首次模式跳变时间\",\n      \"description_en\": \"get first mode-hop time\"\n    },\n    {\n      \"action_name\": \"auto-latest_mode_hop_time\",\n      \"description\": \"获取最近一次模式跳变时间\",\n      \"description_en\": \"get latest mode-hop time\"\n    },\n    {\n      \"action_name\": \"auto-correction_status\",\n      \"description\": \"获取校正状态\",\n      \"description_en\": \"get correction status\"\n    },\n    {\n      \"action_name\": \"auto-correction\",\n      \"description\": \"获取校正值\",\n      \"description_en\": \"get correction value\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1955,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2266,
+      "output_tokens_details": {
+        "reasoning_tokens": 894
+      },
+      "total_tokens": 4221
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1955,
+      "output_token_count": 2266,
+      "predict_time": 34.938720198
+    }
+  },
+  "output_text": "{\n  \"name\": \"TopMode 主动稳频二极管激光器\",\n  \"name_en\": \"TopMode Actively Stabilized Diode Laser\",\n  \"manufacturer\": \"TOPTICA\",\n  \"description\": \"TOPTICA 的 TopMode 是一款带主动稳定功能的二极管激光器。该设备可通过串口控制激光使能、查询控制器与各控制板状态，并读取激光波长、强度、模式跳变及校正相关信息，适用于需要稳定窄线宽激光输出的实验场景。\",\n  \"description_en\": \"The TOPTICA TopMode is an actively stabilized diode laser. It can be controlled over a serial interface to enable laser emission, query controller and board health, and read wavelength, intensity, mode-hop, and correction-related information for experiments requiring stable narrow-linewidth laser output.\",\n  \"tag_hints\": [\n    \"diode laser\",\n    \"active laser stabilization\",\n    \"narrow-linewidth laser\",\n    \"serial instrument control\",\n    \"laser wavelength monitoring\",\n    \"mode-hop monitoring\",\n    \"TEC and current control\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-display\",\n      \"description\": \"发送参数显示请求\",\n      \"description_en\": \"send a display request for a parameter\"\n    },\n    {\n      \"action_name\": \"auto-enable\",\n      \"description\": \"获取/设置激光出光使能状态\",\n      \"description_en\": \"get/set laser emission enable state\"\n    },\n    {\n      \"action_name\": \"auto-execute\",\n      \"description\": \"执行 TopMode 控制语言命令\",\n      \"description_en\": \"execute a TopMode control-language command\"\n    },\n    {\n      \"action_name\": \"auto-reboot\",\n      \"description\": \"重启系统控制器\",\n      \"description_en\": \"reboot the system controller\"\n    },\n    {\n      \"action_name\": \"auto-reference\",\n      \"description\": \"查询参数参考值\",\n      \"description_en\": \"query a parameter reference value\"\n    },\n    {\n      \"action_name\": \"auto-set\",\n      \"description\": \"设置参数值\",\n      \"description_en\": \"set a parameter value\"\n    },\n    {\n      \"action_name\": \"auto-laser\",\n      \"description\": \"获取指定激光通道对象\",\n      \"description_en\": \"get a specific laser channel object\"\n    },\n    {\n      \"action_name\": \"auto-locked\",\n      \"description\": \"获取钥匙开关锁定状态\",\n      \"description_en\": \"get key-switch lock status\"\n    },\n    {\n      \"action_name\": \"auto-interlock\",\n      \"description\": \"获取联锁开关开路状态\",\n      \"description_en\": \"get interlock open state\"\n    },\n    {\n      \"action_name\": \"auto-firmware\",\n      \"description\": \"获取控制器固件版本\",\n      \"description_en\": \"get controller firmware version\"\n    },\n    {\n      \"action_name\": \"auto-fpga_status\",\n      \"description\": \"获取 FPGA 健康状态\",\n      \"description_en\": \"get FPGA health status\"\n    },\n    {\n      \"action_name\": \"auto-serial_number\",\n      \"description\": \"获取控制器序列号\",\n      \"description_en\": \"get controller serial number\"\n    },\n    {\n      \"action_name\": \"auto-temperature_status\",\n      \"description\": \"获取温度控制板健康状态\",\n      \"description_en\": \"get temperature controller board health status\"\n    },\n    {\n      \"action_name\": \"auto-current_status\",\n      \"description\": \"获取电流控制板健康状态\",\n      \"description_en\": \"get current controller board health status\"\n    },\n    {\n      \"action_name\": \"auto-model\",\n      \"description\": \"获取设备型号\",\n      \"description_en\": \"get device model\"\n    },\n    {\n      \"action_name\": \"auto-wavelength\",\n      \"description\": \"获取激光波长\",\n      \"description_en\": \"get laser wavelength\"\n    },\n    {\n      \"action_name\": \"auto-production_date\",\n      \"description\": \"获取生产日期\",\n      \"description_en\": \"get production date\"\n    },\n    {\n      \"action_name\": \"auto-is_connected\",\n      \"description\": \"获取连接状态\",\n      \"description_en\": \"get connection status\"\n    },\n    {\n      \"action_name\": \"auto-on_time\",\n      \"description\": \"获取累计上电时间\",\n      \"description_en\": \"get accumulated power-on time\"\n    },\n    {\n      \"action_name\": \"auto-charm_status\",\n      \"description\": \"获取 Charm 控制器状态\",\n      \"description_en\": \"get Charm controller status\"\n    },\n    {\n      \"action_name\": \"auto-temperature_control_status\",\n      \"description\": \"获取温度控制状态\",\n      \"description_en\": \"get temperature control status\"\n    },\n    {\n      \"action_name\": \"auto-current_control_status\",\n      \"description\": \"获取电流控制状态\",\n      \"description_en\": \"get current control status\"\n    },\n    {\n      \"action_name\": \"auto-tec_status\",\n      \"description\": \"获取 TEC 状态\",\n      \"description_en\": \"get TEC status\"\n    },\n    {\n      \"action_name\": \"auto-intensity\",\n      \"description\": \"获取激光强度\",\n      \"description_en\": \"get laser intensity\"\n    },\n    {\n      \"action_name\": \"auto-mode_hop\",\n      \"description\": \"获取模式跳变状态\",\n      \"description_en\": \"get mode-hop status\"\n    },\n    {\n      \"action_name\": \"auto-lock_start\",\n      \"description\": \"获取锁定开始信息\",\n      \"description_en\": \"get lock start information\"\n    },\n    {\n      \"action_name\": \"auto-first_mode_hop_time\",\n      \"description\": \"获取首次模式跳变时间\",\n      \"description_en\": \"get first mode-hop time\"\n    },\n    {\n      \"action_name\": \"auto-latest_mode_hop_time\",\n      \"description\": \"获取最近一次模式跳变时间\",\n      \"description_en\": \"get latest mode-hop time\"\n    },\n    {\n      \"action_name\": \"auto-correction_status\",\n      \"description\": \"获取校正状态\",\n      \"description_en\": \"get correction status\"\n    },\n    {\n      \"action_name\": \"auto-correction\",\n      \"description\": \"获取校正值\",\n      \"description_en\": \"get correction value\"\n    }\n  ]\n}"
+}

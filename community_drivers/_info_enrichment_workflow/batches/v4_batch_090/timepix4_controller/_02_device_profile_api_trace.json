@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: timepix4_controller\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pymepix/TPX4/tpx4controller.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.detector.timepix4.timepix4_controller:Timepix4Controller\n\nClass: Timepix4Controller (focal)\n  Bases: ['Logger']\n\nFocal class methods:\n  [status_getter] deviceCount(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Returns devices count\n  [command] setBiasSupplyEnable(self, enable)\n    comment: NEEDS IMPLEMENTATION\n    comment: Enables/Disables bias supply voltage\n\n        Parameters\n        -----------\n        enable : bool\n            True - enables bias supply voltage\n            False - disables bias supply voltage\n\n    ...\n  [command] prepare(self)\n    comment: NEEDS IMPLEMENTATION\n  [command] resetTimers(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Resets all timers to zero\n\n        Sets the internal 48-bit timers for all Timepix/Medipix devices to zero\n\n\n        Raises\n        ----------\n        :class:`PymePixException`\n            Communicati...\n  [command] restartTimers(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Restarts SPIDR and Device timers\n\n        Synchronizes both the SPIDR clock and Timepix/Medipix clocks so both trigger\n        and ToA timestamps match\n\n        .. Important::\n            This must be...\n  [command] openShutter(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Immediately opens the shutter indefinetly\n\n        Raises\n        ----------\n        :class:`PymePixException`\n            Communication error\n\n        Notes\n        ---------\n        This overwrites ...\n  [command] closeShutter(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Immediately closes the shutter\n\n        Raises\n        ----------\n        :class:`PymePixException`\n            Communication error\n  [command] setShutterTriggerConfig(self, mode, length_us, freq_hz, count, delay_ns=0)\n    comment: NEEDS IMPLEMENTATION\n    comment: Set the shutter configuration in one go\n\n\n        Parameters\n        ----------\n        mode: int\n            Shutter trigger mode\n\n        length_us: int\n            Shutter open time in microseconds...\n  [status_getter] localTemperature(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Local ????!?!? Temperature read from sensor\n\n        Returns\n        --------\n        float:\n            Temperature in Celsius\n\n\n        Raises\n        ----------\n        :class:`PymePixException`\n  ...\n  [status_getter] remoteTemperature(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Remote ????!?!? Temperature read from sensor\n\n        Returns\n        --------\n        float:\n            Temperature in Celsius\n\n\n        Raises\n        ----------\n        :class:`PymePixException`\n ...\n  [status_getter] fpgaTemperature(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Temperature of FPGA board read from sensor\n\n        Returns\n        --------\n        float:\n            Temperature in Celsius\n\n\n        Raises\n        ----------\n        :class:`PymePixException`\n   ...\n  [status_getter] humidity(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Humidity read from sensor\n\n        Returns\n        --------\n        int:\n            Humidity as percentage\n\n\n        Raises\n        ----------\n        :class:`PymePixException`\n            Communicat...\n  [status_getter] pressure(self)\n    comment: NEEDS IMPLEMENTATION\n    comment: Pressure read from sensor\n\n        Returns\n        --------\n        int:\n            Pressure in bar\n\n\n        Raises\n        ----------\n        :class:`PymePixException`\n            Communication err...\n  [status_getter] chipboardFanSpeed(self)\n    comment: NEEDS IMPLEMENTATION\n  [status_getter] boardFanSpeed(self)\n    comment: NEEDS IMPLEMENTATION\n\nRegistry actions:\n  auto-setBiasSupplyEnable (from setBiasSupplyEnable())\n  auto-prepare (from prepare())\n  auto-resetTimers (from resetTimers())\n  auto-restartTimers (from restartTimers())\n  auto-openShutter (from openShutter())\n  auto-closeShutter (from closeShutter())\n  auto-setShutterTriggerConfig (from setShutterTriggerConfig())\n\nRequired output action ids:\n  auto-setBiasSupplyEnable\n  auto-prepare\n  auto-resetTimers\n  auto-restartTimers\n  auto-openShutter\n  auto-closeShutter\n  auto-setShutterTriggerConfig"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0ca812691d43bcda0069d5687af4f881959d95cbb96955c1fd",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5423,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4532,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0ca812691d43bcda0069d5687b7a448195bb233c04709f9a21",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0ca812691d43bcda0069d568847da881959ebf1eae00476c49",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Timepix4探测器控制器\",\n  \"name_en\": \"Timepix4 Detector Controller\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于控制 Timepix4 像素探测系统的硬件控制器，可执行偏置电源开关、快门开闭与触发配置、计时器复位与同步，并读取本地/远端/FPGA 温度、湿度、压力及风扇转速等运行状态。适用于探测器上电准备、曝光控制和实验运行监测。\",\n  \"description_en\": \"A hardware controller for a Timepix4 pixel detector system. It manages the bias supply, shutter opening/closing and trigger configuration, timer reset and synchronization, and reads operating conditions such as local/remote/FPGA temperature, humidity, pressure, and fan speeds. It is used for detector preparation, exposure control, and runtime monitoring in experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-setBiasSupplyEnable\",\n      \"description\": \"启用或禁用探测器偏置电源。\",\n      \"description_en\": \"Enable or disable the detector bias supply.\"\n    },\n    {\n      \"action_name\": \"auto-prepare\",\n      \"description\": \"执行探测器控制器的准备流程，使系统进入可运行状态。\",\n      \"description_en\": \"Run the controller preparation procedure to bring the detector system into an operational state.\"\n    },\n    {\n      \"action_name\": \"auto-resetTimers\",\n      \"description\": \"将系统内部计时器复位为零。\",\n      \"description_en\": \"Reset the internal system timers to zero.\"\n    },\n    {\n      \"action_name\": \"auto-restartTimers\",\n      \"description\": \"重启并同步控制器与探测器计时器，以对齐时间戳。\",\n      \"description_en\": \"Restart and synchronize the controller and detector timers so timestamps are aligned.\"\n    },\n    {\n      \"action_name\": \"auto-openShutter\",\n      \"description\": \"立即打开探测器快门并保持开启。\",\n      \"description_en\": \"Immediately open the detector shutter and keep it open.\"\n    },\n    {\n      \"action_name\": \"auto-closeShutter\",\n      \"description\": \"立即关闭探测器快门。\",\n      \"description_en\": \"Immediately close the detector shutter.\"\n    },\n    {\n      \"action_name\": \"auto-setShutterTriggerConfig\",\n      \"description\": \"设置快门触发参数，包括模式、开启时长、频率、计数和延时。\",\n      \"description_en\": \"Configure shutter triggering parameters, including mode, open duration, frequency, count, and delay.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Timepix4 pixel detector\",\n    \"radiation detection\",\n    \"detector bias supply\",\n    \"shutter trigger control\",\n    \"timer synchronization\",\n    \"environmental monitoring\",\n    \"FPGA temperature monitoring\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1635,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1145,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2780
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1635,
+      "output_token_count": 1145,
+      "predict_time": 18.780495171
+    }
+  },
+  "output_text": "{\n  \"name\": \"Timepix4探测器控制器\",\n  \"name_en\": \"Timepix4 Detector Controller\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于控制 Timepix4 像素探测系统的硬件控制器，可执行偏置电源开关、快门开闭与触发配置、计时器复位与同步，并读取本地/远端/FPGA 温度、湿度、压力及风扇转速等运行状态。适用于探测器上电准备、曝光控制和实验运行监测。\",\n  \"description_en\": \"A hardware controller for a Timepix4 pixel detector system. It manages the bias supply, shutter opening/closing and trigger configuration, timer reset and synchronization, and reads operating conditions such as local/remote/FPGA temperature, humidity, pressure, and fan speeds. It is used for detector preparation, exposure control, and runtime monitoring in experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-setBiasSupplyEnable\",\n      \"description\": \"启用或禁用探测器偏置电源。\",\n      \"description_en\": \"Enable or disable the detector bias supply.\"\n    },\n    {\n      \"action_name\": \"auto-prepare\",\n      \"description\": \"执行探测器控制器的准备流程，使系统进入可运行状态。\",\n      \"description_en\": \"Run the controller preparation procedure to bring the detector system into an operational state.\"\n    },\n    {\n      \"action_name\": \"auto-resetTimers\",\n      \"description\": \"将系统内部计时器复位为零。\",\n      \"description_en\": \"Reset the internal system timers to zero.\"\n    },\n    {\n      \"action_name\": \"auto-restartTimers\",\n      \"description\": \"重启并同步控制器与探测器计时器，以对齐时间戳。\",\n      \"description_en\": \"Restart and synchronize the controller and detector timers so timestamps are aligned.\"\n    },\n    {\n      \"action_name\": \"auto-openShutter\",\n      \"description\": \"立即打开探测器快门并保持开启。\",\n      \"description_en\": \"Immediately open the detector shutter and keep it open.\"\n    },\n    {\n      \"action_name\": \"auto-closeShutter\",\n      \"description\": \"立即关闭探测器快门。\",\n      \"description_en\": \"Immediately close the detector shutter.\"\n    },\n    {\n      \"action_name\": \"auto-setShutterTriggerConfig\",\n      \"description\": \"设置快门触发参数，包括模式、开启时长、频率、计数和延时。\",\n      \"description_en\": \"Configure shutter triggering parameters, including mode, open duration, frequency, count, and delay.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Timepix4 pixel detector\",\n    \"radiation detection\",\n    \"detector bias supply\",\n    \"shutter trigger control\",\n    \"timer synchronization\",\n    \"environmental monitoring\",\n    \"FPGA temperature monitoring\"\n  ]\n}"
+}

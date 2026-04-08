@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: tpg36x\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/pfeiffer/tpg36x.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.vacuum_gauge_controller.tpg36x:TPG36x\n\nClass: TPG36x (focal)\n  Bases: ['Instrument']\n  Docstring: The Pfeiffer TPG361/2 is a vacuum gauge controller with one/two channels.\n\nBy default, the two channel version is intialized. If you have the one channel\nversion (TPG361), set the `number_channels` property to 1.\n\nExample usage:\n    >>> import instruments as ik\n    >>> inst = ik.pfeiffer.TPG36x.open_serial(\"/dev/ttyUSB0\", 9600)\n    >>> ch = inst.channel[0]\n    >>> ch.pressure\n    4.7634 millibar\n\nFocal class methods:\n  [status_getter] channel(self)\n    comment: Gets a specific channel object.\n\n        Note that the channel number is pythonic, i.e., the first channel is 0.\n\n        :rtype: `TPG36x.Channel`\n\n        Example:\n            >>> import instruments ...\n  [status_getter] ethernet_configuration(self)\n    comment: Get / set the ethernet configuration of the TPG36x.\n\n        .. note:: If you set the configuration to DHCP, you should simply send\n            `TPG36x.EthernetMode.DHCP` as the sole value. To set it ...\n  [status_setter] ethernet_configuration(self, value)\n  [status_getter] language(self)\n    comment: Get/set the language of the TPG36x.\n\n        :rtype: `TPG36x.Language`\n\n        Example:\n            >>> import instruments as ik\n            >>> inst = ik.pfeiffer.TPG36x.open_serial(\"/dev/ttyUSB0\", ...\n  [status_setter] language(self, value)\n  [status_getter] mac_address(self)\n    comment: Get the MAC address of the TPG36x.\n\n        :return: MAC address of the TPG36x.\n        :rtype: str\n\n        Example:\n            >>> import instruments as ik\n            >>> inst = ik.pfeiffer.TPG36x...\n  [status_getter] name(self)\n    comment: Get the name from the TPG36x.\n\n        :rtype: str\n\n        Example:\n            >>> import instruments as ik\n            >>> inst = ik.pfeiffer.TPG36x.open_serial(\"/dev/ttyUSB0\", 9600)\n            >>...\n  [status_getter] number_channels(self)\n    comment: The number of channels on the TPG36x.\n\n        This defaults to two channels. Set this to 1 if you have a one gauge\n        instrument, i.e., a TPG361.\n\n        :rtype: int\n\n        Example:\n         ...\n  [status_setter] number_channels(self, value)\n  [status_getter] pressure(self)\n    comment: The pressure measured by the first channel.\n\n        To select the channel, get a channel first and then call the pressure\n        method on it.\n\n        :rtype: `pint.Quantity`\n\n        Example:\n    ...\n  [status_getter] unit(self)\n    comment: Get/set the unit of the TPG36x (global to the instrument).\n\n        :return: The current unit.\n        :rtype: `TPG36x.Unit`\n\n        Example:\n            >>> import instruments as ik\n            >>> ...\n  [status_setter] unit(self, new_unit)\n  [command] query(self, cmd)\n    comment: Query the TPG36x with the enquire command.\n\n        :return: The response from the TPG36x.\n\nRegistry actions:\n  auto-ethernet_configuration (from ethernet_configuration())\n  auto-language (from language())\n  auto-number_channels (from number_channels())\n  auto-query (from query())\n  auto-unit (from unit())\n  auto-channel (from channel())\n  auto-mac_address (from mac_address())\n  auto-name (from name())\n  auto-pressure (from pressure())\n  auto-status (from status())\n\nRequired output action ids:\n  auto-ethernet_configuration\n  auto-language\n  auto-number_channels\n  auto-query\n  auto-unit\n  auto-channel\n  auto-mac_address\n  auto-name\n  auto-pressure\n  auto-status"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_00017b221ad8b36c0069d568bef9f48194b3d2b771a1be7f00",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4698,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4658,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_00017b221ad8b36c0069d568bf6b8c8194a4dde4f6e9e44629",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_00017b221ad8b36c0069d568c8c70c8194a652e8a7996267cb",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Pfeiffer TPG36x 真空规控制器\",\n  \"name_en\": \"Pfeiffer TPG36x Vacuum Gauge Controller\",\n  \"manufacturer\": \"Pfeiffer\",\n  \"description\": \"用于连接和管理一到两个真空规通道的真空规控制器，可读取压力并配置仪器的单位、语言及以太网参数，常用于真空系统中的压力监测与真空状态读出。\",\n  \"description_en\": \"A vacuum gauge controller for connecting and managing one or two vacuum gauge channels. It reads pressure and allows configuration of instrument units, language, and Ethernet settings, and is commonly used for pressure monitoring and vacuum-state readout in vacuum systems.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-ethernet_configuration\",\n      \"description\": \"获取/设置以太网配置。\",\n      \"description_en\": \"Get/set the Ethernet configuration.\"\n    },\n    {\n      \"action_name\": \"auto-language\",\n      \"description\": \"获取/设置仪器语言。\",\n      \"description_en\": \"Get/set the instrument language.\"\n    },\n    {\n      \"action_name\": \"auto-number_channels\",\n      \"description\": \"获取/设置通道数量。\",\n      \"description_en\": \"Get/set the number of channels.\"\n    },\n    {\n      \"action_name\": \"auto-query\",\n      \"description\": \"发送底层查询命令并返回仪器响应。\",\n      \"description_en\": \"Send a low-level query command and return the instrument response.\"\n    },\n    {\n      \"action_name\": \"auto-unit\",\n      \"description\": \"获取/设置压力单位。\",\n      \"description_en\": \"Get/set the pressure unit.\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取指定通道对象。\",\n      \"description_en\": \"Get a specific channel object.\"\n    },\n    {\n      \"action_name\": \"auto-mac_address\",\n      \"description\": \"获取 MAC 地址。\",\n      \"description_en\": \"Get the MAC address.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取设备名称。\",\n      \"description_en\": \"Get the device name.\"\n    },\n    {\n      \"action_name\": \"auto-pressure\",\n      \"description\": \"获取第一通道测得的压力。\",\n      \"description_en\": \"Get the pressure measured by the first channel.\"\n    },\n    {\n      \"action_name\": \"auto-status\",\n      \"description\": \"获取仪器状态。\",\n      \"description_en\": \"Get the instrument status.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"vacuum gauge controller\",\n    \"vacuum pressure measurement\",\n    \"Pfeiffer TPG361\",\n    \"Pfeiffer TPG362\",\n    \"multi-channel gauge readout\",\n    \"serial communication\",\n    \"Ethernet configuration\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1601,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1125,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2726
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1601,
+      "output_token_count": 1125,
+      "predict_time": 19.883737059
+    }
+  },
+  "output_text": "{\n  \"name\": \"Pfeiffer TPG36x 真空规控制器\",\n  \"name_en\": \"Pfeiffer TPG36x Vacuum Gauge Controller\",\n  \"manufacturer\": \"Pfeiffer\",\n  \"description\": \"用于连接和管理一到两个真空规通道的真空规控制器，可读取压力并配置仪器的单位、语言及以太网参数，常用于真空系统中的压力监测与真空状态读出。\",\n  \"description_en\": \"A vacuum gauge controller for connecting and managing one or two vacuum gauge channels. It reads pressure and allows configuration of instrument units, language, and Ethernet settings, and is commonly used for pressure monitoring and vacuum-state readout in vacuum systems.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-ethernet_configuration\",\n      \"description\": \"获取/设置以太网配置。\",\n      \"description_en\": \"Get/set the Ethernet configuration.\"\n    },\n    {\n      \"action_name\": \"auto-language\",\n      \"description\": \"获取/设置仪器语言。\",\n      \"description_en\": \"Get/set the instrument language.\"\n    },\n    {\n      \"action_name\": \"auto-number_channels\",\n      \"description\": \"获取/设置通道数量。\",\n      \"description_en\": \"Get/set the number of channels.\"\n    },\n    {\n      \"action_name\": \"auto-query\",\n      \"description\": \"发送底层查询命令并返回仪器响应。\",\n      \"description_en\": \"Send a low-level query command and return the instrument response.\"\n    },\n    {\n      \"action_name\": \"auto-unit\",\n      \"description\": \"获取/设置压力单位。\",\n      \"description_en\": \"Get/set the pressure unit.\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取指定通道对象。\",\n      \"description_en\": \"Get a specific channel object.\"\n    },\n    {\n      \"action_name\": \"auto-mac_address\",\n      \"description\": \"获取 MAC 地址。\",\n      \"description_en\": \"Get the MAC address.\"\n    },\n    {\n      \"action_name\": \"auto-name\",\n      \"description\": \"获取设备名称。\",\n      \"description_en\": \"Get the device name.\"\n    },\n    {\n      \"action_name\": \"auto-pressure\",\n      \"description\": \"获取第一通道测得的压力。\",\n      \"description_en\": \"Get the pressure measured by the first channel.\"\n    },\n    {\n      \"action_name\": \"auto-status\",\n      \"description\": \"获取仪器状态。\",\n      \"description_en\": \"Get the instrument status.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"vacuum gauge controller\",\n    \"vacuum pressure measurement\",\n    \"Pfeiffer TPG361\",\n    \"Pfeiffer TPG362\",\n    \"multi-channel gauge readout\",\n    \"serial communication\",\n    \"Ethernet configuration\"\n  ]\n}"
+}

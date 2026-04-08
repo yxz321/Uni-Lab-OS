@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: uhf_device\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: deprecated/pycqed/instrument_drivers/physical_instruments/ZurichInstruments/attic/zishell.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.uhf.uhf_device:UHFDevice\n\nClass: ziShellError \n  Bases: ['Exception']\n  Docstring: Base class for exceptions in this module.\n\nClass: ziShellServerError \n  Bases: ['ziShellError']\n  Docstring: Exception raised when no server is configured or the server cannot be reached.\n\nClass: ziShellDAQError \n  Bases: ['ziShellError']\n  Docstring: Exception raised when no DAQ has been connected.\n\nClass: ziShellConnectError \n  Bases: ['ziShellError']\n  Docstring: Exception raised when a device could not be connected.\n\nClass: ziShellModuleError \n  Bases: ['ziShellError']\n  Docstring: Exception raised when a module has not been started.\n\nClass: ziVISADevice \n  Bases: []\n\nClass: RSScope \n  Bases: ['ziVISADevice']\n\nClass: RTMScope \n  Bases: ['RSScope']\n\nClass: RTOScope \n  Bases: ['RSScope']\n\nClass: ziShellDevice \n  Bases: []\n  Docstring: Holds all the global variables.\n\nClass: UHFDevice (focal)\n  Bases: ['ziShellDevice']\n\nClass: HDDevice \n  Bases: ['ziShellDevice']\n\nClass: powerSwitches \n  Bases: []\n\nFocal class methods:\n  [command] connect_device(self, device, interface='1GbE')\n    comment: Initialize modules\n  [command] configure_awg_file(self, filename)\n  [command] configure_awg_string(self, string)\n  [command] read_scope(self, timeout=1.0, enable=True)\n  [command] restart(self)\n\nRegistry actions:\n  auto-configure_awg_file (from configure_awg_file())\n  auto-configure_awg_string (from configure_awg_string())\n  auto-connect_device (from connect_device())\n  auto-read_scope (from read_scope())\n  auto-restart (from restart())\n  auto-idn (from idn())\n  auto-set_trigger_mode (from set_trigger_mode())\n  auto-set_trigger_level (from set_trigger_level())\n  auto-set_trigger_ext (from set_trigger_ext())\n  auto-set_trigger_src (from set_trigger_src())\n  auto-set_trigger_slope (from set_trigger_slope())\n  auto-set_trigger_coupling (from set_trigger_coupling())\n  auto-set_time_scale (from set_time_scale())\n  auto-set_channel_scale (from set_channel_scale())\n  auto-do_single_shot (from do_single_shot())\n  auto-set_averaging (from set_averaging())\n  auto-set_format_real (from set_format_real())\n  auto-set_average_count (from set_average_count())\n  auto-sync (from sync())\n  auto-do_get_screenshot (from do_get_screenshot())\n  auto-get_channel_data (from get_channel_data())\n  auto-is_averaging_complete (from is_averaging_complete())\n  auto-set_maximum_rate (from set_maximum_rate())\n  auto-connect_server (from connect_server())\n  auto-reconnect (from reconnect())\n  auto-load_settings (from load_settings())\n  auto-features (from features())\n  auto-setd (from setd())\n  auto-seti (from seti())\n  auto-setv (from setv())\n  auto-geti (from geti())\n  auto-getd (from getd())\n  auto-getv (from getv())\n  auto-find (from find())\n  auto-finds (from finds())\n  auto-subs (from subs())\n  auto-unsubs (from unsubs())\n  auto-poll (from poll())\n  auto-on (from on())\n  auto-off (from off())\n  auto-extclk (from extclk())\n  auto-sampleclk (from sampleclk())\n  auto-mode (from mode())\n  auto-direct (from direct())\n  auto-calibrate_dio_protocol (from calibrate_dio_protocol())\n  auto-dio_snapshot (from dio_snapshot())\n  auto-awg_dio_snapshot (from awg_dio_snapshot())\n  auto-dio_testmode (from dio_testmode())\n  auto-onOffMultiple (from onOffMultiple())\n\nRequired output action ids:\n  auto-configure_awg_file\n  auto-configure_awg_string\n  auto-connect_device\n  auto-read_scope\n  auto-restart\n  auto-idn\n  auto-set_trigger_mode\n  auto-set_trigger_level\n  auto-set_trigger_ext\n  auto-set_trigger_src\n  auto-set_trigger_slope\n  auto-set_trigger_coupling\n  auto-set_time_scale\n  auto-set_channel_scale\n  auto-do_single_shot\n  auto-set_averaging\n  auto-set_format_real\n  auto-set_average_count\n  auto-sync\n  auto-do_get_screenshot\n  auto-get_channel_data\n  auto-is_averaging_complete\n  auto-set_maximum_rate\n  auto-connect_server\n  auto-reconnect\n  auto-load_settings\n  auto-features\n  auto-setd\n  auto-seti\n  auto-setv\n  auto-geti\n  auto-getd\n  auto-getv\n  auto-find\n  auto-finds\n  auto-subs\n  auto-unsubs\n  auto-poll\n  auto-on\n  auto-off\n  auto-extclk\n  auto-sampleclk\n  auto-mode\n  auto-direct\n  auto-calibrate_dio_protocol\n  auto-dio_snapshot\n  auto-awg_dio_snapshot\n  auto-dio_testmode\n  auto-onOffMultiple"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0b9aa4552291d54d0069d56a692c8c8195ab81ce9ba9afe286",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5568,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 14606,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0b9aa4552291d54d0069d56a699fa48195bece32c42dad2bd7",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0b9aa4552291d54d0069d56a861f1081959decf7565a91d380",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"苏黎世仪器UHF系列设备\",\n  \"name_en\": \"Zurich Instruments UHF Series Device\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"用于连接和控制苏黎世仪器 UHF 系列仪器，支持设备连接、AWG 配置、示波采集、触发参数设置、DIO 校准、时钟与采样相关设置，以及通过数据服务器进行节点读写与数据订阅。常用于量子测控和高速电子信号实验。\",\n  \"description_en\": \"Used to connect to and control Zurich Instruments UHF series instruments. It supports device connection, AWG configuration, scope acquisition, trigger setup, DIO calibration, clock and sampling settings, and node read/write plus data subscription through the data server. It is commonly used in quantum control and high-speed electronic signal experiments.\",\n  \"tag_hints\": [\n    \"Zurich Instruments\",\n    \"UHF\",\n    \"AWG control\",\n    \"scope acquisition\",\n    \"trigger configuration\",\n    \"DIO calibration\",\n    \"DAQ server\",\n    \"quantum control\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-configure_awg_file\",\n      \"description\": \"从文件加载并配置 AWG 程序或波形。\",\n      \"description_en\": \"Load and configure the AWG program or waveform from a file.\"\n    },\n    {\n      \"action_name\": \"auto-configure_awg_string\",\n      \"description\": \"从字符串内容配置 AWG 程序或波形。\",\n      \"description_en\": \"Configure the AWG program or waveform from a string.\"\n    },\n    {\n      \"action_name\": \"auto-connect_device\",\n      \"description\": \"连接指定设备并初始化相关模块。\",\n      \"description_en\": \"Connect to the selected device and initialize the related modules.\"\n    },\n    {\n      \"action_name\": \"auto-read_scope\",\n      \"description\": \"读取示波采集数据，可在读取前启用示波功能。\",\n      \"description_en\": \"Read scope acquisition data, optionally enabling the scope before reading.\"\n    },\n    {\n      \"action_name\": \"auto-restart\",\n      \"description\": \"重启设备或重新初始化设备连接。\",\n      \"description_en\": \"Restart the device or reinitialize the device connection.\"\n    },\n    {\n      \"action_name\": \"auto-idn\",\n      \"description\": \"查询设备身份信息。\",\n      \"description_en\": \"Query the device identification information.\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_mode\",\n      \"description\": \"设置触发模式。\",\n      \"description_en\": \"Set the trigger mode.\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_level\",\n      \"description\": \"设置触发电平。\",\n      \"description_en\": \"Set the trigger level.\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_ext\",\n      \"description\": \"设置外部触发相关参数。\",\n      \"description_en\": \"Set external trigger related parameters.\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_src\",\n      \"description\": \"设置触发源。\",\n      \"description_en\": \"Set the trigger source.\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_slope\",\n      \"description\": \"设置触发边沿方向。\",\n      \"description_en\": \"Set the trigger slope.\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_coupling\",\n      \"description\": \"设置触发耦合方式。\",\n      \"description_en\": \"Set the trigger coupling mode.\"\n    },\n    {\n      \"action_name\": \"auto-set_time_scale\",\n      \"description\": \"设置时间刻度。\",\n      \"description_en\": \"Set the time scale.\"\n    },\n    {\n      \"action_name\": \"auto-set_channel_scale\",\n      \"description\": \"设置通道刻度。\",\n      \"description_en\": \"Set the channel scale.\"\n    },\n    {\n      \"action_name\": \"auto-do_single_shot\",\n      \"description\": \"执行单次采集。\",\n      \"description_en\": \"Perform a single-shot acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-set_averaging\",\n      \"description\": \"设置或启用平均采集。\",\n      \"description_en\": \"Set or enable averaging.\"\n    },\n    {\n      \"action_name\": \"auto-set_format_real\",\n      \"description\": \"设置实数格式数据输出。\",\n      \"description_en\": \"Set real-valued data output format.\"\n    },\n    {\n      \"action_name\": \"auto-set_average_count\",\n      \"description\": \"设置平均次数。\",\n      \"description_en\": \"Set the averaging count.\"\n    },\n    {\n      \"action_name\": \"auto-sync\",\n      \"description\": \"与设备服务器同步设置或数据状态。\",\n      \"description_en\": \"Synchronize settings or data state with the device server.\"\n    },\n    {\n      \"action_name\": \"auto-do_get_screenshot\",\n      \"description\": \"获取仪器或示波界面的截图。\",\n      \"description_en\": \"Capture a screenshot from the instrument or scope interface.\"\n    },\n    {\n      \"action_name\": \"auto-get_channel_data\",\n      \"description\": \"读取指定通道的数据。\",\n      \"description_en\": \"Read data from the selected channel.\"\n    },\n    {\n      \"action_name\": \"auto-is_averaging_complete\",\n      \"description\": \"查询平均采集是否完成。\",\n      \"description_en\": \"Check whether averaging is complete.\"\n    },\n    {\n      \"action_name\": \"auto-set_maximum_rate\",\n      \"description\": \"设置最大数据采集或传输速率。\",\n      \"description_en\": \"Set the maximum data acquisition or transfer rate.\"\n    },\n    {\n      \"action_name\": \"auto-connect_server\",\n      \"description\": \"连接到数据服务器。\",\n      \"description_en\": \"Connect to the data server.\"\n    },\n    {\n      \"action_name\": \"auto-reconnect\",\n      \"description\": \"重新连接设备或服务器。\",\n      \"description_en\": \"Reconnect to the device or server.\"\n    },\n    {\n      \"action_name\": \"auto-load_settings\",\n      \"description\": \"加载已保存的设备设置。\",\n      \"description_en\": \"Load saved device settings.\"\n    },\n    {\n      \"action_name\": \"auto-features\",\n      \"description\": \"查询设备支持的功能特性。\",\n      \"description_en\": \"Query the features supported by the device.\"\n    },\n    {\n      \"action_name\": \"auto-setd\",\n      \"description\": \"写入双精度数值节点。\",\n      \"description_en\": \"Write a double-precision value node.\"\n    },\n    {\n      \"action_name\": \"auto-seti\",\n      \"description\": \"写入整数节点。\",\n      \"description_en\": \"Write an integer value node.\"\n    },\n    {\n      \"action_name\": \"auto-setv\",\n      \"description\": \"写入向量或数组节点。\",\n      \"description_en\": \"Write a vector or array node.\"\n    },\n    {\n      \"action_name\": \"auto-geti\",\n      \"description\": \"读取整数节点。\",\n      \"description_en\": \"Read an integer value node.\"\n    },\n    {\n      \"action_name\": \"auto-getd\",\n      \"description\": \"读取双精度数值节点。\",\n      \"description_en\": \"Read a double-precision value node.\"\n    },\n    {\n      \"action_name\": \"auto-getv\",\n      \"description\": \"读取向量或数组节点。\",\n      \"description_en\": \"Read a vector or array node.\"\n    },\n    {\n      \"action_name\": \"auto-find\",\n      \"description\": \"查找匹配的设备节点。\",\n      \"description_en\": \"Find a matching device node.\"\n    },\n    {\n      \"action_name\": \"auto-finds\",\n      \"description\": \"查找多个匹配的设备节点。\",\n      \"description_en\": \"Find multiple matching device nodes.\"\n    },\n    {\n      \"action_name\": \"auto-subs\",\n      \"description\": \"订阅数据节点或数据流。\",\n      \"description_en\": \"Subscribe to a data node or data stream.\"\n    },\n    {\n      \"action_name\": \"auto-unsubs\",\n      \"description\": \"取消订阅数据节点或数据流。\",\n      \"description_en\": \"Unsubscribe from a data node or data stream.\"\n    },\n    {\n      \"action_name\": \"auto-poll\",\n      \"description\": \"轮询已订阅的数据。\",\n      \"description_en\": \"Poll the subscribed data.\"\n    },\n    {\n      \"action_name\": \"auto-on\",\n      \"description\": \"开启设备功能、通道或输出。\",\n      \"description_en\": \"Turn on a device function, channel, or output.\"\n    },\n    {\n      \"action_name\": \"auto-off\",\n      \"description\": \"关闭设备功能、通道或输出。\",\n      \"description_en\": \"Turn off a device function, channel, or output.\"\n    },\n    {\n      \"action_name\": \"auto-extclk\",\n      \"description\": \"设置或切换外部时钟参考。\",\n      \"description_en\": \"Set or switch the external clock reference.\"\n    },\n    {\n      \"action_name\": \"auto-sampleclk\",\n      \"description\": \"设置采样时钟。\",\n      \"description_en\": \"Set the sample clock.\"\n    },\n    {\n      \"action_name\": \"auto-mode\",\n      \"description\": \"设置设备工作模式。\",\n      \"description_en\": \"Set the device operating mode.\"\n    },\n    {\n      \"action_name\": \"auto-direct\",\n      \"description\": \"设置直通或直接信号路径模式。\",\n      \"description_en\": \"Set the direct or bypass signal path mode.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_dio_protocol\",\n      \"description\": \"校准 DIO 协议相关参数。\",\n      \"description_en\": \"Calibrate DIO protocol related parameters.\"\n    },\n    {\n      \"action_name\": \"auto-dio_snapshot\",\n      \"description\": \"获取当前 DIO 状态快照。\",\n      \"description_en\": \"Capture a snapshot of the current DIO state.\"\n    },\n    {\n      \"action_name\": \"auto-awg_dio_snapshot\",\n      \"description\": \"获取与 AWG 相关的 DIO 状态快照。\",\n      \"description_en\": \"Capture a snapshot of the AWG-related DIO state.\"\n    },\n    {\n      \"action_name\": \"auto-dio_testmode\",\n      \"description\": \"设置或启用 DIO 测试模式。\",\n      \"description_en\": \"Set or enable the DIO test mode.\"\n    },\n    {\n      \"action_name\": \"auto-onOffMultiple\",\n      \"description\": \"同时开启或关闭多个功能或通道。\",\n      \"description_en\": \"Turn multiple functions or channels on or off at once.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1874,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3699,
+      "output_tokens_details": {
+        "reasoning_tokens": 1415
+      },
+      "total_tokens": 5573
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1874,
+      "output_token_count": 3699,
+      "predict_time": 61.589482317
+    }
+  },
+  "output_text": "{\n  \"name\": \"苏黎世仪器UHF系列设备\",\n  \"name_en\": \"Zurich Instruments UHF Series Device\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"用于连接和控制苏黎世仪器 UHF 系列仪器，支持设备连接、AWG 配置、示波采集、触发参数设置、DIO 校准、时钟与采样相关设置，以及通过数据服务器进行节点读写与数据订阅。常用于量子测控和高速电子信号实验。\",\n  \"description_en\": \"Used to connect to and control Zurich Instruments UHF series instruments. It supports device connection, AWG configuration, scope acquisition, trigger setup, DIO calibration, clock and sampling settings, and node read/write plus data subscription through the data server. It is commonly used in quantum control and high-speed electronic signal experiments.\",\n  \"tag_hints\": [\n    \"Zurich Instruments\",\n    \"UHF\",\n    \"AWG control\",\n    \"scope acquisition\",\n    \"trigger configuration\",\n    \"DIO calibration\",\n    \"DAQ server\",\n    \"quantum control\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-configure_awg_file\",\n      \"description\": \"从文件加载并配置 AWG 程序或波形。\",\n      \"description_en\": \"Load and configure the AWG program or waveform from a file.\"\n    },\n    {\n      \"action_name\": \"auto-configure_awg_string\",\n      \"description\": \"从字符串内容配置 AWG 程序或波形。\",\n      \"description_en\": \"Configure the AWG program or waveform from a string.\"\n    },\n    {\n      \"action_name\": \"auto-connect_device\",\n      \"description\": \"连接指定设备并初始化相关模块。\",\n      \"description_en\": \"Connect to the selected device and initialize the related modules.\"\n    },\n    {\n      \"action_name\": \"auto-read_scope\",\n      \"description\": \"读取示波采集数据，可在读取前启用示波功能。\",\n      \"description_en\": \"Read scope acquisition data, optionally enabling the scope before reading.\"\n    },\n    {\n      \"action_name\": \"auto-restart\",\n      \"description\": \"重启设备或重新初始化设备连接。\",\n      \"description_en\": \"Restart the device or reinitialize the device connection.\"\n    },\n    {\n      \"action_name\": \"auto-idn\",\n      \"description\": \"查询设备身份信息。\",\n      \"description_en\": \"Query the device identification information.\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_mode\",\n      \"description\": \"设置触发模式。\",\n      \"description_en\": \"Set the trigger mode.\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_level\",\n      \"description\": \"设置触发电平。\",\n      \"description_en\": \"Set the trigger level.\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_ext\",\n      \"description\": \"设置外部触发相关参数。\",\n      \"description_en\": \"Set external trigger related parameters.\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_src\",\n      \"description\": \"设置触发源。\",\n      \"description_en\": \"Set the trigger source.\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_slope\",\n      \"description\": \"设置触发边沿方向。\",\n      \"description_en\": \"Set the trigger slope.\"\n    },\n    {\n      \"action_name\": \"auto-set_trigger_coupling\",\n      \"description\": \"设置触发耦合方式。\",\n      \"description_en\": \"Set the trigger coupling mode.\"\n    },\n    {\n      \"action_name\": \"auto-set_time_scale\",\n      \"description\": \"设置时间刻度。\",\n      \"description_en\": \"Set the time scale.\"\n    },\n    {\n      \"action_name\": \"auto-set_channel_scale\",\n      \"description\": \"设置通道刻度。\",\n      \"description_en\": \"Set the channel scale.\"\n    },\n    {\n      \"action_name\": \"auto-do_single_shot\",\n      \"description\": \"执行单次采集。\",\n      \"description_en\": \"Perform a single-shot acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-set_averaging\",\n      \"description\": \"设置或启用平均采集。\",\n      \"description_en\": \"Set or enable averaging.\"\n    },\n    {\n      \"action_name\": \"auto-set_format_real\",\n      \"description\": \"设置实数格式数据输出。\",\n      \"description_en\": \"Set real-valued data output format.\"\n    },\n    {\n      \"action_name\": \"auto-set_average_count\",\n      \"description\": \"设置平均次数。\",\n      \"description_en\": \"Set the averaging count.\"\n    },\n    {\n      \"action_name\": \"auto-sync\",\n      \"description\": \"与设备服务器同步设置或数据状态。\",\n      \"description_en\": \"Synchronize settings or data state with the device server.\"\n    },\n    {\n      \"action_name\": \"auto-do_get_screenshot\",\n      \"description\": \"获取仪器或示波界面的截图。\",\n      \"description_en\": \"Capture a screenshot from the instrument or scope interface.\"\n    },\n    {\n      \"action_name\": \"auto-get_channel_data\",\n      \"description\": \"读取指定通道的数据。\",\n      \"description_en\": \"Read data from the selected channel.\"\n    },\n    {\n      \"action_name\": \"auto-is_averaging_complete\",\n      \"description\": \"查询平均采集是否完成。\",\n      \"description_en\": \"Check whether averaging is complete.\"\n    },\n    {\n      \"action_name\": \"auto-set_maximum_rate\",\n      \"description\": \"设置最大数据采集或传输速率。\",\n      \"description_en\": \"Set the maximum data acquisition or transfer rate.\"\n    },\n    {\n      \"action_name\": \"auto-connect_server\",\n      \"description\": \"连接到数据服务器。\",\n      \"description_en\": \"Connect to the data server.\"\n    },\n    {\n      \"action_name\": \"auto-reconnect\",\n      \"description\": \"重新连接设备或服务器。\",\n      \"description_en\": \"Reconnect to the device or server.\"\n    },\n    {\n      \"action_name\": \"auto-load_settings\",\n      \"description\": \"加载已保存的设备设置。\",\n      \"description_en\": \"Load saved device settings.\"\n    },\n    {\n      \"action_name\": \"auto-features\",\n      \"description\": \"查询设备支持的功能特性。\",\n      \"description_en\": \"Query the features supported by the device.\"\n    },\n    {\n      \"action_name\": \"auto-setd\",\n      \"description\": \"写入双精度数值节点。\",\n      \"description_en\": \"Write a double-precision value node.\"\n    },\n    {\n      \"action_name\": \"auto-seti\",\n      \"description\": \"写入整数节点。\",\n      \"description_en\": \"Write an integer value node.\"\n    },\n    {\n      \"action_name\": \"auto-setv\",\n      \"description\": \"写入向量或数组节点。\",\n      \"description_en\": \"Write a vector or array node.\"\n    },\n    {\n      \"action_name\": \"auto-geti\",\n      \"description\": \"读取整数节点。\",\n      \"description_en\": \"Read an integer value node.\"\n    },\n    {\n      \"action_name\": \"auto-getd\",\n      \"description\": \"读取双精度数值节点。\",\n      \"description_en\": \"Read a double-precision value node.\"\n    },\n    {\n      \"action_name\": \"auto-getv\",\n      \"description\": \"读取向量或数组节点。\",\n      \"description_en\": \"Read a vector or array node.\"\n    },\n    {\n      \"action_name\": \"auto-find\",\n      \"description\": \"查找匹配的设备节点。\",\n      \"description_en\": \"Find a matching device node.\"\n    },\n    {\n      \"action_name\": \"auto-finds\",\n      \"description\": \"查找多个匹配的设备节点。\",\n      \"description_en\": \"Find multiple matching device nodes.\"\n    },\n    {\n      \"action_name\": \"auto-subs\",\n      \"description\": \"订阅数据节点或数据流。\",\n      \"description_en\": \"Subscribe to a data node or data stream.\"\n    },\n    {\n      \"action_name\": \"auto-unsubs\",\n      \"description\": \"取消订阅数据节点或数据流。\",\n      \"description_en\": \"Unsubscribe from a data node or data stream.\"\n    },\n    {\n      \"action_name\": \"auto-poll\",\n      \"description\": \"轮询已订阅的数据。\",\n      \"description_en\": \"Poll the subscribed data.\"\n    },\n    {\n      \"action_name\": \"auto-on\",\n      \"description\": \"开启设备功能、通道或输出。\",\n      \"description_en\": \"Turn on a device function, channel, or output.\"\n    },\n    {\n      \"action_name\": \"auto-off\",\n      \"description\": \"关闭设备功能、通道或输出。\",\n      \"description_en\": \"Turn off a device function, channel, or output.\"\n    },\n    {\n      \"action_name\": \"auto-extclk\",\n      \"description\": \"设置或切换外部时钟参考。\",\n      \"description_en\": \"Set or switch the external clock reference.\"\n    },\n    {\n      \"action_name\": \"auto-sampleclk\",\n      \"description\": \"设置采样时钟。\",\n      \"description_en\": \"Set the sample clock.\"\n    },\n    {\n      \"action_name\": \"auto-mode\",\n      \"description\": \"设置设备工作模式。\",\n      \"description_en\": \"Set the device operating mode.\"\n    },\n    {\n      \"action_name\": \"auto-direct\",\n      \"description\": \"设置直通或直接信号路径模式。\",\n      \"description_en\": \"Set the direct or bypass signal path mode.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_dio_protocol\",\n      \"description\": \"校准 DIO 协议相关参数。\",\n      \"description_en\": \"Calibrate DIO protocol related parameters.\"\n    },\n    {\n      \"action_name\": \"auto-dio_snapshot\",\n      \"description\": \"获取当前 DIO 状态快照。\",\n      \"description_en\": \"Capture a snapshot of the current DIO state.\"\n    },\n    {\n      \"action_name\": \"auto-awg_dio_snapshot\",\n      \"description\": \"获取与 AWG 相关的 DIO 状态快照。\",\n      \"description_en\": \"Capture a snapshot of the AWG-related DIO state.\"\n    },\n    {\n      \"action_name\": \"auto-dio_testmode\",\n      \"description\": \"设置或启用 DIO 测试模式。\",\n      \"description_en\": \"Set or enable the DIO test mode.\"\n    },\n    {\n      \"action_name\": \"auto-onOffMultiple\",\n      \"description\": \"同时开启或关闭多个功能或通道。\",\n      \"description_en\": \"Turn multiple functions or channels on or off at once.\"\n    }\n  ]\n}"
+}

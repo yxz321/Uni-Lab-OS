@@ -1,55 +1,132 @@
-Device: typhos_alarm
-Registry Key: typhos_alarm
-Short Description: Typhos Alarm是由SLAC National Accelerator Lab生产的实验执行&合成设备，主要功能包括复位、设备连接、设置、过滤。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (16):
-- auto-add_device -> add_device [UniLabJsonCommand] goal_params: device
-- auto-alarm -> alarm [UniLabJsonCommand] goal_params: none
-- auto-channel -> channel [UniLabJsonCommand] goal_params: value
-- auto-channels -> channels [UniLabJsonCommand] goal_params: none
-- auto-clear_all_alarm_configs -> clear_all_alarm_configs [UniLabJsonCommand] goal_params: none
-- auto-describe -> describe [UniLabJsonCommand] goal_params: none
-- auto-eventFilter -> eventFilter [UniLabJsonCommand] goal_params: event, obj
-- auto-kindLevel -> kindLevel [UniLabJsonCommand] goal_params: kind_level
-- auto-reset_alarm_state -> reset_alarm_state [UniLabJsonCommand] goal_params: none
-- auto-set_alarm_color -> set_alarm_color [UniLabJsonCommand] goal_params: alarm_level
-- auto-setup_alarm_config -> setup_alarm_config [UniLabJsonCommand] goal_params: device
-- auto-show_alarm_tooltip -> show_alarm_tooltip [UniLabJsonCommand] goal_params: event
-- auto-update_alarm_config -> update_alarm_config [UniLabJsonCommand] goal_params: none
-- auto-update_connection -> update_connection [UniLabJsonCommand] goal_params: addr, connected
-- auto-update_current_alarm -> update_current_alarm [UniLabJsonCommand] goal_params: none
-- auto-update_severity -> update_severity [UniLabJsonCommand] goal_params: addr, severity
-
-Driver Functions (26):
-- SignalInfo.alarm(self) (line 144)
-- SignalInfo.describe(self) (line 150)
-- TyphosAlarm.__init__(self, *args, **kwargs) (line 187)
-- TyphosAlarm.kindLevel(self) (line 199)
-- TyphosAlarm.kindLevel(self, kind_level) (line 212)
-- TyphosAlarm.channel(self) (line 219)
-- TyphosAlarm.channel(self, value) (line 240)
-- TyphosAlarm._tx(self, value) (line 278)
-- TyphosAlarm.reset_alarm_state(self) (line 283)
-- TyphosAlarm.channels(self) (line 290)
-- TyphosAlarm.add_device(self, device) (line 300)
-- TyphosAlarm.clear_all_alarm_configs(self) (line 308)
-- TyphosAlarm.setup_alarm_config(self, device) (line 317)
-- TyphosAlarm.update_alarm_config(self) (line 366)
-- TyphosAlarm.update_connection(self, connected, addr) (line 378)
-- TyphosAlarm.update_severity(self, severity, addr) (line 384)
-- TyphosAlarm.update_current_alarm(self) (line 390)
-- TyphosAlarm.set_alarm_color(self, alarm_level) (line 417)
-- TyphosAlarm.eventFilter(self, obj, event) (line 424)
-- TyphosAlarm.show_alarm_tooltip(self, event) (line 443)
-- TyphosAlarmCircle.__init__(self, *args, **kwargs) (line 488)
-- TyphosAlarmRectangle.__init__(self, *args, **kwargs) (line 496)
-- TyphosAlarmTriangle.__init__(self, *args, **kwargs) (line 504)
-- TyphosAlarmEllipse.__init__(self, *args, **kwargs) (line 512)
-- TyphosAlarmPolygon.__init__(self, *args, **kwargs) (line 521)
-- indicator_stylesheet(shape_cls, alarm) (line 524)
+typhos_alarm:
+  name: Typhos报警汇总指示组件
+  name_en: Typhos Alarm Summary Indicator
+  manufacturer: ''
+  category:
+  - 实验报警汇总指示器
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验流程状态指示与告警
+  - 实验报警汇总指示器
+  description: 一个非物理的软件界面组件，用于汇总 Ophyd 设备多个信号的报警与连接状态，并在 Typhos/PyDM 图形控件上用颜色和工具提示显示最严重的报警情况。它适合用于实验控制界面的状态总览和告警提示。
+  description_en: A non-physical software UI component that summarizes alarm and connection
+    states from multiple Ophyd device signals, then shows the worst alarm state on
+    Typhos/PyDM graphical widgets using colors and tooltips. It is used for status
+    overview and alarm indication in laboratory control interfaces.
+  class:
+    action_value_mappings:
+      auto-reset_alarm_state:
+        schema:
+          description: 重置当前报警汇总状态和相关显示。
+          description_en: Reset the current summarized alarm state and related display
+            state.
+      auto-channels:
+        schema:
+          description: 返回此报警组件使用的 PyDM 通道列表。
+          description_en: Return the list of PyDM channels used by this alarm component.
+      auto-add_device:
+        schema:
+          description: 将设备加入报警汇总监视。
+          description_en: Add a device to the alarm summary monitoring.
+      auto-clear_all_alarm_configs:
+        schema:
+          description: 清除全部报警监视配置并恢复到未配置状态。
+          description_en: Clear all alarm monitoring configurations and return to
+            an unconfigured state.
+      auto-setup_alarm_config:
+        schema:
+          description: 根据设备信号和 kind 级别建立报警汇总配置。
+          description_en: Set up alarm summary configuration based on device signals
+            and the selected kind level.
+      auto-update_alarm_config:
+        schema:
+          description: 在设置变化后重建报警配置。
+          description_en: Rebuild the alarm configuration after settings change.
+      auto-update_connection:
+        schema:
+          description: 更新指定通道的连接或断连状态。
+          description_en: Update the connected or disconnected state of a specified
+            channel.
+      auto-update_severity:
+        schema:
+          description: 更新指定通道的报警严重度。
+          description_en: Update the alarm severity of a specified channel.
+      auto-update_current_alarm:
+        schema:
+          description: 重新计算当前最严重的汇总报警状态。
+          description_en: Recalculate the current worst summarized alarm state.
+      auto-set_alarm_color:
+        schema:
+          description: 根据报警级别设置控件显示颜色。
+          description_en: Set the widget display color according to the alarm level.
+      auto-eventFilter:
+        schema:
+          description: 处理界面事件以支持报警提示和交互行为。
+          description_en: Handle UI events to support alarm indication and interaction
+            behavior.
+      auto-show_alarm_tooltip:
+        schema:
+          description: 显示包含报警或断连通道信息的工具提示。
+          description_en: Show a tooltip with information about alarmed or disconnected
+            channels.
+      auto-kindLevel:
+        schema:
+          description: 获取或设置纳入报警汇总的信号 kind 级别。
+          description_en: Get or set the signal kind level included in the alarm summary.
+      auto-channel:
+        schema:
+          description: 获取或设置此组件使用的通道地址。
+          description_en: Get or set the channel address used by this component.
+      auto-alarm:
+        schema:
+          description: 获取当前汇总报警级别。
+          description_en: Get the current summarized alarm level.
+      auto-describe:
+        schema:
+          description: 返回此报警组件的描述信息。
+          description_en: Return descriptive information about this alarm component.
+auto_annotation_metadata:
+  registry_key: typhos_alarm
+  annotation_workflow_version: v4
+  tag_hints:
+  - Typhos UI
+  - PyDM alarm indicator
+  - Ophyd device alarms
+  - alarm summary
+  - GUI status widget
+  - EPICS PV connectivity
+  - tooltip alarm display
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件用于实验控制界面中汇总并显示设备报警状态，服务于实验运行过程中的实时监控。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它汇总Ophyd设备信号并在Typhos/PyDM界面显示，属于实验自动化监控与集成软件范畴。
+  - id: P-8106
+    name: 实验流程状态指示与告警
+    name_en: Laboratory Workflow Status Indication & Alerting
+    type: experimental_scene
+    rationale: 组件核心用途就是汇总连接与报警状态，并用颜色和提示信息进行告警展示。
+  proposed_new_tags:
+  - id: P-99010008
+    name: 实验报警汇总指示器
+    name_en: Experiment Alarm Summary Indicator
+    type: device_template_tag
+    rationale: 该组件是对多个实验信号报警状态进行汇总显示的通用界面部件，Typhos报警组件符合此模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

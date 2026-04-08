@@ -1,23 +1,89 @@
-Device: tron1_bridge
-Registry Key: tron1_bridge
-Short Description: Tron1 Bridge是一款机械臂，主要功能包括设备连接。
-
-Categories:
-- 机械臂
-
-Related Tags (from tag 标签列表.csv):
-- [4402] 机械臂 / Robotic Arm (device_template_tag)
-
-Atom Actions (4):
-- auto-cmd_vel_callback -> cmd_vel_callback [UniLabJsonCommand] goal_params: msg
-- auto-connect_ws -> connect_ws [UniLabJsonCommand] goal_params: max_retries, retry_on_fail
-- auto-destroy_node -> destroy_node [UniLabJsonCommand] goal_params: none
-- auto-send_loop -> send_loop [UniLabJsonCommand] goal_params: none
-
-Driver Functions (6):
-- Tron1Bridge.__init__(self) (line 99)
-- Tron1Bridge.connect_ws(self, retry_on_fail, max_retries) (line 142)
-- Tron1Bridge.cmd_vel_callback(self, msg) (line 176)
-- Tron1Bridge.send_loop(self) (line 187)
-- Tron1Bridge.destroy_node(self) (line 212)
-- main(args) (line 233)
+tron1_bridge:
+  name: Tron1 运动桥接节点
+  name_en: Tron1 Motion Bridge Node
+  manufacturer: LimX
+  category:
+  - 机器人运动桥接节点
+  tags:
+  - 物流/机械
+  - 机器人与移动平台
+  - 移动机器人与自动驾驶实验
+  - 机器人速度指令桥接与底盘控制
+  - 机器人运动桥接节点
+  description: 这是一个非实体的软件组件，用于将 ROS2 的 cmd_vel 速度指令桥接到 Tron1 的 WebSocket 接口，服务于移动机器人/移动底盘的运动控制。它负责建立连接、将速度命令归一化并转换为
+    Tron1 可用的比例格式、按固定频率发送运动指令，并在超时或关闭时发送停止命令。
+  description_en: This is a non-physical software component that bridges ROS2 cmd_vel
+    velocity commands to the Tron1 WebSocket interface for mobile robot/mobile base
+    motion control. It handles connection setup, normalizes and converts velocity
+    commands into the Tron1 ratio format, sends motion commands at a fixed rate, and
+    issues a stop command on timeout or shutdown.
+  class:
+    action_value_mappings:
+      auto-connect_ws:
+        schema:
+          description: 连接 Tron1 的 WebSocket 接口，并可按需执行重试。
+          description_en: Connect to the Tron1 WebSocket interface, with optional
+            retry logic.
+      auto-cmd_vel_callback:
+        schema:
+          description: 接收 ROS2 的 cmd_vel 指令，并将其转换为 Tron1 使用的速度比例格式。
+          description_en: Receive ROS2 cmd_vel commands and convert them into the
+            velocity ratio format used by Tron1.
+      auto-send_loop:
+        schema:
+          description: 以约 30 Hz 持续发送运动命令，并在命令超时时自动发送停止指令。
+          description_en: Continuously send motion commands at about 30 Hz and automatically
+            issue a stop command when command timeout occurs.
+      auto-destroy_node:
+        schema:
+          description: 关闭节点时发送停止命令并清理相关资源。
+          description_en: Send a stop command and clean up related resources when
+            the node shuts down.
+auto_annotation_metadata:
+  registry_key: tron1_bridge
+  annotation_workflow_version: v4
+  tag_hints:
+  - ROS2 cmd_vel bridge
+  - mobile robot motion control
+  - WebSocket control
+  - velocity command translation
+  - timeout stop safety
+  - Tron1
+  existing_tags:
+  - id: '4317'
+    name: 物流/机械
+    name_en: Logistics / Machinery
+    type: experimental_step
+    rationale: 该组件服务于移动机器人/底盘的运动控制，属于机械与移动平台执行链路。
+  - id: P-0020
+    name: 机器人与移动平台
+    name_en: Robotics & Mobile Platforms
+    type: experimental_domain
+    rationale: 组件将ROS2速度指令桥接到Tron1底盘，明显属于机器人与移动平台领域。
+  - id: P-0021
+    name: 移动机器人与自动驾驶实验
+    name_en: Mobile Robotics & Autonomous Vehicle Experiments
+    type: experimental_scene
+    rationale: 它面向移动机器人速度控制与底盘驱动，是典型移动机器人实验场景。
+  proposed_new_tags:
+  - id: P-99010001
+    name: 机器人速度指令桥接与底盘控制
+    name_en: Robot Velocity Command Bridging & Base Control
+    type: experimental_scene
+    rationale: 该节点专门把cmd_vel转换为底盘可执行比例指令，并按固定频率下发控制命令。
+  - id: P-99010002
+    name: 机器人运动桥接节点
+    name_en: Robot Motion Bridge Node
+    type: device_template_tag
+    rationale: 该组件是将上层机器人运动命令桥接到设备接口的通用软件节点类型，Tron1桥接器符合此模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review
