@@ -61,10 +61,18 @@ To find current work: read the **last 10-20 entries** of `todo_queue` in the sta
 - You are **NOT done** when you start a long-running command.
 - You are **NOT done** after a short status poll.
 - You are **NOT done** when you see only partial artifacts.
-- You are **NOT done** after reviewed the bacth report.
-- You **ARE done** only after: subagent reaches completed/failed **AND** you have reviewed the batch report **AND** there is no queued_batches in production_state_v4.json. In **ALL OTHER CASES** continue by either starting the workflow update cycle or start the next batch processing cycle and replace the finished subagent by dispatching a new subagent for the next patch.
+- You are **NOT done** after reviewing the batch report.
+- You are **NOT done** after a state update.
+- You are **NOT done** after a workflow update cycle.
+- You are **NOT done** after validating an updated workflow.
+- You **ARE done** only after: all devices have been processed, all required batch reviews are complete, and there are no `active_batches` or `queued_batches` left in `production_state_v4.json`.
+
+In **ALL OTHER CASES**, continue immediately with the next safe workflow action:
+- continue the normal production loop, or
+- enter the workflow-update cycle, validate the change, adopt it only if visibly better, and then resume the normal production loop from the current cursor using the updated workflow.
 
 Do not emit final completion, declare the task finished, or stop working after dispatching a subagent or starting a long-running command. That is the beginning of the work, not the end.
+Do not stop merely because one cycle finished. Run as many full cycles as possible in the same session.
 
 ### Wait behavior
 
@@ -84,12 +92,15 @@ Do not emit final completion, declare the task finished, or stop working after d
 ### Autonomous continuation flow
 
 Normal continuation:
-`wait for completion → read validator → read report → if no workflow update needed → dispatch next batch`
+`wait for completion → read validator → read report → if no workflow update needed → update state → prepare next batch(es) → dispatch → wait again`
 
 Workflow-update continuation:
-`wait for completion → read validator → read report → if workflow update needed → enter update cycle → validate change → adopt only if visibly better → dispatch fresh agents`
+`wait for completion → read validator → read report → if workflow update needed → enter update cycle → validate change → adopt only if visibly better → reset state as required → resume normal production from the current cursor using the updated workflow`
 
-The cotinuation only finishes until **ALL** devices have been processed and there is no queued_batches in production_state_v4.json.
+Neither a successful dispatch nor a successful workflow update is a stopping point.
+If another safe workflow action is available, take it immediately instead of ending the session.
+
+The continuation only finishes when **ALL** devices have been processed and there are no `active_batches` or `queued_batches` left in `production_state_v4.json`, unless a concrete blocker prevents safe continuation or the user explicitly tells you to stop.
 
 ## 5. Normal production loop
 
