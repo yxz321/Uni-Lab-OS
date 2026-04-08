@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: zi_pqsc\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pycqed/instrument_drivers/physical_instruments/ZurichInstruments/ZI_PQSC.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.custom.zi_pqsc:ZI_PQSC\n\nClass: ZI_PQSC (focal)\n  Bases: ['zibase.ZI_base_instrument']\n  Docstring: This is the frist version of the PycQED driver for the Zurich Instruments \nPQSC.\n\nFocal class methods:\n  [command] clock_freq(self)\n    comment: FIXME: put in correct clock_freq\n  [command] check_errors(self, errors_to_ignore=None)\n    comment: \n    comment: 'public' functions:\n    comment: \n    comment: If this is the first time we are called, log the detected errors,\n    comment: but don't raise any exceptions\n    comment: Asserted in case errors were found\n    comment: Combine errors_to_ignore with commandline\n    comment: Go through the errors and update our structure, raise exceptions if\n    comment: anything changed\n    comment: Check if there are new errors\n    comment: Checks the instrument for errors.\n  [command] set_repetitions(self, num_reps)\n    comment: Sets the number of triggers to be generated.\n  [command] set_holdoff(self, holdoff)\n    comment: Sets the interval between triggers in seconds. Set to 1e-3 for \n        generating triggers at 1kHz, etc.\n  [status_getter] get_progress(self)\n    comment: Returns a value between 0.0 and 1.0 indicating the progress as \n        triggers are generated.\n  [command] track_progress(self)\n    comment: Prints a progress bar.\n  [command] start(self)\n    comment: TODO\n    comment: Start the execution unit\n  [command] stop(self)\n    comment: Stop the execution unit\n  [command] clear_errors(self)\n\nRegistry actions:\n  auto-check_errors (from check_errors())\n  auto-clear_errors (from clear_errors())\n  auto-clock_freq (from clock_freq())\n  auto-set_holdoff (from set_holdoff())\n  auto-set_repetitions (from set_repetitions())\n  auto-start (from start())\n  auto-stop (from stop())\n  auto-track_progress (from track_progress())\n  auto-get_progress (from get_progress())\n\nRequired output action ids:\n  auto-check_errors\n  auto-clear_errors\n  auto-clock_freq\n  auto-set_holdoff\n  auto-set_repetitions\n  auto-start\n  auto-stop\n  auto-track_progress\n  auto-get_progress"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_035a2538694c1c280069d5c0258b988195846feacd29dbc465",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3283,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4517,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_035a2538694c1c280069d5c02605208195ab5eb791db02431d",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_035a2538694c1c280069d5c03279f88195beeffe2ae9b7a43d",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"可编程量子系统控制器\",\n  \"name_en\": \"Programmable Quantum System Controller\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"用于量子实验平台中的系统级时序与触发控制设备，可配置触发重复次数和触发间隔，并启动、停止及监测触发序列的执行进度。\",\n  \"description_en\": \"A system-level timing and trigger control instrument for quantum experiments. It configures trigger repetitions and trigger intervals, and can start, stop, and monitor the progress of trigger sequence execution.\",\n  \"tag_hints\": [\n    \"quantum control\",\n    \"trigger generation\",\n    \"timing synchronization\",\n    \"system controller\",\n    \"Zurich Instruments PQSC\",\n    \"sequencing\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-check_errors\",\n      \"description\": \"检查设备错误状态。\",\n      \"description_en\": \"Check the device for errors.\"\n    },\n    {\n      \"action_name\": \"auto-clear_errors\",\n      \"description\": \"清除设备错误记录。\",\n      \"description_en\": \"Clear device errors.\"\n    },\n    {\n      \"action_name\": \"auto-clock_freq\",\n      \"description\": \"读取控制器时钟频率。\",\n      \"description_en\": \"Read the controller clock frequency.\"\n    },\n    {\n      \"action_name\": \"auto-set_holdoff\",\n      \"description\": \"设置触发之间的时间间隔。\",\n      \"description_en\": \"Set the interval between triggers.\"\n    },\n    {\n      \"action_name\": \"auto-set_repetitions\",\n      \"description\": \"设置要生成的触发重复次数。\",\n      \"description_en\": \"Set the number of trigger repetitions to generate.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动执行单元并开始触发序列。\",\n      \"description_en\": \"Start the execution unit and begin the trigger sequence.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止执行单元。\",\n      \"description_en\": \"Stop the execution unit.\"\n    },\n    {\n      \"action_name\": \"auto-track_progress\",\n      \"description\": \"显示触发生成进度。\",\n      \"description_en\": \"Display the trigger generation progress.\"\n    },\n    {\n      \"action_name\": \"auto-get_progress\",\n      \"description\": \"获取触发生成进度。\",\n      \"description_en\": \"Get trigger generation progress.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1244,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1049,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2293
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1244,
+      "output_token_count": 1049,
+      "predict_time": 23.846513098
+    }
+  },
+  "output_text": "{\n  \"name\": \"可编程量子系统控制器\",\n  \"name_en\": \"Programmable Quantum System Controller\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"用于量子实验平台中的系统级时序与触发控制设备，可配置触发重复次数和触发间隔，并启动、停止及监测触发序列的执行进度。\",\n  \"description_en\": \"A system-level timing and trigger control instrument for quantum experiments. It configures trigger repetitions and trigger intervals, and can start, stop, and monitor the progress of trigger sequence execution.\",\n  \"tag_hints\": [\n    \"quantum control\",\n    \"trigger generation\",\n    \"timing synchronization\",\n    \"system controller\",\n    \"Zurich Instruments PQSC\",\n    \"sequencing\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-check_errors\",\n      \"description\": \"检查设备错误状态。\",\n      \"description_en\": \"Check the device for errors.\"\n    },\n    {\n      \"action_name\": \"auto-clear_errors\",\n      \"description\": \"清除设备错误记录。\",\n      \"description_en\": \"Clear device errors.\"\n    },\n    {\n      \"action_name\": \"auto-clock_freq\",\n      \"description\": \"读取控制器时钟频率。\",\n      \"description_en\": \"Read the controller clock frequency.\"\n    },\n    {\n      \"action_name\": \"auto-set_holdoff\",\n      \"description\": \"设置触发之间的时间间隔。\",\n      \"description_en\": \"Set the interval between triggers.\"\n    },\n    {\n      \"action_name\": \"auto-set_repetitions\",\n      \"description\": \"设置要生成的触发重复次数。\",\n      \"description_en\": \"Set the number of trigger repetitions to generate.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动执行单元并开始触发序列。\",\n      \"description_en\": \"Start the execution unit and begin the trigger sequence.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止执行单元。\",\n      \"description_en\": \"Stop the execution unit.\"\n    },\n    {\n      \"action_name\": \"auto-track_progress\",\n      \"description\": \"显示触发生成进度。\",\n      \"description_en\": \"Display the trigger generation progress.\"\n    },\n    {\n      \"action_name\": \"auto-get_progress\",\n      \"description\": \"获取触发生成进度。\",\n      \"description_en\": \"Get trigger generation progress.\"\n    }\n  ]\n}"
+}

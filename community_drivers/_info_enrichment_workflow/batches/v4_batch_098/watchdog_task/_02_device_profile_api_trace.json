@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: watchdog_task\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: generated/nidaqmx/system/watchdog.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.watchdog.watchdog_task:WatchdogTask\n\nClass: WatchdogTask (focal)\n  Bases: []\n  Docstring: Represents the watchdog configurations for a DAQmx task.\n\nFocal class methods:\n  [status_getter] expiration_states(self)\n    comment: :class:`nidaqmx.system._watchdog_modules.expiration_states_collection.ExpirationStatesCollection`: Gets\n            the collection of expiration states for this watchdog task.\n  [status_getter] expir_trig_dig_edge_edge(self)\n    comment: :class:`nidaqmx.constants.Edge`: Specifies on which edge of a\n            digital signal to expire the watchdog task.\n  [status_setter] expir_trig_dig_edge_edge(self, val)\n  [status_getter] expir_trig_dig_edge_edge(self)\n  [status_getter] expir_trig_dig_edge_src(self)\n    comment: str: Specifies the name of a terminal where a digital signal\n            exists to use as the source of the Expiration Trigger.\n  [status_setter] expir_trig_dig_edge_src(self, val)\n  [status_getter] expir_trig_dig_edge_src(self)\n  [status_getter] expir_trig_trig_on_network_conn_loss(self)\n    comment: bool: Specifies the watchdog timer behavior when the network\n            connection is lost between the host and the chassis. If set\n            to true, the watchdog timer expires when the chassis de...\n  [status_setter] expir_trig_trig_on_network_conn_loss(self, val)\n  [status_getter] expir_trig_trig_on_network_conn_loss(self)\n  [status_getter] expir_trig_trig_type(self)\n    comment: :class:`nidaqmx.constants.TriggerType`: Specifies the type of\n            trigger to use to expire a watchdog task.\n  [status_setter] expir_trig_trig_type(self, val)\n  [status_getter] expir_trig_trig_type(self)\n  [status_getter] expired(self)\n    comment: bool: Indicates if the watchdog timer expired. You can read this\n            property only while the task is running.\n  [status_getter] timeout(self)\n    comment: float: Specifies in seconds the amount of time until the\n            watchdog timer expires. A value of -1 means the internal\n            timer never expires. Set this input to -1 if you use an\n      ...\n  [status_setter] timeout(self, val)\n  [status_getter] timeout(self)\n  [status_getter] name(self)\n    comment: str: Indicates the name of the task.\n  [command] cfg_watchdog_ao_expir_states(self, expiration_states)\n    comment: Configures the expiration states for an analog watchdog timer task.\n\n        Args:\n            expiration_states\n                (List[nidaqmx.system.watchdog.AOExpirationState]):\n                Cont...\n  [command] cfg_watchdog_co_expir_states(self, expiration_states)\n    comment: Configures the expiration states for a counter watchdog timer task.\n\n        Args:\n            expiration_states\n                (List[nidaqmx.system.watchdog.COExpirationState]):\n                Cont...\n  [command] cfg_watchdog_do_expir_states(self, expiration_states)\n    comment: Configures the expiration states for a digital watchdog timer task.\n\n        Args:\n            expiration_states\n                (List[nidaqmx.system.watchdog.DOExpirationState]):\n                Cont...\n  [command] clear_expiration(self)\n    comment: Unlock a device whose watchdog timer expired.\n\n        This function does not program the watchdog timer on a real-time\n        controller. Use the Real-Time Watchdog VIs to program the watchdog\n     ...\n  [command] close(self)\n    comment: Clears the task.\n\n        Before clearing, this method aborts the task, if necessary,\n        and releases any resources the task reserved. You cannot use a task\n        after you clear it unless you ...\n  [command] control(self, action)\n    comment: Alters the state of a task according to the action you specify.\n\n        Args:\n            action (nidaqmx.constants.TaskMode): Specifies how to alter\n                the task state.\n  [command] reset_timer(self)\n    comment: Reset the internal timer. You must continually reset the internal\n        timer to prevent it from timing out and locking the device.\n\n        This function does not program the watchdog timer on a re...\n  [command] start(self)\n    comment: Transitions the task to the running state to begin the measurement\n        or generation. Using this method is required for some applications and\n        is optional for others.\n  [command] stop(self)\n    comment: Stops the task and returns it to the state the task was in before the\n        DAQmx Start Task method ran.\n\nRegistry actions:\n  auto-expir_trig_dig_edge_edge (from expir_trig_dig_edge_edge())\n  auto-expir_trig_dig_edge_src (from expir_trig_dig_edge_src())\n  auto-expir_trig_trig_on_network_conn_loss (from expir_trig_trig_on_network_conn_loss())\n  auto-expir_trig_trig_type (from expir_trig_trig_type())\n  auto-timeout (from timeout())\n  auto-cfg_watchdog_ao_expir_states (from cfg_watchdog_ao_expir_states())\n  auto-cfg_watchdog_co_expir_states (from cfg_watchdog_co_expir_states())\n  auto-cfg_watchdog_do_expir_states (from cfg_watchdog_do_expir_states())\n  auto-clear_expiration (from clear_expiration())\n  auto-close (from close())\n  auto-control (from control())\n  auto-reset_timer (from reset_timer())\n  auto-start (from start())\n  auto-stop (from stop())\n\nRequired output action ids:\n  auto-expir_trig_dig_edge_edge\n  auto-expir_trig_dig_edge_src\n  auto-expir_trig_trig_on_network_conn_loss\n  auto-expir_trig_trig_type\n  auto-timeout\n  auto-cfg_watchdog_ao_expir_states\n  auto-cfg_watchdog_co_expir_states\n  auto-cfg_watchdog_do_expir_states\n  auto-clear_expiration\n  auto-close\n  auto-control\n  auto-reset_timer\n  auto-start\n  auto-stop"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_04f966caf6f4a0920069d5bbc0d03c8194bebc98ca834fd168",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6806,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7758,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_04f966caf6f4a0920069d5bbc1301481949bdf7776ce433d70",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_04f966caf6f4a0920069d5bbd560e88194990c1644e6f4c7bc",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"DAQmx看门狗任务\",\n  \"name_en\": \"DAQmx Watchdog Task\",\n  \"manufacturer\": \"National Instruments (NI)\",\n  \"description\": \"这是一个非物理的软件任务对象，用于为 NI DAQmx 看门狗任务配置超时时间、过期触发条件，以及模拟输出、数字输出和计数器通道的过期状态。它通常用于 DAQ 设备或机箱的安全保护，在主机失联或看门狗超时时将相关通道切换到预设安全状态。\",\n  \"description_en\": \"This is a non-physical software task object for configuring an NI-DAQmx watchdog task, including timeout, expiration trigger conditions, and expiration states for analog output, digital output, and counter channels. It is typically used for safety protection on DAQ hardware or chassis, placing channels into predefined safe states when host communication is lost or the watchdog times out.\",\n  \"tag_hints\": [\n    \"NI-DAQmx\",\n    \"watchdog timer\",\n    \"DAQ safety\",\n    \"expiration states\",\n    \"network connection loss\",\n    \"digital trigger\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-expir_trig_dig_edge_edge\",\n      \"description\": \"获取/设置数字边沿过期触发的触发边沿。\",\n      \"description_en\": \"Get/set the trigger edge for the digital-edge expiration trigger.\"\n    },\n    {\n      \"action_name\": \"auto-expir_trig_dig_edge_src\",\n      \"description\": \"获取/设置数字边沿过期触发源端子名称。\",\n      \"description_en\": \"Get/set the source terminal name for the digital-edge expiration trigger.\"\n    },\n    {\n      \"action_name\": \"auto-expir_trig_trig_on_network_conn_loss\",\n      \"description\": \"获取/设置网络连接丢失时是否触发看门狗过期。\",\n      \"description_en\": \"Get/set whether watchdog expiration is triggered on network connection loss.\"\n    },\n    {\n      \"action_name\": \"auto-expir_trig_trig_type\",\n      \"description\": \"获取/设置过期触发类型。\",\n      \"description_en\": \"Get/set the expiration trigger type.\"\n    },\n    {\n      \"action_name\": \"auto-timeout\",\n      \"description\": \"获取/设置看门狗超时时间。\",\n      \"description_en\": \"Get/set the watchdog timeout.\"\n    },\n    {\n      \"action_name\": \"auto-cfg_watchdog_ao_expir_states\",\n      \"description\": \"配置看门狗任务的模拟输出过期状态。\",\n      \"description_en\": \"Configure the analog output expiration states for the watchdog task.\"\n    },\n    {\n      \"action_name\": \"auto-cfg_watchdog_co_expir_states\",\n      \"description\": \"配置看门狗任务的计数器过期状态。\",\n      \"description_en\": \"Configure the counter expiration states for the watchdog task.\"\n    },\n    {\n      \"action_name\": \"auto-cfg_watchdog_do_expir_states\",\n      \"description\": \"配置看门狗任务的数字输出过期状态。\",\n      \"description_en\": \"Configure the digital output expiration states for the watchdog task.\"\n    },\n    {\n      \"action_name\": \"auto-clear_expiration\",\n      \"description\": \"清除看门狗过期状态并解锁设备。\",\n      \"description_en\": \"Clear the watchdog expiration state and unlock the device.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭并清除此任务，释放占用资源。\",\n      \"description_en\": \"Close and clear the task, releasing reserved resources.\"\n    },\n    {\n      \"action_name\": \"auto-control\",\n      \"description\": \"按指定动作改变任务状态。\",\n      \"description_en\": \"Change the task state according to the specified action.\"\n    },\n    {\n      \"action_name\": \"auto-reset_timer\",\n      \"description\": \"重置看门狗内部计时器以防止超时。\",\n      \"description_en\": \"Reset the internal watchdog timer to prevent timeout.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动看门狗任务。\",\n      \"description_en\": \"Start the watchdog task.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止看门狗任务。\",\n      \"description_en\": \"Stop the watchdog task.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2031,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1901,
+      "output_tokens_details": {
+        "reasoning_tokens": 960
+      },
+      "total_tokens": 3932
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2031,
+      "output_token_count": 1901,
+      "predict_time": 36.56045145
+    }
+  },
+  "output_text": "{\n  \"name\": \"DAQmx看门狗任务\",\n  \"name_en\": \"DAQmx Watchdog Task\",\n  \"manufacturer\": \"National Instruments (NI)\",\n  \"description\": \"这是一个非物理的软件任务对象，用于为 NI DAQmx 看门狗任务配置超时时间、过期触发条件，以及模拟输出、数字输出和计数器通道的过期状态。它通常用于 DAQ 设备或机箱的安全保护，在主机失联或看门狗超时时将相关通道切换到预设安全状态。\",\n  \"description_en\": \"This is a non-physical software task object for configuring an NI-DAQmx watchdog task, including timeout, expiration trigger conditions, and expiration states for analog output, digital output, and counter channels. It is typically used for safety protection on DAQ hardware or chassis, placing channels into predefined safe states when host communication is lost or the watchdog times out.\",\n  \"tag_hints\": [\n    \"NI-DAQmx\",\n    \"watchdog timer\",\n    \"DAQ safety\",\n    \"expiration states\",\n    \"network connection loss\",\n    \"digital trigger\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-expir_trig_dig_edge_edge\",\n      \"description\": \"获取/设置数字边沿过期触发的触发边沿。\",\n      \"description_en\": \"Get/set the trigger edge for the digital-edge expiration trigger.\"\n    },\n    {\n      \"action_name\": \"auto-expir_trig_dig_edge_src\",\n      \"description\": \"获取/设置数字边沿过期触发源端子名称。\",\n      \"description_en\": \"Get/set the source terminal name for the digital-edge expiration trigger.\"\n    },\n    {\n      \"action_name\": \"auto-expir_trig_trig_on_network_conn_loss\",\n      \"description\": \"获取/设置网络连接丢失时是否触发看门狗过期。\",\n      \"description_en\": \"Get/set whether watchdog expiration is triggered on network connection loss.\"\n    },\n    {\n      \"action_name\": \"auto-expir_trig_trig_type\",\n      \"description\": \"获取/设置过期触发类型。\",\n      \"description_en\": \"Get/set the expiration trigger type.\"\n    },\n    {\n      \"action_name\": \"auto-timeout\",\n      \"description\": \"获取/设置看门狗超时时间。\",\n      \"description_en\": \"Get/set the watchdog timeout.\"\n    },\n    {\n      \"action_name\": \"auto-cfg_watchdog_ao_expir_states\",\n      \"description\": \"配置看门狗任务的模拟输出过期状态。\",\n      \"description_en\": \"Configure the analog output expiration states for the watchdog task.\"\n    },\n    {\n      \"action_name\": \"auto-cfg_watchdog_co_expir_states\",\n      \"description\": \"配置看门狗任务的计数器过期状态。\",\n      \"description_en\": \"Configure the counter expiration states for the watchdog task.\"\n    },\n    {\n      \"action_name\": \"auto-cfg_watchdog_do_expir_states\",\n      \"description\": \"配置看门狗任务的数字输出过期状态。\",\n      \"description_en\": \"Configure the digital output expiration states for the watchdog task.\"\n    },\n    {\n      \"action_name\": \"auto-clear_expiration\",\n      \"description\": \"清除看门狗过期状态并解锁设备。\",\n      \"description_en\": \"Clear the watchdog expiration state and unlock the device.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭并清除此任务，释放占用资源。\",\n      \"description_en\": \"Close and clear the task, releasing reserved resources.\"\n    },\n    {\n      \"action_name\": \"auto-control\",\n      \"description\": \"按指定动作改变任务状态。\",\n      \"description_en\": \"Change the task state according to the specified action.\"\n    },\n    {\n      \"action_name\": \"auto-reset_timer\",\n      \"description\": \"重置看门狗内部计时器以防止超时。\",\n      \"description_en\": \"Reset the internal watchdog timer to prevent timeout.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"启动看门狗任务。\",\n      \"description_en\": \"Start the watchdog task.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止看门狗任务。\",\n      \"description_en\": \"Stop the watchdog task.\"\n    }\n  ]\n}"
+}

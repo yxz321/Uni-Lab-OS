@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: y_pwm_input\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/Switch-Yoctopuce_Yocto-Relay/libs/yoctopuce/yocto_pwminput.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.custom.y_pwm_input:YPwmInput\n\nClass: YPwmInput (focal)\n  Bases: ['YSensor']\n  Docstring: The YPwmInput class allows you to read and configure Yoctopuce PWM inputs.\nIt inherits from YSensor class the core functions to read measurements,\nto register callback functions, and to access the autonomous datalogger.\nThis class adds the ability to configure the signal parameter used to transmit\ninformation: the duty cycle, the frequency or the pulse width.\n\nFocal class methods:\n  [command] set_unit(self, newval)\n    comment: Changes the measuring unit for the measured quantity. That unit\n        is just a string which is automatically initialized each time\n        the measurement mode is changed. But is can be set to an\n ...\n  [status_getter] get_dutyCycle(self)\n    comment: res\n    comment: Returns the PWM duty cycle, in per cents.\n\n        @return a floating point number corresponding to the PWM duty cycle, in per cents\n\n        On failure, throws an exception or returns YPwmInput.DUTYC...\n  [status_getter] get_pulseDuration(self)\n    comment: res\n    comment: Returns the PWM pulse length in milliseconds, as a floating point number.\n\n        @return a floating point number corresponding to the PWM pulse length in milliseconds, as a\n        floating point nu...\n  [status_getter] get_frequency(self)\n    comment: res\n    comment: Returns the PWM frequency in Hz.\n\n        @return a floating point number corresponding to the PWM frequency in Hz\n\n        On failure, throws an exception or returns YPwmInput.FREQUENCY_INVALID.\n  [status_getter] get_period(self)\n    comment: res\n    comment: Returns the PWM period in milliseconds.\n\n        @return a floating point number corresponding to the PWM period in milliseconds\n\n        On failure, throws an exception or returns YPwmInput.PERIOD_IN...\n  [status_getter] get_pulseCounter(self)\n    comment: res\n    comment: Returns the pulse counter value. Actually that\n        counter is incremented twice per period. That counter is\n        limited  to 1 billion.\n\n        @return an integer corresponding to the pulse co...\n  [status_setter] set_pulseCounter(self, newval)\n  [status_getter] get_pulseTimer(self)\n    comment: res\n    comment: Returns the timer of the pulses counter (ms).\n\n        @return an integer corresponding to the timer of the pulses counter (ms)\n\n        On failure, throws an exception or returns YPwmInput.PULSETIMER...\n  [status_getter] get_pwmReportMode(self)\n    comment: res\n    comment: Returns the parameter (frequency/duty cycle, pulse width, edges count) returned by the\n        get_currentValue function and callbacks. Attention\n\n        @return a value among YPwmInput.PWMREPORTMODE...\n  [status_setter] set_pwmReportMode(self, newval)\n    comment: Changes the  parameter  type (frequency/duty cycle, pulse width, or edge count) returned by the\n        get_currentValue function and callbacks.\n        The edge count value is limited to the 6 lowest...\n  [status_getter] get_debouncePeriod(self)\n    comment: res\n    comment: Returns the shortest expected pulse duration, in ms. Any shorter pulse will be automatically ignored (debounce).\n\n        @return an integer corresponding to the shortest expected pulse duration, in m...\n  [status_setter] set_debouncePeriod(self, newval)\n    comment: Changes the shortest expected pulse duration, in ms. Any shorter pulse will be automatically ignored (debounce).\n        Remember to call the saveToFlash() method of the module if the modification mus...\n  [command] FindPwmInput(func)\n    comment: obj\n    comment: Retrieves a PWM input for a given identifier.\n        The identifier can be specified using several formats:\n        <ul>\n        <li>FunctionLogicalName</li>\n        <li>ModuleSerialNumber.FunctionId...\n  [command] resetCounter(self)\n    comment: Returns the pulse counter value as well as its timer.\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, throws an exception or returns a negative error code.\n  [command] nextPwmInput(self)\n    comment: Continues the enumeration of PWM inputs started using yFirstPwmInput().\n        Caution: You can't make any assumption about the returned PWM inputs order.\n        If you want to find a specific a PWM...\n  [command] FirstPwmInput()\n    comment: noinspection PyTypeChecker,PyCallingNonCallable\n    comment: Starts the enumeration of PWM inputs currently accessible.\n        Use the method YPwmInput.nextPwmInput() to iterate on\n        next PWM inputs.\n\n        @return a pointer to a YPwmInput object, corr...\n\nRegistry actions:\n  auto-set_unit (from set_unit())\n  auto-set_pulseCounter (from set_pulseCounter())\n  auto-set_pwmReportMode (from set_pwmReportMode())\n  auto-set_debouncePeriod (from set_debouncePeriod())\n  auto-resetCounter (from resetCounter())\n  auto-nextPwmInput (from nextPwmInput())\n\nRequired output action ids:\n  auto-set_unit\n  auto-set_pulseCounter\n  auto-set_pwmReportMode\n  auto-set_debouncePeriod\n  auto-resetCounter\n  auto-nextPwmInput"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_06bdcdb86b10f4d60069d5bf3ba44c8195aa82efed4fdc6167",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1793,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4216,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_06bdcdb86b10f4d60069d5bf3c13908195952690ced728ddc3",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_06bdcdb86b10f4d60069d5bf47708c8195bc525d82d5b87689",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"PWM输入传感器\",\n  \"name_en\": \"PWM Input Sensor\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"用于读取和配置 Yoctopuce 的 PWM 输入通道，可测量占空比、频率、脉宽、周期和脉冲计数，并可设置上报模式、去抖时间等参数。适合在实验室中监测来自编码器、脉冲源或其他 PWM 信号设备的数字时序信号。\",\n  \"description_en\": \"A Yoctopuce PWM input channel used to read and configure PWM signal measurements, including duty cycle, frequency, pulse width, period, and pulse count. It also supports report mode and debounce configuration for laboratory monitoring of digital timing signals from encoders, pulse sources, or other PWM-generating equipment.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_unit\",\n      \"description\": \"设置测量单位\",\n      \"description_en\": \"Set the measurement unit.\"\n    },\n    {\n      \"action_name\": \"auto-set_pulseCounter\",\n      \"description\": \"设置脉冲计数值\",\n      \"description_en\": \"Set the pulse counter value.\"\n    },\n    {\n      \"action_name\": \"auto-set_pwmReportMode\",\n      \"description\": \"设置 PWM 上报参数模式\",\n      \"description_en\": \"Set the PWM report parameter mode.\"\n    },\n    {\n      \"action_name\": \"auto-set_debouncePeriod\",\n      \"description\": \"设置去抖时间\",\n      \"description_en\": \"Set the debounce period.\"\n    },\n    {\n      \"action_name\": \"auto-resetCounter\",\n      \"description\": \"重置脉冲计数器\",\n      \"description_en\": \"Reset the pulse counter.\"\n    },\n    {\n      \"action_name\": \"auto-nextPwmInput\",\n      \"description\": \"枚举下一个可用的 PWM 输入通道\",\n      \"description_en\": \"Enumerate the next available PWM input channel.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"PWM signal measurement\",\n    \"duty cycle sensing\",\n    \"frequency measurement\",\n    \"pulse width measurement\",\n    \"pulse counting\",\n    \"digital timing input\",\n    \"Yoctopuce module\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1874,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1005,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2879
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1874,
+      "output_token_count": 1005,
+      "predict_time": 20.032089973
+    }
+  },
+  "output_text": "{\n  \"name\": \"PWM输入传感器\",\n  \"name_en\": \"PWM Input Sensor\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"用于读取和配置 Yoctopuce 的 PWM 输入通道，可测量占空比、频率、脉宽、周期和脉冲计数，并可设置上报模式、去抖时间等参数。适合在实验室中监测来自编码器、脉冲源或其他 PWM 信号设备的数字时序信号。\",\n  \"description_en\": \"A Yoctopuce PWM input channel used to read and configure PWM signal measurements, including duty cycle, frequency, pulse width, period, and pulse count. It also supports report mode and debounce configuration for laboratory monitoring of digital timing signals from encoders, pulse sources, or other PWM-generating equipment.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_unit\",\n      \"description\": \"设置测量单位\",\n      \"description_en\": \"Set the measurement unit.\"\n    },\n    {\n      \"action_name\": \"auto-set_pulseCounter\",\n      \"description\": \"设置脉冲计数值\",\n      \"description_en\": \"Set the pulse counter value.\"\n    },\n    {\n      \"action_name\": \"auto-set_pwmReportMode\",\n      \"description\": \"设置 PWM 上报参数模式\",\n      \"description_en\": \"Set the PWM report parameter mode.\"\n    },\n    {\n      \"action_name\": \"auto-set_debouncePeriod\",\n      \"description\": \"设置去抖时间\",\n      \"description_en\": \"Set the debounce period.\"\n    },\n    {\n      \"action_name\": \"auto-resetCounter\",\n      \"description\": \"重置脉冲计数器\",\n      \"description_en\": \"Reset the pulse counter.\"\n    },\n    {\n      \"action_name\": \"auto-nextPwmInput\",\n      \"description\": \"枚举下一个可用的 PWM 输入通道\",\n      \"description_en\": \"Enumerate the next available PWM input channel.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"PWM signal measurement\",\n    \"duty cycle sensing\",\n    \"frequency measurement\",\n    \"pulse width measurement\",\n    \"pulse counting\",\n    \"digital timing input\",\n    \"Yoctopuce module\"\n  ]\n}"
+}

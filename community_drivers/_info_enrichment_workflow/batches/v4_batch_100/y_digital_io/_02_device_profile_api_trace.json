@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: y_digital_io\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/Switch-Yoctopuce_Yocto-Relay/libs/yoctopuce/yocto_digitalio.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.custom.y_digital_io:YDigitalIO\n\nClass: YDigitalIO (focal)\n  Bases: ['YFunction']\n  Docstring: The YDigitalIO class allows you drive a Yoctopuce digital input/output port.\nIt can be used to setup the direction of each channel, to read the state of each channel\nand to switch the state of each channel configures as an output.\nYou can work on all channels at once, or one by one. Most functions\nuse a binary representation for channels where bit 0 matches channel #0 , bit 1 matches channel\n#1 and so on. If you are not familiar with numbers binary representation, you will find more\ninformation here: https://en.wikipedia.org/wiki/Binary_number#Representation. It is also possible\nto automatically generate short pulses of a determined duration. Electrical behavior\nof each I/O can be modified (open drain and reverse polarity).\n\nFocal class methods:\n  [status_getter] get_portState(self)\n    comment: res\n    comment: Returns the digital IO port state as an integer with each bit\n        representing a channel.\n        value 0 = 0b00000000 -> all channels are OFF\n        value 1 = 0b00000001 -> channel #0 is ON\n    ...\n  [status_setter] set_portState(self, newval)\n    comment: Changes the state of all digital IO port's channels at once: the parameter\n        is an integer where each bit represents a channel, with bit 0 matching channel #0.\n        To set all channels to  0 ...\n  [status_getter] get_portDirection(self)\n    comment: res\n    comment: Returns the I/O direction of all channels of the port (bitmap): 0 makes a bit an input, 1 makes it an output.\n\n        @return an integer corresponding to the I/O direction of all channels of the port...\n  [status_setter] set_portDirection(self, newval)\n    comment: Changes the I/O direction of all channels of the port (bitmap): 0 makes a bit an input, 1 makes it an output.\n        Remember to call the saveToFlash() method  to make sure the setting is kept after ...\n  [status_getter] get_portOpenDrain(self)\n    comment: res\n    comment: Returns the electrical interface for each bit of the port. For each bit set to 0  the matching I/O\n        works in the regular,\n        intuitive way, for each bit set to 1, the I/O works in reverse ...\n  [status_setter] set_portOpenDrain(self, newval)\n    comment: Changes the electrical interface for each bit of the port. 0 makes a bit a regular input/output, 1 makes\n        it an open-drain (open-collector) input/output. Remember to call the\n        saveToFlas...\n  [status_getter] get_portPolarity(self)\n    comment: res\n    comment: Returns the polarity of all the bits of the port.  For each bit set to 0, the matching I/O works the regular,\n        intuitive way; for each bit set to 1, the I/O works in reverse mode.\n\n        @ret...\n  [status_setter] set_portPolarity(self, newval)\n    comment: Changes the polarity of all the bits of the port: For each bit set to 0, the matching I/O works the regular,\n        intuitive way; for each bit set to 1, the I/O works in reverse mode.\n        Rememb...\n  [status_getter] get_portDiags(self)\n    comment: res\n    comment: Returns the port state diagnostics (Yocto-IO and Yocto-MaxiIO-V2 only). Bit 0 indicates a shortcut on\n        output 0, etc. Bit 8 indicates a power failure, and bit 9 signals overheating (overcurrent...\n  [status_getter] get_portSize(self)\n    comment: res\n    comment: Returns the number of bits (i.e. channels)implemented in the I/O port.\n\n        @return an integer corresponding to the number of bits (i.e\n\n        On failure, throws an exception or returns YDigital...\n  [status_getter] get_outputVoltage(self)\n    comment: res\n    comment: Returns the voltage source used to drive output bits.\n\n        @return a value among YDigitalIO.OUTPUTVOLTAGE_USB_5V, YDigitalIO.OUTPUTVOLTAGE_USB_3V and\n        YDigitalIO.OUTPUTVOLTAGE_EXT_V corresp...\n  [status_setter] set_outputVoltage(self, newval)\n    comment: Changes the voltage source used to drive output bits.\n        Remember to call the saveToFlash() method  to make sure the setting is kept after a reboot.\n\n        @param newval : a value among YDigita...\n  [status_getter] get_command(self)\n    comment: res\n  [status_setter] set_command(self, newval)\n  [command] FindDigitalIO(func)\n    comment: obj\n    comment: Retrieves a digital IO port for a given identifier.\n        The identifier can be specified using several formats:\n        <ul>\n        <li>FunctionLogicalName</li>\n        <li>ModuleSerialNumber.Func...\n  [status_setter] set_bitState(self, bitno, bitstate)\n    comment: Sets a single bit (i.e. channel) of the I/O port.\n\n        @param bitno : the bit number; lowest bit has index 0\n        @param bitstate : the state of the bit (1 or 0)\n\n        @return YAPI.SUCCESS i...\n  [status_getter] get_bitState(self, bitno)\n    comment: portVal\n    comment: Returns the state of a single bit (i.e. channel)  of the I/O port.\n\n        @param bitno : the bit number; lowest bit has index 0\n\n        @return the bit state (0 or 1)\n\n        On failure, throws an...\n  [command] toggle_bitState(self, bitno)\n    comment: Reverts a single bit (i.e. channel) of the I/O port.\n\n        @param bitno : the bit number; lowest bit has index 0\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, throws an e...\n  [status_setter] set_bitDirection(self, bitno, bitdirection)\n    comment: Changes  the direction of a single bit (i.e. channel) from the I/O port.\n\n        @param bitno : the bit number; lowest bit has index 0\n        @param bitdirection : direction to set, 0 makes the bit ...\n  [status_getter] get_bitDirection(self, bitno)\n    comment: portDir\n    comment: Returns the direction of a single bit (i.e. channel) from the I/O port (0 means the bit is an\n        input, 1  an output).\n\n        @param bitno : the bit number; lowest bit has index 0\n\n        @ret...\n  [status_setter] set_bitPolarity(self, bitno, bitpolarity)\n    comment: Changes the polarity of a single bit from the I/O port.\n\n        @param bitno : the bit number; lowest bit has index 0.\n        @param bitpolarity : polarity to set, 0 makes the I/O work in regular mo...\n  [status_getter] get_bitPolarity(self, bitno)\n    comment: portPol\n    comment: Returns the polarity of a single bit from the I/O port (0 means the I/O works in regular mode, 1\n        means the I/O  works in reverse mode).\n\n        @param bitno : the bit number; lowest bit has i...\n  [status_setter] set_bitOpenDrain(self, bitno, opendrain)\n    comment: Changes  the electrical interface of a single bit from the I/O port.\n\n        @param bitno : the bit number; lowest bit has index 0\n        @param opendrain : 0 makes a bit a regular input/output, 1 m...\n  [status_getter] get_bitOpenDrain(self, bitno)\n    comment: portOpenDrain\n    comment: Returns the type of electrical interface of a single bit from the I/O port. (0 means the bit is an\n        input, 1  an output).\n\n        @param bitno : the bit number; lowest bit has index 0\n\n       ...\n  [command] pulse(self, bitno, ms_duration)\n    comment: Triggers a pulse on a single bit for a specified duration. The specified bit\n        will be turned to 1, and then back to 0 after the given duration.\n\n        @param bitno : the bit number; lowest bi...\n  [command] delayedPulse(self, bitno, ms_delay, ms_duration)\n    comment: Schedules a pulse on a single bit for a specified duration. The specified bit\n        will be turned to 1, and then back to 0 after the given duration.\n\n        @param bitno : the bit number; lowest b...\n  [command] nextDigitalIO(self)\n    comment: Continues the enumeration of digital IO ports started using yFirstDigitalIO().\n        Caution: You can't make any assumption about the returned digital IO ports order.\n        If you want to find a s...\n  [command] FirstDigitalIO()\n    comment: noinspection PyTypeChecker,PyCallingNonCallable\n    comment: Starts the enumeration of digital IO ports currently accessible.\n        Use the method YDigitalIO.nextDigitalIO() to iterate on\n        next digital IO ports.\n\n        @return a pointer to a YDigital...\n\nRegistry actions:\n  auto-set_portState (from set_portState())\n  auto-set_portDirection (from set_portDirection())\n  auto-set_portOpenDrain (from set_portOpenDrain())\n  auto-set_portPolarity (from set_portPolarity())\n  auto-set_outputVoltage (from set_outputVoltage())\n  auto-set_command (from set_command())\n  auto-set_bitState (from set_bitState())\n  auto-toggle_bitState (from toggle_bitState())\n  auto-set_bitDirection (from set_bitDirection())\n  auto-set_bitPolarity (from set_bitPolarity())\n  auto-set_bitOpenDrain (from set_bitOpenDrain())\n  auto-pulse (from pulse())\n  auto-delayedPulse (from delayedPulse())\n  auto-nextDigitalIO (from nextDigitalIO())\n\nRequired output action ids:\n  auto-set_portState\n  auto-set_portDirection\n  auto-set_portOpenDrain\n  auto-set_portPolarity\n  auto-set_outputVoltage\n  auto-set_command\n  auto-set_bitState\n  auto-toggle_bitState\n  auto-set_bitDirection\n  auto-set_bitPolarity\n  auto-set_bitOpenDrain\n  auto-pulse\n  auto-delayedPulse\n  auto-nextDigitalIO"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_00adeec29943771a0069d5bf14e098819792b8d4f2d4c8922c",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 10445,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6950,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_00adeec29943771a0069d5bf1563a481978d8b14f839c2d27c",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_00adeec29943771a0069d5bf26f7dc81978beacb21fa472f18",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"数字输入输出端口模块\",\n  \"name_en\": \"Digital Input/Output Port Module\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"用于控制和读取多路数字输入/输出通道的硬件模块。可按端口或按位设置通道状态、输入/输出方向、极性、开漏模式和输出电压，并支持定时脉冲与延时脉冲，适合实验中的开关量采集、触发输出和外部设备联动控制。\",\n  \"description_en\": \"A hardware digital input/output module used to read and control multiple digital channels. It supports port-wide or per-bit control of state, input/output direction, polarity, open-drain mode, and output voltage, and can generate timed or delayed pulses for lab trigger I/O, switch-state acquisition, and external device interfacing.\",\n  \"tag_hints\": [\n    \"digital I/O\",\n    \"trigger pulse generation\",\n    \"open-drain outputs\",\n    \"port direction control\",\n    \"switch state sensing\",\n    \"external device interfacing\",\n    \"Yoctopuce\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_portState\",\n      \"description\": \"设置整个数字 I/O 端口各通道的状态位图。\",\n      \"description_en\": \"Set the state bitmap of all channels on the digital I/O port.\"\n    },\n    {\n      \"action_name\": \"auto-set_portDirection\",\n      \"description\": \"设置整个数字 I/O 端口各通道的输入/输出方向位图。\",\n      \"description_en\": \"Set the input/output direction bitmap of all channels on the digital I/O port.\"\n    },\n    {\n      \"action_name\": \"auto-set_portOpenDrain\",\n      \"description\": \"设置整个数字 I/O 端口各通道的开漏模式位图。\",\n      \"description_en\": \"Set the open-drain mode bitmap of all channels on the digital I/O port.\"\n    },\n    {\n      \"action_name\": \"auto-set_portPolarity\",\n      \"description\": \"设置整个数字 I/O 端口各通道的极性位图。\",\n      \"description_en\": \"Set the polarity bitmap of all channels on the digital I/O port.\"\n    },\n    {\n      \"action_name\": \"auto-set_outputVoltage\",\n      \"description\": \"设置输出通道的驱动电压源。\",\n      \"description_en\": \"Set the drive voltage source for output channels.\"\n    },\n    {\n      \"action_name\": \"auto-set_command\",\n      \"description\": \"设置设备命令字符串。\",\n      \"description_en\": \"Set the device command string.\"\n    },\n    {\n      \"action_name\": \"auto-set_bitState\",\n      \"description\": \"设置单个通道的状态。\",\n      \"description_en\": \"Set the state of a single channel.\"\n    },\n    {\n      \"action_name\": \"auto-toggle_bitState\",\n      \"description\": \"切换单个通道的状态。\",\n      \"description_en\": \"Toggle the state of a single channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_bitDirection\",\n      \"description\": \"设置单个通道的输入/输出方向。\",\n      \"description_en\": \"Set the input/output direction of a single channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_bitPolarity\",\n      \"description\": \"设置单个通道的极性。\",\n      \"description_en\": \"Set the polarity of a single channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_bitOpenDrain\",\n      \"description\": \"设置单个通道的开漏模式。\",\n      \"description_en\": \"Set the open-drain mode of a single channel.\"\n    },\n    {\n      \"action_name\": \"auto-pulse\",\n      \"description\": \"在单个通道上输出指定时长的脉冲。\",\n      \"description_en\": \"Generate a pulse of specified duration on a single channel.\"\n    },\n    {\n      \"action_name\": \"auto-delayedPulse\",\n      \"description\": \"在单个通道上安排延时脉冲输出。\",\n      \"description_en\": \"Schedule a delayed pulse on a single channel.\"\n    },\n    {\n      \"action_name\": \"auto-nextDigitalIO\",\n      \"description\": \"枚举下一个可访问的数字 I/O 端口。\",\n      \"description_en\": \"Enumerate the next accessible digital I/O port.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 3027,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1942,
+      "output_tokens_details": {
+        "reasoning_tokens": 990
+      },
+      "total_tokens": 4969
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 3027,
+      "output_token_count": 1942,
+      "predict_time": 34.302889795
+    }
+  },
+  "output_text": "{\n  \"name\": \"数字输入输出端口模块\",\n  \"name_en\": \"Digital Input/Output Port Module\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"用于控制和读取多路数字输入/输出通道的硬件模块。可按端口或按位设置通道状态、输入/输出方向、极性、开漏模式和输出电压，并支持定时脉冲与延时脉冲，适合实验中的开关量采集、触发输出和外部设备联动控制。\",\n  \"description_en\": \"A hardware digital input/output module used to read and control multiple digital channels. It supports port-wide or per-bit control of state, input/output direction, polarity, open-drain mode, and output voltage, and can generate timed or delayed pulses for lab trigger I/O, switch-state acquisition, and external device interfacing.\",\n  \"tag_hints\": [\n    \"digital I/O\",\n    \"trigger pulse generation\",\n    \"open-drain outputs\",\n    \"port direction control\",\n    \"switch state sensing\",\n    \"external device interfacing\",\n    \"Yoctopuce\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_portState\",\n      \"description\": \"设置整个数字 I/O 端口各通道的状态位图。\",\n      \"description_en\": \"Set the state bitmap of all channels on the digital I/O port.\"\n    },\n    {\n      \"action_name\": \"auto-set_portDirection\",\n      \"description\": \"设置整个数字 I/O 端口各通道的输入/输出方向位图。\",\n      \"description_en\": \"Set the input/output direction bitmap of all channels on the digital I/O port.\"\n    },\n    {\n      \"action_name\": \"auto-set_portOpenDrain\",\n      \"description\": \"设置整个数字 I/O 端口各通道的开漏模式位图。\",\n      \"description_en\": \"Set the open-drain mode bitmap of all channels on the digital I/O port.\"\n    },\n    {\n      \"action_name\": \"auto-set_portPolarity\",\n      \"description\": \"设置整个数字 I/O 端口各通道的极性位图。\",\n      \"description_en\": \"Set the polarity bitmap of all channels on the digital I/O port.\"\n    },\n    {\n      \"action_name\": \"auto-set_outputVoltage\",\n      \"description\": \"设置输出通道的驱动电压源。\",\n      \"description_en\": \"Set the drive voltage source for output channels.\"\n    },\n    {\n      \"action_name\": \"auto-set_command\",\n      \"description\": \"设置设备命令字符串。\",\n      \"description_en\": \"Set the device command string.\"\n    },\n    {\n      \"action_name\": \"auto-set_bitState\",\n      \"description\": \"设置单个通道的状态。\",\n      \"description_en\": \"Set the state of a single channel.\"\n    },\n    {\n      \"action_name\": \"auto-toggle_bitState\",\n      \"description\": \"切换单个通道的状态。\",\n      \"description_en\": \"Toggle the state of a single channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_bitDirection\",\n      \"description\": \"设置单个通道的输入/输出方向。\",\n      \"description_en\": \"Set the input/output direction of a single channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_bitPolarity\",\n      \"description\": \"设置单个通道的极性。\",\n      \"description_en\": \"Set the polarity of a single channel.\"\n    },\n    {\n      \"action_name\": \"auto-set_bitOpenDrain\",\n      \"description\": \"设置单个通道的开漏模式。\",\n      \"description_en\": \"Set the open-drain mode of a single channel.\"\n    },\n    {\n      \"action_name\": \"auto-pulse\",\n      \"description\": \"在单个通道上输出指定时长的脉冲。\",\n      \"description_en\": \"Generate a pulse of specified duration on a single channel.\"\n    },\n    {\n      \"action_name\": \"auto-delayedPulse\",\n      \"description\": \"在单个通道上安排延时脉冲输出。\",\n      \"description_en\": \"Schedule a delayed pulse on a single channel.\"\n    },\n    {\n      \"action_name\": \"auto-nextDigitalIO\",\n      \"description\": \"枚举下一个可访问的数字 I/O 端口。\",\n      \"description_en\": \"Enumerate the next accessible digital I/O port.\"\n    }\n  ]\n}"
+}

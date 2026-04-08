@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: xspress3_detector\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: epicsscan/detectors/xspress3.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.detector.generic.xspress3_detector:Xspress3Detector\n\nClass: Xspress3 \n  Bases: ['Device', 'ADFileMixin']\n  Docstring: Epics Xspress3.20 interface (with areaDetector 2 or 3)\n\nClass: Xspress3Counter \n  Bases: ['DeviceCounter']\n  Docstring: Counters for Xspress3-1-10\n\nClass: Xspress3Detector (focal)\n  Bases: ['DetectorMixin']\n  Docstring: Xspress 3 MultiMCA detector, 3.2\n\nFocal class methods:\n  [command] connect_counters(self)\n  [command] config_filesaver(self, **kws)\n  [command] save_calibration(self, filename, **kws)\n  [command] pre_scan(self, mode=None, npulses=None, dwelltime=None, filename=None, **kws)\n    comment: print(\"xspress3-> Config file saver \",filename)\n    comment: run just prior to scan\n  [command] post_scan(self, **kws)\n    comment: self._counter._get_counters()\n    comment: self.counters = self._counter.counters\n    comment: self.extra_pvs = self._counter.extra_pvs\n    comment: dt.add('Xspress3 PreScan: done')\n    comment: dt.show()\n    comment: run just after scan\n  [command] ContinuousMode(self, dwelltime=0.25, numframes=16384)\n    comment: set to continuous mode: use for live reading\n\n    Arguments:\n        dwelltime (None or float): dwelltime per frame in seconds [0.25]\n        numframes (None or int):   number of frames to collect [16...\n  [command] ScalerMode(self, dwelltime=None, numframes=1, erase=True)\n    comment: set to scaler mode: ready for step scanning\n\n    Arguments:\n        dwelltime (None or float): dwelltime per frame in seconds [1.0]\n        numframes (None or int):   number of frames to collect [1]\n\n...\n  [command] ROIMode(self, dwelltime=None, numframes=None)\n    comment: set to ROI mode: ready for slew scanning with ROI saving\n\n    Arguments:\n        dwelltime (None or float): dwelltime per frame in seconds [0.25]\n        numframes (None int):   number of frames to co...\n  [command] NDArrayMode(self, dwelltime=None, numframes=None)\n    comment: dt.show()\n    comment: print(\"Xspress3 NDArrayMode \", dwelltime, numframes)\n    comment: set to array mode: ready for slew scanning\n\n    Arguments:\n        dwelltime (None or float): dwelltime per frame in seconds [0.25]\n        numframes (None int):   number of frames to collect [16384]\n...\n  [command] set_dwelltime(self, dwelltime)\n    comment: set dwell time in seconds\n\n    Arguments:\n        dwelltime (float): dwelltime per frame in seconds.   No default\n  [status_getter] get_next_filename(self)\n  [status_getter] get_numcaptured(self)\n  [status_getter] get_last_filename(self)\n  [command] finish_capture(self)\n    comment: print(\"FINISH CAPTURE \")\n  [command] arm(self, mode=None, fnum=None, wait=True, numframes=None)\n    comment: print(\"ARM xspress3 \", mode, fnum, numframes, self.use_full)\n  [command] arm_complete(self)\n    comment: print(\"XSPRESS3 arm done: %.4f\" % (time.time()-t0))\n  [command] disarm(self, mode=None, wait=False)\n  [command] start(self, mode=None, arm=False, wait=True)\n  [command] stop(self, mode=None, disarm=False, wait=False)\n  [command] save_arraydata(self, filenasme=None)\n  [command] file_write_complete(self)\n\nRegistry actions:\n  auto-ContinuousMode (from ContinuousMode())\n  auto-NDArrayMode (from NDArrayMode())\n  auto-ROIMode (from ROIMode())\n  auto-ScalerMode (from ScalerMode())\n  auto-arm (from arm())\n  auto-arm_complete (from arm_complete())\n  auto-config_filesaver (from config_filesaver())\n  auto-connect_counters (from connect_counters())\n  auto-disarm (from disarm())\n  auto-file_write_complete (from file_write_complete())\n  auto-finish_capture (from finish_capture())\n  auto-post_scan (from post_scan())\n  auto-pre_scan (from pre_scan())\n  auto-save_arraydata (from save_arraydata())\n  auto-save_calibration (from save_calibration())\n  auto-set_dwelltime (from set_dwelltime())\n  auto-start (from start())\n  auto-stop (from stop())\n  auto-set_timeseries (from set_timeseries())\n  auto-roi_calib_info (from roi_calib_info())\n  auto-restore_rois (from restore_rois())\n  auto-get_next_filename (from get_next_filename())\n  auto-get_numcaptured (from get_numcaptured())\n  auto-get_last_filename (from get_last_filename())\n\nRequired output action ids:\n  auto-ContinuousMode\n  auto-NDArrayMode\n  auto-ROIMode\n  auto-ScalerMode\n  auto-arm\n  auto-arm_complete\n  auto-config_filesaver\n  auto-connect_counters\n  auto-disarm\n  auto-file_write_complete\n  auto-finish_capture\n  auto-post_scan\n  auto-pre_scan\n  auto-save_arraydata\n  auto-save_calibration\n  auto-set_dwelltime\n  auto-start\n  auto-stop\n  auto-set_timeseries\n  auto-roi_calib_info\n  auto-restore_rois\n  auto-get_next_filename\n  auto-get_numcaptured\n  auto-get_last_filename"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_06a34238db5980f20069d5bf140e7481948dfc52fb213103f6",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5891,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7611,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_06a34238db5980f20069d5bf1496348194b6c80edcaeed2403",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_06a34238db5980f20069d5bf200ae08194a54de8d3ba09418f",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Xspress3 多通道 X 射线探测器\",\n  \"name_en\": \"Xspress3 Multi-Channel X-ray Detector\",\n  \"manufacturer\": \"Quantum Detectors\",\n  \"description\": \"Xspress3 是用于同步辐射和实验室 X 射线测量的多通道探测系统/多道分析器控制设备。该驱动证据显示其支持连续采集、步进扫描、ROI 保存、数组数据采集、设定驻留时间、布防/启动/停止采集，以及文件保存和标定信息管理，适合 X 射线荧光或能谱扫描实验中的高速数据采集。\",\n  \"description_en\": \"Xspress3 is a multi-channel detector and multi-channel analyzer control system for synchrotron and laboratory X-ray measurements. The driver evidence shows support for continuous acquisition, step-scan operation, ROI saving, array-data acquisition, dwell-time setting, arm/start/stop control, and file/calibration handling, making it suitable for high-speed X-ray fluorescence or spectroscopic scanning experiments.\",\n  \"tag_hints\": [\n    \"XRF detection\",\n    \"multi-channel analyzer\",\n    \"Xspress3\",\n    \"ROI acquisition\",\n    \"areaDetector EPICS\",\n    \"spectroscopy scanning\",\n    \"continuous acquisition\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-ContinuousMode\",\n      \"description\": \"设置为连续采集模式，用于实时读数。\",\n      \"description_en\": \"Set the detector to continuous acquisition mode for live readout.\"\n    },\n    {\n      \"action_name\": \"auto-NDArrayMode\",\n      \"description\": \"设置为数组数据采集模式，用于扫描时保存连续帧数组数据。\",\n      \"description_en\": \"Set the detector to NDArray acquisition mode for saving streamed frame-array data during scans.\"\n    },\n    {\n      \"action_name\": \"auto-ROIMode\",\n      \"description\": \"设置为 ROI 模式，用于扫描时保存感兴趣能区数据。\",\n      \"description_en\": \"Set the detector to ROI mode for saving region-of-interest data during scans.\"\n    },\n    {\n      \"action_name\": \"auto-ScalerMode\",\n      \"description\": \"设置为标量模式，用于步进扫描采集。\",\n      \"description_en\": \"Set the detector to scaler mode for step-scan acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-arm\",\n      \"description\": \"布防探测器，为指定模式和帧数的采集做准备。\",\n      \"description_en\": \"Arm the detector to prepare for acquisition in the selected mode and frame count.\"\n    },\n    {\n      \"action_name\": \"auto-arm_complete\",\n      \"description\": \"等待并确认布防过程完成。\",\n      \"description_en\": \"Wait for and confirm completion of the arming process.\"\n    },\n    {\n      \"action_name\": \"auto-config_filesaver\",\n      \"description\": \"配置采集文件保存参数。\",\n      \"description_en\": \"Configure file-saving parameters for detector acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-connect_counters\",\n      \"description\": \"连接并初始化计数器通道。\",\n      \"description_en\": \"Connect and initialize detector counter channels.\"\n    },\n    {\n      \"action_name\": \"auto-disarm\",\n      \"description\": \"撤防探测器，退出采集就绪状态。\",\n      \"description_en\": \"Disarm the detector and leave the acquisition-ready state.\"\n    },\n    {\n      \"action_name\": \"auto-file_write_complete\",\n      \"description\": \"检查或等待文件写入完成。\",\n      \"description_en\": \"Check or wait for completion of file writing.\"\n    },\n    {\n      \"action_name\": \"auto-finish_capture\",\n      \"description\": \"结束当前采集并完成捕获流程。\",\n      \"description_en\": \"Finish the current acquisition and complete the capture process.\"\n    },\n    {\n      \"action_name\": \"auto-post_scan\",\n      \"description\": \"在扫描结束后执行收尾操作并刷新计数器信息。\",\n      \"description_en\": \"Run post-scan cleanup and refresh counter information after a scan.\"\n    },\n    {\n      \"action_name\": \"auto-pre_scan\",\n      \"description\": \"在扫描开始前配置探测器和文件保存设置。\",\n      \"description_en\": \"Configure the detector and file-saving setup before a scan starts.\"\n    },\n    {\n      \"action_name\": \"auto-save_arraydata\",\n      \"description\": \"保存当前采集的数组数据到文件。\",\n      \"description_en\": \"Save the currently acquired array data to a file.\"\n    },\n    {\n      \"action_name\": \"auto-save_calibration\",\n      \"description\": \"将探测器标定信息保存到文件。\",\n      \"description_en\": \"Save detector calibration information to a file.\"\n    },\n    {\n      \"action_name\": \"auto-set_dwelltime\",\n      \"description\": \"设置每帧驻留时间。\",\n      \"description_en\": \"Set the dwell time per frame.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"开始采集数据，可选择同时执行布防。\",\n      \"description_en\": \"Start data acquisition, optionally arming the detector first.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止采集数据，可选择同时撤防。\",\n      \"description_en\": \"Stop data acquisition, optionally disarming the detector.\"\n    },\n    {\n      \"action_name\": \"auto-set_timeseries\",\n      \"description\": \"配置时间序列采集参数。\",\n      \"description_en\": \"Configure time-series acquisition settings.\"\n    },\n    {\n      \"action_name\": \"auto-roi_calib_info\",\n      \"description\": \"获取或整理 ROI 标定信息。\",\n      \"description_en\": \"Get or prepare ROI calibration information.\"\n    },\n    {\n      \"action_name\": \"auto-restore_rois\",\n      \"description\": \"恢复已保存的 ROI 设置。\",\n      \"description_en\": \"Restore previously saved ROI settings.\"\n    },\n    {\n      \"action_name\": \"auto-get_next_filename\",\n      \"description\": \"获取下一个输出文件名。\",\n      \"description_en\": \"Get the next output filename.\"\n    },\n    {\n      \"action_name\": \"auto-get_numcaptured\",\n      \"description\": \"获取已捕获的帧数。\",\n      \"description_en\": \"Get the number of captured frames.\"\n    },\n    {\n      \"action_name\": \"auto-get_last_filename\",\n      \"description\": \"获取最近一次输出文件名。\",\n      \"description_en\": \"Get the most recent output filename.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1979,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1931,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 3910
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1979,
+      "output_token_count": 1931,
+      "predict_time": 35.700194296
+    }
+  },
+  "output_text": "{\n  \"name\": \"Xspress3 多通道 X 射线探测器\",\n  \"name_en\": \"Xspress3 Multi-Channel X-ray Detector\",\n  \"manufacturer\": \"Quantum Detectors\",\n  \"description\": \"Xspress3 是用于同步辐射和实验室 X 射线测量的多通道探测系统/多道分析器控制设备。该驱动证据显示其支持连续采集、步进扫描、ROI 保存、数组数据采集、设定驻留时间、布防/启动/停止采集，以及文件保存和标定信息管理，适合 X 射线荧光或能谱扫描实验中的高速数据采集。\",\n  \"description_en\": \"Xspress3 is a multi-channel detector and multi-channel analyzer control system for synchrotron and laboratory X-ray measurements. The driver evidence shows support for continuous acquisition, step-scan operation, ROI saving, array-data acquisition, dwell-time setting, arm/start/stop control, and file/calibration handling, making it suitable for high-speed X-ray fluorescence or spectroscopic scanning experiments.\",\n  \"tag_hints\": [\n    \"XRF detection\",\n    \"multi-channel analyzer\",\n    \"Xspress3\",\n    \"ROI acquisition\",\n    \"areaDetector EPICS\",\n    \"spectroscopy scanning\",\n    \"continuous acquisition\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-ContinuousMode\",\n      \"description\": \"设置为连续采集模式，用于实时读数。\",\n      \"description_en\": \"Set the detector to continuous acquisition mode for live readout.\"\n    },\n    {\n      \"action_name\": \"auto-NDArrayMode\",\n      \"description\": \"设置为数组数据采集模式，用于扫描时保存连续帧数组数据。\",\n      \"description_en\": \"Set the detector to NDArray acquisition mode for saving streamed frame-array data during scans.\"\n    },\n    {\n      \"action_name\": \"auto-ROIMode\",\n      \"description\": \"设置为 ROI 模式，用于扫描时保存感兴趣能区数据。\",\n      \"description_en\": \"Set the detector to ROI mode for saving region-of-interest data during scans.\"\n    },\n    {\n      \"action_name\": \"auto-ScalerMode\",\n      \"description\": \"设置为标量模式，用于步进扫描采集。\",\n      \"description_en\": \"Set the detector to scaler mode for step-scan acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-arm\",\n      \"description\": \"布防探测器，为指定模式和帧数的采集做准备。\",\n      \"description_en\": \"Arm the detector to prepare for acquisition in the selected mode and frame count.\"\n    },\n    {\n      \"action_name\": \"auto-arm_complete\",\n      \"description\": \"等待并确认布防过程完成。\",\n      \"description_en\": \"Wait for and confirm completion of the arming process.\"\n    },\n    {\n      \"action_name\": \"auto-config_filesaver\",\n      \"description\": \"配置采集文件保存参数。\",\n      \"description_en\": \"Configure file-saving parameters for detector acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-connect_counters\",\n      \"description\": \"连接并初始化计数器通道。\",\n      \"description_en\": \"Connect and initialize detector counter channels.\"\n    },\n    {\n      \"action_name\": \"auto-disarm\",\n      \"description\": \"撤防探测器，退出采集就绪状态。\",\n      \"description_en\": \"Disarm the detector and leave the acquisition-ready state.\"\n    },\n    {\n      \"action_name\": \"auto-file_write_complete\",\n      \"description\": \"检查或等待文件写入完成。\",\n      \"description_en\": \"Check or wait for completion of file writing.\"\n    },\n    {\n      \"action_name\": \"auto-finish_capture\",\n      \"description\": \"结束当前采集并完成捕获流程。\",\n      \"description_en\": \"Finish the current acquisition and complete the capture process.\"\n    },\n    {\n      \"action_name\": \"auto-post_scan\",\n      \"description\": \"在扫描结束后执行收尾操作并刷新计数器信息。\",\n      \"description_en\": \"Run post-scan cleanup and refresh counter information after a scan.\"\n    },\n    {\n      \"action_name\": \"auto-pre_scan\",\n      \"description\": \"在扫描开始前配置探测器和文件保存设置。\",\n      \"description_en\": \"Configure the detector and file-saving setup before a scan starts.\"\n    },\n    {\n      \"action_name\": \"auto-save_arraydata\",\n      \"description\": \"保存当前采集的数组数据到文件。\",\n      \"description_en\": \"Save the currently acquired array data to a file.\"\n    },\n    {\n      \"action_name\": \"auto-save_calibration\",\n      \"description\": \"将探测器标定信息保存到文件。\",\n      \"description_en\": \"Save detector calibration information to a file.\"\n    },\n    {\n      \"action_name\": \"auto-set_dwelltime\",\n      \"description\": \"设置每帧驻留时间。\",\n      \"description_en\": \"Set the dwell time per frame.\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"开始采集数据，可选择同时执行布防。\",\n      \"description_en\": \"Start data acquisition, optionally arming the detector first.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止采集数据，可选择同时撤防。\",\n      \"description_en\": \"Stop data acquisition, optionally disarming the detector.\"\n    },\n    {\n      \"action_name\": \"auto-set_timeseries\",\n      \"description\": \"配置时间序列采集参数。\",\n      \"description_en\": \"Configure time-series acquisition settings.\"\n    },\n    {\n      \"action_name\": \"auto-roi_calib_info\",\n      \"description\": \"获取或整理 ROI 标定信息。\",\n      \"description_en\": \"Get or prepare ROI calibration information.\"\n    },\n    {\n      \"action_name\": \"auto-restore_rois\",\n      \"description\": \"恢复已保存的 ROI 设置。\",\n      \"description_en\": \"Restore previously saved ROI settings.\"\n    },\n    {\n      \"action_name\": \"auto-get_next_filename\",\n      \"description\": \"获取下一个输出文件名。\",\n      \"description_en\": \"Get the next output filename.\"\n    },\n    {\n      \"action_name\": \"auto-get_numcaptured\",\n      \"description\": \"获取已捕获的帧数。\",\n      \"description_en\": \"Get the number of captured frames.\"\n    },\n    {\n      \"action_name\": \"auto-get_last_filename\",\n      \"description\": \"获取最近一次输出文件名。\",\n      \"description_en\": \"Get the most recent output filename.\"\n    }\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: webcam_capture\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: frame_source/webcam_capture.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.webcam_capture:WebcamCapture\n\nClass: WebcamCapture (focal)\n  Bases: ['VideoCaptureBase']\n\nFocal class methods:\n  [command] start_async(self)\n    comment: Start background thread to continuously capture frames from webcam.\n  [command] stop(self)\n    comment: Stop background frame capture thread.\n  [command] get_latest_frame(self)\n    comment: time.sleep(0.01)  # ~100 FPS max, adjust as needed\n    comment: Get the most recent frame captured by the background thread.\n        Returns:\n            Tuple[bool, Optional[np.ndarray]]: (success, frame)\n  [command] connect(self)\n    comment: Support `api_pref/index` format or `api_pref/path` format used in list_devices `id` field\n    comment: Set additional parameters if provided\n    comment: Connect to webcam.\n  [command] disconnect(self)\n    comment: Disconnect from webcam.\n  [command] set_exposure(self, value)\n    comment: Set exposure (-13 to -1 for most webcams).\n  [command] get_exposure(self)\n    comment: Get current exposure.\n  [command] set_gain(self, value)\n    comment: Set gain (0-255 for most webcams).\n  [command] get_gain(self)\n    comment: Get current gain.\n  [command] get_frame_size(self)\n    comment: Get frame size.\n  [command] set_frame_size(self, width, height)\n    comment: Set frame size.\n  [command] get_fps(self)\n    comment: Get FPS.\n  [command] set_fps(self, fps)\n    comment: Set FPS.\n  [command] enable_auto_exposure(self, enable=True)\n    comment: OpenCV expects 0.75 for auto, 0.25 for manual (on many webcams)\n    comment: Enable or disable auto exposure for webcam.\n  [command] discover(cls)\n    comment: Sort camera list by index\n  [command] get_config_schema(cls)\n    comment: Get configuration schema for webcam capture\n\nRegistry actions:\n  auto-start_async (from start_async())\n  auto-stop (from stop())\n  auto-get_latest_frame (from get_latest_frame())\n  auto-set_exposure (from set_exposure())\n  auto-get_exposure (from get_exposure())\n  auto-set_gain (from set_gain())\n  auto-get_gain (from get_gain())\n  auto-get_frame_size (from get_frame_size())\n  auto-set_frame_size (from set_frame_size())\n  auto-get_fps (from get_fps())\n  auto-set_fps (from set_fps())\n  auto-enable_auto_exposure (from enable_auto_exposure())\n  auto-discover (from discover())\n  auto-get_config_schema (from get_config_schema())\n\nRequired output action ids:\n  auto-start_async\n  auto-stop\n  auto-get_latest_frame\n  auto-set_exposure\n  auto-get_exposure\n  auto-set_gain\n  auto-get_gain\n  auto-get_frame_size\n  auto-set_frame_size\n  auto-get_fps\n  auto-set_fps\n  auto-enable_auto_exposure\n  auto-discover\n  auto-get_config_schema"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0005f009f9a38a420069d5bbdaef908197887407bc2fd98f49",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3834,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4902,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0005f009f9a38a420069d5bbdb69a48197a642c356387fb564",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0005f009f9a38a420069d5bbe55e088197bdaee8ecdd55e64b",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"通用网络摄像头\",\n  \"name_en\": \"Generic Webcam\",\n  \"manufacturer\": \"\",\n  \"description\": \"通用网络摄像头，用于在实验中连续采集可见光图像或视频。支持曝光、增益、分辨率和帧率设置，常用于样品观察、实验过程监控和简单视觉对位。\",\n  \"description_en\": \"A generic webcam used to continuously capture visible-light images or video in laboratory workflows. It supports exposure, gain, frame size, and frame rate settings, and is commonly used for sample observation, experiment monitoring, and basic visual alignment.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-start_async\",\n      \"description\": \"启动后台线程连续采集摄像头画面。\",\n      \"description_en\": \"Start a background thread to continuously capture frames from the webcam.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止后台画面采集。\",\n      \"description_en\": \"Stop background frame capture.\"\n    },\n    {\n      \"action_name\": \"auto-get_latest_frame\",\n      \"description\": \"获取最新一帧图像。\",\n      \"description_en\": \"Get the most recently captured frame.\"\n    },\n    {\n      \"action_name\": \"auto-set_exposure\",\n      \"description\": \"设置曝光值。\",\n      \"description_en\": \"Set the exposure value.\"\n    },\n    {\n      \"action_name\": \"auto-get_exposure\",\n      \"description\": \"获取曝光值。\",\n      \"description_en\": \"Get the exposure value.\"\n    },\n    {\n      \"action_name\": \"auto-set_gain\",\n      \"description\": \"设置增益值。\",\n      \"description_en\": \"Set the gain value.\"\n    },\n    {\n      \"action_name\": \"auto-get_gain\",\n      \"description\": \"获取增益值。\",\n      \"description_en\": \"Get the gain value.\"\n    },\n    {\n      \"action_name\": \"auto-get_frame_size\",\n      \"description\": \"获取图像帧尺寸。\",\n      \"description_en\": \"Get the frame size.\"\n    },\n    {\n      \"action_name\": \"auto-set_frame_size\",\n      \"description\": \"设置图像帧尺寸。\",\n      \"description_en\": \"Set the frame size.\"\n    },\n    {\n      \"action_name\": \"auto-get_fps\",\n      \"description\": \"获取帧率。\",\n      \"description_en\": \"Get the frame rate.\"\n    },\n    {\n      \"action_name\": \"auto-set_fps\",\n      \"description\": \"设置帧率。\",\n      \"description_en\": \"Set the frame rate.\"\n    },\n    {\n      \"action_name\": \"auto-enable_auto_exposure\",\n      \"description\": \"启用或禁用自动曝光。\",\n      \"description_en\": \"Enable or disable auto exposure.\"\n    },\n    {\n      \"action_name\": \"auto-discover\",\n      \"description\": \"发现可用的摄像头设备。\",\n      \"description_en\": \"Discover available webcam devices.\"\n    },\n    {\n      \"action_name\": \"auto-get_config_schema\",\n      \"description\": \"获取摄像头配置模式定义。\",\n      \"description_en\": \"Get the webcam configuration schema.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"webcam imaging\",\n    \"visible-light video capture\",\n    \"frame acquisition\",\n    \"exposure control\",\n    \"gain control\",\n    \"frame size control\",\n    \"FPS control\",\n    \"sample monitoring\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1374,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1224,
+      "output_tokens_details": {
+        "reasoning_tokens": 485
+      },
+      "total_tokens": 2598
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1374,
+      "output_token_count": 1224,
+      "predict_time": 22.420032012
+    }
+  },
+  "output_text": "{\n  \"name\": \"通用网络摄像头\",\n  \"name_en\": \"Generic Webcam\",\n  \"manufacturer\": \"\",\n  \"description\": \"通用网络摄像头，用于在实验中连续采集可见光图像或视频。支持曝光、增益、分辨率和帧率设置，常用于样品观察、实验过程监控和简单视觉对位。\",\n  \"description_en\": \"A generic webcam used to continuously capture visible-light images or video in laboratory workflows. It supports exposure, gain, frame size, and frame rate settings, and is commonly used for sample observation, experiment monitoring, and basic visual alignment.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-start_async\",\n      \"description\": \"启动后台线程连续采集摄像头画面。\",\n      \"description_en\": \"Start a background thread to continuously capture frames from the webcam.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止后台画面采集。\",\n      \"description_en\": \"Stop background frame capture.\"\n    },\n    {\n      \"action_name\": \"auto-get_latest_frame\",\n      \"description\": \"获取最新一帧图像。\",\n      \"description_en\": \"Get the most recently captured frame.\"\n    },\n    {\n      \"action_name\": \"auto-set_exposure\",\n      \"description\": \"设置曝光值。\",\n      \"description_en\": \"Set the exposure value.\"\n    },\n    {\n      \"action_name\": \"auto-get_exposure\",\n      \"description\": \"获取曝光值。\",\n      \"description_en\": \"Get the exposure value.\"\n    },\n    {\n      \"action_name\": \"auto-set_gain\",\n      \"description\": \"设置增益值。\",\n      \"description_en\": \"Set the gain value.\"\n    },\n    {\n      \"action_name\": \"auto-get_gain\",\n      \"description\": \"获取增益值。\",\n      \"description_en\": \"Get the gain value.\"\n    },\n    {\n      \"action_name\": \"auto-get_frame_size\",\n      \"description\": \"获取图像帧尺寸。\",\n      \"description_en\": \"Get the frame size.\"\n    },\n    {\n      \"action_name\": \"auto-set_frame_size\",\n      \"description\": \"设置图像帧尺寸。\",\n      \"description_en\": \"Set the frame size.\"\n    },\n    {\n      \"action_name\": \"auto-get_fps\",\n      \"description\": \"获取帧率。\",\n      \"description_en\": \"Get the frame rate.\"\n    },\n    {\n      \"action_name\": \"auto-set_fps\",\n      \"description\": \"设置帧率。\",\n      \"description_en\": \"Set the frame rate.\"\n    },\n    {\n      \"action_name\": \"auto-enable_auto_exposure\",\n      \"description\": \"启用或禁用自动曝光。\",\n      \"description_en\": \"Enable or disable auto exposure.\"\n    },\n    {\n      \"action_name\": \"auto-discover\",\n      \"description\": \"发现可用的摄像头设备。\",\n      \"description_en\": \"Discover available webcam devices.\"\n    },\n    {\n      \"action_name\": \"auto-get_config_schema\",\n      \"description\": \"获取摄像头配置模式定义。\",\n      \"description_en\": \"Get the webcam configuration schema.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"webcam imaging\",\n    \"visible-light video capture\",\n    \"frame acquisition\",\n    \"exposure control\",\n    \"gain control\",\n    \"frame size control\",\n    \"FPS control\",\n    \"sample monitoring\"\n  ]\n}"
+}

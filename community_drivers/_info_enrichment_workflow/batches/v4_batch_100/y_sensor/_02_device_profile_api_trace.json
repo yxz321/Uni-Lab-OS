@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: y_sensor\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/Switch-Yoctopuce_Yocto-Relay/libs/yoctopuce/yocto_api.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.temperature.y_sensor:YSensor\n\nClass: YRefParam \n  Bases: []\n\nClass: YAPI_Exception \n  Bases: ['Exception']\n\nClass: YJSONType \n  Bases: []\n\nClass: Tjstate \n  Bases: []\n\nClass: YJSONContent \n  Bases: ['object']\n\nClass: YJSONString \n  Bases: ['YJSONContent']\n\nClass: YJSONNumber \n  Bases: ['YJSONContent']\n\nClass: YJSONArray \n  Bases: ['YJSONContent']\n\nClass: YJSONObject \n  Bases: ['YJSONContent']\n\nClass: YAPIContext \n  Bases: ['object']\n\nClass: YAPI \n  Bases: []\n\nClass: YFirmwareUpdate \n  Bases: ['object']\n  Docstring: The YFirmwareUpdate class let you control the firmware update of a Yoctopuce\nmodule. This class should not be instantiate directly, but instances should be retrieved\nusing the YModule method module.updateFirmware.\n\nClass: YDataStream \n  Bases: ['object']\n  Docstring: DataStream objects represent bare recorded measure sequences,\nexactly as found within the data logger present on Yoctopuce\nsensors.\n\nIn most cases, it is not necessary to use DataStream objects\ndirectly, as the DataSet objects (returned by the\nget_recordedData() method from sensors and the\nget_dataSets() method from the data logger) provide\na more convenient interface.\n\nClass: YMeasure \n  Bases: ['object']\n  Docstring: YMeasure objects are used within the API to represent\na value measured at a specified time. These objects are\nused in particular in conjunction with the YDataSet class,\nbut also for sensors periodic timed reports\n(see sensor.registerTimedReportCallback).\n\nClass: YDataSet \n  Bases: ['object']\n  Docstring: YDataSet objects make it possible to retrieve a set of recorded measures\nfor a given sensor and a specified time interval. They can be used\nto load data points with a progress report. When the YDataSet object is\ninstantiated by the sensor.get_recordedData()  function, no data is\nyet loaded from the module. It is only when the loadMore()\nmethod is called over and over than data will be effectively loaded\nfrom the dataLogger.\n\nA preview of available measures is available using the function\nget_preview() as soon as loadMore() has been called\nonce. Measures themselves are available using function get_measures()\nwhen loaded by subsequent calls to loadMore().\n\nThis class can only be used on devices that use a relatively recent firmware,\nas YDataSet objects are not supported by firmwares older than version 13000.\n\nClass: YConsolidatedDataSet \n  Bases: ['object']\n  Docstring: YConsolidatedDataSet objects make it possible to retrieve a set of\nrecorded measures from multiple sensors, for a specified time interval.\nThey can be used to load data points progressively, and to receive\ndata records by timestamp, one by one..\n\nClass: YDevice \n  Bases: []\n\nClass: YFunction \n  Bases: ['object']\n  Docstring: This is the parent class for all public objects representing device functions documented in\nthe high-level programming API. This abstract class does all the real job, but without\nknowledge of the specific function attributes.\n\nInstantiating a child class of YFunction does not cause any communication.\nThe instance simply keeps track of its function identifier, and will dynamically bind\nto a matching device at the time it is really being used to read or set an attribute.\nIn order to allow true hot-plug replacement of one device by another, the binding stay\ndynamic through the life of the object.\n\nThe YFunction class implements a generic high-level cache for the attribute values of\nthe specified function, pre-parsed from the REST API string.\n\nClass: YModule \n  Bases: ['YFunction']\n  Docstring: The YModule class can be used with all Yoctopuce USB devices.\nIt can be used to control the module global parameters, and\nto enumerate the functions provided by each module.\n\nClass: YSensor (focal)\n  Bases: ['YFunction']\n  Docstring: The YSensor class is the parent class for all Yoctopuce sensor types. It can be\nused to read the current value and unit of any sensor, read the min/max\nvalue, configure autonomous recording frequency and access recorded data.\nIt also provide a function to register a callback invoked each time the\nobserved value changes, or at a predefined interval. Using this class rather\nthan a specific subclass makes it possible to create generic applications\nthat work with any Yoctopuce sensor, even those that do not yet exist.\nNote: The YAnButton class is the only analog input which does not inherit\nfrom YSensor.\n\nClass: YDataLogger \n  Bases: ['YFunction']\n  Docstring: A non-volatile memory for storing ongoing measured data is available on most Yoctopuce\nsensors. Recording can happen automatically, without requiring a permanent\nconnection to a computer.\nThe YDataLogger class controls the global parameters of the internal data\nlogger. Recording control (start/stop) as well as data retreival is done at\nsensor objects level.\n\nFocal class methods:\n  [status_getter] get_unit(self)\n    comment: res\n    comment: Returns the measuring unit for the measure.\n\n        @return a string corresponding to the measuring unit for the measure\n\n        On failure, throws an exception or returns YSensor.UNIT_INVALID.\n  [status_getter] get_currentValue(self)\n    comment: res\n    comment: Returns the current value of the measure, in the specified unit, as a floating point number.\n        Note that a get_currentValue() call will *not* start a measure in the device, it\n        will just ...\n  [status_setter] set_lowestValue(self, newval)\n    comment: Changes the recorded minimal value observed. Can be used to reset the value returned\n        by get_lowestValue().\n\n        @param newval : a floating point number corresponding to the recorded minima...\n  [status_getter] get_lowestValue(self)\n    comment: res\n    comment: Returns the minimal value observed for the measure since the device was started.\n        Can be reset to an arbitrary value thanks to set_lowestValue().\n\n        @return a floating point number corres...\n  [status_setter] set_highestValue(self, newval)\n    comment: Changes the recorded maximal value observed. Can be used to reset the value returned\n        by get_lowestValue().\n\n        @param newval : a floating point number corresponding to the recorded maxima...\n  [status_getter] get_highestValue(self)\n    comment: res\n    comment: Returns the maximal value observed for the measure since the device was started.\n        Can be reset to an arbitrary value thanks to set_highestValue().\n\n        @return a floating point number corre...\n  [status_getter] get_currentRawValue(self)\n    comment: res\n    comment: Returns the uncalibrated, unrounded raw value returned by the\n        sensor, in the specified unit, as a floating point number.\n\n        @return a floating point number corresponding to the uncalibra...\n  [status_getter] get_logFrequency(self)\n    comment: res\n    comment: Returns the datalogger recording frequency for this function, or \"OFF\"\n        when measures are not stored in the data logger flash memory.\n\n        @return a string corresponding to the datalogger r...\n  [status_setter] set_logFrequency(self, newval)\n    comment: Changes the datalogger recording frequency for this function.\n        The frequency can be specified as samples per second,\n        as sample per minute (for instance \"15/m\") or in samples per\n       ...\n  [status_getter] get_reportFrequency(self)\n    comment: res\n    comment: Returns the timed value notification frequency, or \"OFF\" if timed\n        value notifications are disabled for this function.\n\n        @return a string corresponding to the timed value notification fr...\n  [status_setter] set_reportFrequency(self, newval)\n    comment: Changes the timed value notification frequency for this function.\n        The frequency can be specified as samples per second,\n        as sample per minute (for instance \"15/m\") or in samples per\n   ...\n  [status_getter] get_advMode(self)\n    comment: res\n    comment: Returns the measuring mode used for the advertised value pushed to the parent hub.\n\n        @return a value among YSensor.ADVMODE_IMMEDIATE, YSensor.ADVMODE_PERIOD_AVG,\n        YSensor.ADVMODE_PERIOD_...\n  [status_setter] set_advMode(self, newval)\n    comment: Changes the measuring mode used for the advertised value pushed to the parent hub.\n        Remember to call the saveToFlash() method of the module if the modification must be kept.\n\n        @param new...\n  [status_getter] get_calibrationParam(self)\n    comment: res\n  [status_setter] set_calibrationParam(self, newval)\n  [status_setter] set_resolution(self, newval)\n    comment: Changes the resolution of the measured physical values. The resolution corresponds to the numerical precision\n        when displaying value. It does not change the precision of the measure itself.\n   ...\n  [status_getter] get_resolution(self)\n    comment: res\n    comment: Returns the resolution of the measured values. The resolution corresponds to the numerical precision\n        of the measures, which is not always the same as the actual precision of the sensor.\n      ...\n  [status_getter] get_sensorState(self)\n    comment: res\n    comment: Returns the sensor health state code, which is zero when there is an up-to-date measure\n        available or a positive code if the sensor is not able to provide a measure right now.\n\n        @return ...\n  [command] FindSensor(func)\n    comment: obj\n    comment: Retrieves a sensor for a given identifier.\n        The identifier can be specified using several formats:\n        <ul>\n        <li>FunctionLogicalName</li>\n        <li>ModuleSerialNumber.FunctionIdent...\n  [command] isSensorReady(self)\n    comment: Checks if the sensor is currently able to provide an up-to-date measure.\n        Returns false if the device is unreachable, or if the sensor does not have\n        a current measure to transmit. No ex...\n  [status_getter] get_dataLogger(self)\n    comment: logger\n    comment: modu\n    comment: serial\n    comment: hwid\n    comment: Returns the YDatalogger object of the device hosting the sensor. This method returns an object\n        that can control global parameters of the data logger. The returned object\n        should not be ...\n  [command] startDataLogger(self)\n    comment: res\n    comment: Starts the data logger on the device. Note that the data logger\n        will only save the measures on this sensor if the logFrequency\n        is not set to \"OFF\".\n\n        @return YAPI.SUCCESS if the...\n  [command] stopDataLogger(self)\n    comment: res\n    comment: Stops the datalogger on the device.\n\n        @return YAPI.SUCCESS if the call succeeds.\n  [status_getter] get_recordedData(self, startTime, endTime)\n    comment: funcid\n    comment: funit\n    comment: Retrieves a YDataSet object holding historical data for this\n        sensor, for a specified time interval. The measures will be\n        retrieved from the data logger, which must have been turned\n   ...\n  [command] registerTimedReportCallback(self, callback)\n    comment: sensor\n    comment: Registers the callback function that is invoked on every periodic timed notification.\n        The callback is invoked only during the execution of ySleep or yHandleEvents.\n        This provides contro...\n  [command] calibrateFromPoints(self, rawValues, refValues)\n    comment: rest_val\n    comment: res\n    comment: Configures error correction data points, in particular to compensate for\n        a possible perturbation of the measure caused by an enclosure. It is possible\n        to configure up to five correctio...\n  [command] loadCalibrationPoints(self, rawValues, refValues)\n    comment: // Load function parameters if not yet loaded\n    comment: Retrieves error correction data points previously entered using the method\n        calibrateFromPoints.\n\n        @param rawValues : array of floating point numbers, that will be filled by the\n        ...\n  [command] nextSensor(self)\n    comment: Continues the enumeration of sensors started using yFirstSensor().\n        Caution: You can't make any assumption about the returned sensors order.\n        If you want to find a specific a sensor, use...\n  [command] FirstSensor()\n    comment: noinspection PyTypeChecker,PyCallingNonCallable\n    comment: Starts the enumeration of sensors currently accessible.\n        Use the method YSensor.nextSensor() to iterate on\n        next sensors.\n\n        @return a pointer to a YSensor object, corresponding to...\n\nRegistry actions:\n  auto-set_lowestValue (from set_lowestValue())\n  auto-set_highestValue (from set_highestValue())\n  auto-set_logFrequency (from set_logFrequency())\n  auto-set_reportFrequency (from set_reportFrequency())\n  auto-set_advMode (from set_advMode())\n  auto-set_calibrationParam (from set_calibrationParam())\n  auto-set_resolution (from set_resolution())\n  auto-isSensorReady (from isSensorReady())\n  auto-startDataLogger (from startDataLogger())\n  auto-stopDataLogger (from stopDataLogger())\n  auto-registerTimedReportCallback (from registerTimedReportCallback())\n  auto-calibrateFromPoints (from calibrateFromPoints())\n  auto-loadCalibrationPoints (from loadCalibrationPoints())\n  auto-nextSensor (from nextSensor())\n\nRequired output action ids:\n  auto-set_lowestValue\n  auto-set_highestValue\n  auto-set_logFrequency\n  auto-set_reportFrequency\n  auto-set_advMode\n  auto-set_calibrationParam\n  auto-set_resolution\n  auto-isSensorReady\n  auto-startDataLogger\n  auto-stopDataLogger\n  auto-registerTimedReportCallback\n  auto-calibrateFromPoints\n  auto-loadCalibrationPoints\n  auto-nextSensor"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_09715e85c2405cb00069d5bf4ddd808194bba3f9095d501480",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1820,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7970,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_09715e85c2405cb00069d5bf4e4ca08194ad750136d15dcd2c",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_09715e85c2405cb00069d5bf648f40819487de5766d76c738b",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Yoctopuce通用传感器接口\",\n  \"name_en\": \"Yoctopuce Generic Sensor Interface\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"这是一个面向 Yoctopuce 各类传感器的通用软件接口，而不是单一实体仪器。它用于统一读取传感器测量值、单位、原始值、最小/最大值，配置记录频率与定时上报，访问历史数据，并管理校准点与数据记录功能，适合在实验系统中对不同 Yoctopuce 传感器进行通用接入。\",\n  \"description_en\": \"This is a generic software interface for Yoctopuce sensors rather than a single physical instrument. It is used to read sensor values, units, raw values, minimum/maximum values, configure logging and timed reporting, access recorded data, and manage calibration points and data logging across different Yoctopuce sensor types in laboratory setups.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_lowestValue\",\n      \"description\": \"设置记录的最小值\",\n      \"description_en\": \"set the recorded minimum value\"\n    },\n    {\n      \"action_name\": \"auto-set_highestValue\",\n      \"description\": \"设置记录的最大值\",\n      \"description_en\": \"set the recorded maximum value\"\n    },\n    {\n      \"action_name\": \"auto-set_logFrequency\",\n      \"description\": \"设置数据记录频率\",\n      \"description_en\": \"set the data logging frequency\"\n    },\n    {\n      \"action_name\": \"auto-set_reportFrequency\",\n      \"description\": \"设置定时上报频率\",\n      \"description_en\": \"set the timed report frequency\"\n    },\n    {\n      \"action_name\": \"auto-set_advMode\",\n      \"description\": \"设置上报值的测量模式\",\n      \"description_en\": \"set the measurement mode for the advertised value\"\n    },\n    {\n      \"action_name\": \"auto-set_calibrationParam\",\n      \"description\": \"设置校准参数\",\n      \"description_en\": \"set the calibration parameters\"\n    },\n    {\n      \"action_name\": \"auto-set_resolution\",\n      \"description\": \"设置测量分辨率\",\n      \"description_en\": \"set the measurement resolution\"\n    },\n    {\n      \"action_name\": \"auto-isSensorReady\",\n      \"description\": \"检查传感器是否可提供最新测量值\",\n      \"description_en\": \"check whether the sensor can provide an up-to-date measurement\"\n    },\n    {\n      \"action_name\": \"auto-startDataLogger\",\n      \"description\": \"启动数据记录器\",\n      \"description_en\": \"start the data logger\"\n    },\n    {\n      \"action_name\": \"auto-stopDataLogger\",\n      \"description\": \"停止数据记录器\",\n      \"description_en\": \"stop the data logger\"\n    },\n    {\n      \"action_name\": \"auto-registerTimedReportCallback\",\n      \"description\": \"注册定时测量上报回调\",\n      \"description_en\": \"register a timed measurement report callback\"\n    },\n    {\n      \"action_name\": \"auto-calibrateFromPoints\",\n      \"description\": \"根据校准点定义误差校正\",\n      \"description_en\": \"define error correction from calibration points\"\n    },\n    {\n      \"action_name\": \"auto-loadCalibrationPoints\",\n      \"description\": \"加载已定义的校准点\",\n      \"description_en\": \"load previously defined calibration points\"\n    },\n    {\n      \"action_name\": \"auto-nextSensor\",\n      \"description\": \"枚举下一个可访问的传感器\",\n      \"description_en\": \"enumerate the next accessible sensor\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Yoctopuce sensors\",\n    \"generic sensor interface\",\n    \"sensor data logging\",\n    \"timed measurement reports\",\n    \"sensor calibration\",\n    \"historical measurement data\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 3718,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1859,
+      "output_tokens_details": {
+        "reasoning_tokens": 1016
+      },
+      "total_tokens": 5577
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 3718,
+      "output_token_count": 1859,
+      "predict_time": 36.141273794
+    }
+  },
+  "output_text": "{\n  \"name\": \"Yoctopuce通用传感器接口\",\n  \"name_en\": \"Yoctopuce Generic Sensor Interface\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"这是一个面向 Yoctopuce 各类传感器的通用软件接口，而不是单一实体仪器。它用于统一读取传感器测量值、单位、原始值、最小/最大值，配置记录频率与定时上报，访问历史数据，并管理校准点与数据记录功能，适合在实验系统中对不同 Yoctopuce 传感器进行通用接入。\",\n  \"description_en\": \"This is a generic software interface for Yoctopuce sensors rather than a single physical instrument. It is used to read sensor values, units, raw values, minimum/maximum values, configure logging and timed reporting, access recorded data, and manage calibration points and data logging across different Yoctopuce sensor types in laboratory setups.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_lowestValue\",\n      \"description\": \"设置记录的最小值\",\n      \"description_en\": \"set the recorded minimum value\"\n    },\n    {\n      \"action_name\": \"auto-set_highestValue\",\n      \"description\": \"设置记录的最大值\",\n      \"description_en\": \"set the recorded maximum value\"\n    },\n    {\n      \"action_name\": \"auto-set_logFrequency\",\n      \"description\": \"设置数据记录频率\",\n      \"description_en\": \"set the data logging frequency\"\n    },\n    {\n      \"action_name\": \"auto-set_reportFrequency\",\n      \"description\": \"设置定时上报频率\",\n      \"description_en\": \"set the timed report frequency\"\n    },\n    {\n      \"action_name\": \"auto-set_advMode\",\n      \"description\": \"设置上报值的测量模式\",\n      \"description_en\": \"set the measurement mode for the advertised value\"\n    },\n    {\n      \"action_name\": \"auto-set_calibrationParam\",\n      \"description\": \"设置校准参数\",\n      \"description_en\": \"set the calibration parameters\"\n    },\n    {\n      \"action_name\": \"auto-set_resolution\",\n      \"description\": \"设置测量分辨率\",\n      \"description_en\": \"set the measurement resolution\"\n    },\n    {\n      \"action_name\": \"auto-isSensorReady\",\n      \"description\": \"检查传感器是否可提供最新测量值\",\n      \"description_en\": \"check whether the sensor can provide an up-to-date measurement\"\n    },\n    {\n      \"action_name\": \"auto-startDataLogger\",\n      \"description\": \"启动数据记录器\",\n      \"description_en\": \"start the data logger\"\n    },\n    {\n      \"action_name\": \"auto-stopDataLogger\",\n      \"description\": \"停止数据记录器\",\n      \"description_en\": \"stop the data logger\"\n    },\n    {\n      \"action_name\": \"auto-registerTimedReportCallback\",\n      \"description\": \"注册定时测量上报回调\",\n      \"description_en\": \"register a timed measurement report callback\"\n    },\n    {\n      \"action_name\": \"auto-calibrateFromPoints\",\n      \"description\": \"根据校准点定义误差校正\",\n      \"description_en\": \"define error correction from calibration points\"\n    },\n    {\n      \"action_name\": \"auto-loadCalibrationPoints\",\n      \"description\": \"加载已定义的校准点\",\n      \"description_en\": \"load previously defined calibration points\"\n    },\n    {\n      \"action_name\": \"auto-nextSensor\",\n      \"description\": \"枚举下一个可访问的传感器\",\n      \"description_en\": \"enumerate the next accessible sensor\"\n    }\n  ],\n  \"tag_hints\": [\n    \"Yoctopuce sensors\",\n    \"generic sensor interface\",\n    \"sensor data logging\",\n    \"timed measurement reports\",\n    \"sensor calibration\",\n    \"historical measurement data\"\n  ]\n}"
+}

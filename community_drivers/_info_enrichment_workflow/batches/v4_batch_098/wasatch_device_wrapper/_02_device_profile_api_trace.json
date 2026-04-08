@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: wasatch_device_wrapper\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: wasatch/WasatchDeviceWrapper.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.custom.wasatch_device_wrapper:WasatchDeviceWrapper\n\nClass: WasatchDeviceWrapper (focal)\n  Bases: []\n\nFocal class methods:\n  [command] connect(self)\n    comment: \n    comment: Create a low level device object with the specified identifier, kick off\n    comment: the child thread to attempt to read from it.\n    comment: \n    comment: Called by Controller.connect_new() immediately after instantiation\n    comment: \n    comment: Spawn a child thread running the continuous_poll() method on THIS\n    comment: object instance.\n    comment: \n    comment: The two threads are coupled via the 3 queues:\n    comment: \n    comment: @par settings_queue\n    comment: \n    comment: Lets the child (WasatchDevice) send a single, one-time copy\n    comment: of a populated SpectrometerSettings object back through the\n    comment: Wrapper to the calling Controller.  This is the primary way the\n    comment: Controller knows what kind of spectrometer it has connected to,\n    comment: what hardware features and EEPROM settings are applied etc.\n    comment: \n    comment: Thereafter both WasatchDevice and Controller will maintain\n    comment: their own copies of SpectrometerSettings, and they are not\n    comment: automatically synchronized (is there a clever way to do this?).\n    comment: They may well drift out-of-sync regarding state, although the\n    comment: command_queue helps keep them somewhat in sync.\n    comment: \n    comment: @par command_queue\n    comment: \n    comment: The Controller will send ControlObject instances (basically\n    comment: (name, value) pairs) through the Wrapper to the WasatchDevice\n    comment: to set attributes or commands on the WasatchDevice spectrometer.\n    comment: These may be volatile hardware settings (laser power, integration\n    comment: time), meta-commands to the WasatchDevice class (scan averaging),\n    comment: or EEPROM updates.\n    comment: \n    comment: @par response_queue\n    comment: \n    comment: The WasatchDevice will stream a continuous series of Reading\n    comment: instances back through the Wrapper to the Controller.  These\n    comment: each contain a newly read spectrum, as well as metadata about\n    comment: the spectrometer at the time the spectrum was taken (integration\n    comment: time, laser power), plus additional readings from the spectrometer\n    comment: (detector and laser temperature, secondary ADC).\n    comment: \n    comment: instantiate thread\n    comment: expect to read a single post-initialization SpectrometerSettings object off the queue\n  [command] wait_for_settings(self)\n  [command] poll_settings(self)\n    comment: @returns SpectrometerResponse(True) on success, (False) otherwise \n        @note this doesn't have a timeout -- that's in enlighten.Controller.check_ready_initialize\n  [command] reset(self)\n  [command] disconnect(self)\n    comment: send poison pill to the child\n  [command] acquire_status_message(self)\n    comment: \n    comment: Similar to acquire_data, this method is called by the Controller in\n    comment: MainProcess to dequeue a StatusMessage from the spectrometer child\n    comment: thread, if one is available.\n  [command] send_alert(self, setting, value)\n  [command] acquire_data(self, mode=None)\n    comment: \n    comment: This method is called by the Controller.  It checks the response_queue it\n    comment: shares with the child thread to see if any Reading objects have been queued\n    comment: from the spectrometer to the GUI.\n    comment: \n    comment: It is the upstream interface's job to decide how to process the potentially\n    comment: voluminous amount of data returned from the device. get_last by default\n    comment: will make sure the queue is cleared, then return the most recent reading\n    comment: from the device.\n    comment: \n    comment: @note it is not clear that measurement modes other than\n    comment: ACQUISITION_MODE_KEEP_COMPLETE have been well-tested,\n    comment: especially in the context of multiple spectrometers,\n    comment: BatchCollection etc.\n    comment: ENLIGHTEN \"default\" - if we're doing scan averaging, take either\n    comment: 1. the NEWEST fully-averaged spectrum (purge the queue), or\n    comment: 2. if no fully-averaged spectra are in the queue, then the NEWEST\n    comment: incomplete (pre-averaged) spectrum (purging the queue).\n    comment: If we're not doing scan averaging, then take the NEWEST spectrum\n    comment: and purge the queue.\n  [status_getter] get_final_item(self, keep_averaged=False)\n    comment: Read from the response queue until empty (or we find an averaged item)\n    comment: \n    comment: In the currently implementation, it seems unlikely that a \"True\" will ever\n    comment: be passed up (we're basically converting them to None here).\n    comment: without waiting (don't block), just get the first item off the\n    comment: queue if there is one\n    comment: If there is nothing more to read, then we've emptied the queue\n    comment: log.debug(\"get_final has nothing more to read, sending up readings\")\n    comment: If we come across a keep_alive, ignore it for the moment.\n    comment: for now continue cleaning-out the queue.\n    comment: If that keep alive is associated with an error though float it up\n    comment: If we come across a poison-pill, flow that up immediately --\n    comment: game-over, we're done\n    comment: apparently we read a Reading\n    comment: Was this the final spectrum in an averaged sequence?\n    comment: If so, grab a reference, but DON'T flow it up yet...there\n    comment: may be a NEWER fully-averaged spectrum later on.\n    comment: It is the purpose of this function (\"get FINAL item...\")\n    comment: to PURGE THE QUEUE -- we are not intending to leave any\n    comment: values in the queue (None, bool, or Readings of any kind.\n    comment: log.debug(\"keeping last_response as last_averaged_response\")\n    comment: apparently we didn't read anything...just pass up a keepalive\n    comment: apparently we read at least some readings.  For interest, how how many\n    comment: readings did we throw away (not return up to ENLIGHTEN)?\n    comment: if we're doing averaging, and we found one or more averaged readings,\n    comment: return the latest of those\n    comment: log.debug(\"returning latest averaged reading\")\n    comment: We've had every opportunity short-cut the process: we could have\n    comment: returned potential poison pills or completed averages, but found\n    comment: none of those.  Yet apparently we did read some normal readings.\n    comment: Return the latest of those.\n    comment: log.debug(\"returning last_response\")\n  [command] change_setting(self, setting, value=None)\n    comment: \n    comment: Add the specified setting and value to the local control queue.\n    comment: \n    comment: In ENLIGHTEN, this is called by MainProcess.Controller.\n    comment: \n    comment: For OEM customers controlling the spectrometer via the non-blocking\n    comment: WasatchDeviceWrapper interface, this is the method you would call to\n    comment: change the various spectrometer settings.\n    comment: \n    comment: @see \\ref README_SETTINGS.md for a list of valid settings you can\n    comment: pass, as well as any parameters expected by each\n\nRegistry actions:\n  auto-connect (from connect())\n  auto-wait_for_settings (from wait_for_settings())\n  auto-poll_settings (from poll_settings())\n  auto-reset (from reset())\n  auto-disconnect (from disconnect())\n  auto-acquire_status_message (from acquire_status_message())\n  auto-send_alert (from send_alert())\n  auto-acquire_data (from acquire_data())\n  auto-change_setting (from change_setting())\n  auto-get_final_item (from get_final_item())\n\nRequired output action ids:\n  auto-connect\n  auto-wait_for_settings\n  auto-poll_settings\n  auto-reset\n  auto-disconnect\n  auto-acquire_status_message\n  auto-send_alert\n  auto-acquire_data\n  auto-change_setting\n  auto-get_final_item"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_032e6f01b31655e90069d5bbac4de881939c21fb418644dd15",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 9207,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4795,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_032e6f01b31655e90069d5bbacc7b481938abcfb45f5f6de79",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_032e6f01b31655e90069d5bbb6d15081939308ee3da81df4a2",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Wasatch 光谱仪设备封装组件\",\n  \"name_en\": \"Wasatch Spectrometer Device Wrapper\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于在控制器与 Wasatch 光谱仪采集线程之间建立队列通信。它负责连接底层设备对象、等待或轮询光谱仪设置、转发参数变更、接收光谱读数与状态消息，并管理断开与重置流程，常用于光谱数据采集界面的异步控制。\",\n  \"description_en\": \"This is a non-physical software component that mediates queue-based communication between a controller and a Wasatch spectrometer acquisition thread. It connects the low-level device object, waits for or polls spectrometer settings, forwards setting changes, receives spectra and status messages, and manages reset and disconnect flow for asynchronous spectroscopy control.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"连接底层 Wasatch 光谱仪对象并启动连续轮询子线程。\",\n      \"description_en\": \"Connect the underlying Wasatch spectrometer object and start the continuous polling child thread.\"\n    },\n    {\n      \"action_name\": \"auto-wait_for_settings\",\n      \"description\": \"等待子线程返回初始化后的光谱仪设置信息。\",\n      \"description_en\": \"Wait for the child thread to return initialized spectrometer settings.\"\n    },\n    {\n      \"action_name\": \"auto-poll_settings\",\n      \"description\": \"轮询是否已有可用的光谱仪设置信息。\",\n      \"description_en\": \"Poll for availability of spectrometer settings.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"重置该封装组件的连接或内部状态。\",\n      \"description_en\": \"Reset the wrapper component's connection or internal state.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开连接并向子线程发送停止信号。\",\n      \"description_en\": \"Disconnect and send a termination signal to the child thread.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_status_message\",\n      \"description\": \"从状态队列中获取来自光谱仪线程的状态消息。\",\n      \"description_en\": \"Acquire a status message from the spectrometer thread's status queue.\"\n    },\n    {\n      \"action_name\": \"auto-send_alert\",\n      \"description\": \"向封装流程发送指定设置和值的提醒或通知。\",\n      \"description_en\": \"Send an alert or notification with the specified setting and value through the wrapper flow.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_data\",\n      \"description\": \"从响应队列获取最新的光谱读数或采集数据。\",\n      \"description_en\": \"Acquire the latest spectral reading or acquisition data from the response queue.\"\n    },\n    {\n      \"action_name\": \"auto-change_setting\",\n      \"description\": \"将光谱仪设置变更加入控制队列并转发到底层设备。\",\n      \"description_en\": \"Queue a spectrometer setting change and forward it to the underlying device.\"\n    },\n    {\n      \"action_name\": \"auto-get_final_item\",\n      \"description\": \"获取响应队列中的最终数据项。\",\n      \"description_en\": \"Get the final item from the response queue.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"spectrometer control\",\n    \"asynchronous acquisition\",\n    \"queue-based communication\",\n    \"spectral data streaming\",\n    \"instrument settings synchronization\",\n    \"threaded device wrapper\",\n    \"Wasatch spectroscopy\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2488,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1153,
+      "output_tokens_details": {
+        "reasoning_tokens": 379
+      },
+      "total_tokens": 3641
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2488,
+      "output_token_count": 1153,
+      "predict_time": 26.360880052
+    }
+  },
+  "output_text": "{\n  \"name\": \"Wasatch 光谱仪设备封装组件\",\n  \"name_en\": \"Wasatch Spectrometer Device Wrapper\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件组件，用于在控制器与 Wasatch 光谱仪采集线程之间建立队列通信。它负责连接底层设备对象、等待或轮询光谱仪设置、转发参数变更、接收光谱读数与状态消息，并管理断开与重置流程，常用于光谱数据采集界面的异步控制。\",\n  \"description_en\": \"This is a non-physical software component that mediates queue-based communication between a controller and a Wasatch spectrometer acquisition thread. It connects the low-level device object, waits for or polls spectrometer settings, forwards setting changes, receives spectra and status messages, and manages reset and disconnect flow for asynchronous spectroscopy control.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"连接底层 Wasatch 光谱仪对象并启动连续轮询子线程。\",\n      \"description_en\": \"Connect the underlying Wasatch spectrometer object and start the continuous polling child thread.\"\n    },\n    {\n      \"action_name\": \"auto-wait_for_settings\",\n      \"description\": \"等待子线程返回初始化后的光谱仪设置信息。\",\n      \"description_en\": \"Wait for the child thread to return initialized spectrometer settings.\"\n    },\n    {\n      \"action_name\": \"auto-poll_settings\",\n      \"description\": \"轮询是否已有可用的光谱仪设置信息。\",\n      \"description_en\": \"Poll for availability of spectrometer settings.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"重置该封装组件的连接或内部状态。\",\n      \"description_en\": \"Reset the wrapper component's connection or internal state.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开连接并向子线程发送停止信号。\",\n      \"description_en\": \"Disconnect and send a termination signal to the child thread.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_status_message\",\n      \"description\": \"从状态队列中获取来自光谱仪线程的状态消息。\",\n      \"description_en\": \"Acquire a status message from the spectrometer thread's status queue.\"\n    },\n    {\n      \"action_name\": \"auto-send_alert\",\n      \"description\": \"向封装流程发送指定设置和值的提醒或通知。\",\n      \"description_en\": \"Send an alert or notification with the specified setting and value through the wrapper flow.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_data\",\n      \"description\": \"从响应队列获取最新的光谱读数或采集数据。\",\n      \"description_en\": \"Acquire the latest spectral reading or acquisition data from the response queue.\"\n    },\n    {\n      \"action_name\": \"auto-change_setting\",\n      \"description\": \"将光谱仪设置变更加入控制队列并转发到底层设备。\",\n      \"description_en\": \"Queue a spectrometer setting change and forward it to the underlying device.\"\n    },\n    {\n      \"action_name\": \"auto-get_final_item\",\n      \"description\": \"获取响应队列中的最终数据项。\",\n      \"description_en\": \"Get the final item from the response queue.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"spectrometer control\",\n    \"asynchronous acquisition\",\n    \"queue-based communication\",\n    \"spectral data streaming\",\n    \"instrument settings synchronization\",\n    \"threaded device wrapper\",\n    \"Wasatch spectroscopy\"\n  ]\n}"
+}

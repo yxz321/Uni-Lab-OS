@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: yokogawa7651\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/yokogawa/yokogawa7651.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.power_supply.yokogawa_7651:Yokogawa7651\n\nClass: Yokogawa7651 (focal)\n  Bases: ['PowerSupply', 'Instrument']\n  Docstring: The Yokogawa 7651 is a single channel DC power supply.\n\nExample usage:\n\n>>> import instruments as ik\n>>> import instruments.units as u\n>>> inst = ik.yokogawa.Yokogawa7651.open_gpibusb(\"/dev/ttyUSB0\", 1)\n>>> inst.voltage = 10 * u.V\n\nFocal class methods:\n  [status_getter] channel(self)\n    comment: Gets the specific power supply channel object. Since the Yokogawa7651\n        is only equiped with a single channel, a list with a single element\n        will be returned.\n\n        This (single) chann...\n  [status_getter] voltage(self)\n    comment: Sets the voltage. This device has a voltage range of 0V to +30V.\n\n        Querying the voltage is not supported by this instrument.\n\n        :units: As specified (if a `~pint.Quantity`) or assumed\n   ...\n  [status_setter] voltage(self, newval)\n  [status_getter] current(self)\n    comment: Sets the current. This device has an max setting of 100mA.\n\n        Querying the current is not supported by this instrument.\n\n        :units: As specified (if a `~pint.Quantity`) or assumed\n         ...\n  [status_setter] current(self, newval)\n  [command] trigger(self)\n    comment: METHODS #\n    comment: Triggering function for the Yokogawa 7651.\n\n        After changing any parameters of the instrument (for example, output\n        voltage), the device needs to be triggered before it will update.\n\nRegistry actions:\n  auto-current (from current())\n  auto-trigger (from trigger())\n  auto-voltage (from voltage())\n  auto-channel (from channel())\n  auto-mode (from mode())\n  auto-output (from output())\n\nRequired output action ids:\n  auto-current\n  auto-trigger\n  auto-voltage\n  auto-channel\n  auto-mode\n  auto-output"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_00fbae4e290650350069d5c00545e88197be1aab6edad12ead",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1795,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4254,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_00fbae4e290650350069d5c005a1808197a5e2d4123f9519b5",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_00fbae4e290650350069d5c01023f8819788a235c6969a20ef",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"横河7651单通道直流电源\",\n  \"name_en\": \"Yokogawa 7651 Single-Channel DC Power Supply\",\n  \"manufacturer\": \"Yokogawa\",\n  \"description\": \"横河7651是一台单通道可编程直流电源，用于实验中输出受控的直流电压或电流。根据驱动信息，该设备支持设置电压、电流、输出模式和输出状态，并在参数修改后通过触发使新设定生效，适合器件偏置、基础电学测试和台式自动化控制。\",\n  \"description_en\": \"The Yokogawa 7651 is a single-channel programmable DC power supply used in labs to source controlled DC voltage or current. Based on the driver evidence, it supports setting voltage, current, output mode, and output state, and requires a trigger after parameter changes for the new settings to take effect. It is suitable for device biasing, basic electrical testing, and bench automation.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-current\",\n      \"description\": \"获取/设置输出电流设定值。\",\n      \"description_en\": \"Get/set the output current setpoint.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"触发设备应用待生效的参数更改。\",\n      \"description_en\": \"Trigger the instrument to apply pending parameter changes.\"\n    },\n    {\n      \"action_name\": \"auto-voltage\",\n      \"description\": \"获取/设置输出电压设定值。\",\n      \"description_en\": \"Get/set the output voltage setpoint.\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取单个输出通道。\",\n      \"description_en\": \"Get the single output channel.\"\n    },\n    {\n      \"action_name\": \"auto-mode\",\n      \"description\": \"获取/设置输出模式。\",\n      \"description_en\": \"Get/set the output mode.\"\n    },\n    {\n      \"action_name\": \"auto-output\",\n      \"description\": \"获取/设置输出开关状态。\",\n      \"description_en\": \"Get/set the output enable state.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"programmable DC source\",\n    \"single-channel power supply\",\n    \"voltage sourcing\",\n    \"current sourcing\",\n    \"electrical biasing\",\n    \"triggered output update\",\n    \"GPIB instrument\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1185,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1046,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2231
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1185,
+      "output_token_count": 1046,
+      "predict_time": 19.590000942
+    }
+  },
+  "output_text": "{\n  \"name\": \"横河7651单通道直流电源\",\n  \"name_en\": \"Yokogawa 7651 Single-Channel DC Power Supply\",\n  \"manufacturer\": \"Yokogawa\",\n  \"description\": \"横河7651是一台单通道可编程直流电源，用于实验中输出受控的直流电压或电流。根据驱动信息，该设备支持设置电压、电流、输出模式和输出状态，并在参数修改后通过触发使新设定生效，适合器件偏置、基础电学测试和台式自动化控制。\",\n  \"description_en\": \"The Yokogawa 7651 is a single-channel programmable DC power supply used in labs to source controlled DC voltage or current. Based on the driver evidence, it supports setting voltage, current, output mode, and output state, and requires a trigger after parameter changes for the new settings to take effect. It is suitable for device biasing, basic electrical testing, and bench automation.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-current\",\n      \"description\": \"获取/设置输出电流设定值。\",\n      \"description_en\": \"Get/set the output current setpoint.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"触发设备应用待生效的参数更改。\",\n      \"description_en\": \"Trigger the instrument to apply pending parameter changes.\"\n    },\n    {\n      \"action_name\": \"auto-voltage\",\n      \"description\": \"获取/设置输出电压设定值。\",\n      \"description_en\": \"Get/set the output voltage setpoint.\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取单个输出通道。\",\n      \"description_en\": \"Get the single output channel.\"\n    },\n    {\n      \"action_name\": \"auto-mode\",\n      \"description\": \"获取/设置输出模式。\",\n      \"description_en\": \"Get/set the output mode.\"\n    },\n    {\n      \"action_name\": \"auto-output\",\n      \"description\": \"获取/设置输出开关状态。\",\n      \"description_en\": \"Get/set the output enable state.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"programmable DC source\",\n    \"single-channel power supply\",\n    \"voltage sourcing\",\n    \"current sourcing\",\n    \"electrical biasing\",\n    \"triggered output update\",\n    \"GPIB instrument\"\n  ]\n}"
+}

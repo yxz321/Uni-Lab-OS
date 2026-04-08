@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: y_spi_port\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/Switch-Yoctopuce_Yocto-Relay/libs/yoctopuce/yocto_spiport.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.custom.y_spi_port:YSpiPort\n\nClass: YSpiPort (focal)\n  Bases: ['YFunction']\n  Docstring: The YSpiPort class allows you to fully drive a Yoctopuce SPI port.\nIt can be used to send and receive data, and to configure communication\nparameters (baud rate, bit count, parity, flow control and protocol).\nNote that Yoctopuce SPI ports are not exposed as virtual COM ports.\nThey are meant to be used in the same way as all Yoctopuce devices.\n\nFocal class methods:\n  [status_getter] get_rxCount(self)\n    comment: res\n    comment: Returns the total number of bytes received since last reset.\n\n        @return an integer corresponding to the total number of bytes received since last reset\n\n        On failure, throws an exception o...\n  [status_getter] get_txCount(self)\n    comment: res\n    comment: Returns the total number of bytes transmitted since last reset.\n\n        @return an integer corresponding to the total number of bytes transmitted since last reset\n\n        On failure, throws an excep...\n  [status_getter] get_errCount(self)\n    comment: res\n    comment: Returns the total number of communication errors detected since last reset.\n\n        @return an integer corresponding to the total number of communication errors detected since last reset\n\n        On ...\n  [status_getter] get_rxMsgCount(self)\n    comment: res\n    comment: Returns the total number of messages received since last reset.\n\n        @return an integer corresponding to the total number of messages received since last reset\n\n        On failure, throws an excep...\n  [status_getter] get_txMsgCount(self)\n    comment: res\n    comment: Returns the total number of messages send since last reset.\n\n        @return an integer corresponding to the total number of messages send since last reset\n\n        On failure, throws an exception or ...\n  [status_getter] get_lastMsg(self)\n    comment: res\n    comment: Returns the latest message fully received (for Line and Frame protocols).\n\n        @return a string corresponding to the latest message fully received (for Line and Frame protocols)\n\n        On failur...\n  [status_getter] get_currentJob(self)\n    comment: res\n    comment: Returns the name of the job file currently in use.\n\n        @return a string corresponding to the name of the job file currently in use\n\n        On failure, throws an exception or returns YSpiPort.CUR...\n  [status_setter] set_currentJob(self, newval)\n    comment: Selects a job file to run immediately. If an empty string is\n        given as argument, stops running current job file.\n\n        @param newval : a string\n\n        @return YAPI.SUCCESS if the call succ...\n  [status_getter] get_startupJob(self)\n    comment: res\n    comment: Returns the job file to use when the device is powered on.\n\n        @return a string corresponding to the job file to use when the device is powered on\n\n        On failure, throws an exception or retu...\n  [status_setter] set_startupJob(self, newval)\n    comment: Changes the job to use when the device is powered on.\n        Remember to call the saveToFlash() method of the module if the\n        modification must be kept.\n\n        @param newval : a string corres...\n  [status_getter] get_jobMaxTask(self)\n    comment: res\n    comment: Returns the maximum number of tasks in a job that the device can handle.\n\n        @return an integer corresponding to the maximum number of tasks in a job that the device can handle\n\n        On failur...\n  [status_getter] get_jobMaxSize(self)\n    comment: res\n    comment: Returns maximum size allowed for job files.\n\n        @return an integer corresponding to maximum size allowed for job files\n\n        On failure, throws an exception or returns YSpiPort.JOBMAXSIZE_INVA...\n  [status_getter] get_command(self)\n    comment: res\n  [status_setter] set_command(self, newval)\n  [status_getter] get_protocol(self)\n    comment: res\n    comment: Returns the type of protocol used over the serial line, as a string.\n        Possible values are \"Line\" for ASCII messages separated by CR and/or LF,\n        \"Frame:[timeout]ms\" for binary messages se...\n  [status_setter] set_protocol(self, newval)\n    comment: Changes the type of protocol used over the serial line.\n        Possible values are \"Line\" for ASCII messages separated by CR and/or LF,\n        \"Frame:[timeout]ms\" for binary messages separated by a ...\n  [status_getter] get_voltageLevel(self)\n    comment: res\n    comment: Returns the voltage level used on the serial line.\n\n        @return a value among YSpiPort.VOLTAGELEVEL_OFF, YSpiPort.VOLTAGELEVEL_TTL3V,\n        YSpiPort.VOLTAGELEVEL_TTL3VR, YSpiPort.VOLTAGELEVEL_TT...\n  [status_setter] set_voltageLevel(self, newval)\n    comment: Changes the voltage type used on the serial line. Valid\n        values  will depend on the Yoctopuce device model featuring\n        the serial port feature.  Check your device documentation\n        to...\n  [status_getter] get_spiMode(self)\n    comment: res\n    comment: Returns the SPI port communication parameters, as a string such as\n        \"125000,0,msb\". The string includes the baud rate, the SPI mode (between\n        0 and 3) and the bit order.\n\n        @return...\n  [status_setter] set_spiMode(self, newval)\n    comment: Changes the SPI port communication parameters, with a string such as\n        \"125000,0,msb\". The string includes the baud rate, the SPI mode (between\n        0 and 3) and the bit order.\n        Rememb...\n  [status_getter] get_ssPolarity(self)\n    comment: res\n    comment: Returns the SS line polarity.\n\n        @return either YSpiPort.SSPOLARITY_ACTIVE_LOW or YSpiPort.SSPOLARITY_ACTIVE_HIGH, according to the\n        SS line polarity\n\n        On failure, throws an except...\n  [status_setter] set_ssPolarity(self, newval)\n    comment: Changes the SS line polarity.\n        Remember to call the saveToFlash() method of the module if the\n        modification must be kept.\n\n        @param newval : either YSpiPort.SSPOLARITY_ACTIVE_LOW o...\n  [status_getter] get_shiftSampling(self)\n    comment: res\n    comment: Returns true when the SDI line phase is shifted with regards to the SDO line.\n\n        @return either YSpiPort.SHIFTSAMPLING_OFF or YSpiPort.SHIFTSAMPLING_ON, according to true when the\n        SDI li...\n  [status_setter] set_shiftSampling(self, newval)\n    comment: Changes the SDI line sampling shift. When disabled, SDI line is\n        sampled in the middle of data output time. When enabled, SDI line is\n        samples at the end of data output time.\n        Rem...\n  [command] FindSpiPort(func)\n    comment: obj\n    comment: Retrieves a SPI port for a given identifier.\n        The identifier can be specified using several formats:\n        <ul>\n        <li>FunctionLogicalName</li>\n        <li>ModuleSerialNumber.FunctionIde...\n  [command] sendCommand(self, text)\n  [command] readLine(self)\n    comment: url\n    comment: msgbin\n    comment: msglen\n    comment: res\n    comment: // last element of array is the new position\n    comment: Reads a single line (or message) from the receive buffer, starting at current stream position.\n        This function is intended to be used when the serial port is configured for a message protocol,\n ...\n  [command] readMessages(self, pattern, maxWait)\n    comment: url\n    comment: msgbin\n    comment: msglen\n    comment: idx\n    comment: // last element of array is the new position\n    comment: Searches for incoming messages in the serial port receive buffer matching a given pattern,\n        starting at current position. This function will only compare and return printable characters\n       ...\n  [command] read_seek(self, absPos)\n    comment: Changes the current internal stream position to the specified value. This function\n        does not affect the device, it only changes the value stored in the API object\n        for the next read oper...\n  [command] read_tell(self)\n    comment: Returns the current absolute stream position pointer of the API object.\n\n        @return the absolute position index for next read operations.\n  [command] read_avail(self)\n    comment: buff\n    comment: bufflen\n    comment: res\n    comment: Returns the number of bytes available to read in the input buffer starting from the\n        current absolute stream position pointer of the API object.\n\n        @return the number of bytes available t...\n  [command] queryLine(self, query, maxWait)\n    comment: url\n    comment: msgbin\n    comment: msglen\n    comment: res\n    comment: // last element of array is the new position\n    comment: Sends a text line query to the serial port, and reads the reply, if any.\n        This function is intended to be used when the serial port is configured for 'Line' protocol.\n\n        @param query : th...\n  [command] queryHex(self, hexString, maxWait)\n    comment: url\n    comment: msgbin\n    comment: msglen\n    comment: res\n    comment: // last element of array is the new position\n    comment: Sends a binary message to the serial port, and reads the reply, if any.\n        This function is intended to be used when the serial port is configured for\n        Frame-based protocol.\n\n        @para...\n  [command] uploadJob(self, jobfile, jsonDef)\n    comment: Saves the job definition string (JSON data) into a job file.\n        The job file can be later enabled using selectJob().\n\n        @param jobfile : name of the job file to save on the device filesyste...\n  [command] selectJob(self, jobfile)\n    comment: Load and start processing the specified job file. The file must have\n        been previously created using the user interface or uploaded on the\n        device filesystem using the uploadJob() functio...\n  [command] reset(self)\n    comment: Clears the serial port buffer and resets counters to zero.\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, throws an exception or returns a negative error code.\n  [command] writeByte(self, code)\n    comment: Sends a single byte to the serial port.\n\n        @param code : the byte to send\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, throws an exception or returns a negative error...\n  [command] writeStr(self, text)\n    comment: buff\n    comment: bufflen\n    comment: idx\n    comment: ch\n    comment: // if string is pure text, we can send it as a simple command (faster)\n    comment: // send string using file upload\n    comment: Sends an ASCII string to the serial port, as is.\n\n        @param text : the text string to send\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, throws an exception or returns ...\n  [command] writeBin(self, buff)\n    comment: Sends a binary buffer to the serial port, as is.\n\n        @param buff : the binary buffer to send\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, throws an exception or return...\n  [command] writeArray(self, byteList)\n    comment: buff\n    comment: bufflen\n    comment: idx\n    comment: hexb\n    comment: res\n    comment: Sends a byte sequence (provided as a list of bytes) to the serial port.\n\n        @param byteList : a list of byte codes\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, throws ...\n  [command] writeHex(self, hexString)\n    comment: buff\n    comment: bufflen\n    comment: idx\n    comment: hexb\n    comment: res\n    comment: Sends a byte sequence (provided as a hexadecimal string) to the serial port.\n\n        @param hexString : a string of hexadecimal byte codes\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n       ...\n  [command] writeLine(self, text)\n    comment: buff\n    comment: bufflen\n    comment: idx\n    comment: ch\n    comment: // if string is pure text, we can send it as a simple command (faster)\n    comment: // send string using file upload\n    comment: Sends an ASCII string to the serial port, followed by a line break (CR LF).\n\n        @param text : the text string to send\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, thro...\n  [command] readByte(self)\n    comment: currpos\n    comment: reqlen\n    comment: buff\n    comment: bufflen\n    comment: mult\n    comment: endpos\n    comment: res\n    comment: // first check if we have the requested character in the look-ahead buffer\n    comment: // try to preload more than one byte to speed-up byte-per-byte access\n    comment: // mixed bidirectional data, retry with a smaller block\n    comment: // still mixed, need to process character by character\n    comment: Reads one byte from the receive buffer, starting at current stream position.\n        If data at current stream position is not available anymore in the receive buffer,\n        or if there is no data a...\n  [command] readStr(self, nChars)\n    comment: buff\n    comment: bufflen\n    comment: mult\n    comment: endpos\n    comment: res\n    comment: Reads data from the receive buffer as a string, starting at current stream position.\n        If data at current stream position is not available anymore in the receive buffer, the\n        function per...\n  [command] readBin(self, nChars)\n    comment: buff\n    comment: bufflen\n    comment: mult\n    comment: endpos\n    comment: idx\n    comment: res\n    comment: Reads data from the receive buffer as a binary buffer, starting at current stream position.\n        If data at current stream position is not available anymore in the receive buffer, the\n        funct...\n  [command] readArray(self, nChars)\n    comment: buff\n    comment: bufflen\n    comment: mult\n    comment: endpos\n    comment: idx\n    comment: b\n    comment: Reads data from the receive buffer as a list of bytes, starting at current stream position.\n        If data at current stream position is not available anymore in the receive buffer, the\n        funct...\n  [command] readHex(self, nBytes)\n    comment: buff\n    comment: bufflen\n    comment: mult\n    comment: endpos\n    comment: ofs\n    comment: res\n    comment: Reads data from the receive buffer as a hexadecimal string, starting at current stream position.\n        If data at current stream position is not available anymore in the receive buffer, the\n        ...\n  [command] set_SS(self, val)\n    comment: Manually sets the state of the SS line. This function has no effect when\n        the SS line is handled automatically.\n\n        @param val : 1 to turn SS active, 0 to release SS.\n\n        @return YAPI...\n  [command] nextSpiPort(self)\n    comment: Continues the enumeration of SPI ports started using yFirstSpiPort().\n        Caution: You can't make any assumption about the returned SPI ports order.\n        If you want to find a specific a SPI po...\n  [command] FirstSpiPort()\n    comment: noinspection PyTypeChecker,PyCallingNonCallable\n    comment: Starts the enumeration of SPI ports currently accessible.\n        Use the method YSpiPort.nextSpiPort() to iterate on\n        next SPI ports.\n\n        @return a pointer to a YSpiPort object, correspon...\n\nRegistry actions:\n  auto-set_currentJob (from set_currentJob())\n  auto-set_startupJob (from set_startupJob())\n  auto-set_command (from set_command())\n  auto-set_protocol (from set_protocol())\n  auto-set_voltageLevel (from set_voltageLevel())\n  auto-set_spiMode (from set_spiMode())\n  auto-set_ssPolarity (from set_ssPolarity())\n  auto-set_shiftSampling (from set_shiftSampling())\n  auto-sendCommand (from sendCommand())\n  auto-readLine (from readLine())\n  auto-readMessages (from readMessages())\n  auto-read_seek (from read_seek())\n  auto-read_tell (from read_tell())\n  auto-read_avail (from read_avail())\n  auto-queryLine (from queryLine())\n  auto-queryHex (from queryHex())\n  auto-uploadJob (from uploadJob())\n  auto-selectJob (from selectJob())\n  auto-reset (from reset())\n  auto-writeByte (from writeByte())\n  auto-writeStr (from writeStr())\n  auto-writeBin (from writeBin())\n  auto-writeArray (from writeArray())\n  auto-writeHex (from writeHex())\n  auto-writeLine (from writeLine())\n  auto-readByte (from readByte())\n  auto-readStr (from readStr())\n  auto-readBin (from readBin())\n  auto-readArray (from readArray())\n  auto-readHex (from readHex())\n  auto-set_SS (from set_SS())\n  auto-nextSpiPort (from nextSpiPort())\n\nRequired output action ids:\n  auto-set_currentJob\n  auto-set_startupJob\n  auto-set_command\n  auto-set_protocol\n  auto-set_voltageLevel\n  auto-set_spiMode\n  auto-set_ssPolarity\n  auto-set_shiftSampling\n  auto-sendCommand\n  auto-readLine\n  auto-readMessages\n  auto-read_seek\n  auto-read_tell\n  auto-read_avail\n  auto-queryLine\n  auto-queryHex\n  auto-uploadJob\n  auto-selectJob\n  auto-reset\n  auto-writeByte\n  auto-writeStr\n  auto-writeBin\n  auto-writeArray\n  auto-writeHex\n  auto-writeLine\n  auto-readByte\n  auto-readStr\n  auto-readBin\n  auto-readArray\n  auto-readHex\n  auto-set_SS\n  auto-nextSpiPort"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0e38146a143e409e0069d5bff033548190b4b677705f84e045",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1796,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 10053,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0e38146a143e409e0069d5bff0b6548190bad57e7ae357a6b7",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0e38146a143e409e0069d5c0056b0881908f80267fde4beed6",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Yoctopuce SPI通信接口模块\",\n  \"name_en\": \"Yoctopuce SPI Communication Interface Module\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"用于实验系统中连接和控制 SPI 外设的硬件接口模块，可配置串行协议、SPI 模式、位序、片选线极性与电平，并发送、接收和查询文本或二进制数据。\",\n  \"description_en\": \"A hardware SPI interface module for connecting and controlling SPI peripherals in laboratory setups. It can configure the serial protocol, SPI mode, bit order, chip-select polarity, and line voltage, and can send, receive, and query text or binary data.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_currentJob\",\n      \"description\": \"设置当前作业文件\",\n      \"description_en\": \"Set the current job file.\"\n    },\n    {\n      \"action_name\": \"auto-set_startupJob\",\n      \"description\": \"设置上电启动作业文件\",\n      \"description_en\": \"Set the startup job file.\"\n    },\n    {\n      \"action_name\": \"auto-set_command\",\n      \"description\": \"设置命令字符串\",\n      \"description_en\": \"Set the command string.\"\n    },\n    {\n      \"action_name\": \"auto-set_protocol\",\n      \"description\": \"设置串行协议类型\",\n      \"description_en\": \"Set the serial protocol type.\"\n    },\n    {\n      \"action_name\": \"auto-set_voltageLevel\",\n      \"description\": \"设置串行线电压电平\",\n      \"description_en\": \"Set the serial line voltage level.\"\n    },\n    {\n      \"action_name\": \"auto-set_spiMode\",\n      \"description\": \"设置SPI通信模式参数\",\n      \"description_en\": \"Set the SPI communication mode parameters.\"\n    },\n    {\n      \"action_name\": \"auto-set_ssPolarity\",\n      \"description\": \"设置SS片选线极性\",\n      \"description_en\": \"Set the SS chip-select line polarity.\"\n    },\n    {\n      \"action_name\": \"auto-set_shiftSampling\",\n      \"description\": \"设置SDI采样相位偏移\",\n      \"description_en\": \"Set the SDI sampling phase shift.\"\n    },\n    {\n      \"action_name\": \"auto-sendCommand\",\n      \"description\": \"向SPI端口发送命令\",\n      \"description_en\": \"Send a command to the SPI port.\"\n    },\n    {\n      \"action_name\": \"auto-readLine\",\n      \"description\": \"从接收缓冲区读取一条文本行或消息\",\n      \"description_en\": \"Read one text line or message from the receive buffer.\"\n    },\n    {\n      \"action_name\": \"auto-readMessages\",\n      \"description\": \"读取与模式匹配的接收消息\",\n      \"description_en\": \"Read received messages matching a pattern.\"\n    },\n    {\n      \"action_name\": \"auto-read_seek\",\n      \"description\": \"设置读取流的当前位置\",\n      \"description_en\": \"Set the current read stream position.\"\n    },\n    {\n      \"action_name\": \"auto-read_tell\",\n      \"description\": \"获取当前读取流位置\",\n      \"description_en\": \"Get the current read stream position.\"\n    },\n    {\n      \"action_name\": \"auto-read_avail\",\n      \"description\": \"获取当前位置可读取的字节数\",\n      \"description_en\": \"Get the number of bytes available to read from the current position.\"\n    },\n    {\n      \"action_name\": \"auto-queryLine\",\n      \"description\": \"发送文本行查询并读取回复\",\n      \"description_en\": \"Send a line-based query and read the reply.\"\n    },\n    {\n      \"action_name\": \"auto-queryHex\",\n      \"description\": \"发送二进制十六进制查询并读取回复\",\n      \"description_en\": \"Send a binary hexadecimal query and read the reply.\"\n    },\n    {\n      \"action_name\": \"auto-uploadJob\",\n      \"description\": \"上传JSON作业定义文件到设备\",\n      \"description_en\": \"Upload a JSON job definition file to the device.\"\n    },\n    {\n      \"action_name\": \"auto-selectJob\",\n      \"description\": \"加载并启动指定作业文件\",\n      \"description_en\": \"Load and start the specified job file.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"清空端口缓冲区并复位计数器\",\n      \"description_en\": \"Clear the port buffers and reset counters.\"\n    },\n    {\n      \"action_name\": \"auto-writeByte\",\n      \"description\": \"写入单个字节\",\n      \"description_en\": \"Write a single byte.\"\n    },\n    {\n      \"action_name\": \"auto-writeStr\",\n      \"description\": \"写入ASCII字符串\",\n      \"description_en\": \"Write an ASCII string.\"\n    },\n    {\n      \"action_name\": \"auto-writeBin\",\n      \"description\": \"写入二进制缓冲区\",\n      \"description_en\": \"Write a binary buffer.\"\n    },\n    {\n      \"action_name\": \"auto-writeArray\",\n      \"description\": \"写入字节数组\",\n      \"description_en\": \"Write a byte array.\"\n    },\n    {\n      \"action_name\": \"auto-writeHex\",\n      \"description\": \"写入十六进制字节序列\",\n      \"description_en\": \"Write a hexadecimal byte sequence.\"\n    },\n    {\n      \"action_name\": \"auto-writeLine\",\n      \"description\": \"写入带换行的ASCII文本行\",\n      \"description_en\": \"Write an ASCII line with a line break.\"\n    },\n    {\n      \"action_name\": \"auto-readByte\",\n      \"description\": \"读取单个字节\",\n      \"description_en\": \"Read a single byte.\"\n    },\n    {\n      \"action_name\": \"auto-readStr\",\n      \"description\": \"读取字符串数据\",\n      \"description_en\": \"Read data as a string.\"\n    },\n    {\n      \"action_name\": \"auto-readBin\",\n      \"description\": \"读取二进制数据\",\n      \"description_en\": \"Read binary data.\"\n    },\n    {\n      \"action_name\": \"auto-readArray\",\n      \"description\": \"读取字节数组数据\",\n      \"description_en\": \"Read data as a byte array.\"\n    },\n    {\n      \"action_name\": \"auto-readHex\",\n      \"description\": \"读取十六进制字符串数据\",\n      \"description_en\": \"Read data as a hexadecimal string.\"\n    },\n    {\n      \"action_name\": \"auto-set_SS\",\n      \"description\": \"手动设置SS片选线状态\",\n      \"description_en\": \"Manually set the SS chip-select line state.\"\n    },\n    {\n      \"action_name\": \"auto-nextSpiPort\",\n      \"description\": \"枚举下一个可访问的SPI端口\",\n      \"description_en\": \"Enumerate the next accessible SPI port.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"SPI communication\",\n    \"Yoctopuce\",\n    \"serial peripheral interface\",\n    \"chip select control\",\n    \"logic level selection\",\n    \"binary and text data transfer\",\n    \"lab hardware interface\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 4665,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2545,
+      "output_tokens_details": {
+        "reasoning_tokens": 1023
+      },
+      "total_tokens": 7210
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 4665,
+      "output_token_count": 2545,
+      "predict_time": 42.391879234
+    }
+  },
+  "output_text": "{\n  \"name\": \"Yoctopuce SPI通信接口模块\",\n  \"name_en\": \"Yoctopuce SPI Communication Interface Module\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"用于实验系统中连接和控制 SPI 外设的硬件接口模块，可配置串行协议、SPI 模式、位序、片选线极性与电平，并发送、接收和查询文本或二进制数据。\",\n  \"description_en\": \"A hardware SPI interface module for connecting and controlling SPI peripherals in laboratory setups. It can configure the serial protocol, SPI mode, bit order, chip-select polarity, and line voltage, and can send, receive, and query text or binary data.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_currentJob\",\n      \"description\": \"设置当前作业文件\",\n      \"description_en\": \"Set the current job file.\"\n    },\n    {\n      \"action_name\": \"auto-set_startupJob\",\n      \"description\": \"设置上电启动作业文件\",\n      \"description_en\": \"Set the startup job file.\"\n    },\n    {\n      \"action_name\": \"auto-set_command\",\n      \"description\": \"设置命令字符串\",\n      \"description_en\": \"Set the command string.\"\n    },\n    {\n      \"action_name\": \"auto-set_protocol\",\n      \"description\": \"设置串行协议类型\",\n      \"description_en\": \"Set the serial protocol type.\"\n    },\n    {\n      \"action_name\": \"auto-set_voltageLevel\",\n      \"description\": \"设置串行线电压电平\",\n      \"description_en\": \"Set the serial line voltage level.\"\n    },\n    {\n      \"action_name\": \"auto-set_spiMode\",\n      \"description\": \"设置SPI通信模式参数\",\n      \"description_en\": \"Set the SPI communication mode parameters.\"\n    },\n    {\n      \"action_name\": \"auto-set_ssPolarity\",\n      \"description\": \"设置SS片选线极性\",\n      \"description_en\": \"Set the SS chip-select line polarity.\"\n    },\n    {\n      \"action_name\": \"auto-set_shiftSampling\",\n      \"description\": \"设置SDI采样相位偏移\",\n      \"description_en\": \"Set the SDI sampling phase shift.\"\n    },\n    {\n      \"action_name\": \"auto-sendCommand\",\n      \"description\": \"向SPI端口发送命令\",\n      \"description_en\": \"Send a command to the SPI port.\"\n    },\n    {\n      \"action_name\": \"auto-readLine\",\n      \"description\": \"从接收缓冲区读取一条文本行或消息\",\n      \"description_en\": \"Read one text line or message from the receive buffer.\"\n    },\n    {\n      \"action_name\": \"auto-readMessages\",\n      \"description\": \"读取与模式匹配的接收消息\",\n      \"description_en\": \"Read received messages matching a pattern.\"\n    },\n    {\n      \"action_name\": \"auto-read_seek\",\n      \"description\": \"设置读取流的当前位置\",\n      \"description_en\": \"Set the current read stream position.\"\n    },\n    {\n      \"action_name\": \"auto-read_tell\",\n      \"description\": \"获取当前读取流位置\",\n      \"description_en\": \"Get the current read stream position.\"\n    },\n    {\n      \"action_name\": \"auto-read_avail\",\n      \"description\": \"获取当前位置可读取的字节数\",\n      \"description_en\": \"Get the number of bytes available to read from the current position.\"\n    },\n    {\n      \"action_name\": \"auto-queryLine\",\n      \"description\": \"发送文本行查询并读取回复\",\n      \"description_en\": \"Send a line-based query and read the reply.\"\n    },\n    {\n      \"action_name\": \"auto-queryHex\",\n      \"description\": \"发送二进制十六进制查询并读取回复\",\n      \"description_en\": \"Send a binary hexadecimal query and read the reply.\"\n    },\n    {\n      \"action_name\": \"auto-uploadJob\",\n      \"description\": \"上传JSON作业定义文件到设备\",\n      \"description_en\": \"Upload a JSON job definition file to the device.\"\n    },\n    {\n      \"action_name\": \"auto-selectJob\",\n      \"description\": \"加载并启动指定作业文件\",\n      \"description_en\": \"Load and start the specified job file.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"清空端口缓冲区并复位计数器\",\n      \"description_en\": \"Clear the port buffers and reset counters.\"\n    },\n    {\n      \"action_name\": \"auto-writeByte\",\n      \"description\": \"写入单个字节\",\n      \"description_en\": \"Write a single byte.\"\n    },\n    {\n      \"action_name\": \"auto-writeStr\",\n      \"description\": \"写入ASCII字符串\",\n      \"description_en\": \"Write an ASCII string.\"\n    },\n    {\n      \"action_name\": \"auto-writeBin\",\n      \"description\": \"写入二进制缓冲区\",\n      \"description_en\": \"Write a binary buffer.\"\n    },\n    {\n      \"action_name\": \"auto-writeArray\",\n      \"description\": \"写入字节数组\",\n      \"description_en\": \"Write a byte array.\"\n    },\n    {\n      \"action_name\": \"auto-writeHex\",\n      \"description\": \"写入十六进制字节序列\",\n      \"description_en\": \"Write a hexadecimal byte sequence.\"\n    },\n    {\n      \"action_name\": \"auto-writeLine\",\n      \"description\": \"写入带换行的ASCII文本行\",\n      \"description_en\": \"Write an ASCII line with a line break.\"\n    },\n    {\n      \"action_name\": \"auto-readByte\",\n      \"description\": \"读取单个字节\",\n      \"description_en\": \"Read a single byte.\"\n    },\n    {\n      \"action_name\": \"auto-readStr\",\n      \"description\": \"读取字符串数据\",\n      \"description_en\": \"Read data as a string.\"\n    },\n    {\n      \"action_name\": \"auto-readBin\",\n      \"description\": \"读取二进制数据\",\n      \"description_en\": \"Read binary data.\"\n    },\n    {\n      \"action_name\": \"auto-readArray\",\n      \"description\": \"读取字节数组数据\",\n      \"description_en\": \"Read data as a byte array.\"\n    },\n    {\n      \"action_name\": \"auto-readHex\",\n      \"description\": \"读取十六进制字符串数据\",\n      \"description_en\": \"Read data as a hexadecimal string.\"\n    },\n    {\n      \"action_name\": \"auto-set_SS\",\n      \"description\": \"手动设置SS片选线状态\",\n      \"description_en\": \"Manually set the SS chip-select line state.\"\n    },\n    {\n      \"action_name\": \"auto-nextSpiPort\",\n      \"description\": \"枚举下一个可访问的SPI端口\",\n      \"description_en\": \"Enumerate the next accessible SPI port.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"SPI communication\",\n    \"Yoctopuce\",\n    \"serial peripheral interface\",\n    \"chip select control\",\n    \"logic level selection\",\n    \"binary and text data transfer\",\n    \"lab hardware interface\"\n  ]\n}"
+}

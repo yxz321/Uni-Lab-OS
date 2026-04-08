@@ -1,70 +1,187 @@
-Device: wasatch_shell
-Registry Key: wasatch_shell
-Short Description: Wasatch Photonics 光谱仪终端接口 接口模块是由Wasatch Photonics生产的专业实验设备。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (28):
-- auto-balance_acquisition -> balance_acquisition [UniLabJsonCommand] goal_params: none
-- auto-clear -> clear [UniLabJsonCommand] goal_params: none
-- auto-clear_dark -> clear_dark [UniLabJsonCommand] goal_params: none
-- auto-configure_logging -> configure_logging [UniLabJsonCommand] goal_params: none
-- auto-disconnected -> disconnected [UniLabJsonCommand] goal_params: none
-- auto-display -> display [UniLabJsonCommand] goal_params: msg
-- auto-generate_interpolated_x_axis -> generate_interpolated_x_axis [UniLabJsonCommand] goal_params: end, incr, start
-- auto-get_all -> get_all [UniLabJsonCommand] goal_params: none
-- auto-get_dark -> get_dark [UniLabJsonCommand] goal_params: none
-- auto-get_line -> get_line [UniLabJsonCommand] goal_params: prompt
-- auto-get_next_token -> get_next_token [UniLabJsonCommand] goal_params: none
-- auto-get_spectrum -> get_spectrum [UniLabJsonCommand] goal_params: quiet
-- auto-get_spectrum_pretty -> get_spectrum_pretty [UniLabJsonCommand] goal_params: none
-- auto-get_spectrum_save -> get_spectrum_save [UniLabJsonCommand] goal_params: none
-- auto-has_input -> has_input [UniLabJsonCommand] goal_params: none
-- auto-open -> open [UniLabJsonCommand] goal_params: none
-- auto-read_bool -> read_bool [UniLabJsonCommand] goal_params: none
-- auto-read_float -> read_float [UniLabJsonCommand] goal_params: none
-- auto-read_int -> read_int [UniLabJsonCommand] goal_params: none
-- auto-read_str -> read_str [UniLabJsonCommand] goal_params: none
-- auto-run -> run [UniLabJsonCommand] goal_params: none
-- auto-run_gettor -> run_gettor [UniLabJsonCommand] goal_params: command
-- auto-set_interpolated_x_axis_cm -> set_interpolated_x_axis_cm [UniLabJsonCommand] goal_params: end, incr, start
-- auto-set_interpolated_x_axis_nm -> set_interpolated_x_axis_nm [UniLabJsonCommand] goal_params: end, incr, start
-- auto-set_laser_enable -> set_laser_enable [UniLabJsonCommand] goal_params: flag, quiet
-- auto-set_raman_intensity_correction_enable -> set_raman_intensity_correction_enable [UniLabJsonCommand] goal_params: device, status
-- auto-srm_process -> srm_process [UniLabJsonCommand] goal_params: device, spectrum
-- auto-usage -> usage [UniLabJsonCommand] goal_params: none
-
-Driver Functions (29):
-- WasatchShell.__init__(self) (line 108)
-- WasatchShell.usage(self) (line 191)
-- WasatchShell.disconnected(self) (line 245)
-- WasatchShell.get_line(self, prompt) (line 250)
-- WasatchShell.has_input(self) (line 254)
-- WasatchShell.get_next_token(self) (line 258)
-- WasatchShell.read_bool(self) (line 266)
-- WasatchShell.read_int(self) (line 271)
-- WasatchShell.read_float(self) (line 275)
-- WasatchShell.read_str(self) (line 279)
-- WasatchShell.display(self, msg) (line 283)
-- WasatchShell.configure_logging(self) (line 289)
-- WasatchShell.run(self) (line 300)
-- WasatchShell.open(self) (line 545)
-- WasatchShell.run_gettor(self, command) (line 611)
-- WasatchShell.get_dark(self) (line 627)
-- WasatchShell.clear_dark(self) (line 632)
-- WasatchShell.set_raman_intensity_correction_enable(self, device, status) (line 636)
-- WasatchShell.srm_process(self, spectrum, device) (line 646)
-- WasatchShell.get_spectrum(self, quiet) (line 660)
-- WasatchShell.get_spectrum_save(self) (line 693)
-- WasatchShell.get_spectrum_pretty(self) (line 716)
-- WasatchShell.set_laser_enable(self, flag, quiet) (line 739)
-- WasatchShell.generate_interpolated_x_axis(self, start, end, incr) (line 745)
-- WasatchShell.set_interpolated_x_axis_cm(self, start, end, incr) (line 757)
-- WasatchShell.set_interpolated_x_axis_nm(self, start, end, incr) (line 762)
-- WasatchShell.clear(self) (line 767)
-- WasatchShell.balance_acquisition(self) (line 774)
-- WasatchShell.get_all(self) (line 814)
+wasatch_shell:
+  name: Wasatch 光谱仪交互式命令行外壳
+  name_en: Wasatch Spectrometer Interactive Shell
+  manufacturer: ''
+  category:
+  - 光谱仪交互式控制终端
+  tags:
+  - 表征设备
+  - 实验室自动化与仪器集成
+  - 光学与光谱实验
+  - 光谱采集与检测
+  - 激光激发与光谱测量
+  - 光谱仪交互式控制终端
+  description: 一个非物理的软件命令行工具，用于连接和操作 Wasatch 光谱仪设备。它主要服务于实验调试、交互式测试和数据采集，可执行连接设备、采集光谱、控制激光、管理暗谱、设置插值坐标轴以及平衡采集参数等操作。
+  description_en: A non-physical command-line software tool for connecting to and
+    operating Wasatch spectrometer devices. It is mainly used for experiment debugging,
+    interactive testing, and data acquisition, including device connection, spectrum
+    capture, laser control, dark-spectrum management, interpolated axis setup, and
+    acquisition balancing.
+  class:
+    action_value_mappings:
+      auto-usage:
+        schema:
+          description: 显示命令用法说明
+          description_en: show command usage information
+      auto-disconnected:
+        schema:
+          description: 显示或判断设备是否已断开连接
+          description_en: show or determine whether the device is disconnected
+      auto-has_input:
+        schema:
+          description: 检查是否有可用输入
+          description_en: check whether input is available
+      auto-read_bool:
+        schema:
+          description: 读取布尔值输入
+          description_en: read a boolean input value
+      auto-read_int:
+        schema:
+          description: 读取整数输入
+          description_en: read an integer input value
+      auto-read_float:
+        schema:
+          description: 读取浮点数输入
+          description_en: read a floating-point input value
+      auto-read_str:
+        schema:
+          description: 读取字符串输入
+          description_en: read a string input value
+      auto-display:
+        schema:
+          description: 显示消息
+          description_en: display a message
+      auto-configure_logging:
+        schema:
+          description: 配置日志记录
+          description_en: configure logging
+      auto-run:
+        schema:
+          description: 运行交互式命令循环
+          description_en: run the interactive command loop
+      auto-open:
+        schema:
+          description: 打开并连接可用光谱仪
+          description_en: open and connect to an available spectrometer
+      auto-run_gettor:
+        schema:
+          description: 执行获取类命令
+          description_en: run a getter-style command
+      auto-clear_dark:
+        schema:
+          description: 清除已保存的暗谱
+          description_en: clear the stored dark spectrum
+      auto-set_raman_intensity_correction_enable:
+        schema:
+          description: 启用或禁用拉曼强度校正
+          description_en: enable or disable Raman intensity correction
+      auto-srm_process:
+        schema:
+          description: 对光谱执行 SRM 处理
+          description_en: process a spectrum using SRM handling
+      auto-set_laser_enable:
+        schema:
+          description: 启用或禁用激光
+          description_en: enable or disable the laser
+      auto-generate_interpolated_x_axis:
+        schema:
+          description: 生成插值 x 轴
+          description_en: generate an interpolated x-axis
+      auto-set_interpolated_x_axis_cm:
+        schema:
+          description: 定义以 cm⁻¹ 为单位的插值 x 轴
+          description_en: define the interpolated x-axis in cm⁻¹
+      auto-set_interpolated_x_axis_nm:
+        schema:
+          description: 定义以 nm 为单位的插值 x 轴
+          description_en: define the interpolated x-axis in nm
+      auto-clear:
+        schema:
+          description: 清除当前外壳管理的状态或数据
+          description_en: clear the current shell-managed state or data
+      auto-balance_acquisition:
+        schema:
+          description: 平衡采集参数以接近目标强度
+          description_en: balance acquisition settings toward a target intensity
+      auto-get_line:
+        schema:
+          description: 获取一行输入
+          description_en: get an input line
+      auto-get_next_token:
+        schema:
+          description: 获取下一个输入标记
+          description_en: get the next input token
+      auto-get_dark:
+        schema:
+          description: 获取暗谱
+          description_en: get the dark spectrum
+      auto-get_spectrum:
+        schema:
+          description: 获取光谱
+          description_en: get the spectrum
+      auto-get_spectrum_save:
+        schema:
+          description: 获取并保存光谱
+          description_en: get and save the spectrum
+      auto-get_spectrum_pretty:
+        schema:
+          description: 获取格式化显示的光谱
+          description_en: get the spectrum in a formatted view
+      auto-get_all:
+        schema:
+          description: 获取全部状态信息
+          description_en: get all status information
+auto_annotation_metadata:
+  registry_key: wasatch_shell
+  annotation_workflow_version: v4
+  tag_hints:
+  - command-line spectrometer control
+  - Raman spectroscopy
+  - spectrum acquisition
+  - laser enable control
+  - dark spectrum management
+  - interactive testing
+  - interpolated spectral axis
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该命令行工具用于获取光谱、暗谱及相关状态信息，服务于表征操作。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 工具承担设备连接、参数调整和采集控制，属于仪器集成控制范畴。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: 该外壳面向Wasatch光谱仪的拉曼与通用光谱实验。
+  - id: P-3002
+    name: 光谱采集与检测
+    name_en: Spectral Acquisition & Detection
+    type: experimental_scene
+    rationale: 支持交互式采谱、保存谱图及查看结果。
+  - id: P-3004
+    name: 激光激发与光谱测量
+    name_en: Laser Excitation & Spectroscopic Measurement
+    type: experimental_scene
+    rationale: 工具可启停激光并执行平衡采集等拉曼相关操作。
+  proposed_new_tags:
+  - id: P-80000002
+    name: 光谱仪交互式控制终端
+    name_en: Spectrometer Interactive Control Terminal
+    type: device_template_tag
+    rationale: 该组件是面向光谱仪调试与采集的交互式命令行控制终端。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

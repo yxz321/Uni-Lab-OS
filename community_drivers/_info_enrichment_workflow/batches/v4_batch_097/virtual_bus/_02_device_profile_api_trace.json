@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: virtual_bus\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: can/interfaces/virtual.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.virtual_bus:VirtualBus\n\nClass: VirtualBus (focal)\n  Bases: ['BusABC']\n  Docstring: A virtual CAN bus using an internal message queue. It can be used for\nexample for testing.\n\nIn this interface, a channel is an arbitrary object used as\nan identifier for connected buses.\n\nImplements :meth:`can.BusABC._detect_available_configs`; see\n:meth:`_detect_available_configs` for how it\nbehaves here.\n\n.. note::\n    The timeout when sending a message applies to each receiver\n    individually. This means that sending can block up to 5 seconds\n    if a message is sent to 5 receivers with the timeout set to 1.0.\n\n.. warning::\n    This interface guarantees reliable delivery and message ordering, but\n    does *not* implement rate limiting or ID arbitration/prioritization\n    under high loads. Please refer to the section\n    :ref:`virtual_interfaces_doc` for more information on this and a\n    comparison to alternatives.\n\nFocal class methods:\n  [command] send(self, msg, timeout=None)\n    comment: Add message to all listening on this channel\n  [command] shutdown(self)\n    comment: remove if empty\n\nRegistry actions:\n  auto-send (from send())\n  auto-shutdown (from shutdown())\n  auto-get_extra (from get_extra())\n\nRequired output action ids:\n  auto-send\n  auto-shutdown\n  auto-get_extra"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_044be4b1cf15c4940069d5bbae92c08196a98b005c18d5230a",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2475,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3676,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_044be4b1cf15c4940069d5bbaefbe4819699ee8f06f8be99b9",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_044be4b1cf15c4940069d5bbb953988196afc0617dff9f3a74",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"虚拟CAN总线\",\n  \"name_en\": \"Virtual CAN Bus\",\n  \"manufacturer\": \"\",\n  \"description\": \"基于内部消息队列的非物理虚拟CAN总线组件，用于测试和仿真。它通过任意通道标识连接多个软件总线实例，在同一逻辑通道上传递CAN消息，提供可靠的消息投递与顺序保证，但不直接连接或控制真实硬件设备。\",\n  \"description_en\": \"A non-physical virtual CAN bus component based on an internal message queue, intended for testing and simulation. It connects multiple software bus instances through an arbitrary channel identifier and passes CAN messages on the same logical channel, providing reliable delivery and message ordering without directly interfacing with real hardware.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"向该虚拟通道上的所有监听方发送一条CAN消息。\",\n      \"description_en\": \"Send a CAN message to all listeners on this virtual channel.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭此虚拟总线实例，并在通道为空时将其移除。\",\n      \"description_en\": \"Shut down this virtual bus instance and remove the channel if it becomes empty.\"\n    },\n    {\n      \"action_name\": \"auto-get_extra\",\n      \"description\": \"获取该虚拟总线接口的附加信息。\",\n      \"description_en\": \"Get extra information about this virtual bus interface.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"virtual CAN bus\",\n    \"software simulation\",\n    \"message queue\",\n    \"CAN testing\",\n    \"reliable message delivery\",\n    \"bus emulation\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1019,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 895,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 1914
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1019,
+      "output_token_count": 895,
+      "predict_time": 17.948291943
+    }
+  },
+  "output_text": "{\n  \"name\": \"虚拟CAN总线\",\n  \"name_en\": \"Virtual CAN Bus\",\n  \"manufacturer\": \"\",\n  \"description\": \"基于内部消息队列的非物理虚拟CAN总线组件，用于测试和仿真。它通过任意通道标识连接多个软件总线实例，在同一逻辑通道上传递CAN消息，提供可靠的消息投递与顺序保证，但不直接连接或控制真实硬件设备。\",\n  \"description_en\": \"A non-physical virtual CAN bus component based on an internal message queue, intended for testing and simulation. It connects multiple software bus instances through an arbitrary channel identifier and passes CAN messages on the same logical channel, providing reliable delivery and message ordering without directly interfacing with real hardware.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-send\",\n      \"description\": \"向该虚拟通道上的所有监听方发送一条CAN消息。\",\n      \"description_en\": \"Send a CAN message to all listeners on this virtual channel.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭此虚拟总线实例，并在通道为空时将其移除。\",\n      \"description_en\": \"Shut down this virtual bus instance and remove the channel if it becomes empty.\"\n    },\n    {\n      \"action_name\": \"auto-get_extra\",\n      \"description\": \"获取该虚拟总线接口的附加信息。\",\n      \"description_en\": \"Get extra information about this virtual bus interface.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"virtual CAN bus\",\n    \"software simulation\",\n    \"message queue\",\n    \"CAN testing\",\n    \"reliable message delivery\",\n    \"bus emulation\"\n  ]\n}"
+}

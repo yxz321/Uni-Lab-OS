@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: yi2c_port\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/Switch-Yoctopuce_Yocto-Relay/libs/yoctopuce/yocto_i2cport.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.custom.yi2c_port:YI2cPort\n\nClass: YI2cPort (focal)\n  Bases: ['YFunction']\n  Docstring: The YI2cPort classe allows you to fully drive a Yoctopuce I2C port.\nIt can be used to send and receive data, and to configure communication\nparameters (baud rate, etc).\nNote that Yoctopuce I2C ports are not exposed as virtual COM ports.\nThey are meant to be used in the same way as all Yoctopuce devices.\n\nFocal class methods:\n  [status_getter] get_rxCount(self)\n    comment: res\n    comment: Returns the total number of bytes received since last reset.\n\n        @return an integer corresponding to the total number of bytes received since last reset\n\n        On failure, throws an exception o...\n  [status_getter] get_txCount(self)\n    comment: res\n    comment: Returns the total number of bytes transmitted since last reset.\n\n        @return an integer corresponding to the total number of bytes transmitted since last reset\n\n        On failure, throws an excep...\n  [status_getter] get_errCount(self)\n    comment: res\n    comment: Returns the total number of communication errors detected since last reset.\n\n        @return an integer corresponding to the total number of communication errors detected since last reset\n\n        On ...\n  [status_getter] get_rxMsgCount(self)\n    comment: res\n    comment: Returns the total number of messages received since last reset.\n\n        @return an integer corresponding to the total number of messages received since last reset\n\n        On failure, throws an excep...\n  [status_getter] get_txMsgCount(self)\n    comment: res\n    comment: Returns the total number of messages send since last reset.\n\n        @return an integer corresponding to the total number of messages send since last reset\n\n        On failure, throws an exception or ...\n  [status_getter] get_lastMsg(self)\n    comment: res\n    comment: Returns the latest message fully received (for Line and Frame protocols).\n\n        @return a string corresponding to the latest message fully received (for Line and Frame protocols)\n\n        On failur...\n  [status_getter] get_currentJob(self)\n    comment: res\n    comment: Returns the name of the job file currently in use.\n\n        @return a string corresponding to the name of the job file currently in use\n\n        On failure, throws an exception or returns YI2cPort.CUR...\n  [status_setter] set_currentJob(self, newval)\n    comment: Selects a job file to run immediately. If an empty string is\n        given as argument, stops running current job file.\n\n        @param newval : a string\n\n        @return YAPI.SUCCESS if the call succ...\n  [status_getter] get_startupJob(self)\n    comment: res\n    comment: Returns the job file to use when the device is powered on.\n\n        @return a string corresponding to the job file to use when the device is powered on\n\n        On failure, throws an exception or retu...\n  [status_setter] set_startupJob(self, newval)\n    comment: Changes the job to use when the device is powered on.\n        Remember to call the saveToFlash() method of the module if the\n        modification must be kept.\n\n        @param newval : a string corres...\n  [status_getter] get_jobMaxTask(self)\n    comment: res\n    comment: Returns the maximum number of tasks in a job that the device can handle.\n\n        @return an integer corresponding to the maximum number of tasks in a job that the device can handle\n\n        On failur...\n  [status_getter] get_jobMaxSize(self)\n    comment: res\n    comment: Returns maximum size allowed for job files.\n\n        @return an integer corresponding to maximum size allowed for job files\n\n        On failure, throws an exception or returns YI2cPort.JOBMAXSIZE_INVA...\n  [status_getter] get_command(self)\n    comment: res\n  [status_setter] set_command(self, newval)\n  [status_getter] get_protocol(self)\n    comment: res\n    comment: Returns the type of protocol used to send I2C messages, as a string.\n        Possible values are\n        \"Line\" for messages separated by LF or\n        \"Char\" for continuous stream of codes.\n\n        ...\n  [status_setter] set_protocol(self, newval)\n    comment: Changes the type of protocol used to send I2C messages.\n        Possible values are\n        \"Line\" for messages separated by LF or\n        \"Char\" for continuous stream of codes.\n        The suffix \"/[...\n  [status_getter] get_i2cVoltageLevel(self)\n    comment: res\n    comment: Returns the voltage level used on the I2C bus.\n\n        @return a value among YI2cPort.I2CVOLTAGELEVEL_OFF, YI2cPort.I2CVOLTAGELEVEL_3V3 and\n        YI2cPort.I2CVOLTAGELEVEL_1V8 corresponding to the v...\n  [status_setter] set_i2cVoltageLevel(self, newval)\n    comment: Changes the voltage level used on the I2C bus.\n        Remember to call the saveToFlash() method of the module if the\n        modification must be kept.\n\n        @param newval : a value among YI2cPort...\n  [status_getter] get_i2cMode(self)\n    comment: res\n    comment: Returns the I2C port communication parameters, as a string such as\n        \"400kbps,2000ms,NoRestart\". The string includes the baud rate, the\n        recovery delay after communications errors, and if...\n  [status_setter] set_i2cMode(self, newval)\n    comment: Changes the I2C port communication parameters, with a string such as\n        \"400kbps,2000ms\". The string includes the baud rate, the\n        recovery delay after communications errors, and if needed ...\n  [command] FindI2cPort(func)\n    comment: obj\n    comment: Retrieves an I2C port for a given identifier.\n        The identifier can be specified using several formats:\n        <ul>\n        <li>FunctionLogicalName</li>\n        <li>ModuleSerialNumber.FunctionId...\n  [command] sendCommand(self, text)\n  [command] readLine(self)\n    comment: url\n    comment: msgbin\n    comment: msglen\n    comment: res\n    comment: // last element of array is the new position\n    comment: Reads a single line (or message) from the receive buffer, starting at current stream position.\n        This function is intended to be used when the serial port is configured for a message protocol,\n ...\n  [command] readMessages(self, pattern, maxWait)\n    comment: url\n    comment: msgbin\n    comment: msglen\n    comment: idx\n    comment: // last element of array is the new position\n    comment: Searches for incoming messages in the serial port receive buffer matching a given pattern,\n        starting at current position. This function will only compare and return printable characters\n       ...\n  [command] read_seek(self, absPos)\n    comment: Changes the current internal stream position to the specified value. This function\n        does not affect the device, it only changes the value stored in the API object\n        for the next read oper...\n  [command] read_tell(self)\n    comment: Returns the current absolute stream position pointer of the API object.\n\n        @return the absolute position index for next read operations.\n  [command] read_avail(self)\n    comment: buff\n    comment: bufflen\n    comment: res\n    comment: Returns the number of bytes available to read in the input buffer starting from the\n        current absolute stream position pointer of the API object.\n\n        @return the number of bytes available t...\n  [command] queryLine(self, query, maxWait)\n    comment: url\n    comment: msgbin\n    comment: msglen\n    comment: res\n    comment: // last element of array is the new position\n    comment: Sends a text line query to the serial port, and reads the reply, if any.\n        This function is intended to be used when the serial port is configured for 'Line' protocol.\n\n        @param query : th...\n  [command] queryHex(self, hexString, maxWait)\n    comment: url\n    comment: msgbin\n    comment: msglen\n    comment: res\n    comment: // last element of array is the new position\n    comment: Sends a binary message to the serial port, and reads the reply, if any.\n        This function is intended to be used when the serial port is configured for\n        Frame-based protocol.\n\n        @para...\n  [command] uploadJob(self, jobfile, jsonDef)\n    comment: Saves the job definition string (JSON data) into a job file.\n        The job file can be later enabled using selectJob().\n\n        @param jobfile : name of the job file to save on the device filesyste...\n  [command] selectJob(self, jobfile)\n    comment: Load and start processing the specified job file. The file must have\n        been previously created using the user interface or uploaded on the\n        device filesystem using the uploadJob() functio...\n  [command] reset(self)\n    comment: Clears the serial port buffer and resets counters to zero.\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, throws an exception or returns a negative error code.\n  [command] i2cSendBin(self, slaveAddr, buff)\n    comment: nBytes\n    comment: idx\n    comment: val\n    comment: msg\n    comment: reply\n    comment: Sends a one-way message (provided as a a binary buffer) to a device on the I2C bus.\n        This function checks and reports communication errors on the I2C bus.\n\n        @param slaveAddr : the 7-bit ...\n  [command] i2cSendArray(self, slaveAddr, values)\n    comment: nBytes\n    comment: idx\n    comment: val\n    comment: msg\n    comment: reply\n    comment: Sends a one-way message (provided as a list of integer) to a device on the I2C bus.\n        This function checks and reports communication errors on the I2C bus.\n\n        @param slaveAddr : the 7-bit ...\n  [command] i2cSendAndReceiveBin(self, slaveAddr, buff, rcvCount)\n    comment: nBytes\n    comment: idx\n    comment: val\n    comment: msg\n    comment: reply\n    comment: rcvbytes\n    comment: Sends a one-way message (provided as a a binary buffer) to a device on the I2C bus,\n        then read back the specified number of bytes from device.\n        This function checks and reports communica...\n  [command] i2cSendAndReceiveArray(self, slaveAddr, values, rcvCount)\n    comment: nBytes\n    comment: idx\n    comment: val\n    comment: msg\n    comment: reply\n    comment: rcvbytes\n    comment: Sends a one-way message (provided as a list of integer) to a device on the I2C bus,\n        then read back the specified number of bytes from device.\n        This function checks and reports communica...\n  [command] writeStr(self, codes)\n    comment: bufflen\n    comment: buff\n    comment: idx\n    comment: ch\n    comment: // if string is pure text, we can send it as a simple command (faster)\n    comment: // send string using file upload\n    comment: Sends a text-encoded I2C code stream to the I2C bus, as is.\n        An I2C code stream is a string made of hexadecimal data bytes,\n        but that may also include the I2C state transitions code:\n   ...\n  [command] writeLine(self, codes)\n    comment: bufflen\n    comment: buff\n    comment: // send string using file upload\n    comment: Sends a text-encoded I2C code stream to the I2C bus, and terminate\n        the message en relâchant le bus.\n        An I2C code stream is a string made of hexadecimal data bytes,\n        but that may ...\n  [command] writeByte(self, code)\n    comment: Sends a single byte to the I2C bus. Depending on the I2C bus state, the byte\n        will be interpreted as an address byte or a data byte.\n\n        @param code : the byte to send\n\n        @return YAP...\n  [command] writeHex(self, hexString)\n    comment: bufflen\n    comment: buff\n    comment: Sends a byte sequence (provided as a hexadecimal string) to the I2C bus.\n        Depending on the I2C bus state, the first byte will be interpreted as an\n        address byte or a data byte.\n\n        ...\n  [command] writeBin(self, buff)\n    comment: nBytes\n    comment: idx\n    comment: val\n    comment: msg\n    comment: Sends a binary buffer to the I2C bus, as is.\n        Depending on the I2C bus state, the first byte will be interpreted\n        as an address byte or a data byte.\n\n        @param buff : the binary buf...\n  [command] writeArray(self, byteList)\n    comment: nBytes\n    comment: idx\n    comment: val\n    comment: msg\n    comment: Sends a byte sequence (provided as a list of bytes) to the I2C bus.\n        Depending on the I2C bus state, the first byte will be interpreted as an\n        address byte or a data byte.\n\n        @para...\n  [command] nextI2cPort(self)\n    comment: Continues the enumeration of I2C ports started using yFirstI2cPort().\n        Caution: You can't make any assumption about the returned I2C ports order.\n        If you want to find a specific an I2C p...\n  [command] FirstI2cPort()\n    comment: noinspection PyTypeChecker,PyCallingNonCallable\n    comment: Starts the enumeration of I2C ports currently accessible.\n        Use the method YI2cPort.nextI2cPort() to iterate on\n        next I2C ports.\n\n        @return a pointer to a YI2cPort object, correspon...\n\nRegistry actions:\n  auto-set_currentJob (from set_currentJob())\n  auto-set_startupJob (from set_startupJob())\n  auto-set_command (from set_command())\n  auto-set_protocol (from set_protocol())\n  auto-set_i2cVoltageLevel (from set_i2cVoltageLevel())\n  auto-set_i2cMode (from set_i2cMode())\n  auto-sendCommand (from sendCommand())\n  auto-readLine (from readLine())\n  auto-readMessages (from readMessages())\n  auto-read_seek (from read_seek())\n  auto-read_tell (from read_tell())\n  auto-read_avail (from read_avail())\n  auto-queryLine (from queryLine())\n  auto-queryHex (from queryHex())\n  auto-uploadJob (from uploadJob())\n  auto-selectJob (from selectJob())\n  auto-reset (from reset())\n  auto-i2cSendBin (from i2cSendBin())\n  auto-i2cSendArray (from i2cSendArray())\n  auto-i2cSendAndReceiveBin (from i2cSendAndReceiveBin())\n  auto-i2cSendAndReceiveArray (from i2cSendAndReceiveArray())\n  auto-writeStr (from writeStr())\n  auto-writeLine (from writeLine())\n  auto-writeByte (from writeByte())\n  auto-writeHex (from writeHex())\n  auto-writeBin (from writeBin())\n  auto-writeArray (from writeArray())\n  auto-nextI2cPort (from nextI2cPort())\n\nRequired output action ids:\n  auto-set_currentJob\n  auto-set_startupJob\n  auto-set_command\n  auto-set_protocol\n  auto-set_i2cVoltageLevel\n  auto-set_i2cMode\n  auto-sendCommand\n  auto-readLine\n  auto-readMessages\n  auto-read_seek\n  auto-read_tell\n  auto-read_avail\n  auto-queryLine\n  auto-queryHex\n  auto-uploadJob\n  auto-selectJob\n  auto-reset\n  auto-i2cSendBin\n  auto-i2cSendArray\n  auto-i2cSendAndReceiveBin\n  auto-i2cSendAndReceiveArray\n  auto-writeStr\n  auto-writeLine\n  auto-writeByte\n  auto-writeHex\n  auto-writeBin\n  auto-writeArray\n  auto-nextI2cPort"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_048da5f8aa2aeaca0069d5bff0ac2081978a160451e47935dc",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1792,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 10099,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_048da5f8aa2aeaca0069d5bff117408197bd0671851e9cc599",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_048da5f8aa2aeaca0069d5c00869bc8197925c3ecfab0a6e2a",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Yoctopuce I2C 端口模块\",\n  \"name_en\": \"Yoctopuce I2C Port\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"用于驱动和管理 Yoctopuce 的 I2C 硬件端口，可在实验系统中与各类 I2C 传感器、执行器或外围模块进行通信。支持设置总线电压与通信模式、发送和接收 I2C 数据、查询响应，以及在设备上上传和运行任务文件。\",\n  \"description_en\": \"A hardware I2C interface from Yoctopuce used to communicate with I2C sensors, actuators, and peripheral modules in lab setups. It supports configuring bus voltage and communication mode, sending and receiving I2C data, performing query-response transactions, and uploading or running job files on the device.\",\n  \"tag_hints\": [\n    \"I2C communication\",\n    \"USB-to-I2C interface\",\n    \"sensor/peripheral control\",\n    \"bus voltage selection\",\n    \"query-response transactions\",\n    \"job scripting\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_currentJob\",\n      \"description\": \"设置当前运行的任务文件\",\n      \"description_en\": \"Set the current job file.\"\n    },\n    {\n      \"action_name\": \"auto-set_startupJob\",\n      \"description\": \"设置上电启动任务文件\",\n      \"description_en\": \"Set the startup job file.\"\n    },\n    {\n      \"action_name\": \"auto-set_command\",\n      \"description\": \"设置命令字符串\",\n      \"description_en\": \"Set the command string.\"\n    },\n    {\n      \"action_name\": \"auto-set_protocol\",\n      \"description\": \"设置通信协议类型\",\n      \"description_en\": \"Set the communication protocol type.\"\n    },\n    {\n      \"action_name\": \"auto-set_i2cVoltageLevel\",\n      \"description\": \"设置 I2C 总线电压等级\",\n      \"description_en\": \"Set the I2C bus voltage level.\"\n    },\n    {\n      \"action_name\": \"auto-set_i2cMode\",\n      \"description\": \"设置 I2C 通信参数\",\n      \"description_en\": \"Set the I2C communication parameters.\"\n    },\n    {\n      \"action_name\": \"auto-sendCommand\",\n      \"description\": \"向 I2C 端口发送底层命令\",\n      \"description_en\": \"Send a low-level command to the I2C port.\"\n    },\n    {\n      \"action_name\": \"auto-readLine\",\n      \"description\": \"从接收缓冲区读取一条消息或一行数据\",\n      \"description_en\": \"Read one message or line from the receive buffer.\"\n    },\n    {\n      \"action_name\": \"auto-readMessages\",\n      \"description\": \"读取与模式匹配的接收消息\",\n      \"description_en\": \"Read received messages matching a pattern.\"\n    },\n    {\n      \"action_name\": \"auto-read_seek\",\n      \"description\": \"设置内部读取流位置\",\n      \"description_en\": \"Set the internal read stream position.\"\n    },\n    {\n      \"action_name\": \"auto-read_tell\",\n      \"description\": \"获取当前读取流位置\",\n      \"description_en\": \"Get the current read stream position.\"\n    },\n    {\n      \"action_name\": \"auto-read_avail\",\n      \"description\": \"获取当前读取位置之后可用的字节数\",\n      \"description_en\": \"Get the number of bytes available after the current read position.\"\n    },\n    {\n      \"action_name\": \"auto-queryLine\",\n      \"description\": \"发送文本行查询并读取回复\",\n      \"description_en\": \"Send a text line query and read the reply.\"\n    },\n    {\n      \"action_name\": \"auto-queryHex\",\n      \"description\": \"发送十六进制二进制查询并读取回复\",\n      \"description_en\": \"Send a hexadecimal binary query and read the reply.\"\n    },\n    {\n      \"action_name\": \"auto-uploadJob\",\n      \"description\": \"上传任务文件定义到设备\",\n      \"description_en\": \"Upload a job file definition to the device.\"\n    },\n    {\n      \"action_name\": \"auto-selectJob\",\n      \"description\": \"加载并启动指定任务文件\",\n      \"description_en\": \"Load and start the specified job file.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"清空端口缓冲区并重置计数器\",\n      \"description_en\": \"Clear the port buffer and reset counters.\"\n    },\n    {\n      \"action_name\": \"auto-i2cSendBin\",\n      \"description\": \"向指定 I2C 从设备发送二进制数据\",\n      \"description_en\": \"Send binary data to a specified I2C slave device.\"\n    },\n    {\n      \"action_name\": \"auto-i2cSendArray\",\n      \"description\": \"向指定 I2C 从设备发送字节数组\",\n      \"description_en\": \"Send a byte array to a specified I2C slave device.\"\n    },\n    {\n      \"action_name\": \"auto-i2cSendAndReceiveBin\",\n      \"description\": \"向指定 I2C 从设备发送二进制数据并读取返回数据\",\n      \"description_en\": \"Send binary data to a specified I2C slave device and read back data.\"\n    },\n    {\n      \"action_name\": \"auto-i2cSendAndReceiveArray\",\n      \"description\": \"向指定 I2C 从设备发送字节数组并读取返回数据\",\n      \"description_en\": \"Send a byte array to a specified I2C slave device and read back data.\"\n    },\n    {\n      \"action_name\": \"auto-writeStr\",\n      \"description\": \"向 I2C 总线写入文本编码的 I2C 码流\",\n      \"description_en\": \"Write a text-encoded I2C code stream to the I2C bus.\"\n    },\n    {\n      \"action_name\": \"auto-writeLine\",\n      \"description\": \"向 I2C 总线写入一条文本编码的 I2C 码流并释放总线\",\n      \"description_en\": \"Write a text-encoded I2C code stream to the I2C bus and release the bus.\"\n    },\n    {\n      \"action_name\": \"auto-writeByte\",\n      \"description\": \"向 I2C 总线写入单个字节\",\n      \"description_en\": \"Write a single byte to the I2C bus.\"\n    },\n    {\n      \"action_name\": \"auto-writeHex\",\n      \"description\": \"向 I2C 总线写入十六进制字节序列\",\n      \"description_en\": \"Write a hexadecimal byte sequence to the I2C bus.\"\n    },\n    {\n      \"action_name\": \"auto-writeBin\",\n      \"description\": \"向 I2C 总线写入原始二进制缓冲区\",\n      \"description_en\": \"Write a raw binary buffer to the I2C bus.\"\n    },\n    {\n      \"action_name\": \"auto-writeArray\",\n      \"description\": \"向 I2C 总线写入字节数组\",\n      \"description_en\": \"Write a byte array to the I2C bus.\"\n    },\n    {\n      \"action_name\": \"auto-nextI2cPort\",\n      \"description\": \"枚举下一个可访问的 I2C 端口\",\n      \"description_en\": \"Enumerate the next accessible I2C port.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 4300,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2751,
+      "output_tokens_details": {
+        "reasoning_tokens": 1150
+      },
+      "total_tokens": 7051
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 4300,
+      "output_token_count": 2751,
+      "predict_time": 46.951531173
+    }
+  },
+  "output_text": "{\n  \"name\": \"Yoctopuce I2C 端口模块\",\n  \"name_en\": \"Yoctopuce I2C Port\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"用于驱动和管理 Yoctopuce 的 I2C 硬件端口，可在实验系统中与各类 I2C 传感器、执行器或外围模块进行通信。支持设置总线电压与通信模式、发送和接收 I2C 数据、查询响应，以及在设备上上传和运行任务文件。\",\n  \"description_en\": \"A hardware I2C interface from Yoctopuce used to communicate with I2C sensors, actuators, and peripheral modules in lab setups. It supports configuring bus voltage and communication mode, sending and receiving I2C data, performing query-response transactions, and uploading or running job files on the device.\",\n  \"tag_hints\": [\n    \"I2C communication\",\n    \"USB-to-I2C interface\",\n    \"sensor/peripheral control\",\n    \"bus voltage selection\",\n    \"query-response transactions\",\n    \"job scripting\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_currentJob\",\n      \"description\": \"设置当前运行的任务文件\",\n      \"description_en\": \"Set the current job file.\"\n    },\n    {\n      \"action_name\": \"auto-set_startupJob\",\n      \"description\": \"设置上电启动任务文件\",\n      \"description_en\": \"Set the startup job file.\"\n    },\n    {\n      \"action_name\": \"auto-set_command\",\n      \"description\": \"设置命令字符串\",\n      \"description_en\": \"Set the command string.\"\n    },\n    {\n      \"action_name\": \"auto-set_protocol\",\n      \"description\": \"设置通信协议类型\",\n      \"description_en\": \"Set the communication protocol type.\"\n    },\n    {\n      \"action_name\": \"auto-set_i2cVoltageLevel\",\n      \"description\": \"设置 I2C 总线电压等级\",\n      \"description_en\": \"Set the I2C bus voltage level.\"\n    },\n    {\n      \"action_name\": \"auto-set_i2cMode\",\n      \"description\": \"设置 I2C 通信参数\",\n      \"description_en\": \"Set the I2C communication parameters.\"\n    },\n    {\n      \"action_name\": \"auto-sendCommand\",\n      \"description\": \"向 I2C 端口发送底层命令\",\n      \"description_en\": \"Send a low-level command to the I2C port.\"\n    },\n    {\n      \"action_name\": \"auto-readLine\",\n      \"description\": \"从接收缓冲区读取一条消息或一行数据\",\n      \"description_en\": \"Read one message or line from the receive buffer.\"\n    },\n    {\n      \"action_name\": \"auto-readMessages\",\n      \"description\": \"读取与模式匹配的接收消息\",\n      \"description_en\": \"Read received messages matching a pattern.\"\n    },\n    {\n      \"action_name\": \"auto-read_seek\",\n      \"description\": \"设置内部读取流位置\",\n      \"description_en\": \"Set the internal read stream position.\"\n    },\n    {\n      \"action_name\": \"auto-read_tell\",\n      \"description\": \"获取当前读取流位置\",\n      \"description_en\": \"Get the current read stream position.\"\n    },\n    {\n      \"action_name\": \"auto-read_avail\",\n      \"description\": \"获取当前读取位置之后可用的字节数\",\n      \"description_en\": \"Get the number of bytes available after the current read position.\"\n    },\n    {\n      \"action_name\": \"auto-queryLine\",\n      \"description\": \"发送文本行查询并读取回复\",\n      \"description_en\": \"Send a text line query and read the reply.\"\n    },\n    {\n      \"action_name\": \"auto-queryHex\",\n      \"description\": \"发送十六进制二进制查询并读取回复\",\n      \"description_en\": \"Send a hexadecimal binary query and read the reply.\"\n    },\n    {\n      \"action_name\": \"auto-uploadJob\",\n      \"description\": \"上传任务文件定义到设备\",\n      \"description_en\": \"Upload a job file definition to the device.\"\n    },\n    {\n      \"action_name\": \"auto-selectJob\",\n      \"description\": \"加载并启动指定任务文件\",\n      \"description_en\": \"Load and start the specified job file.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"清空端口缓冲区并重置计数器\",\n      \"description_en\": \"Clear the port buffer and reset counters.\"\n    },\n    {\n      \"action_name\": \"auto-i2cSendBin\",\n      \"description\": \"向指定 I2C 从设备发送二进制数据\",\n      \"description_en\": \"Send binary data to a specified I2C slave device.\"\n    },\n    {\n      \"action_name\": \"auto-i2cSendArray\",\n      \"description\": \"向指定 I2C 从设备发送字节数组\",\n      \"description_en\": \"Send a byte array to a specified I2C slave device.\"\n    },\n    {\n      \"action_name\": \"auto-i2cSendAndReceiveBin\",\n      \"description\": \"向指定 I2C 从设备发送二进制数据并读取返回数据\",\n      \"description_en\": \"Send binary data to a specified I2C slave device and read back data.\"\n    },\n    {\n      \"action_name\": \"auto-i2cSendAndReceiveArray\",\n      \"description\": \"向指定 I2C 从设备发送字节数组并读取返回数据\",\n      \"description_en\": \"Send a byte array to a specified I2C slave device and read back data.\"\n    },\n    {\n      \"action_name\": \"auto-writeStr\",\n      \"description\": \"向 I2C 总线写入文本编码的 I2C 码流\",\n      \"description_en\": \"Write a text-encoded I2C code stream to the I2C bus.\"\n    },\n    {\n      \"action_name\": \"auto-writeLine\",\n      \"description\": \"向 I2C 总线写入一条文本编码的 I2C 码流并释放总线\",\n      \"description_en\": \"Write a text-encoded I2C code stream to the I2C bus and release the bus.\"\n    },\n    {\n      \"action_name\": \"auto-writeByte\",\n      \"description\": \"向 I2C 总线写入单个字节\",\n      \"description_en\": \"Write a single byte to the I2C bus.\"\n    },\n    {\n      \"action_name\": \"auto-writeHex\",\n      \"description\": \"向 I2C 总线写入十六进制字节序列\",\n      \"description_en\": \"Write a hexadecimal byte sequence to the I2C bus.\"\n    },\n    {\n      \"action_name\": \"auto-writeBin\",\n      \"description\": \"向 I2C 总线写入原始二进制缓冲区\",\n      \"description_en\": \"Write a raw binary buffer to the I2C bus.\"\n    },\n    {\n      \"action_name\": \"auto-writeArray\",\n      \"description\": \"向 I2C 总线写入字节数组\",\n      \"description_en\": \"Write a byte array to the I2C bus.\"\n    },\n    {\n      \"action_name\": \"auto-nextI2cPort\",\n      \"description\": \"枚举下一个可访问的 I2C 端口\",\n      \"description_en\": \"Enumerate the next accessible I2C port.\"\n    }\n  ]\n}"
+}

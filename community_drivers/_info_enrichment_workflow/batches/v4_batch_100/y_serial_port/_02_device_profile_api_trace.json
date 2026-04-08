@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: y_serial_port\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/Switch-Yoctopuce_Yocto-Relay/libs/yoctopuce/yocto_serialport.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.custom.y_serial_port:YSerialPort\n\nClass: YSnoopingRecord \n  Bases: ['object']\n\nClass: YSerialPort (focal)\n  Bases: ['YFunction']\n  Docstring: The YSerialPort class allows you to fully drive a Yoctopuce serial port.\nIt can be used to send and receive data, and to configure communication\nparameters (baud rate, bit count, parity, flow control and protocol).\nNote that Yoctopuce serial ports are not exposed as virtual COM ports.\nThey are meant to be used in the same way as all Yoctopuce devices.\n\nFocal class methods:\n  [status_getter] get_rxCount(self)\n    comment: res\n    comment: Returns the total number of bytes received since last reset.\n\n        @return an integer corresponding to the total number of bytes received since last reset\n\n        On failure, throws an exception o...\n  [status_getter] get_txCount(self)\n    comment: res\n    comment: Returns the total number of bytes transmitted since last reset.\n\n        @return an integer corresponding to the total number of bytes transmitted since last reset\n\n        On failure, throws an excep...\n  [status_getter] get_errCount(self)\n    comment: res\n    comment: Returns the total number of communication errors detected since last reset.\n\n        @return an integer corresponding to the total number of communication errors detected since last reset\n\n        On ...\n  [status_getter] get_rxMsgCount(self)\n    comment: res\n    comment: Returns the total number of messages received since last reset.\n\n        @return an integer corresponding to the total number of messages received since last reset\n\n        On failure, throws an excep...\n  [status_getter] get_txMsgCount(self)\n    comment: res\n    comment: Returns the total number of messages send since last reset.\n\n        @return an integer corresponding to the total number of messages send since last reset\n\n        On failure, throws an exception or ...\n  [status_getter] get_lastMsg(self)\n    comment: res\n    comment: Returns the latest message fully received (for Line, Frame and Modbus protocols).\n\n        @return a string corresponding to the latest message fully received (for Line, Frame and Modbus protocols)\n\n ...\n  [status_getter] get_currentJob(self)\n    comment: res\n    comment: Returns the name of the job file currently in use.\n\n        @return a string corresponding to the name of the job file currently in use\n\n        On failure, throws an exception or returns YSerialPort....\n  [status_setter] set_currentJob(self, newval)\n    comment: Selects a job file to run immediately. If an empty string is\n        given as argument, stops running current job file.\n\n        @param newval : a string\n\n        @return YAPI.SUCCESS if the call succ...\n  [status_getter] get_startupJob(self)\n    comment: res\n    comment: Returns the job file to use when the device is powered on.\n\n        @return a string corresponding to the job file to use when the device is powered on\n\n        On failure, throws an exception or retu...\n  [status_setter] set_startupJob(self, newval)\n    comment: Changes the job to use when the device is powered on.\n        Remember to call the saveToFlash() method of the module if the\n        modification must be kept.\n\n        @param newval : a string corres...\n  [status_getter] get_jobMaxTask(self)\n    comment: res\n    comment: Returns the maximum number of tasks in a job that the device can handle.\n\n        @return an integer corresponding to the maximum number of tasks in a job that the device can handle\n\n        On failur...\n  [status_getter] get_jobMaxSize(self)\n    comment: res\n    comment: Returns maximum size allowed for job files.\n\n        @return an integer corresponding to maximum size allowed for job files\n\n        On failure, throws an exception or returns YSerialPort.JOBMAXSIZE_I...\n  [status_getter] get_command(self)\n    comment: res\n  [status_setter] set_command(self, newval)\n  [status_getter] get_protocol(self)\n    comment: res\n    comment: Returns the type of protocol used over the serial line, as a string.\n        Possible values are \"Line\" for ASCII messages separated by CR and/or LF,\n        \"Frame:[timeout]ms\" for binary messages se...\n  [status_setter] set_protocol(self, newval)\n    comment: Changes the type of protocol used over the serial line.\n        Possible values are \"Line\" for ASCII messages separated by CR and/or LF,\n        \"Frame:[timeout]ms\" for binary messages separated by a ...\n  [status_getter] get_voltageLevel(self)\n    comment: res\n    comment: Returns the voltage level used on the serial line.\n\n        @return a value among YSerialPort.VOLTAGELEVEL_OFF, YSerialPort.VOLTAGELEVEL_TTL3V,\n        YSerialPort.VOLTAGELEVEL_TTL3VR, YSerialPort.VOL...\n  [status_setter] set_voltageLevel(self, newval)\n    comment: Changes the voltage type used on the serial line. Valid\n        values  will depend on the Yoctopuce device model featuring\n        the serial port feature.  Check your device documentation\n        to...\n  [status_getter] get_serialMode(self)\n    comment: res\n    comment: Returns the serial port communication parameters, as a string such as\n        \"9600,8N1\". The string includes the baud rate, the number of data bits,\n        the parity, and the number of stop bits. A...\n  [status_setter] set_serialMode(self, newval)\n    comment: Changes the serial port communication parameters, with a string such as\n        \"9600,8N1\". The string includes the baud rate, the number of data bits,\n        the parity, and the number of stop bits....\n  [command] FindSerialPort(func)\n    comment: obj\n    comment: Retrieves a serial port for a given identifier.\n        The identifier can be specified using several formats:\n        <ul>\n        <li>FunctionLogicalName</li>\n        <li>ModuleSerialNumber.Function...\n  [command] sendCommand(self, text)\n  [command] readLine(self)\n    comment: url\n    comment: msgbin\n    comment: msglen\n    comment: res\n    comment: // last element of array is the new position\n    comment: Reads a single line (or message) from the receive buffer, starting at current stream position.\n        This function is intended to be used when the serial port is configured for a message protocol,\n ...\n  [command] readMessages(self, pattern, maxWait)\n    comment: url\n    comment: msgbin\n    comment: msglen\n    comment: idx\n    comment: // last element of array is the new position\n    comment: Searches for incoming messages in the serial port receive buffer matching a given pattern,\n        starting at current position. This function will only compare and return printable characters\n       ...\n  [command] read_seek(self, absPos)\n    comment: Changes the current internal stream position to the specified value. This function\n        does not affect the device, it only changes the value stored in the API object\n        for the next read oper...\n  [command] read_tell(self)\n    comment: Returns the current absolute stream position pointer of the API object.\n\n        @return the absolute position index for next read operations.\n  [command] read_avail(self)\n    comment: buff\n    comment: bufflen\n    comment: res\n    comment: Returns the number of bytes available to read in the input buffer starting from the\n        current absolute stream position pointer of the API object.\n\n        @return the number of bytes available t...\n  [command] queryLine(self, query, maxWait)\n    comment: url\n    comment: msgbin\n    comment: msglen\n    comment: res\n    comment: // last element of array is the new position\n    comment: Sends a text line query to the serial port, and reads the reply, if any.\n        This function is intended to be used when the serial port is configured for 'Line' protocol.\n\n        @param query : th...\n  [command] queryHex(self, hexString, maxWait)\n    comment: url\n    comment: msgbin\n    comment: msglen\n    comment: res\n    comment: // last element of array is the new position\n    comment: Sends a binary message to the serial port, and reads the reply, if any.\n        This function is intended to be used when the serial port is configured for\n        Frame-based protocol.\n\n        @para...\n  [command] uploadJob(self, jobfile, jsonDef)\n    comment: Saves the job definition string (JSON data) into a job file.\n        The job file can be later enabled using selectJob().\n\n        @param jobfile : name of the job file to save on the device filesyste...\n  [command] selectJob(self, jobfile)\n    comment: Load and start processing the specified job file. The file must have\n        been previously created using the user interface or uploaded on the\n        device filesystem using the uploadJob() functio...\n  [command] reset(self)\n    comment: Clears the serial port buffer and resets counters to zero.\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, throws an exception or returns a negative error code.\n  [command] writeByte(self, code)\n    comment: Sends a single byte to the serial port.\n\n        @param code : the byte to send\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, throws an exception or returns a negative error...\n  [command] writeStr(self, text)\n    comment: buff\n    comment: bufflen\n    comment: idx\n    comment: ch\n    comment: // if string is pure text, we can send it as a simple command (faster)\n    comment: // send string using file upload\n    comment: Sends an ASCII string to the serial port, as is.\n\n        @param text : the text string to send\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, throws an exception or returns ...\n  [command] writeBin(self, buff)\n    comment: Sends a binary buffer to the serial port, as is.\n\n        @param buff : the binary buffer to send\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, throws an exception or return...\n  [command] writeArray(self, byteList)\n    comment: buff\n    comment: bufflen\n    comment: idx\n    comment: hexb\n    comment: res\n    comment: Sends a byte sequence (provided as a list of bytes) to the serial port.\n\n        @param byteList : a list of byte codes\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, throws ...\n  [command] writeHex(self, hexString)\n    comment: buff\n    comment: bufflen\n    comment: idx\n    comment: hexb\n    comment: res\n    comment: Sends a byte sequence (provided as a hexadecimal string) to the serial port.\n\n        @param hexString : a string of hexadecimal byte codes\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n       ...\n  [command] writeLine(self, text)\n    comment: buff\n    comment: bufflen\n    comment: idx\n    comment: ch\n    comment: // if string is pure text, we can send it as a simple command (faster)\n    comment: // send string using file upload\n    comment: Sends an ASCII string to the serial port, followed by a line break (CR LF).\n\n        @param text : the text string to send\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, thro...\n  [command] readByte(self)\n    comment: currpos\n    comment: reqlen\n    comment: buff\n    comment: bufflen\n    comment: mult\n    comment: endpos\n    comment: res\n    comment: // first check if we have the requested character in the look-ahead buffer\n    comment: // try to preload more than one byte to speed-up byte-per-byte access\n    comment: // mixed bidirectional data, retry with a smaller block\n    comment: // still mixed, need to process character by character\n    comment: Reads one byte from the receive buffer, starting at current stream position.\n        If data at current stream position is not available anymore in the receive buffer,\n        or if there is no data a...\n  [command] readStr(self, nChars)\n    comment: buff\n    comment: bufflen\n    comment: mult\n    comment: endpos\n    comment: res\n    comment: Reads data from the receive buffer as a string, starting at current stream position.\n        If data at current stream position is not available anymore in the receive buffer, the\n        function per...\n  [command] readBin(self, nChars)\n    comment: buff\n    comment: bufflen\n    comment: mult\n    comment: endpos\n    comment: idx\n    comment: res\n    comment: Reads data from the receive buffer as a binary buffer, starting at current stream position.\n        If data at current stream position is not available anymore in the receive buffer, the\n        funct...\n  [command] readArray(self, nChars)\n    comment: buff\n    comment: bufflen\n    comment: mult\n    comment: endpos\n    comment: idx\n    comment: b\n    comment: Reads data from the receive buffer as a list of bytes, starting at current stream position.\n        If data at current stream position is not available anymore in the receive buffer, the\n        funct...\n  [command] readHex(self, nBytes)\n    comment: buff\n    comment: bufflen\n    comment: mult\n    comment: endpos\n    comment: ofs\n    comment: res\n    comment: Reads data from the receive buffer as a hexadecimal string, starting at current stream position.\n        If data at current stream position is not available anymore in the receive buffer, the\n        ...\n  [command] set_RTS(self, val)\n    comment: Manually sets the state of the RTS line. This function has no effect when\n        hardware handshake is enabled, as the RTS line is driven automatically.\n\n        @param val : 1 to turn RTS on, 0 to t...\n  [status_getter] get_CTS(self)\n    comment: buff\n    comment: res\n    comment: Reads the level of the CTS line. The CTS line is usually driven by\n        the RTS signal of the connected serial device.\n\n        @return 1 if the CTS line is high, 0 if the CTS line is low.\n\n       ...\n  [command] snoopMessages(self, maxWait)\n    comment: url\n    comment: msgbin\n    comment: msglen\n    comment: idx\n    comment: // last element of array is the new position\n    comment: Retrieves messages (both direction) in the serial port buffer, starting at current position.\n        This function will only compare and return printable characters in the message strings.\n        Bin...\n  [command] writeMODBUS(self, hexString)\n    comment: Sends a MODBUS message (provided as a hexadecimal string) to the serial port.\n        The message must start with the slave address. The MODBUS CRC/LRC is\n        automatically added by the function. ...\n  [command] queryMODBUS(self, slaveNo, pduBytes)\n    comment: funCode\n    comment: nib\n    comment: i\n    comment: cmd\n    comment: url\n    comment: pat\n    comment: msgs\n    comment: rep\n    comment: replen\n    comment: hexb\n    comment: Sends a message to a specified MODBUS slave connected to the serial port, and reads the\n        reply, if any. The message is the PDU, provided as a vector of bytes.\n\n        @param slaveNo : the addr...\n  [command] modbusReadBits(self, slaveNo, pduAddr, nBits)\n    comment: bitpos\n    comment: idx\n    comment: val\n    comment: mask\n    comment: Reads one or more contiguous internal bits (or coil status) from a MODBUS serial device.\n        This method uses the MODBUS function code 0x01 (Read Coils).\n\n        @param slaveNo : the address of t...\n  [command] modbusReadInputBits(self, slaveNo, pduAddr, nBits)\n    comment: bitpos\n    comment: idx\n    comment: val\n    comment: mask\n    comment: Reads one or more contiguous input bits (or discrete inputs) from a MODBUS serial device.\n        This method uses the MODBUS function code 0x02 (Read Discrete Inputs).\n\n        @param slaveNo : the a...\n  [command] modbusReadRegisters(self, slaveNo, pduAddr, nWords)\n    comment: regpos\n    comment: idx\n    comment: val\n    comment: Reads one or more contiguous internal registers (holding registers) from a MODBUS serial device.\n        This method uses the MODBUS function code 0x03 (Read Holding Registers).\n\n        @param slaveN...\n  [command] modbusReadInputRegisters(self, slaveNo, pduAddr, nWords)\n    comment: regpos\n    comment: idx\n    comment: val\n    comment: Reads one or more contiguous input registers (read-only registers) from a MODBUS serial device.\n        This method uses the MODBUS function code 0x04 (Read Input Registers).\n\n        @param slaveNo :...\n  [command] modbusWriteBit(self, slaveNo, pduAddr, value)\n    comment: res\n    comment: Sets a single internal bit (or coil) on a MODBUS serial device.\n        This method uses the MODBUS function code 0x05 (Write Single Coil).\n\n        @param slaveNo : the address of the slave MODBUS de...\n  [command] modbusWriteBits(self, slaveNo, pduAddr, bits)\n    comment: nBits\n    comment: nBytes\n    comment: bitpos\n    comment: val\n    comment: mask\n    comment: res\n    comment: Sets several contiguous internal bits (or coils) on a MODBUS serial device.\n        This method uses the MODBUS function code 0x0f (Write Multiple Coils).\n\n        @param slaveNo : the address of the ...\n  [command] modbusWriteRegister(self, slaveNo, pduAddr, value)\n    comment: res\n    comment: Sets a single internal register (or holding register) on a MODBUS serial device.\n        This method uses the MODBUS function code 0x06 (Write Single Register).\n\n        @param slaveNo : the address o...\n  [command] modbusWriteRegisters(self, slaveNo, pduAddr, values)\n    comment: nWords\n    comment: nBytes\n    comment: regpos\n    comment: val\n    comment: res\n    comment: Sets several contiguous internal registers (or holding registers) on a MODBUS serial device.\n        This method uses the MODBUS function code 0x10 (Write Multiple Registers).\n\n        @param slaveNo ...\n  [command] modbusWriteAndReadRegisters(self, slaveNo, pduWriteAddr, values, pduReadAddr, nReadWords)\n    comment: nWriteWords\n    comment: nBytes\n    comment: regpos\n    comment: val\n    comment: idx\n    comment: Sets several contiguous internal registers (holding registers) on a MODBUS serial device,\n        then performs a contiguous read of a set of (possibly different) internal registers.\n        This meth...\n  [command] nextSerialPort(self)\n    comment: Continues the enumeration of serial ports started using yFirstSerialPort().\n        Caution: You can't make any assumption about the returned serial ports order.\n        If you want to find a specific...\n  [command] FirstSerialPort()\n    comment: noinspection PyTypeChecker,PyCallingNonCallable\n    comment: Starts the enumeration of serial ports currently accessible.\n        Use the method YSerialPort.nextSerialPort() to iterate on\n        next serial ports.\n\n        @return a pointer to a YSerialPort ob...\n\nRegistry actions:\n  auto-set_currentJob (from set_currentJob())\n  auto-set_startupJob (from set_startupJob())\n  auto-set_command (from set_command())\n  auto-set_protocol (from set_protocol())\n  auto-set_voltageLevel (from set_voltageLevel())\n  auto-set_serialMode (from set_serialMode())\n  auto-sendCommand (from sendCommand())\n  auto-readLine (from readLine())\n  auto-readMessages (from readMessages())\n  auto-read_seek (from read_seek())\n  auto-read_tell (from read_tell())\n  auto-read_avail (from read_avail())\n  auto-queryLine (from queryLine())\n  auto-queryHex (from queryHex())\n  auto-uploadJob (from uploadJob())\n  auto-selectJob (from selectJob())\n  auto-reset (from reset())\n  auto-writeByte (from writeByte())\n  auto-writeStr (from writeStr())\n  auto-writeBin (from writeBin())\n  auto-writeArray (from writeArray())\n  auto-writeHex (from writeHex())\n  auto-writeLine (from writeLine())\n  auto-readByte (from readByte())\n  auto-readStr (from readStr())\n  auto-readBin (from readBin())\n  auto-readArray (from readArray())\n  auto-readHex (from readHex())\n  auto-set_RTS (from set_RTS())\n  auto-snoopMessages (from snoopMessages())\n  auto-writeMODBUS (from writeMODBUS())\n  auto-queryMODBUS (from queryMODBUS())\n  auto-modbusReadBits (from modbusReadBits())\n  auto-modbusReadInputBits (from modbusReadInputBits())\n  auto-modbusReadRegisters (from modbusReadRegisters())\n  auto-modbusReadInputRegisters (from modbusReadInputRegisters())\n  auto-modbusWriteBit (from modbusWriteBit())\n  auto-modbusWriteBits (from modbusWriteBits())\n  auto-modbusWriteRegister (from modbusWriteRegister())\n  auto-modbusWriteRegisters (from modbusWriteRegisters())\n  auto-modbusWriteAndReadRegisters (from modbusWriteAndReadRegisters())\n  auto-nextSerialPort (from nextSerialPort())\n\nRequired output action ids:\n  auto-set_currentJob\n  auto-set_startupJob\n  auto-set_command\n  auto-set_protocol\n  auto-set_voltageLevel\n  auto-set_serialMode\n  auto-sendCommand\n  auto-readLine\n  auto-readMessages\n  auto-read_seek\n  auto-read_tell\n  auto-read_avail\n  auto-queryLine\n  auto-queryHex\n  auto-uploadJob\n  auto-selectJob\n  auto-reset\n  auto-writeByte\n  auto-writeStr\n  auto-writeBin\n  auto-writeArray\n  auto-writeHex\n  auto-writeLine\n  auto-readByte\n  auto-readStr\n  auto-readBin\n  auto-readArray\n  auto-readHex\n  auto-set_RTS\n  auto-snoopMessages\n  auto-writeMODBUS\n  auto-queryMODBUS\n  auto-modbusReadBits\n  auto-modbusReadInputBits\n  auto-modbusReadRegisters\n  auto-modbusReadInputRegisters\n  auto-modbusWriteBit\n  auto-modbusWriteBits\n  auto-modbusWriteRegister\n  auto-modbusWriteRegisters\n  auto-modbusWriteAndReadRegisters\n  auto-nextSerialPort"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0330d7788733b5970069d5bf507bfc8190ba7192a472788060",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 22739,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 12697,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0330d7788733b5970069d5bf530f6481908828c3da4b506d08",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0330d7788733b5970069d5bf6a5ba08190937230493b4a7038",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Yoctopuce 串口接口模块\",\n  \"name_en\": \"Yoctopuce Serial Port Interface\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"用于控制 Yoctopuce 设备上的串口接口，可配置串口参数、协议和电平，并进行 ASCII、二进制及 MODBUS 通信。在实验室中可用于把上位机接入各类串口仪器、控制器或传感器。\",\n  \"description_en\": \"A hardware serial port interface on a Yoctopuce device, used to configure serial parameters, protocols, and voltage levels, and to exchange ASCII, binary, and MODBUS data. In the lab, it can connect a host system to serial instruments, controllers, or sensors.\",\n  \"tag_hints\": [\n    \"serial communication\",\n    \"UART\",\n    \"MODBUS RTU\",\n    \"ASCII/binary messaging\",\n    \"RS-232/RS-485/TTL serial\",\n    \"instrument integration\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_currentJob\",\n      \"description\": \"设置当前运行的作业文件。\",\n      \"description_en\": \"set the current job file\"\n    },\n    {\n      \"action_name\": \"auto-set_startupJob\",\n      \"description\": \"设置上电启动时使用的作业文件。\",\n      \"description_en\": \"set the startup job file\"\n    },\n    {\n      \"action_name\": \"auto-set_command\",\n      \"description\": \"设置命令字符串。\",\n      \"description_en\": \"set the command string\"\n    },\n    {\n      \"action_name\": \"auto-set_protocol\",\n      \"description\": \"设置串口通信协议。\",\n      \"description_en\": \"set the serial communication protocol\"\n    },\n    {\n      \"action_name\": \"auto-set_voltageLevel\",\n      \"description\": \"设置串口线路电平类型。\",\n      \"description_en\": \"set the serial line voltage level\"\n    },\n    {\n      \"action_name\": \"auto-set_serialMode\",\n      \"description\": \"设置串口通信参数。\",\n      \"description_en\": \"set the serial communication parameters\"\n    },\n    {\n      \"action_name\": \"auto-sendCommand\",\n      \"description\": \"向串口发送命令。\",\n      \"description_en\": \"send a command to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-readLine\",\n      \"description\": \"从接收缓冲区读取一行或一条消息。\",\n      \"description_en\": \"read one line or message from the receive buffer\"\n    },\n    {\n      \"action_name\": \"auto-readMessages\",\n      \"description\": \"读取与指定模式匹配的接收消息。\",\n      \"description_en\": \"read incoming messages matching a pattern\"\n    },\n    {\n      \"action_name\": \"auto-read_seek\",\n      \"description\": \"设置当前读取流位置。\",\n      \"description_en\": \"set the current read stream position\"\n    },\n    {\n      \"action_name\": \"auto-read_tell\",\n      \"description\": \"获取当前读取流位置。\",\n      \"description_en\": \"get the current read stream position\"\n    },\n    {\n      \"action_name\": \"auto-read_avail\",\n      \"description\": \"获取从当前位置起可读的字节数。\",\n      \"description_en\": \"get the number of readable bytes from the current position\"\n    },\n    {\n      \"action_name\": \"auto-queryLine\",\n      \"description\": \"发送文本行查询并读取回复。\",\n      \"description_en\": \"send a text line query and read the reply\"\n    },\n    {\n      \"action_name\": \"auto-queryHex\",\n      \"description\": \"发送十六进制二进制查询并读取回复。\",\n      \"description_en\": \"send a hexadecimal binary query and read the reply\"\n    },\n    {\n      \"action_name\": \"auto-uploadJob\",\n      \"description\": \"上传 JSON 作业定义到设备作业文件。\",\n      \"description_en\": \"upload a JSON job definition to a device job file\"\n    },\n    {\n      \"action_name\": \"auto-selectJob\",\n      \"description\": \"加载并启动指定作业文件。\",\n      \"description_en\": \"load and start a job file\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"清空串口缓冲区并重置计数器。\",\n      \"description_en\": \"clear the serial buffers and reset counters\"\n    },\n    {\n      \"action_name\": \"auto-writeByte\",\n      \"description\": \"向串口写入单个字节。\",\n      \"description_en\": \"write a single byte to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-writeStr\",\n      \"description\": \"向串口写入 ASCII 字符串。\",\n      \"description_en\": \"write an ASCII string to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-writeBin\",\n      \"description\": \"向串口写入二进制缓冲区。\",\n      \"description_en\": \"write a binary buffer to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-writeArray\",\n      \"description\": \"向串口写入字节数组。\",\n      \"description_en\": \"write a byte array to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-writeHex\",\n      \"description\": \"向串口写入十六进制字节序列。\",\n      \"description_en\": \"write hexadecimal byte data to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-writeLine\",\n      \"description\": \"向串口写入一行 ASCII 文本并附加换行。\",\n      \"description_en\": \"write an ASCII line with line ending to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-readByte\",\n      \"description\": \"从接收缓冲区读取单个字节。\",\n      \"description_en\": \"read a single byte from the receive buffer\"\n    },\n    {\n      \"action_name\": \"auto-readStr\",\n      \"description\": \"从接收缓冲区读取字符串数据。\",\n      \"description_en\": \"read string data from the receive buffer\"\n    },\n    {\n      \"action_name\": \"auto-readBin\",\n      \"description\": \"从接收缓冲区读取二进制数据。\",\n      \"description_en\": \"read binary data from the receive buffer\"\n    },\n    {\n      \"action_name\": \"auto-readArray\",\n      \"description\": \"从接收缓冲区读取字节数组。\",\n      \"description_en\": \"read a byte array from the receive buffer\"\n    },\n    {\n      \"action_name\": \"auto-readHex\",\n      \"description\": \"从接收缓冲区读取十六进制字符串数据。\",\n      \"description_en\": \"read hexadecimal string data from the receive buffer\"\n    },\n    {\n      \"action_name\": \"auto-set_RTS\",\n      \"description\": \"设置 RTS 握手线状态。\",\n      \"description_en\": \"set the RTS line state\"\n    },\n    {\n      \"action_name\": \"auto-snoopMessages\",\n      \"description\": \"旁路监视串口缓冲区中的双向消息。\",\n      \"description_en\": \"snoop bidirectional messages in the serial buffer\"\n    },\n    {\n      \"action_name\": \"auto-writeMODBUS\",\n      \"description\": \"向串口发送 MODBUS 消息。\",\n      \"description_en\": \"send a MODBUS message over the serial port\"\n    },\n    {\n      \"action_name\": \"auto-queryMODBUS\",\n      \"description\": \"向指定 MODBUS 从站发送请求并读取回复。\",\n      \"description_en\": \"send a MODBUS request to a specified slave and read the reply\"\n    },\n    {\n      \"action_name\": \"auto-modbusReadBits\",\n      \"description\": \"读取 MODBUS 线圈状态位。\",\n      \"description_en\": \"read MODBUS coil bits\"\n    },\n    {\n      \"action_name\": \"auto-modbusReadInputBits\",\n      \"description\": \"读取 MODBUS 离散输入位。\",\n      \"description_en\": \"read MODBUS discrete input bits\"\n    },\n    {\n      \"action_name\": \"auto-modbusReadRegisters\",\n      \"description\": \"读取 MODBUS 保持寄存器。\",\n      \"description_en\": \"read MODBUS holding registers\"\n    },\n    {\n      \"action_name\": \"auto-modbusReadInputRegisters\",\n      \"description\": \"读取 MODBUS 输入寄存器。\",\n      \"description_en\": \"read MODBUS input registers\"\n    },\n    {\n      \"action_name\": \"auto-modbusWriteBit\",\n      \"description\": \"写入单个 MODBUS 线圈位。\",\n      \"description_en\": \"write a single MODBUS coil bit\"\n    },\n    {\n      \"action_name\": \"auto-modbusWriteBits\",\n      \"description\": \"写入多个 MODBUS 线圈位。\",\n      \"description_en\": \"write multiple MODBUS coil bits\"\n    },\n    {\n      \"action_name\": \"auto-modbusWriteRegister\",\n      \"description\": \"写入单个 MODBUS 保持寄存器。\",\n      \"description_en\": \"write a single MODBUS holding register\"\n    },\n    {\n      \"action_name\": \"auto-modbusWriteRegisters\",\n      \"description\": \"写入多个 MODBUS 保持寄存器。\",\n      \"description_en\": \"write multiple MODBUS holding registers\"\n    },\n    {\n      \"action_name\": \"auto-modbusWriteAndReadRegisters\",\n      \"description\": \"先写入后读取 MODBUS 寄存器。\",\n      \"description_en\": \"write MODBUS registers and then read registers\"\n    },\n    {\n      \"action_name\": \"auto-nextSerialPort\",\n      \"description\": \"获取下一个可枚举的串口接口。\",\n      \"description_en\": \"get the next enumerated serial port interface\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 5724,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3325,
+      "output_tokens_details": {
+        "reasoning_tokens": 1238
+      },
+      "total_tokens": 9049
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 5724,
+      "output_token_count": 3325,
+      "predict_time": 58.541340137
+    }
+  },
+  "output_text": "{\n  \"name\": \"Yoctopuce 串口接口模块\",\n  \"name_en\": \"Yoctopuce Serial Port Interface\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"用于控制 Yoctopuce 设备上的串口接口，可配置串口参数、协议和电平，并进行 ASCII、二进制及 MODBUS 通信。在实验室中可用于把上位机接入各类串口仪器、控制器或传感器。\",\n  \"description_en\": \"A hardware serial port interface on a Yoctopuce device, used to configure serial parameters, protocols, and voltage levels, and to exchange ASCII, binary, and MODBUS data. In the lab, it can connect a host system to serial instruments, controllers, or sensors.\",\n  \"tag_hints\": [\n    \"serial communication\",\n    \"UART\",\n    \"MODBUS RTU\",\n    \"ASCII/binary messaging\",\n    \"RS-232/RS-485/TTL serial\",\n    \"instrument integration\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_currentJob\",\n      \"description\": \"设置当前运行的作业文件。\",\n      \"description_en\": \"set the current job file\"\n    },\n    {\n      \"action_name\": \"auto-set_startupJob\",\n      \"description\": \"设置上电启动时使用的作业文件。\",\n      \"description_en\": \"set the startup job file\"\n    },\n    {\n      \"action_name\": \"auto-set_command\",\n      \"description\": \"设置命令字符串。\",\n      \"description_en\": \"set the command string\"\n    },\n    {\n      \"action_name\": \"auto-set_protocol\",\n      \"description\": \"设置串口通信协议。\",\n      \"description_en\": \"set the serial communication protocol\"\n    },\n    {\n      \"action_name\": \"auto-set_voltageLevel\",\n      \"description\": \"设置串口线路电平类型。\",\n      \"description_en\": \"set the serial line voltage level\"\n    },\n    {\n      \"action_name\": \"auto-set_serialMode\",\n      \"description\": \"设置串口通信参数。\",\n      \"description_en\": \"set the serial communication parameters\"\n    },\n    {\n      \"action_name\": \"auto-sendCommand\",\n      \"description\": \"向串口发送命令。\",\n      \"description_en\": \"send a command to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-readLine\",\n      \"description\": \"从接收缓冲区读取一行或一条消息。\",\n      \"description_en\": \"read one line or message from the receive buffer\"\n    },\n    {\n      \"action_name\": \"auto-readMessages\",\n      \"description\": \"读取与指定模式匹配的接收消息。\",\n      \"description_en\": \"read incoming messages matching a pattern\"\n    },\n    {\n      \"action_name\": \"auto-read_seek\",\n      \"description\": \"设置当前读取流位置。\",\n      \"description_en\": \"set the current read stream position\"\n    },\n    {\n      \"action_name\": \"auto-read_tell\",\n      \"description\": \"获取当前读取流位置。\",\n      \"description_en\": \"get the current read stream position\"\n    },\n    {\n      \"action_name\": \"auto-read_avail\",\n      \"description\": \"获取从当前位置起可读的字节数。\",\n      \"description_en\": \"get the number of readable bytes from the current position\"\n    },\n    {\n      \"action_name\": \"auto-queryLine\",\n      \"description\": \"发送文本行查询并读取回复。\",\n      \"description_en\": \"send a text line query and read the reply\"\n    },\n    {\n      \"action_name\": \"auto-queryHex\",\n      \"description\": \"发送十六进制二进制查询并读取回复。\",\n      \"description_en\": \"send a hexadecimal binary query and read the reply\"\n    },\n    {\n      \"action_name\": \"auto-uploadJob\",\n      \"description\": \"上传 JSON 作业定义到设备作业文件。\",\n      \"description_en\": \"upload a JSON job definition to a device job file\"\n    },\n    {\n      \"action_name\": \"auto-selectJob\",\n      \"description\": \"加载并启动指定作业文件。\",\n      \"description_en\": \"load and start a job file\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"清空串口缓冲区并重置计数器。\",\n      \"description_en\": \"clear the serial buffers and reset counters\"\n    },\n    {\n      \"action_name\": \"auto-writeByte\",\n      \"description\": \"向串口写入单个字节。\",\n      \"description_en\": \"write a single byte to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-writeStr\",\n      \"description\": \"向串口写入 ASCII 字符串。\",\n      \"description_en\": \"write an ASCII string to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-writeBin\",\n      \"description\": \"向串口写入二进制缓冲区。\",\n      \"description_en\": \"write a binary buffer to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-writeArray\",\n      \"description\": \"向串口写入字节数组。\",\n      \"description_en\": \"write a byte array to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-writeHex\",\n      \"description\": \"向串口写入十六进制字节序列。\",\n      \"description_en\": \"write hexadecimal byte data to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-writeLine\",\n      \"description\": \"向串口写入一行 ASCII 文本并附加换行。\",\n      \"description_en\": \"write an ASCII line with line ending to the serial port\"\n    },\n    {\n      \"action_name\": \"auto-readByte\",\n      \"description\": \"从接收缓冲区读取单个字节。\",\n      \"description_en\": \"read a single byte from the receive buffer\"\n    },\n    {\n      \"action_name\": \"auto-readStr\",\n      \"description\": \"从接收缓冲区读取字符串数据。\",\n      \"description_en\": \"read string data from the receive buffer\"\n    },\n    {\n      \"action_name\": \"auto-readBin\",\n      \"description\": \"从接收缓冲区读取二进制数据。\",\n      \"description_en\": \"read binary data from the receive buffer\"\n    },\n    {\n      \"action_name\": \"auto-readArray\",\n      \"description\": \"从接收缓冲区读取字节数组。\",\n      \"description_en\": \"read a byte array from the receive buffer\"\n    },\n    {\n      \"action_name\": \"auto-readHex\",\n      \"description\": \"从接收缓冲区读取十六进制字符串数据。\",\n      \"description_en\": \"read hexadecimal string data from the receive buffer\"\n    },\n    {\n      \"action_name\": \"auto-set_RTS\",\n      \"description\": \"设置 RTS 握手线状态。\",\n      \"description_en\": \"set the RTS line state\"\n    },\n    {\n      \"action_name\": \"auto-snoopMessages\",\n      \"description\": \"旁路监视串口缓冲区中的双向消息。\",\n      \"description_en\": \"snoop bidirectional messages in the serial buffer\"\n    },\n    {\n      \"action_name\": \"auto-writeMODBUS\",\n      \"description\": \"向串口发送 MODBUS 消息。\",\n      \"description_en\": \"send a MODBUS message over the serial port\"\n    },\n    {\n      \"action_name\": \"auto-queryMODBUS\",\n      \"description\": \"向指定 MODBUS 从站发送请求并读取回复。\",\n      \"description_en\": \"send a MODBUS request to a specified slave and read the reply\"\n    },\n    {\n      \"action_name\": \"auto-modbusReadBits\",\n      \"description\": \"读取 MODBUS 线圈状态位。\",\n      \"description_en\": \"read MODBUS coil bits\"\n    },\n    {\n      \"action_name\": \"auto-modbusReadInputBits\",\n      \"description\": \"读取 MODBUS 离散输入位。\",\n      \"description_en\": \"read MODBUS discrete input bits\"\n    },\n    {\n      \"action_name\": \"auto-modbusReadRegisters\",\n      \"description\": \"读取 MODBUS 保持寄存器。\",\n      \"description_en\": \"read MODBUS holding registers\"\n    },\n    {\n      \"action_name\": \"auto-modbusReadInputRegisters\",\n      \"description\": \"读取 MODBUS 输入寄存器。\",\n      \"description_en\": \"read MODBUS input registers\"\n    },\n    {\n      \"action_name\": \"auto-modbusWriteBit\",\n      \"description\": \"写入单个 MODBUS 线圈位。\",\n      \"description_en\": \"write a single MODBUS coil bit\"\n    },\n    {\n      \"action_name\": \"auto-modbusWriteBits\",\n      \"description\": \"写入多个 MODBUS 线圈位。\",\n      \"description_en\": \"write multiple MODBUS coil bits\"\n    },\n    {\n      \"action_name\": \"auto-modbusWriteRegister\",\n      \"description\": \"写入单个 MODBUS 保持寄存器。\",\n      \"description_en\": \"write a single MODBUS holding register\"\n    },\n    {\n      \"action_name\": \"auto-modbusWriteRegisters\",\n      \"description\": \"写入多个 MODBUS 保持寄存器。\",\n      \"description_en\": \"write multiple MODBUS holding registers\"\n    },\n    {\n      \"action_name\": \"auto-modbusWriteAndReadRegisters\",\n      \"description\": \"先写入后读取 MODBUS 寄存器。\",\n      \"description_en\": \"write MODBUS registers and then read registers\"\n    },\n    {\n      \"action_name\": \"auto-nextSerialPort\",\n      \"description\": \"获取下一个可枚举的串口接口。\",\n      \"description_en\": \"get the next enumerated serial port interface\"\n    }\n  ]\n}"
+}

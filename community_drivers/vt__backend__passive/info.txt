@@ -1,51 +1,127 @@
-Device: vt__backend__passive
-Registry Key: vt__backend__passive
-Short Description: Variable Temperature Backend (Passive)是一款表征设备，主要功能包括停止、参数配置、启动、扫描、日志记录、测量。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (10):
-- auto-configure_instruments -> configure_instruments [UniLabJsonCommand] goal_params: compliance_v, current_ma
-- auto-connect -> connect [UniLabJsonCommand] goal_params: k2182_visa, k2400_visa, ls_visa
-- auto-create_widgets -> create_widgets [UniLabJsonCommand] goal_params: none
-- auto-get_measurement -> get_measurement [UniLabJsonCommand] goal_params: none
-- auto-log -> log [UniLabJsonCommand] goal_params: message
-- auto-set_ui_state -> set_ui_state [UniLabJsonCommand] goal_params: running
-- auto-setup_styles -> setup_styles [UniLabJsonCommand] goal_params: none
-- auto-shutdown -> shutdown [UniLabJsonCommand] goal_params: none
-- auto-start_experiment -> start_experiment [UniLabJsonCommand] goal_params: none
-- auto-stop_experiment -> stop_experiment [UniLabJsonCommand] goal_params: reason
-
-Driver Functions (28):
-- run_script_process(script_path) (line 125)
-- launch_plotter_utility() (line 139)
-- launch_gpib_scanner() (line 156)
-- VT_Backend_Passive.__init__(self) (line 180)
-- VT_Backend_Passive.connect(self, k2400_visa, k2182_visa, ls_visa) (line 190)
-- VT_Backend_Passive.configure_instruments(self, current_ma, compliance_v) (line 204)
-- VT_Backend_Passive.get_measurement(self) (line 222)
-- VT_Backend_Passive.shutdown(self) (line 243)
-- VT_GUI_Passive.__init__(self, root) (line 285)
-- VT_GUI_Passive.setup_styles(self) (line 303)
-- VT_GUI_Passive.create_widgets(self) (line 378)
-- VT_GUI_Passive._populate_left_panel(self, panel) (line 438)
-- VT_GUI_Passive._create_info_panel(self, parent, grid_row) (line 446)
-- VT_GUI_Passive._create_right_panel(self, parent) (line 526)
-- VT_GUI_Passive._create_params_panel(self, parent, grid_row) (line 543)
-- VT_GUI_Passive._create_control_panel(self, parent, grid_row) (line 565)
-- VT_GUI_Passive._create_console_panel(self, parent, grid_row) (line 596)
-- VT_GUI_Passive.log(self, message) (line 609)
-- VT_GUI_Passive.start_experiment(self) (line 617)
-- VT_GUI_Passive.stop_experiment(self, reason) (line 653)
-- VT_GUI_Passive._experiment_loop(self) (line 666)
-- VT_GUI_Passive._validate_and_get_params(self) (line 697)
-- VT_GUI_Passive.set_ui_state(self, running) (line 717)
-- VT_GUI_Passive._scan_for_visa(self) (line 727)
-- VT_GUI_Passive._browse_file_location(self) (line 749)
-- VT_GUI_Passive._create_entry(self, parent, label_text, default_value, row, browse) (line 757)
-- VT_GUI_Passive._create_combobox(self, parent, label_text, row) (line 791)
-- VT_GUI_Passive._on_closing(self) (line 808)
+vt__backend__passive:
+  name: 被动监测实验界面后端
+  name_en: Passive Monitoring GUI Backend
+  manufacturer: ''
+  category:
+  - 联合实验控制后端
+  - 实验控制仪表板
+  tags:
+  - 表征设备
+  - 电子与电气测试
+  - 环境控制与稳定性测试
+  - 仪表读数与状态监测
+  - 过程变量监测与日志记录
+  - 联合实验控制后端
+  - 实验控制仪表板
+  description: 一个非物理的软件组件，用于被动监测实验的界面与通信协调。它负责通过 VISA 连接并配置 Keithley 2400、Keithley
+    2182 和 Lakeshore 温控相关仪器，读取测量值与温度数据，并管理实验启动、停止、日志和界面状态。
+  description_en: A non-physical software component for coordinating the GUI and instrument
+    communication in a passive monitoring experiment. It connects to and configures
+    Keithley 2400, Keithley 2182, and Lakeshore temperature-control-related instruments
+    over VISA, acquires measurement and temperature data, and manages experiment start/stop,
+    logging, and UI state.
+  class:
+    action_value_mappings:
+      auto-configure_instruments:
+        schema:
+          description: 配置被动监测实验所需的 Keithley 2400、Keithley 2182 和 Lakeshore 仪器参数。
+          description_en: Configure the Keithley 2400, Keithley 2182, and Lakeshore
+            instrument settings for passive monitoring.
+      auto-connect:
+        schema:
+          description: 连接用于被动监测的 Keithley 2400、Keithley 2182 和 Lakeshore 仪器。
+          description_en: Connect to the Keithley 2400, Keithley 2182, and Lakeshore
+            instruments used for passive monitoring.
+      auto-shutdown:
+        schema:
+          description: 关闭被动监测会话并安全结束相关仪器通信。
+          description_en: Shut down the passive monitoring session and safely terminate
+            communication with the related instruments.
+      auto-get_measurement:
+        schema:
+          description: 获取测量数据。
+          description_en: Get measurement data.
+      auto-setup_styles:
+        schema:
+          description: 设置被动监测界面的显示样式。
+          description_en: Set up the display styles for the passive monitoring interface.
+      auto-create_widgets:
+        schema:
+          description: 创建被动监测界面的控件组件。
+          description_en: Create the widget components for the passive monitoring
+            interface.
+      auto-log:
+        schema:
+          description: 记录实验过程中的日志信息。
+          description_en: Record log information during the experiment.
+      auto-start_experiment:
+        schema:
+          description: 启动被动监测实验流程。
+          description_en: Start the passive monitoring experiment workflow.
+      auto-stop_experiment:
+        schema:
+          description: 停止被动监测实验流程。
+          description_en: Stop the passive monitoring experiment workflow.
+      auto-set_ui_state:
+        schema:
+          description: 设置界面的当前状态。
+          description_en: Set the current state of the user interface.
+auto_annotation_metadata:
+  registry_key: vt__backend__passive
+  annotation_workflow_version: v4
+  tag_hints:
+  - passive monitoring
+  - GUI experiment control
+  - VISA instrument communication
+  - Keithley 2400
+  - Keithley 2182
+  - Lakeshore temperature readout
+  - measurement logging
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该后端用于被动监测实验中的测量值与温度数据读取，属于表征采集环节。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: 组件围绕Keithley等电学测量仪器开展监测与读取。
+  - id: P-9004
+    name: 环境控制与稳定性测试
+    name_en: Environmental Control & Stability Testing
+    type: experimental_domain
+    rationale: 其监测内容包含Lakeshore相关温控/温度数据，涉及环境温度状态。
+  - id: P-500004
+    name: 仪表读数与状态监测
+    name_en: Meter Readout & Status Monitoring
+    type: experimental_scene
+    rationale: 该组件以被动读取仪器读数和状态为主，符合监测场景。
+  - id: P-600101
+    name: 过程变量监测与日志记录
+    name_en: Process Variable Monitoring & Logging
+    type: experimental_scene
+    rationale: 它持续获取测量值与温度并管理实验日志。
+  - id: P-900906
+    name: 联合实验控制后端
+    name_en: Coordinated Experiment Control Backend
+    type: device_template_tag
+    rationale: 该组件统一管理多仪器连接、实验开始停止和界面状态。
+  - id: P-9907
+    name: 实验控制仪表板
+    name_en: Experiment Control Dashboard
+    type: device_template_tag
+    rationale: 其功能包含GUI创建、样式设置与界面状态管理，符合实验控制界面模板。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

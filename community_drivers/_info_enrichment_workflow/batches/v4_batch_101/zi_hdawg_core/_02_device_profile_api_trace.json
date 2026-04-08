@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: zi_hdawg_core\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pycqed/instrument_drivers/physical_instruments/ZurichInstruments/ZI_HDAWG_core.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.quantum.awg.zi.hdawg.zi_hdawg_core:ZI_HDAWG_core\n\nClass: ZI_HDAWG_core (focal)\n  Bases: ['zibase.ZI_base_instrument']\n  Docstring: This is PycQED/QCoDeS driver driver for the Zurich Instruments HDAWG.\n\nParameter files are generated from the python API of the instrument\nusing the \"create_parameter_file\" method in the ZI_base_instrument class.\nThese are used to add parameters to the instrument.\n\nFocal class methods:\n  [command] load_default_settings(self)\n    comment: Setting the clock to external\n    comment: clear output\n    comment: clear AWGs\n    comment: reset DIO parameters (bits, timing)\n    comment: bring device into known state\n  [command] assure_ext_clock(self)\n    comment: interesting nodes:\n    comment: SYSTEM/AWG/CHANNELGROUPING\n    comment: SYSTEM/CLOCKS/SAMPLECLOCK/FREQ\n    comment: \n    comment: get source:\n    comment: 1: external\n    comment: 0: internal (commanded so, or because of failure to sync to external clock)\n    comment: get status (see docstring):\n    comment: 0: synced\n    comment: 1: sync failed (will force clock source to internal and retry)\n    comment: 2: syncing\n    comment: Make sure the instrument is using an external reference clock\n\n        Based on: AWG8_V2_DIO_Calibrarion.ipynb\n  [status_getter] get_idn(self)\n    comment: FIXME: add check_virt_mem_use(self)\n    comment: AWGS/0/SEQUENCER/MEMORYUSAGE\n    comment: AWGS/0/WAVEFORM/MEMORYUSAGE\n  [command] upload_waveform_realtime(self, w0, w1, awg_nr, wf_nr=1)\n    comment: \n    comment: 'public' functions: generic AWG/waveform support\n    comment: \n    comment: Warning! This method should be used with care.\n        Uploads a waveform to the awg in realtime, note that this get's\n        overwritten if a new program is uploaded.\n\n        Arguments:\n           ...\n  [command] plot_dio_snapshot(self, bits=range(32))\n    comment: \n    comment: 'public' functions: DIO debug support\n    comment: \n  [command] plot_awg_codewords(self, awg_nr=0, range=None)\n\nRegistry actions:\n  auto-assure_ext_clock (from assure_ext_clock())\n  auto-load_default_settings (from load_default_settings())\n  auto-plot_awg_codewords (from plot_awg_codewords())\n  auto-plot_dio_snapshot (from plot_dio_snapshot())\n  auto-upload_waveform_realtime (from upload_waveform_realtime())\n  auto-get_idn (from get_idn())\n\nRequired output action ids:\n  auto-assure_ext_clock\n  auto-load_default_settings\n  auto-plot_awg_codewords\n  auto-plot_dio_snapshot\n  auto-upload_waveform_realtime\n  auto-get_idn"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0d43a960a8d97b240069d5c01ef9588194aafa001864f4db63",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3749,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4364,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0d43a960a8d97b240069d5c01f62f481948bfa15a825e06089",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0d43a960a8d97b240069d5c029eff88194bee819e6d5f637cc",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"HDAWG 任意波形发生器\",\n  \"name_en\": \"HDAWG Arbitrary Waveform Generator\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"Zurich Instruments 的 HDAWG 高密度任意波形发生器，用于实验中输出高速可编程模拟波形，并通过外部参考时钟、AWG 通道和 DIO/码字接口与其他设备同步。该驱动包含默认设置加载、外部时钟确认、实时波形上传以及 DIO/AWG 调试可视化等功能，常用于量子控制等精密时序实验。\",\n  \"description_en\": \"The Zurich Instruments HDAWG is a high-density arbitrary waveform generator used to produce high-speed programmable analog waveforms and synchronize with other instruments via an external reference clock, AWG channels, and DIO/codeword interfaces. This driver supports loading default settings, ensuring external clocking, real-time waveform upload, and DIO/AWG debug visualization, commonly for precision timing applications such as quantum control.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-assure_ext_clock\",\n      \"description\": \"确保仪器使用外部参考时钟并检查同步状态。\",\n      \"description_en\": \"Ensure the instrument uses an external reference clock and verify its synchronization status.\"\n    },\n    {\n      \"action_name\": \"auto-load_default_settings\",\n      \"description\": \"加载默认设置，使仪器进入已知状态，包括外部时钟、输出清零、AWG 清空和 DIO 参数复位。\",\n      \"description_en\": \"Load default settings to bring the instrument into a known state, including external clock selection, output clearing, AWG clearing, and DIO parameter reset.\"\n    },\n    {\n      \"action_name\": \"auto-plot_awg_codewords\",\n      \"description\": \"绘制 AWG 码字信息，用于检查和调试码字触发或数字控制配置。\",\n      \"description_en\": \"Plot AWG codeword information for inspecting and debugging codeword triggering or digital control configuration.\"\n    },\n    {\n      \"action_name\": \"auto-plot_dio_snapshot\",\n      \"description\": \"绘制 DIO 位快照，用于调试数字输入输出状态。\",\n      \"description_en\": \"Plot a snapshot of DIO bits for debugging digital input/output states.\"\n    },\n    {\n      \"action_name\": \"auto-upload_waveform_realtime\",\n      \"description\": \"向指定 AWG 实时上传波形数据。\",\n      \"description_en\": \"Upload waveform data to a specified AWG in real time.\"\n    },\n    {\n      \"action_name\": \"auto-get_idn\",\n      \"description\": \"获取设备标识信息。\",\n      \"description_en\": \"Get device identification.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"arbitrary waveform generation\",\n    \"Zurich Instruments HDAWG\",\n    \"quantum control\",\n    \"external reference clock\",\n    \"DIO codeword triggering\",\n    \"real-time waveform upload\",\n    \"high-speed synchronized outputs\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1404,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1100,
+      "output_tokens_details": {
+        "reasoning_tokens": 445
+      },
+      "total_tokens": 2504
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1404,
+      "output_token_count": 1100,
+      "predict_time": 21.515953526
+    }
+  },
+  "output_text": "{\n  \"name\": \"HDAWG 任意波形发生器\",\n  \"name_en\": \"HDAWG Arbitrary Waveform Generator\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"Zurich Instruments 的 HDAWG 高密度任意波形发生器，用于实验中输出高速可编程模拟波形，并通过外部参考时钟、AWG 通道和 DIO/码字接口与其他设备同步。该驱动包含默认设置加载、外部时钟确认、实时波形上传以及 DIO/AWG 调试可视化等功能，常用于量子控制等精密时序实验。\",\n  \"description_en\": \"The Zurich Instruments HDAWG is a high-density arbitrary waveform generator used to produce high-speed programmable analog waveforms and synchronize with other instruments via an external reference clock, AWG channels, and DIO/codeword interfaces. This driver supports loading default settings, ensuring external clocking, real-time waveform upload, and DIO/AWG debug visualization, commonly for precision timing applications such as quantum control.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-assure_ext_clock\",\n      \"description\": \"确保仪器使用外部参考时钟并检查同步状态。\",\n      \"description_en\": \"Ensure the instrument uses an external reference clock and verify its synchronization status.\"\n    },\n    {\n      \"action_name\": \"auto-load_default_settings\",\n      \"description\": \"加载默认设置，使仪器进入已知状态，包括外部时钟、输出清零、AWG 清空和 DIO 参数复位。\",\n      \"description_en\": \"Load default settings to bring the instrument into a known state, including external clock selection, output clearing, AWG clearing, and DIO parameter reset.\"\n    },\n    {\n      \"action_name\": \"auto-plot_awg_codewords\",\n      \"description\": \"绘制 AWG 码字信息，用于检查和调试码字触发或数字控制配置。\",\n      \"description_en\": \"Plot AWG codeword information for inspecting and debugging codeword triggering or digital control configuration.\"\n    },\n    {\n      \"action_name\": \"auto-plot_dio_snapshot\",\n      \"description\": \"绘制 DIO 位快照，用于调试数字输入输出状态。\",\n      \"description_en\": \"Plot a snapshot of DIO bits for debugging digital input/output states.\"\n    },\n    {\n      \"action_name\": \"auto-upload_waveform_realtime\",\n      \"description\": \"向指定 AWG 实时上传波形数据。\",\n      \"description_en\": \"Upload waveform data to a specified AWG in real time.\"\n    },\n    {\n      \"action_name\": \"auto-get_idn\",\n      \"description\": \"获取设备标识信息。\",\n      \"description_en\": \"Get device identification.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"arbitrary waveform generation\",\n    \"Zurich Instruments HDAWG\",\n    \"quantum control\",\n    \"external reference clock\",\n    \"DIO codeword triggering\",\n    \"real-time waveform upload\",\n    \"high-speed synchronized outputs\"\n  ]\n}"
+}

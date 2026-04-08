@@ -1,33 +1,106 @@
-Device: zi_hdawg_core
-Registry Key: zi_hdawg_core
-Short Description: ZI HDAWG Core 高性能任意波形发生器核心模块是由维根技术（北京）有限公司（WIGGENS）生产的专业实验设备。
-
-Categories:
-- 移液工作站
-
-Related Tags (from tag 标签列表.csv):
-- [4436] 移液工作站 / Liquid Handling Workstation (device_template_tag)
-
-Atom Actions (6):
-- auto-assure_ext_clock -> assure_ext_clock [UniLabJsonCommand] goal_params: none
-- auto-get_idn -> get_idn [UniLabJsonCommand] goal_params: none
-- auto-load_default_settings -> load_default_settings [UniLabJsonCommand] goal_params: none
-- auto-plot_awg_codewords -> plot_awg_codewords [UniLabJsonCommand] goal_params: awg_nr, range
-- auto-plot_dio_snapshot -> plot_dio_snapshot [UniLabJsonCommand] goal_params: bits
-- auto-upload_waveform_realtime -> upload_waveform_realtime [UniLabJsonCommand] goal_params: awg_nr, w0, w1, wf_nr
-
-Driver Functions (14):
-- ZI_HDAWG_core.__init__(self, *args, **kwargs) (line 131)
-- ZI_HDAWG_core.__init__(self, name, device, interface, server, port, num_codewords, **kw) (line 142)
-- ZI_HDAWG_core._check_devtype(self) (line 172)
-- ZI_HDAWG_core._check_options(self) (line 177)
-- ZI_HDAWG_core._check_awg_nr(self, awg_nr) (line 186)
-- ZI_HDAWG_core._check_versions(self) (line 196)
-- ZI_HDAWG_core._num_channels(self) (line 210)
-- ZI_HDAWG_core.load_default_settings(self) (line 219)
-- ZI_HDAWG_core.assure_ext_clock(self) (line 243)
-- ZI_HDAWG_core.get_idn(self) (line 285)
-- ZI_HDAWG_core.upload_waveform_realtime(self, w0, w1, awg_nr, wf_nr) (line 295)
-- ZI_HDAWG_core.plot_dio_snapshot(self, bits) (line 320)
-- ZI_HDAWG_core.plot_awg_codewords(self, awg_nr, range) (line 324)
-- ZI_HDAWG_core._set_dio_delay(self, delay) (line 338)
+zi_hdawg_core:
+  name: HDAWG 任意波形发生器
+  name_en: HDAWG Arbitrary Waveform Generator
+  manufacturer: Zurich Instruments
+  category:
+  - 任意波形发生器
+  tags:
+  - 实验执行&合成设备
+  - 低温与量子测量
+  - 量子比特脉冲控制与读出
+  - 超导量子比特标定与时域测量
+  - 脉冲激励与时序控制
+  - 任意波形发生器
+  description: Zurich Instruments 的 HDAWG 高密度任意波形发生器，用于实验中输出高速可编程模拟波形，并通过外部参考时钟、AWG
+    通道和 DIO/码字接口与其他设备同步。该驱动包含默认设置加载、外部时钟确认、实时波形上传以及 DIO/AWG 调试可视化等功能，常用于量子控制等精密时序实验。
+  description_en: The Zurich Instruments HDAWG is a high-density arbitrary waveform
+    generator used to produce high-speed programmable analog waveforms and synchronize
+    with other instruments via an external reference clock, AWG channels, and DIO/codeword
+    interfaces. This driver supports loading default settings, ensuring external clocking,
+    real-time waveform upload, and DIO/AWG debug visualization, commonly for precision
+    timing applications such as quantum control.
+  class:
+    action_value_mappings:
+      auto-assure_ext_clock:
+        schema:
+          description: 确保仪器使用外部参考时钟并检查同步状态。
+          description_en: Ensure the instrument uses an external reference clock and
+            verify its synchronization status.
+      auto-load_default_settings:
+        schema:
+          description: 加载默认设置，使仪器进入已知状态，包括外部时钟、输出清零、AWG 清空和 DIO 参数复位。
+          description_en: Load default settings to bring the instrument into a known
+            state, including external clock selection, output clearing, AWG clearing,
+            and DIO parameter reset.
+      auto-plot_awg_codewords:
+        schema:
+          description: 绘制 AWG 码字信息，用于检查和调试码字触发或数字控制配置。
+          description_en: Plot AWG codeword information for inspecting and debugging
+            codeword triggering or digital control configuration.
+      auto-plot_dio_snapshot:
+        schema:
+          description: 绘制 DIO 位快照，用于调试数字输入输出状态。
+          description_en: Plot a snapshot of DIO bits for debugging digital input/output
+            states.
+      auto-upload_waveform_realtime:
+        schema:
+          description: 向指定 AWG 实时上传波形数据。
+          description_en: Upload waveform data to a specified AWG in real time.
+      auto-get_idn:
+        schema:
+          description: 获取设备标识信息。
+          description_en: Get device identification.
+auto_annotation_metadata:
+  registry_key: zi_hdawg_core
+  annotation_workflow_version: v4
+  tag_hints:
+  - arbitrary waveform generation
+  - Zurich Instruments HDAWG
+  - quantum control
+  - external reference clock
+  - DIO codeword triggering
+  - real-time waveform upload
+  - high-speed synchronized outputs
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该设备用于输出高速可编程波形并驱动同步实验时序，属于执行设备。
+  - id: P-2003
+    name: 低温与量子测量
+    name_en: Cryogenic & Quantum Measurements
+    type: experimental_domain
+    rationale: 描述明确指出其常用于量子控制等精密时序实验。
+  - id: P-3006
+    name: 量子比特脉冲控制与读出
+    name_en: Qubit Pulse Control & Readout
+    type: experimental_scene
+    rationale: HDAWG的核心用途是产生量子实验所需的可编程脉冲波形。
+  - id: P-400006
+    name: 超导量子比特标定与时域测量
+    name_en: Superconducting Qubit Calibration & Time-Domain Measurement
+    type: experimental_scene
+    rationale: 外部时钟同步、DIO码字和实时波形上传非常符合超导量子时域实验。
+  - id: P-7008
+    name: 脉冲激励与时序控制
+    name_en: Pulse Excitation & Timing Control
+    type: experimental_scene
+    rationale: 设备提供高精度波形输出和同步控制，直接支撑脉冲与时序实验。
+  - id: P-7003
+    name: 任意波形发生器
+    name_en: Arbitrary Waveform Generator
+    type: device_template_tag
+    rationale: HDAWG本质上就是高性能任意波形发生器。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

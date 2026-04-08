@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: work_table\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: EvoScriPy/labware.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.worktable:WorkTable\n\nClass: LiquidClass \n  Bases: []\n\nClass: LiquidClassDefault \n  Bases: ['LiquidClass']\n\nClass: LiquidClassDerived \n  Bases: ['LiquidClass']\n\nClass: LiquidClasses \n  Bases: []\n\nClass: WorkTable (focal)\n  Bases: []\n  Docstring: Collection of carriers.types and Labware.types and pos of instances\n\nClass: Frezeer \n  Bases: ['WorkTable']\n\nClass: Carrier \n  Bases: []\n  Docstring: Collection of Labwares sites, filled with labwares...\n\nClass: Well \n  Bases: []\n\nClass: conectedWell \n  Bases: ['Well']\n\nClass: Tip \n  Bases: []\n\nClass: usedTip \n  Bases: ['Tip']\n\nClass: Labware \n  Bases: []\n\nClass: NoFreeWells \n  Bases: ['Exception']\n\nClass: DITIrackTypeSeries \n  Bases: ['Labware.Type.Series']\n\nClass: DITIrackType \n  Bases: ['Labware.Type']\n\nClass: ProtocolLogicPippetingError \n  Bases: ['Exception']\n\nClass: DITIrack \n  Bases: ['Labware']\n  Docstring: Objects of this class represent physical objects (with location) of\nsome type Labware.DITIrackType\n\nClass: DITIwasteType \n  Bases: ['Labware.Type']\n\nClass: DITIwaste \n  Bases: ['Labware']\n\nClass: CuvetteType \n  Bases: ['Labware.Type']\n\nClass: Cuvette \n  Bases: ['Labware']\n\nClass: Te_Mag \n  Bases: ['Labware.Type']\n\nFocal class methods:\n  [command] parse_worktable_file(self, template_file, robot_protocol)\n    comment: parsing_grid=False\n  [command] add_new_labware(self, labware, loc=None)\n    comment: This will be the first location of this labware. Don't remove from possible old location.\n        :param labware:\n        :param loc:\n        :return:\n        :raise \"This WT have only \" + len(self.gr...\n  [command] add_labware(self, labware, loc)\n    comment: todo add to self.grid labware.location.grid dict site, labware\n    comment: assert labware.series is None, \"For now we assume labware with no location or worktable have no series\"\n    comment: :param labware:\n        :param loc:\n        :return:\n        :raise \"This WT have only \" + len(self.grid) + \" grid.\":\n  [status_getter] get_current_labware(self, labware)\n  [command] set_current(self, labware)\n  [status_getter] get_labware(self, label=None, labw_type=None)\n    comment: Return a `Labware` already created manually or after the worktable template was scanned.\n        The labware type is optional (if you provide a label), but it makes the search more robust.\n        It ...\n  [command] set_first_pos(self, labw_type_name=None, posstr=None)\n    comment: labw = labws[0]                   # todo use the current. ? or the first ??\n    comment: Default to DITI if no labw_type_name is given. chooses a labware by label and set next well or tip to be used.\n        :param labw_type_name:\n        :param posstr:\n        :return:\n  [command] retire_labware(self, labw)\n  [command] replace_with_new(self, labw, label)\n  [command] set_def_DiTi(self, tips)\n  [status_getter] get_DITI_series(self, rack=None)\n    comment: Find and return the series of DiTi racks of the type specified by argument rack.\n\n        :param rack:\n        :type rack:(str, DITIrackType, DITIrack, DITIrackTypeSeries)\n        :return: the serie o...\n\nRegistry actions:\n  auto-parse_worktable_file (from parse_worktable_file())\n  auto-add_new_labware (from add_new_labware())\n  auto-add_labware (from add_labware())\n  auto-set_current (from set_current())\n  auto-set_first_pos (from set_first_pos())\n  auto-retire_labware (from retire_labware())\n  auto-replace_with_new (from replace_with_new())\n  auto-set_def_DiTi (from set_def_DiTi())\n  auto-get_current_labware (from get_current_labware())\n  auto-get_labware (from get_labware())\n  auto-get_DITI_series (from get_DITI_series())\n  auto-log (from log())\n  auto-select (from select())\n  auto-vol (from vol())\n  auto-reagent (from reagent())\n  auto-actions (from actions())\n  auto-create (from create())\n  auto-init_wells (from init_wells())\n  auto-autoselect (from autoselect())\n  auto-offset (from offset())\n  auto-offsetFromName (from offsetFromName())\n  auto-position (from position())\n  auto-find_free_wells (from find_free_wells())\n  auto-put (from put())\n  auto-clearSelection (from clearSelection())\n  auto-selected (from selected())\n  auto-selected_wells (from selected_wells())\n  auto-selectAll (from selectAll())\n  auto-selectOnly (from selectOnly())\n  auto-newOffset (from newOffset())\n  auto-newPosition (from newPosition())\n  auto-posAtParallelMove (from posAtParallelMove())\n  auto-parallelOrder (from parallelOrder())\n  auto-offsetAtParallelMove (from offsetAtParallelMove())\n  auto-moveParallel (from moveParallel())\n  auto-wellSelectionStr (from wellSelectionStr())\n  auto-find_new_tips (from find_new_tips())\n  auto-retire_new_tips (from retire_new_tips())\n  auto-refill_next_rack (from refill_next_rack())\n  auto-create_labware (from create_labware())\n  auto-create_series (from create_series())\n  auto-set_DITI_counter (from set_DITI_counter())\n  auto-fill (from fill())\n  auto-set_back (from set_back())\n  auto-pick_up (from pick_up())\n  auto-waste (from waste())\n  auto-write (from write())\n  auto-grid_carrier_line (from grid_carrier_line())\n  auto-parse_file (from parse_file())\n  auto-add_type (from add_type())\n  auto-size (from size())\n  auto-to_name (from to_name())\n  auto-add (from add())\n  auto-remove (from remove())\n  auto-set_next (from set_next())\n  auto-set_current_next_to (from set_current_next_to())\n  auto-show_next_to (from show_next_to())\n  auto-show_next (from show_next())\n\nRequired output action ids:\n  auto-parse_worktable_file\n  auto-add_new_labware\n  auto-add_labware\n  auto-set_current\n  auto-set_first_pos\n  auto-retire_labware\n  auto-replace_with_new\n  auto-set_def_DiTi\n  auto-get_current_labware\n  auto-get_labware\n  auto-get_DITI_series\n  auto-log\n  auto-select\n  auto-vol\n  auto-reagent\n  auto-actions\n  auto-create\n  auto-init_wells\n  auto-autoselect\n  auto-offset\n  auto-offsetFromName\n  auto-position\n  auto-find_free_wells\n  auto-put\n  auto-clearSelection\n  auto-selected\n  auto-selected_wells\n  auto-selectAll\n  auto-selectOnly\n  auto-newOffset\n  auto-newPosition\n  auto-posAtParallelMove\n  auto-parallelOrder\n  auto-offsetAtParallelMove\n  auto-moveParallel\n  auto-wellSelectionStr\n  auto-find_new_tips\n  auto-retire_new_tips\n  auto-refill_next_rack\n  auto-create_labware\n  auto-create_series\n  auto-set_DITI_counter\n  auto-fill\n  auto-set_back\n  auto-pick_up\n  auto-waste\n  auto-write\n  auto-grid_carrier_line\n  auto-parse_file\n  auto-add_type\n  auto-size\n  auto-to_name\n  auto-add\n  auto-remove\n  auto-set_next\n  auto-set_current_next_to\n  auto-show_next_to\n  auto-show_next"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0b9cc87e0ffa2dac0069d5bd7e0a508197891b1af9e48e2bae",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7881,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 12199,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0b9cc87e0ffa2dac0069d5bd7e8b3c8197b73e9e2c1131dde1",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0b9cc87e0ffa2dac0069d5bd89c3548197ba6800a42fe81c60",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"实验工作台布局管理组件\",\n  \"name_en\": \"Worktable Layout Manager\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于表示和管理自动化移液工作台上载架、孔板、试剂槽、吸头架与孔位位置关系的非实体软件组件。它可解析工作台模板文件，维护 labware 与 DiTi 吸头系列，记录当前对象与下一个可用位置，并为实验协议提供布局、选择和位置计算信息。\",\n  \"description_en\": \"A non-physical software component for representing and managing the layout of carriers, labware, wells, tip racks, and positions on an automated liquid-handling worktable. It can parse worktable template files, maintain labware and DiTi tip series, track the current object and next usable position, and provide layout, selection, and position-calculation information for experiment protocols.\",\n  \"tag_hints\": [\n    \"liquid-handling deck layout\",\n    \"labware position tracking\",\n    \"tip rack management\",\n    \"well selection\",\n    \"worktable template parsing\",\n    \"protocol setup\",\n    \"carrier and labware mapping\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-parse_worktable_file\",\n      \"description\": \"解析工作台模板文件并导入布局信息。\",\n      \"description_en\": \"Parse a worktable template file and import layout information.\"\n    },\n    {\n      \"action_name\": \"auto-add_new_labware\",\n      \"description\": \"向工作台添加新的实验器皿并分配位置。\",\n      \"description_en\": \"Add a new labware item to the worktable and assign a position.\"\n    },\n    {\n      \"action_name\": \"auto-add_labware\",\n      \"description\": \"将实验器皿添加到指定工作台位置。\",\n      \"description_en\": \"Add a labware item to a specified worktable location.\"\n    },\n    {\n      \"action_name\": \"auto-set_current\",\n      \"description\": \"设置当前实验器皿。\",\n      \"description_en\": \"Set the current labware.\"\n    },\n    {\n      \"action_name\": \"auto-set_first_pos\",\n      \"description\": \"设置指定实验器皿类型的起始孔位或吸头位置。\",\n      \"description_en\": \"Set the starting well or tip position for a specified labware type.\"\n    },\n    {\n      \"action_name\": \"auto-retire_labware\",\n      \"description\": \"停用或移除指定实验器皿。\",\n      \"description_en\": \"Retire or remove a specified labware item.\"\n    },\n    {\n      \"action_name\": \"auto-replace_with_new\",\n      \"description\": \"用新的实验器皿替换现有实验器皿。\",\n      \"description_en\": \"Replace an existing labware item with a new one.\"\n    },\n    {\n      \"action_name\": \"auto-set_def_DiTi\",\n      \"description\": \"设置默认 DiTi 吸头配置。\",\n      \"description_en\": \"Set the default DiTi tip configuration.\"\n    },\n    {\n      \"action_name\": \"auto-get_current_labware\",\n      \"description\": \"获取当前实验器皿。\",\n      \"description_en\": \"Get the current labware.\"\n    },\n    {\n      \"action_name\": \"auto-get_labware\",\n      \"description\": \"获取实验器皿。\",\n      \"description_en\": \"Get labware.\"\n    },\n    {\n      \"action_name\": \"auto-get_DITI_series\",\n      \"description\": \"获取 DiTi 吸头架系列。\",\n      \"description_en\": \"Get the DiTi tip rack series.\"\n    },\n    {\n      \"action_name\": \"auto-log\",\n      \"description\": \"记录对象或布局相关日志信息。\",\n      \"description_en\": \"Log object- or layout-related information.\"\n    },\n    {\n      \"action_name\": \"auto-select\",\n      \"description\": \"选择孔位、吸头或其他布局对象。\",\n      \"description_en\": \"Select wells, tips, or other layout objects.\"\n    },\n    {\n      \"action_name\": \"auto-vol\",\n      \"description\": \"定义体积属性。\",\n      \"description_en\": \"Define the volume property.\"\n    },\n    {\n      \"action_name\": \"auto-reagent\",\n      \"description\": \"定义试剂属性。\",\n      \"description_en\": \"Define the reagent property.\"\n    },\n    {\n      \"action_name\": \"auto-actions\",\n      \"description\": \"列出对象支持的操作。\",\n      \"description_en\": \"List the actions supported by the object.\"\n    },\n    {\n      \"action_name\": \"auto-create\",\n      \"description\": \"创建布局对象实例。\",\n      \"description_en\": \"Create a layout object instance.\"\n    },\n    {\n      \"action_name\": \"auto-init_wells\",\n      \"description\": \"初始化孔位集合。\",\n      \"description_en\": \"Initialize the set of wells.\"\n    },\n    {\n      \"action_name\": \"auto-autoselect\",\n      \"description\": \"自动选择合适的孔位或对象。\",\n      \"description_en\": \"Automatically select suitable wells or objects.\"\n    },\n    {\n      \"action_name\": \"auto-offset\",\n      \"description\": \"定义位置偏移量。\",\n      \"description_en\": \"Define the position offset.\"\n    },\n    {\n      \"action_name\": \"auto-offsetFromName\",\n      \"description\": \"根据名称计算位置偏移量。\",\n      \"description_en\": \"Calculate a position offset from a name.\"\n    },\n    {\n      \"action_name\": \"auto-position\",\n      \"description\": \"获取或生成位置表示。\",\n      \"description_en\": \"Get or generate a position representation.\"\n    },\n    {\n      \"action_name\": \"auto-find_free_wells\",\n      \"description\": \"查找空闲孔位。\",\n      \"description_en\": \"Find free wells.\"\n    },\n    {\n      \"action_name\": \"auto-put\",\n      \"description\": \"将对象放入指定位置。\",\n      \"description_en\": \"Place an object into a specified position.\"\n    },\n    {\n      \"action_name\": \"auto-clearSelection\",\n      \"description\": \"清除当前选择。\",\n      \"description_en\": \"Clear the current selection.\"\n    },\n    {\n      \"action_name\": \"auto-selected\",\n      \"description\": \"获取当前选择状态。\",\n      \"description_en\": \"Get the current selection state.\"\n    },\n    {\n      \"action_name\": \"auto-selected_wells\",\n      \"description\": \"获取已选择孔位。\",\n      \"description_en\": \"Get the selected wells.\"\n    },\n    {\n      \"action_name\": \"auto-selectAll\",\n      \"description\": \"选择全部孔位或对象。\",\n      \"description_en\": \"Select all wells or objects.\"\n    },\n    {\n      \"action_name\": \"auto-selectOnly\",\n      \"description\": \"仅选择指定孔位或对象。\",\n      \"description_en\": \"Select only the specified wells or objects.\"\n    },\n    {\n      \"action_name\": \"auto-newOffset\",\n      \"description\": \"创建新的位置偏移量。\",\n      \"description_en\": \"Create a new position offset.\"\n    },\n    {\n      \"action_name\": \"auto-newPosition\",\n      \"description\": \"创建新的位置对象。\",\n      \"description_en\": \"Create a new position object.\"\n    },\n    {\n      \"action_name\": \"auto-posAtParallelMove\",\n      \"description\": \"计算并行移动时的位置。\",\n      \"description_en\": \"Calculate the position for a parallel move.\"\n    },\n    {\n      \"action_name\": \"auto-parallelOrder\",\n      \"description\": \"计算并行移动顺序。\",\n      \"description_en\": \"Calculate the order for parallel movement.\"\n    },\n    {\n      \"action_name\": \"auto-offsetAtParallelMove\",\n      \"description\": \"计算并行移动时的偏移量。\",\n      \"description_en\": \"Calculate the offset for a parallel move.\"\n    },\n    {\n      \"action_name\": \"auto-moveParallel\",\n      \"description\": \"执行并行位置移动计算。\",\n      \"description_en\": \"Perform parallel position movement calculation.\"\n    },\n    {\n      \"action_name\": \"auto-wellSelectionStr\",\n      \"description\": \"生成孔位选择字符串。\",\n      \"description_en\": \"Generate a well-selection string.\"\n    },\n    {\n      \"action_name\": \"auto-find_new_tips\",\n      \"description\": \"查找新的可用吸头。\",\n      \"description_en\": \"Find new available tips.\"\n    },\n    {\n      \"action_name\": \"auto-retire_new_tips\",\n      \"description\": \"将新吸头标记为已使用或停用。\",\n      \"description_en\": \"Mark new tips as used or retire them.\"\n    },\n    {\n      \"action_name\": \"auto-refill_next_rack\",\n      \"description\": \"切换或补充下一个吸头架。\",\n      \"description_en\": \"Switch to or refill the next tip rack.\"\n    },\n    {\n      \"action_name\": \"auto-create_labware\",\n      \"description\": \"创建实验器皿对象。\",\n      \"description_en\": \"Create a labware object.\"\n    },\n    {\n      \"action_name\": \"auto-create_series\",\n      \"description\": \"创建实验器皿或吸头架系列。\",\n      \"description_en\": \"Create a labware or tip-rack series.\"\n    },\n    {\n      \"action_name\": \"auto-set_DITI_counter\",\n      \"description\": \"设置 DiTi 吸头计数器。\",\n      \"description_en\": \"Set the DiTi tip counter.\"\n    },\n    {\n      \"action_name\": \"auto-fill\",\n      \"description\": \"填充孔位或容器的内容状态。\",\n      \"description_en\": \"Fill wells or containers in the content model.\"\n    },\n    {\n      \"action_name\": \"auto-set_back\",\n      \"description\": \"将对象状态或位置设回先前值。\",\n      \"description_en\": \"Set an object's state or position back to a previous value.\"\n    },\n    {\n      \"action_name\": \"auto-pick_up\",\n      \"description\": \"从布局中取用吸头或对象。\",\n      \"description_en\": \"Pick up a tip or object from the layout.\"\n    },\n    {\n      \"action_name\": \"auto-waste\",\n      \"description\": \"将对象标记为废弃或送入废弃位。\",\n      \"description_en\": \"Mark an object as waste or send it to a waste position.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"写出布局或对象信息。\",\n      \"description_en\": \"Write out layout or object information.\"\n    },\n    {\n      \"action_name\": \"auto-grid_carrier_line\",\n      \"description\": \"生成或解析网格载架行信息。\",\n      \"description_en\": \"Generate or parse a grid carrier line.\"\n    },\n    {\n      \"action_name\": \"auto-parse_file\",\n      \"description\": \"解析定义文件或布局文件。\",\n      \"description_en\": \"Parse a definition or layout file.\"\n    },\n    {\n      \"action_name\": \"auto-add_type\",\n      \"description\": \"添加实验器皿类型定义。\",\n      \"description_en\": \"Add a labware type definition.\"\n    },\n    {\n      \"action_name\": \"auto-size\",\n      \"description\": \"获取尺寸或容量规模信息。\",\n      \"description_en\": \"Get size or capacity-scale information.\"\n    },\n    {\n      \"action_name\": \"auto-to_name\",\n      \"description\": \"转换为名称表示。\",\n      \"description_en\": \"Convert to a name representation.\"\n    },\n    {\n      \"action_name\": \"auto-add\",\n      \"description\": \"添加子对象或成员。\",\n      \"description_en\": \"Add a child object or member.\"\n    },\n    {\n      \"action_name\": \"auto-remove\",\n      \"description\": \"移除子对象或成员。\",\n      \"description_en\": \"Remove a child object or member.\"\n    },\n    {\n      \"action_name\": \"auto-set_next\",\n      \"description\": \"设置下一个可用位置或对象。\",\n      \"description_en\": \"Set the next available position or object.\"\n    },\n    {\n      \"action_name\": \"auto-set_current_next_to\",\n      \"description\": \"设置当前对象旁边的下一个位置。\",\n      \"description_en\": \"Set the next position adjacent to the current object.\"\n    },\n    {\n      \"action_name\": \"auto-show_next_to\",\n      \"description\": \"显示指定对象旁边的下一个位置。\",\n      \"description_en\": \"Show the next position adjacent to a specified object.\"\n    },\n    {\n      \"action_name\": \"auto-show_next\",\n      \"description\": \"显示下一个可用位置或对象。\",\n      \"description_en\": \"Show the next available position or object.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2466,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3204,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 5670
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2466,
+      "output_token_count": 3204,
+      "predict_time": 48.957846436
+    }
+  },
+  "output_text": "{\n  \"name\": \"实验工作台布局管理组件\",\n  \"name_en\": \"Worktable Layout Manager\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于表示和管理自动化移液工作台上载架、孔板、试剂槽、吸头架与孔位位置关系的非实体软件组件。它可解析工作台模板文件，维护 labware 与 DiTi 吸头系列，记录当前对象与下一个可用位置，并为实验协议提供布局、选择和位置计算信息。\",\n  \"description_en\": \"A non-physical software component for representing and managing the layout of carriers, labware, wells, tip racks, and positions on an automated liquid-handling worktable. It can parse worktable template files, maintain labware and DiTi tip series, track the current object and next usable position, and provide layout, selection, and position-calculation information for experiment protocols.\",\n  \"tag_hints\": [\n    \"liquid-handling deck layout\",\n    \"labware position tracking\",\n    \"tip rack management\",\n    \"well selection\",\n    \"worktable template parsing\",\n    \"protocol setup\",\n    \"carrier and labware mapping\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-parse_worktable_file\",\n      \"description\": \"解析工作台模板文件并导入布局信息。\",\n      \"description_en\": \"Parse a worktable template file and import layout information.\"\n    },\n    {\n      \"action_name\": \"auto-add_new_labware\",\n      \"description\": \"向工作台添加新的实验器皿并分配位置。\",\n      \"description_en\": \"Add a new labware item to the worktable and assign a position.\"\n    },\n    {\n      \"action_name\": \"auto-add_labware\",\n      \"description\": \"将实验器皿添加到指定工作台位置。\",\n      \"description_en\": \"Add a labware item to a specified worktable location.\"\n    },\n    {\n      \"action_name\": \"auto-set_current\",\n      \"description\": \"设置当前实验器皿。\",\n      \"description_en\": \"Set the current labware.\"\n    },\n    {\n      \"action_name\": \"auto-set_first_pos\",\n      \"description\": \"设置指定实验器皿类型的起始孔位或吸头位置。\",\n      \"description_en\": \"Set the starting well or tip position for a specified labware type.\"\n    },\n    {\n      \"action_name\": \"auto-retire_labware\",\n      \"description\": \"停用或移除指定实验器皿。\",\n      \"description_en\": \"Retire or remove a specified labware item.\"\n    },\n    {\n      \"action_name\": \"auto-replace_with_new\",\n      \"description\": \"用新的实验器皿替换现有实验器皿。\",\n      \"description_en\": \"Replace an existing labware item with a new one.\"\n    },\n    {\n      \"action_name\": \"auto-set_def_DiTi\",\n      \"description\": \"设置默认 DiTi 吸头配置。\",\n      \"description_en\": \"Set the default DiTi tip configuration.\"\n    },\n    {\n      \"action_name\": \"auto-get_current_labware\",\n      \"description\": \"获取当前实验器皿。\",\n      \"description_en\": \"Get the current labware.\"\n    },\n    {\n      \"action_name\": \"auto-get_labware\",\n      \"description\": \"获取实验器皿。\",\n      \"description_en\": \"Get labware.\"\n    },\n    {\n      \"action_name\": \"auto-get_DITI_series\",\n      \"description\": \"获取 DiTi 吸头架系列。\",\n      \"description_en\": \"Get the DiTi tip rack series.\"\n    },\n    {\n      \"action_name\": \"auto-log\",\n      \"description\": \"记录对象或布局相关日志信息。\",\n      \"description_en\": \"Log object- or layout-related information.\"\n    },\n    {\n      \"action_name\": \"auto-select\",\n      \"description\": \"选择孔位、吸头或其他布局对象。\",\n      \"description_en\": \"Select wells, tips, or other layout objects.\"\n    },\n    {\n      \"action_name\": \"auto-vol\",\n      \"description\": \"定义体积属性。\",\n      \"description_en\": \"Define the volume property.\"\n    },\n    {\n      \"action_name\": \"auto-reagent\",\n      \"description\": \"定义试剂属性。\",\n      \"description_en\": \"Define the reagent property.\"\n    },\n    {\n      \"action_name\": \"auto-actions\",\n      \"description\": \"列出对象支持的操作。\",\n      \"description_en\": \"List the actions supported by the object.\"\n    },\n    {\n      \"action_name\": \"auto-create\",\n      \"description\": \"创建布局对象实例。\",\n      \"description_en\": \"Create a layout object instance.\"\n    },\n    {\n      \"action_name\": \"auto-init_wells\",\n      \"description\": \"初始化孔位集合。\",\n      \"description_en\": \"Initialize the set of wells.\"\n    },\n    {\n      \"action_name\": \"auto-autoselect\",\n      \"description\": \"自动选择合适的孔位或对象。\",\n      \"description_en\": \"Automatically select suitable wells or objects.\"\n    },\n    {\n      \"action_name\": \"auto-offset\",\n      \"description\": \"定义位置偏移量。\",\n      \"description_en\": \"Define the position offset.\"\n    },\n    {\n      \"action_name\": \"auto-offsetFromName\",\n      \"description\": \"根据名称计算位置偏移量。\",\n      \"description_en\": \"Calculate a position offset from a name.\"\n    },\n    {\n      \"action_name\": \"auto-position\",\n      \"description\": \"获取或生成位置表示。\",\n      \"description_en\": \"Get or generate a position representation.\"\n    },\n    {\n      \"action_name\": \"auto-find_free_wells\",\n      \"description\": \"查找空闲孔位。\",\n      \"description_en\": \"Find free wells.\"\n    },\n    {\n      \"action_name\": \"auto-put\",\n      \"description\": \"将对象放入指定位置。\",\n      \"description_en\": \"Place an object into a specified position.\"\n    },\n    {\n      \"action_name\": \"auto-clearSelection\",\n      \"description\": \"清除当前选择。\",\n      \"description_en\": \"Clear the current selection.\"\n    },\n    {\n      \"action_name\": \"auto-selected\",\n      \"description\": \"获取当前选择状态。\",\n      \"description_en\": \"Get the current selection state.\"\n    },\n    {\n      \"action_name\": \"auto-selected_wells\",\n      \"description\": \"获取已选择孔位。\",\n      \"description_en\": \"Get the selected wells.\"\n    },\n    {\n      \"action_name\": \"auto-selectAll\",\n      \"description\": \"选择全部孔位或对象。\",\n      \"description_en\": \"Select all wells or objects.\"\n    },\n    {\n      \"action_name\": \"auto-selectOnly\",\n      \"description\": \"仅选择指定孔位或对象。\",\n      \"description_en\": \"Select only the specified wells or objects.\"\n    },\n    {\n      \"action_name\": \"auto-newOffset\",\n      \"description\": \"创建新的位置偏移量。\",\n      \"description_en\": \"Create a new position offset.\"\n    },\n    {\n      \"action_name\": \"auto-newPosition\",\n      \"description\": \"创建新的位置对象。\",\n      \"description_en\": \"Create a new position object.\"\n    },\n    {\n      \"action_name\": \"auto-posAtParallelMove\",\n      \"description\": \"计算并行移动时的位置。\",\n      \"description_en\": \"Calculate the position for a parallel move.\"\n    },\n    {\n      \"action_name\": \"auto-parallelOrder\",\n      \"description\": \"计算并行移动顺序。\",\n      \"description_en\": \"Calculate the order for parallel movement.\"\n    },\n    {\n      \"action_name\": \"auto-offsetAtParallelMove\",\n      \"description\": \"计算并行移动时的偏移量。\",\n      \"description_en\": \"Calculate the offset for a parallel move.\"\n    },\n    {\n      \"action_name\": \"auto-moveParallel\",\n      \"description\": \"执行并行位置移动计算。\",\n      \"description_en\": \"Perform parallel position movement calculation.\"\n    },\n    {\n      \"action_name\": \"auto-wellSelectionStr\",\n      \"description\": \"生成孔位选择字符串。\",\n      \"description_en\": \"Generate a well-selection string.\"\n    },\n    {\n      \"action_name\": \"auto-find_new_tips\",\n      \"description\": \"查找新的可用吸头。\",\n      \"description_en\": \"Find new available tips.\"\n    },\n    {\n      \"action_name\": \"auto-retire_new_tips\",\n      \"description\": \"将新吸头标记为已使用或停用。\",\n      \"description_en\": \"Mark new tips as used or retire them.\"\n    },\n    {\n      \"action_name\": \"auto-refill_next_rack\",\n      \"description\": \"切换或补充下一个吸头架。\",\n      \"description_en\": \"Switch to or refill the next tip rack.\"\n    },\n    {\n      \"action_name\": \"auto-create_labware\",\n      \"description\": \"创建实验器皿对象。\",\n      \"description_en\": \"Create a labware object.\"\n    },\n    {\n      \"action_name\": \"auto-create_series\",\n      \"description\": \"创建实验器皿或吸头架系列。\",\n      \"description_en\": \"Create a labware or tip-rack series.\"\n    },\n    {\n      \"action_name\": \"auto-set_DITI_counter\",\n      \"description\": \"设置 DiTi 吸头计数器。\",\n      \"description_en\": \"Set the DiTi tip counter.\"\n    },\n    {\n      \"action_name\": \"auto-fill\",\n      \"description\": \"填充孔位或容器的内容状态。\",\n      \"description_en\": \"Fill wells or containers in the content model.\"\n    },\n    {\n      \"action_name\": \"auto-set_back\",\n      \"description\": \"将对象状态或位置设回先前值。\",\n      \"description_en\": \"Set an object's state or position back to a previous value.\"\n    },\n    {\n      \"action_name\": \"auto-pick_up\",\n      \"description\": \"从布局中取用吸头或对象。\",\n      \"description_en\": \"Pick up a tip or object from the layout.\"\n    },\n    {\n      \"action_name\": \"auto-waste\",\n      \"description\": \"将对象标记为废弃或送入废弃位。\",\n      \"description_en\": \"Mark an object as waste or send it to a waste position.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"写出布局或对象信息。\",\n      \"description_en\": \"Write out layout or object information.\"\n    },\n    {\n      \"action_name\": \"auto-grid_carrier_line\",\n      \"description\": \"生成或解析网格载架行信息。\",\n      \"description_en\": \"Generate or parse a grid carrier line.\"\n    },\n    {\n      \"action_name\": \"auto-parse_file\",\n      \"description\": \"解析定义文件或布局文件。\",\n      \"description_en\": \"Parse a definition or layout file.\"\n    },\n    {\n      \"action_name\": \"auto-add_type\",\n      \"description\": \"添加实验器皿类型定义。\",\n      \"description_en\": \"Add a labware type definition.\"\n    },\n    {\n      \"action_name\": \"auto-size\",\n      \"description\": \"获取尺寸或容量规模信息。\",\n      \"description_en\": \"Get size or capacity-scale information.\"\n    },\n    {\n      \"action_name\": \"auto-to_name\",\n      \"description\": \"转换为名称表示。\",\n      \"description_en\": \"Convert to a name representation.\"\n    },\n    {\n      \"action_name\": \"auto-add\",\n      \"description\": \"添加子对象或成员。\",\n      \"description_en\": \"Add a child object or member.\"\n    },\n    {\n      \"action_name\": \"auto-remove\",\n      \"description\": \"移除子对象或成员。\",\n      \"description_en\": \"Remove a child object or member.\"\n    },\n    {\n      \"action_name\": \"auto-set_next\",\n      \"description\": \"设置下一个可用位置或对象。\",\n      \"description_en\": \"Set the next available position or object.\"\n    },\n    {\n      \"action_name\": \"auto-set_current_next_to\",\n      \"description\": \"设置当前对象旁边的下一个位置。\",\n      \"description_en\": \"Set the next position adjacent to the current object.\"\n    },\n    {\n      \"action_name\": \"auto-show_next_to\",\n      \"description\": \"显示指定对象旁边的下一个位置。\",\n      \"description_en\": \"Show the next position adjacent to a specified object.\"\n    },\n    {\n      \"action_name\": \"auto-show_next\",\n      \"description\": \"显示下一个可用位置或对象。\",\n      \"description_en\": \"Show the next available position or object.\"\n    }\n  ]\n}"
+}

@@ -1,47 +1,163 @@
-Device: wasatch_device
-Registry Key: wasatch_device
-Short Description: Wasatch Photonics是由Wasatch Photonics生产的表征设备，主要功能包括初始化、扫描、设备连接、读取数据、采集。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (16):
-- auto-acquire_area_scan -> acquire_area_scan [UniLabJsonCommand] goal_params: none
-- auto-acquire_data -> acquire_data [UniLabJsonCommand] goal_params: none
-- auto-acquire_spectrum -> acquire_spectrum [UniLabJsonCommand] goal_params: none
-- auto-acquire_spectrum_auto_raman -> acquire_spectrum_auto_raman [UniLabJsonCommand] goal_params: none
-- auto-acquire_spectrum_standard -> acquire_spectrum_standard [UniLabJsonCommand] goal_params: none
-- auto-balance_acquisition -> balance_acquisition [UniLabJsonCommand] goal_params: device, intensity, max_integration_time_ms, max_tries, mode, pixel, threshold
-- auto-change_setting -> change_setting [UniLabJsonCommand] goal_params: allow_immediate, setting, value
-- auto-connect -> connect [UniLabJsonCommand] goal_params: none
-- auto-connect_feature_identification -> connect_feature_identification [UniLabJsonCommand] goal_params: none
-- auto-disconnect -> disconnect [UniLabJsonCommand] goal_params: none
-- auto-handle_requests -> handle_requests [UniLabJsonCommand] goal_params: requests
-- auto-initialize_settings -> initialize_settings [UniLabJsonCommand] goal_params: none
-- auto-monitor_memory -> monitor_memory [UniLabJsonCommand] goal_params: none
-- auto-perform_optional_throwaways -> perform_optional_throwaways [UniLabJsonCommand] goal_params: none
-- auto-process_commands -> process_commands [UniLabJsonCommand] goal_params: none
-- auto-take_one_averaged_reading -> take_one_averaged_reading [UniLabJsonCommand] goal_params: label
-
-Driver Functions (18):
-- WasatchDevice.__init__(self, device_id, message_queue, alert_queue) (line 151)
-- WasatchDevice.connect(self) (line 203)
-- WasatchDevice.disconnect(self) (line 222)
-- WasatchDevice.connect_feature_identification(self) (line 238)
-- WasatchDevice.initialize_settings(self) (line 262)
-- WasatchDevice.acquire_data(self) (line 294)
-- WasatchDevice.acquire_spectrum(self) (line 377)
-- WasatchDevice.acquire_spectrum_auto_raman(self) (line 387)
-- WasatchDevice.acquire_spectrum_standard(self) (line 409)
-- WasatchDevice.perform_optional_throwaways(self) (line 728)
-- WasatchDevice.take_one_averaged_reading(self, label) (line 751)
-- WasatchDevice.monitor_memory(self) (line 979)
-- WasatchDevice.process_commands(self) (line 1005)
-- WasatchDevice._init_process_funcs(self) (line 1030)
-- WasatchDevice.acquire_area_scan(self) (line 1045)
-- WasatchDevice.balance_acquisition(self, device, mode, intensity, threshold, pixel, max_integration_time_ms, max_tries) (line 1065)
-- WasatchDevice.change_setting(self, setting, value, allow_immediate) (line 1113)
-- WasatchDevice.handle_requests(self, requests) (line 1146)
+wasatch_device:
+  name: Wasatch USB光谱仪
+  name_en: Wasatch USB Spectrometer
+  manufacturer: Wasatch Photonics
+  category:
+  - 拉曼光谱仪
+  - 光谱仪
+  - USB仪器通信接口
+  tags:
+  - 表征设备
+  - 智慧表征与检测中心
+  - 光学与光谱实验
+  - 光谱采集与检测
+  - 激光激发与光谱测量
+  - 拉曼光谱仪
+  - 光谱仪
+  - USB仪器通信接口
+  description: 通过 FID 协议控制 Wasatch Photonics USB 2.0 光谱仪的设备接口，用于采集光谱数据，并支持扫描平均、Auto-Raman、区域扫描、激光相关测量以及温度与状态信息读取，适用于拉曼和通用光谱实验。
+  description_en: A device interface for controlling Wasatch Photonics USB 2.0 spectrometers
+    over the FID protocol. It is used for spectral acquisition and supports scan averaging,
+    Auto-Raman, area scanning, laser-related measurements, and temperature/status
+    readback for Raman and general spectroscopy workflows.
+  class:
+    action_value_mappings:
+      auto-connect:
+        schema:
+          description: 连接指定的 Wasatch 光谱仪。
+          description_en: Connect to the specified Wasatch spectrometer.
+      auto-disconnect:
+        schema:
+          description: 断开与光谱仪的连接。
+          description_en: Disconnect from the spectrometer.
+      auto-connect_feature_identification:
+        schema:
+          description: 使用 FID 协议连接兼容的光谱仪设备。
+          description_en: Connect to a compatible spectrometer using the FID protocol.
+      auto-initialize_settings:
+        schema:
+          description: 初始化光谱仪设置与采集相关状态。
+          description_en: Initialize spectrometer settings and acquisition-related
+            state.
+      auto-acquire_data:
+        schema:
+          description: 处理待执行命令并从设备采集光谱与温度等数据。
+          description_en: Process pending commands and acquire spectrum and temperature-related
+            data from the device.
+      auto-acquire_spectrum:
+        schema:
+          description: 执行一次光谱采集，返回单次或平均后的读数及相关状态。
+          description_en: Perform a spectrum acquisition and return a single or averaged
+            reading with related status.
+      auto-acquire_spectrum_auto_raman:
+        schema:
+          description: 执行 Auto-Raman 光谱采集流程。
+          description_en: Run an Auto-Raman spectrum acquisition sequence.
+      auto-acquire_spectrum_standard:
+        schema:
+          description: 执行标准光谱采集，可结合激光控制、平均和附加元数据读取。
+          description_en: Perform a standard spectrum acquisition, optionally with
+            laser control, averaging, and additional metadata readout.
+      auto-perform_optional_throwaways:
+        schema:
+          description: 执行可选的预热丢弃采集，以提高传感器或激光稳定性。
+          description_en: Perform optional throwaway acquisitions to improve sensor
+            or laser stabilization.
+      auto-take_one_averaged_reading:
+        schema:
+          description: 采集一次读数，必要时执行多次积分并在本地完成平均。
+          description_en: Acquire one reading, optionally performing multiple integrations
+            and local averaging.
+      auto-monitor_memory:
+        schema:
+          description: 监控采集过程中的内存使用情况。
+          description_en: Monitor memory usage during acquisition.
+      auto-process_commands:
+        schema:
+          description: 处理队列中的设置命令并将其写入设备。
+          description_en: Process queued setting commands and write them to the device.
+      auto-acquire_area_scan:
+        schema:
+          description: 执行区域扫描采集，返回区域扫描图像及相关光谱数据。
+          description_en: Perform an area scan acquisition and return area-scan image
+            data with related spectral data.
+      auto-balance_acquisition:
+        schema:
+          description: 调整采集参数以使目标像素或强度达到设定范围。
+          description_en: Adjust acquisition parameters to bring a target pixel or
+            intensity into the desired range.
+      auto-change_setting:
+        schema:
+          description: 更改设备或采集设置，必要时立即下发到硬件。
+          description_en: Change a device or acquisition setting, sending it to hardware
+            immediately when needed.
+      auto-handle_requests:
+        schema:
+          description: 处理上层发送的请求集合并分发到相应设备操作。
+          description_en: Handle batches of incoming requests and dispatch them to
+            the appropriate device operations.
+auto_annotation_metadata:
+  registry_key: wasatch_device
+  annotation_workflow_version: v4
+  tag_hints:
+  - USB spectrometer
+  - Raman spectroscopy
+  - spectral acquisition
+  - scan averaging
+  - laser control
+  - area scan
+  - temperature monitoring
+  - FID protocol
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该设备用于采集拉曼和通用光谱数据，属于典型表征设备。
+  - id: '4325'
+    name: 智慧表征与检测中心
+    name_en: Intelligent Characterization & Testing Center
+    type: experimental_domain
+    rationale: 设备提供光谱、温度与状态读回，适用于智能化表征检测流程。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: Wasatch USB光谱仪直接面向光谱实验与拉曼测量。
+  - id: P-3002
+    name: 光谱采集与检测
+    name_en: Spectral Acquisition & Detection
+    type: experimental_scene
+    rationale: 核心能力是单次、平均及区域扫描等多种光谱采集。
+  - id: P-3004
+    name: 激光激发与光谱测量
+    name_en: Laser Excitation & Spectroscopic Measurement
+    type: experimental_scene
+    rationale: 支持Auto-Raman和激光相关测量，符合激光激发光谱场景。
+  - id: '4392'
+    name: 拉曼光谱仪
+    name_en: Raman Spectrometer
+    type: device_template_tag
+    rationale: 设备明确支持Auto-Raman与激光相关读数，符合拉曼光谱仪模板。
+  - id: P-9806
+    name: 光谱仪
+    name_en: Spectrometer
+    type: device_template_tag
+    rationale: 其基础形态是USB光谱仪，可执行标准光谱采集与区域扫描。
+  - id: P-0005
+    name: USB仪器通信接口
+    name_en: USB Instrument Communication Interface
+    type: device_template_tag
+    rationale: 该设备通过USB 2.0与FID协议进行控制，USB仪器接口属性明显。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

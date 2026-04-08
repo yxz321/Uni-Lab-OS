@@ -1,22 +1,81 @@
-Device: virtual_bus
-Registry Key: virtual_bus
-Short Description: Virtual BUS是一款实验执行&合成设备。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (3):
-- auto-get_extra -> get_extra [UniLabJsonCommand] goal_params: none
-- auto-send -> send [UniLabJsonCommand] goal_params: msg, timeout
-- auto-shutdown -> shutdown [UniLabJsonCommand] goal_params: none
-
-Driver Functions (6):
-- VirtualBus.__init__(self, channel, receive_own_messages, rx_queue_size, preserve_timestamps, protocol, **kwargs) (line 122)
-- VirtualBus._check_if_open(self) (line 182)
-- VirtualBus._recv_internal(self, timeout) (line 191)
-- VirtualBus.send(self, msg, timeout) (line 201)
-- VirtualBus.shutdown(self) (line 223)
-- VirtualBus._detect_available_configs() (line 237)
+virtual_bus:
+  name: 虚拟CAN总线
+  name_en: Virtual CAN Bus
+  manufacturer: ''
+  category:
+  - CAN总线接口
+  tags:
+  - 实验执行&合成设备
+  - 实验网络与协议集成
+  - CAN总线设备调试与集成
+  - 实验设备模拟与流程调试
+  - CAN总线接口
+  description: 基于内部消息队列的非物理虚拟CAN总线组件，用于测试和仿真。它通过任意通道标识连接多个软件总线实例，在同一逻辑通道上传递CAN消息，提供可靠的消息投递与顺序保证，但不直接连接或控制真实硬件设备。
+  description_en: A non-physical virtual CAN bus component based on an internal message
+    queue, intended for testing and simulation. It connects multiple software bus
+    instances through an arbitrary channel identifier and passes CAN messages on the
+    same logical channel, providing reliable delivery and message ordering without
+    directly interfacing with real hardware.
+  class:
+    action_value_mappings:
+      auto-send:
+        schema:
+          description: 向该虚拟通道上的所有监听方发送一条CAN消息。
+          description_en: Send a CAN message to all listeners on this virtual channel.
+      auto-shutdown:
+        schema:
+          description: 关闭此虚拟总线实例，并在通道为空时将其移除。
+          description_en: Shut down this virtual bus instance and remove the channel
+            if it becomes empty.
+      auto-get_extra:
+        schema:
+          description: 获取该虚拟总线接口的附加信息。
+          description_en: Get extra information about this virtual bus interface.
+auto_annotation_metadata:
+  registry_key: virtual_bus
+  annotation_workflow_version: v4
+  tag_hints:
+  - virtual CAN bus
+  - software simulation
+  - message queue
+  - CAN testing
+  - reliable message delivery
+  - bus emulation
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该组件用于实验控制与测试流程中的总线消息交互执行，支撑实验运行过程。
+  - id: P-99010005
+    name: 实验网络与协议集成
+    name_en: Experimental Networking & Protocol Integration
+    type: experimental_domain
+    rationale: 其本质是面向实验系统的协议级通信与软件总线集成。
+  - id: P-20004
+    name: CAN总线设备调试与集成
+    name_en: CAN Device Debugging & Integration
+    type: experimental_scene
+    rationale: 该虚拟总线专门用于CAN消息的测试、调试和多实例集成。
+  - id: P-00002
+    name: 实验设备模拟与流程调试
+    name_en: Laboratory Device Simulation & Workflow Debugging
+    type: experimental_scene
+    rationale: 描述明确指出其用于测试和仿真，且不直接连接真实硬件。
+  - id: P-700002
+    name: CAN总线接口
+    name_en: CAN Bus Interface
+    type: device_template_tag
+    rationale: 虽然是虚拟实现，但它向上提供标准CAN总线式消息接口与通道通信能力。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

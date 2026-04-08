@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: y_network\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/Switch-Yoctopuce_Yocto-Relay/libs/yoctopuce/yocto_network.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.custom.y_network:YNetwork\n\nClass: YNetwork (focal)\n  Bases: ['YFunction']\n  Docstring: YNetwork objects provide access to TCP/IP parameters of Yoctopuce\ndevices that include a built-in network interface.\n\nFocal class methods:\n  [status_getter] get_readiness(self)\n    comment: res\n    comment: Returns the current established working mode of the network interface.\n        Level zero (DOWN_0) means that no hardware link has been detected. Either there is no signal\n        on the network cable...\n  [status_getter] get_macAddress(self)\n    comment: res\n    comment: Returns the MAC address of the network interface. The MAC address is also available on a sticker\n        on the module, in both numeric and barcode forms.\n\n        @return a string corresponding to th...\n  [status_getter] get_ipAddress(self)\n    comment: res\n    comment: Returns the IP address currently in use by the device. The address may have been configured\n        statically, or provided by a DHCP server.\n\n        @return a string corresponding to the IP address ...\n  [status_getter] get_subnetMask(self)\n    comment: res\n    comment: Returns the subnet mask currently used by the device.\n\n        @return a string corresponding to the subnet mask currently used by the device\n\n        On failure, throws an exception or returns YNetwo...\n  [status_getter] get_router(self)\n    comment: res\n    comment: Returns the IP address of the router on the device subnet (default gateway).\n\n        @return a string corresponding to the IP address of the router on the device subnet (default gateway)\n\n        On ...\n  [status_getter] get_ipConfig(self)\n    comment: res\n    comment: Returns the IP configuration of the network interface.\n\n        If the network interface is setup to use a static IP address, the string starts with \"STATIC:\" and\n        is followed by three\n        ...\n  [status_setter] set_ipConfig(self, newval)\n  [status_getter] get_primaryDNS(self)\n    comment: res\n    comment: Returns the IP address of the primary name server to be used by the module.\n\n        @return a string corresponding to the IP address of the primary name server to be used by the module\n\n        On fa...\n  [status_setter] set_primaryDNS(self, newval)\n    comment: Changes the IP address of the primary name server to be used by the module.\n        When using DHCP, if a value is specified, it overrides the value received from the DHCP server.\n        Remember to ...\n  [status_getter] get_secondaryDNS(self)\n    comment: res\n    comment: Returns the IP address of the secondary name server to be used by the module.\n\n        @return a string corresponding to the IP address of the secondary name server to be used by the module\n\n        O...\n  [status_setter] set_secondaryDNS(self, newval)\n    comment: Changes the IP address of the secondary name server to be used by the module.\n        When using DHCP, if a value is specified, it overrides the value received from the DHCP server.\n        Remember t...\n  [status_getter] get_ntpServer(self)\n    comment: res\n    comment: Returns the IP address of the NTP server to be used by the device.\n\n        @return a string corresponding to the IP address of the NTP server to be used by the device\n\n        On failure, throws an e...\n  [status_setter] set_ntpServer(self, newval)\n    comment: Changes the IP address of the NTP server to be used by the module. Use an empty\n        string to restore the factory set  address.\n        Remember to call the saveToFlash() method and then to reboot...\n  [status_getter] get_userPassword(self)\n    comment: res\n    comment: Returns a hash string if a password has been set for \"user\" user,\n        or an empty string otherwise.\n\n        @return a string corresponding to a hash string if a password has been set for \"user\" u...\n  [status_setter] set_userPassword(self, newval)\n    comment: Changes the password for the \"user\" user. This password becomes instantly required\n        to perform any use of the module. If the specified value is an\n        empty string, a password is not requir...\n  [status_getter] get_adminPassword(self)\n    comment: res\n    comment: Returns a hash string if a password has been set for user \"admin\",\n        or an empty string otherwise.\n\n        @return a string corresponding to a hash string if a password has been set for user \"a...\n  [status_setter] set_adminPassword(self, newval)\n    comment: Changes the password for the \"admin\" user. This password becomes instantly required\n        to perform any change of the module state. If the specified value is an\n        empty string, a password is ...\n  [status_getter] get_httpPort(self)\n    comment: res\n    comment: Returns the TCP port used to serve the hub web UI.\n\n        @return an integer corresponding to the TCP port used to serve the hub web UI\n\n        On failure, throws an exception or returns YNetwork.H...\n  [status_setter] set_httpPort(self, newval)\n    comment: Changes the the TCP port used to serve the hub web UI. The default value is port 80,\n        which is the default for all Web servers. Regardless of the value set here,\n        the hub will always rep...\n  [status_getter] get_defaultPage(self)\n    comment: res\n    comment: Returns the HTML page to serve for the URL \"/\"\" of the hub.\n\n        @return a string corresponding to the HTML page to serve for the URL \"/\"\" of the hub\n\n        On failure, throws an exception or re...\n  [status_setter] set_defaultPage(self, newval)\n    comment: Changes the default HTML page returned by the hub. If not value are set the hub return\n        \"index.html\" which is the web interface of the hub. It is possible to change this page\n        for file t...\n  [status_getter] get_discoverable(self)\n    comment: res\n    comment: Returns the activation state of the multicast announce protocols to allow easy\n        discovery of the module in the network neighborhood (uPnP/Bonjour protocol).\n\n        @return either YNetwork.DIS...\n  [status_setter] set_discoverable(self, newval)\n    comment: Changes the activation state of the multicast announce protocols to allow easy\n        discovery of the module in the network neighborhood (uPnP/Bonjour protocol).\n        Remember to call the saveToF...\n  [status_getter] get_wwwWatchdogDelay(self)\n    comment: res\n    comment: Returns the allowed downtime of the WWW link (in seconds) before triggering an automated\n        reboot to try to recover Internet connectivity. A zero value disables automated reboot\n        in case ...\n  [status_setter] set_wwwWatchdogDelay(self, newval)\n    comment: Changes the allowed downtime of the WWW link (in seconds) before triggering an automated\n        reboot to try to recover Internet connectivity. A zero value disables automated reboot\n        in case ...\n  [status_getter] get_callbackUrl(self)\n    comment: res\n    comment: Returns the callback URL to notify of significant state changes.\n\n        @return a string corresponding to the callback URL to notify of significant state changes\n\n        On failure, throws an excep...\n  [status_setter] set_callbackUrl(self, newval)\n    comment: Changes the callback URL to notify significant state changes. Remember to call the\n        saveToFlash() method of the module if the modification must be kept.\n\n        @param newval : a string corres...\n  [status_getter] get_callbackMethod(self)\n    comment: res\n    comment: Returns the HTTP method used to notify callbacks for significant state changes.\n\n        @return a value among YNetwork.CALLBACKMETHOD_POST, YNetwork.CALLBACKMETHOD_GET and\n        YNetwork.CALLBACKME...\n  [status_setter] set_callbackMethod(self, newval)\n    comment: Changes the HTTP method used to notify callbacks for significant state changes.\n        Remember to call the saveToFlash() method of the module if the\n        modification must be kept.\n\n        @para...\n  [status_getter] get_callbackEncoding(self)\n    comment: res\n    comment: Returns the encoding standard to use for representing notification values.\n\n        @return a value among YNetwork.CALLBACKENCODING_FORM, YNetwork.CALLBACKENCODING_JSON,\n        YNetwork.CALLBACKENCOD...\n  [status_setter] set_callbackEncoding(self, newval)\n    comment: Changes the encoding standard to use for representing notification values.\n        Remember to call the saveToFlash() method of the module if the\n        modification must be kept.\n\n        @param new...\n  [status_getter] get_callbackCredentials(self)\n    comment: res\n    comment: Returns a hashed version of the notification callback credentials if set,\n        or an empty string otherwise.\n\n        @return a string corresponding to a hashed version of the notification callback...\n  [status_setter] set_callbackCredentials(self, newval)\n    comment: Changes the credentials required to connect to the callback address. The credentials\n        must be provided as returned by function get_callbackCredentials,\n        in the form username:hash. The me...\n  [command] callbackLogin(self, username, password)\n    comment: Connects to the notification callback and saves the credentials required to\n        log into it. The password is not stored into the module, only a hashed\n        copy of the credentials are saved. Re...\n  [status_getter] get_callbackInitialDelay(self)\n    comment: res\n    comment: Returns the initial waiting time before first callback notifications, in seconds.\n\n        @return an integer corresponding to the initial waiting time before first callback notifications, in seconds\n...\n  [status_setter] set_callbackInitialDelay(self, newval)\n    comment: Changes the initial waiting time before first callback notifications, in seconds.\n        Remember to call the saveToFlash() method of the module if the modification must be kept.\n\n        @param newv...\n  [status_getter] get_callbackSchedule(self)\n    comment: res\n    comment: Returns the HTTP callback schedule strategy, as a text string.\n\n        @return a string corresponding to the HTTP callback schedule strategy, as a text string\n\n        On failure, throws an exception...\n  [status_setter] set_callbackSchedule(self, newval)\n    comment: Changes the HTTP callback schedule strategy, as a text string.\n        Remember to call the saveToFlash()\n        method of the module if the modification must be kept.\n\n        @param newval : a stri...\n  [status_getter] get_callbackMinDelay(self)\n    comment: res\n    comment: Returns the minimum waiting time between two HTTP callbacks, in seconds.\n\n        @return an integer corresponding to the minimum waiting time between two HTTP callbacks, in seconds\n\n        On failur...\n  [status_setter] set_callbackMinDelay(self, newval)\n    comment: Changes the minimum waiting time between two HTTP callbacks, in seconds.\n        Remember to call the saveToFlash() method of the module if the modification must be kept.\n\n        @param newval : an i...\n  [status_getter] get_callbackMaxDelay(self)\n    comment: res\n    comment: Returns the waiting time between two HTTP callbacks when there is nothing new.\n\n        @return an integer corresponding to the waiting time between two HTTP callbacks when there is nothing new\n\n     ...\n  [status_setter] set_callbackMaxDelay(self, newval)\n    comment: Changes the waiting time between two HTTP callbacks when there is nothing new.\n        Remember to call the saveToFlash() method of the module if the modification must be kept.\n\n        @param newval ...\n  [status_getter] get_poeCurrent(self)\n    comment: res\n    comment: Returns the current consumed by the module from Power-over-Ethernet (PoE), in milliamps.\n        The current consumption is measured after converting PoE source to 5 Volt, and should\n        never exc...\n  [command] FindNetwork(func)\n    comment: obj\n    comment: Retrieves a network interface for a given identifier.\n        The identifier can be specified using several formats:\n        <ul>\n        <li>FunctionLogicalName</li>\n        <li>ModuleSerialNumber.Fu...\n  [command] useDHCP(self, fallbackIpAddr, fallbackSubnetMaskLen, fallbackRouter)\n    comment: Changes the configuration of the network interface to enable the use of an\n        IP address received from a DHCP server. Until an address is received from a DHCP\n        server, the module uses the ...\n  [command] useDHCPauto(self)\n    comment: Changes the configuration of the network interface to enable the use of an\n        IP address received from a DHCP server. Until an address is received from a DHCP\n        server, the module uses an I...\n  [command] useStaticIP(self, ipAddress, subnetMaskLen, router)\n    comment: Changes the configuration of the network interface to use a static IP address.\n        Remember to call the saveToFlash() method and then to reboot the module to apply this setting.\n\n        @param ip...\n  [command] ping(self, host)\n    comment: content\n    comment: Pings host to test the network connectivity. Sends four ICMP ECHO_REQUEST requests from the\n        module to the target host. This method returns a string with the result of the\n        4 ICMP ECHO_R...\n  [command] triggerCallback(self)\n    comment: Trigger an HTTP callback quickly. This function can even be called within\n        an HTTP callback, in which case the next callback will be triggered 5 seconds\n        after the end of the current cal...\n  [command] set_periodicCallbackSchedule(self, interval, offset)\n    comment: Setup periodic HTTP callbacks (simplified function).\n\n        @param interval : a string representing the callback periodicity, expressed in\n                seconds, minutes or hours, eg. \"60s\", \"5m\",...\n  [command] nextNetwork(self)\n    comment: Continues the enumeration of network interfaces started using yFirstNetwork().\n        Caution: You can't make any assumption about the returned network interfaces order.\n        If you want to find a...\n  [command] FirstNetwork()\n    comment: noinspection PyTypeChecker,PyCallingNonCallable\n    comment: Starts the enumeration of network interfaces currently accessible.\n        Use the method YNetwork.nextNetwork() to iterate on\n        next network interfaces.\n\n        @return a pointer to a YNetwork...\n\nRegistry actions:\n  auto-set_ipConfig (from set_ipConfig())\n  auto-set_primaryDNS (from set_primaryDNS())\n  auto-set_secondaryDNS (from set_secondaryDNS())\n  auto-set_ntpServer (from set_ntpServer())\n  auto-set_userPassword (from set_userPassword())\n  auto-set_adminPassword (from set_adminPassword())\n  auto-set_httpPort (from set_httpPort())\n  auto-set_defaultPage (from set_defaultPage())\n  auto-set_discoverable (from set_discoverable())\n  auto-set_wwwWatchdogDelay (from set_wwwWatchdogDelay())\n  auto-set_callbackUrl (from set_callbackUrl())\n  auto-set_callbackMethod (from set_callbackMethod())\n  auto-set_callbackEncoding (from set_callbackEncoding())\n  auto-set_callbackCredentials (from set_callbackCredentials())\n  auto-callbackLogin (from callbackLogin())\n  auto-set_callbackInitialDelay (from set_callbackInitialDelay())\n  auto-set_callbackSchedule (from set_callbackSchedule())\n  auto-set_callbackMinDelay (from set_callbackMinDelay())\n  auto-set_callbackMaxDelay (from set_callbackMaxDelay())\n  auto-useDHCP (from useDHCP())\n  auto-useDHCPauto (from useDHCPauto())\n  auto-useStaticIP (from useStaticIP())\n  auto-ping (from ping())\n  auto-triggerCallback (from triggerCallback())\n  auto-set_periodicCallbackSchedule (from set_periodicCallbackSchedule())\n  auto-nextNetwork (from nextNetwork())\n\nRequired output action ids:\n  auto-set_ipConfig\n  auto-set_primaryDNS\n  auto-set_secondaryDNS\n  auto-set_ntpServer\n  auto-set_userPassword\n  auto-set_adminPassword\n  auto-set_httpPort\n  auto-set_defaultPage\n  auto-set_discoverable\n  auto-set_wwwWatchdogDelay\n  auto-set_callbackUrl\n  auto-set_callbackMethod\n  auto-set_callbackEncoding\n  auto-set_callbackCredentials\n  auto-callbackLogin\n  auto-set_callbackInitialDelay\n  auto-set_callbackSchedule\n  auto-set_callbackMinDelay\n  auto-set_callbackMaxDelay\n  auto-useDHCP\n  auto-useDHCPauto\n  auto-useStaticIP\n  auto-ping\n  auto-triggerCallback\n  auto-set_periodicCallbackSchedule\n  auto-nextNetwork"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_08bae9f3eb1583bc0069d5bf3796c4819782c1a08a68e2fec3",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1794,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 11086,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_08bae9f3eb1583bc0069d5bf3805548197bc1b5a1f29cd8506",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_08bae9f3eb1583bc0069d5bf52830c81978c5d6f123508eee1",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Yoctopuce 网络接口配置组件\",\n  \"name_en\": \"Yoctopuce Network Interface Configuration Component\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"这是一个非实体的软件功能组件，用于访问和配置带内置网络接口的 Yoctopuce 设备的 TCP/IP 参数。它可用于管理 IP、DNS、NTP、HTTP 回调、发现广播、网页服务端口以及网络连通性测试等网络相关设置。\",\n  \"description_en\": \"This is a non-physical software function component used to access and configure TCP/IP parameters of Yoctopuce devices with a built-in network interface. It is used to manage network-related settings such as IP, DNS, NTP, HTTP callbacks, discovery protocols, web service port, and connectivity testing.\",\n  \"tag_hints\": [\n    \"Yoctopuce\",\n    \"network interface configuration\",\n    \"IP and DHCP settings\",\n    \"HTTP callback\",\n    \"embedded web UI\",\n    \"DNS and NTP configuration\",\n    \"device discovery\",\n    \"network connectivity test\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_ipConfig\",\n      \"description\": \"设置 IP 配置\",\n      \"description_en\": \"set IP configuration\"\n    },\n    {\n      \"action_name\": \"auto-set_primaryDNS\",\n      \"description\": \"设置主 DNS 服务器\",\n      \"description_en\": \"set primary DNS server\"\n    },\n    {\n      \"action_name\": \"auto-set_secondaryDNS\",\n      \"description\": \"设置备用 DNS 服务器\",\n      \"description_en\": \"set secondary DNS server\"\n    },\n    {\n      \"action_name\": \"auto-set_ntpServer\",\n      \"description\": \"设置 NTP 服务器\",\n      \"description_en\": \"set NTP server\"\n    },\n    {\n      \"action_name\": \"auto-set_userPassword\",\n      \"description\": \"设置用户密码\",\n      \"description_en\": \"set user password\"\n    },\n    {\n      \"action_name\": \"auto-set_adminPassword\",\n      \"description\": \"设置管理员密码\",\n      \"description_en\": \"set admin password\"\n    },\n    {\n      \"action_name\": \"auto-set_httpPort\",\n      \"description\": \"设置 HTTP 服务端口\",\n      \"description_en\": \"set HTTP service port\"\n    },\n    {\n      \"action_name\": \"auto-set_defaultPage\",\n      \"description\": \"设置默认网页\",\n      \"description_en\": \"set default web page\"\n    },\n    {\n      \"action_name\": \"auto-set_discoverable\",\n      \"description\": \"设置网络可发现性\",\n      \"description_en\": \"set network discoverability\"\n    },\n    {\n      \"action_name\": \"auto-set_wwwWatchdogDelay\",\n      \"description\": \"设置 WWW 看门狗延迟\",\n      \"description_en\": \"set WWW watchdog delay\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackUrl\",\n      \"description\": \"设置回调 URL\",\n      \"description_en\": \"set callback URL\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackMethod\",\n      \"description\": \"设置回调 HTTP 方法\",\n      \"description_en\": \"set callback HTTP method\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackEncoding\",\n      \"description\": \"设置回调编码方式\",\n      \"description_en\": \"set callback encoding\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackCredentials\",\n      \"description\": \"设置回调认证凭据\",\n      \"description_en\": \"set callback credentials\"\n    },\n    {\n      \"action_name\": \"auto-callbackLogin\",\n      \"description\": \"登录回调端点并保存回调认证凭据\",\n      \"description_en\": \"log in to the callback endpoint and save callback credentials\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackInitialDelay\",\n      \"description\": \"设置回调初始延迟\",\n      \"description_en\": \"set initial callback delay\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackSchedule\",\n      \"description\": \"设置回调计划\",\n      \"description_en\": \"set callback schedule\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackMinDelay\",\n      \"description\": \"设置最小回调间隔\",\n      \"description_en\": \"set minimum callback delay\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackMaxDelay\",\n      \"description\": \"设置最大回调间隔\",\n      \"description_en\": \"set maximum callback delay\"\n    },\n    {\n      \"action_name\": \"auto-useDHCP\",\n      \"description\": \"将网络接口配置为使用 DHCP，并设置回退网络参数\",\n      \"description_en\": \"configure the network interface to use DHCP with fallback network settings\"\n    },\n    {\n      \"action_name\": \"auto-useDHCPauto\",\n      \"description\": \"将网络接口配置为自动使用 DHCP\",\n      \"description_en\": \"configure the network interface to use DHCP automatically\"\n    },\n    {\n      \"action_name\": \"auto-useStaticIP\",\n      \"description\": \"将网络接口配置为使用静态 IP\",\n      \"description_en\": \"configure the network interface to use a static IP address\"\n    },\n    {\n      \"action_name\": \"auto-ping\",\n      \"description\": \"从模块发起主机连通性测试\",\n      \"description_en\": \"ping a host from the module to test connectivity\"\n    },\n    {\n      \"action_name\": \"auto-triggerCallback\",\n      \"description\": \"立即触发一次 HTTP 回调\",\n      \"description_en\": \"trigger an HTTP callback immediately\"\n    },\n    {\n      \"action_name\": \"auto-set_periodicCallbackSchedule\",\n      \"description\": \"设置周期性回调计划\",\n      \"description_en\": \"define a periodic callback schedule\"\n    },\n    {\n      \"action_name\": \"auto-nextNetwork\",\n      \"description\": \"枚举下一个网络接口对象\",\n      \"description_en\": \"enumerate the next network interface object\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 4282,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2651,
+      "output_tokens_details": {
+        "reasoning_tokens": 1378
+      },
+      "total_tokens": 6933
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 4282,
+      "output_token_count": 2651,
+      "predict_time": 46.442768092
+    }
+  },
+  "output_text": "{\n  \"name\": \"Yoctopuce 网络接口配置组件\",\n  \"name_en\": \"Yoctopuce Network Interface Configuration Component\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"这是一个非实体的软件功能组件，用于访问和配置带内置网络接口的 Yoctopuce 设备的 TCP/IP 参数。它可用于管理 IP、DNS、NTP、HTTP 回调、发现广播、网页服务端口以及网络连通性测试等网络相关设置。\",\n  \"description_en\": \"This is a non-physical software function component used to access and configure TCP/IP parameters of Yoctopuce devices with a built-in network interface. It is used to manage network-related settings such as IP, DNS, NTP, HTTP callbacks, discovery protocols, web service port, and connectivity testing.\",\n  \"tag_hints\": [\n    \"Yoctopuce\",\n    \"network interface configuration\",\n    \"IP and DHCP settings\",\n    \"HTTP callback\",\n    \"embedded web UI\",\n    \"DNS and NTP configuration\",\n    \"device discovery\",\n    \"network connectivity test\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_ipConfig\",\n      \"description\": \"设置 IP 配置\",\n      \"description_en\": \"set IP configuration\"\n    },\n    {\n      \"action_name\": \"auto-set_primaryDNS\",\n      \"description\": \"设置主 DNS 服务器\",\n      \"description_en\": \"set primary DNS server\"\n    },\n    {\n      \"action_name\": \"auto-set_secondaryDNS\",\n      \"description\": \"设置备用 DNS 服务器\",\n      \"description_en\": \"set secondary DNS server\"\n    },\n    {\n      \"action_name\": \"auto-set_ntpServer\",\n      \"description\": \"设置 NTP 服务器\",\n      \"description_en\": \"set NTP server\"\n    },\n    {\n      \"action_name\": \"auto-set_userPassword\",\n      \"description\": \"设置用户密码\",\n      \"description_en\": \"set user password\"\n    },\n    {\n      \"action_name\": \"auto-set_adminPassword\",\n      \"description\": \"设置管理员密码\",\n      \"description_en\": \"set admin password\"\n    },\n    {\n      \"action_name\": \"auto-set_httpPort\",\n      \"description\": \"设置 HTTP 服务端口\",\n      \"description_en\": \"set HTTP service port\"\n    },\n    {\n      \"action_name\": \"auto-set_defaultPage\",\n      \"description\": \"设置默认网页\",\n      \"description_en\": \"set default web page\"\n    },\n    {\n      \"action_name\": \"auto-set_discoverable\",\n      \"description\": \"设置网络可发现性\",\n      \"description_en\": \"set network discoverability\"\n    },\n    {\n      \"action_name\": \"auto-set_wwwWatchdogDelay\",\n      \"description\": \"设置 WWW 看门狗延迟\",\n      \"description_en\": \"set WWW watchdog delay\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackUrl\",\n      \"description\": \"设置回调 URL\",\n      \"description_en\": \"set callback URL\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackMethod\",\n      \"description\": \"设置回调 HTTP 方法\",\n      \"description_en\": \"set callback HTTP method\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackEncoding\",\n      \"description\": \"设置回调编码方式\",\n      \"description_en\": \"set callback encoding\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackCredentials\",\n      \"description\": \"设置回调认证凭据\",\n      \"description_en\": \"set callback credentials\"\n    },\n    {\n      \"action_name\": \"auto-callbackLogin\",\n      \"description\": \"登录回调端点并保存回调认证凭据\",\n      \"description_en\": \"log in to the callback endpoint and save callback credentials\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackInitialDelay\",\n      \"description\": \"设置回调初始延迟\",\n      \"description_en\": \"set initial callback delay\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackSchedule\",\n      \"description\": \"设置回调计划\",\n      \"description_en\": \"set callback schedule\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackMinDelay\",\n      \"description\": \"设置最小回调间隔\",\n      \"description_en\": \"set minimum callback delay\"\n    },\n    {\n      \"action_name\": \"auto-set_callbackMaxDelay\",\n      \"description\": \"设置最大回调间隔\",\n      \"description_en\": \"set maximum callback delay\"\n    },\n    {\n      \"action_name\": \"auto-useDHCP\",\n      \"description\": \"将网络接口配置为使用 DHCP，并设置回退网络参数\",\n      \"description_en\": \"configure the network interface to use DHCP with fallback network settings\"\n    },\n    {\n      \"action_name\": \"auto-useDHCPauto\",\n      \"description\": \"将网络接口配置为自动使用 DHCP\",\n      \"description_en\": \"configure the network interface to use DHCP automatically\"\n    },\n    {\n      \"action_name\": \"auto-useStaticIP\",\n      \"description\": \"将网络接口配置为使用静态 IP\",\n      \"description_en\": \"configure the network interface to use a static IP address\"\n    },\n    {\n      \"action_name\": \"auto-ping\",\n      \"description\": \"从模块发起主机连通性测试\",\n      \"description_en\": \"ping a host from the module to test connectivity\"\n    },\n    {\n      \"action_name\": \"auto-triggerCallback\",\n      \"description\": \"立即触发一次 HTTP 回调\",\n      \"description_en\": \"trigger an HTTP callback immediately\"\n    },\n    {\n      \"action_name\": \"auto-set_periodicCallbackSchedule\",\n      \"description\": \"设置周期性回调计划\",\n      \"description_en\": \"define a periodic callback schedule\"\n    },\n    {\n      \"action_name\": \"auto-nextNetwork\",\n      \"description\": \"枚举下一个网络接口对象\",\n      \"description_en\": \"enumerate the next network interface object\"\n    }\n  ]\n}"
+}

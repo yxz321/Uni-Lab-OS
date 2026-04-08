@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: zishfqa_sweeper\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/zhinst/qcodes/driver/modules/shfqa_sweeper.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.quantum_sweeper.zi_quantum_sweeper_shfqa:ZISHFQASweeper\n\nClass: ZISHFQASweeper (focal)\n  Bases: ['ZIInstrument']\n  Docstring: QCoDeS adaption for the zhinst.utils.SHFSweeper.\n\nFor now the general sweeper module does not support the SHFQA. However a\npython based implementation called ``SHFSweeper`` does already provide\nthis functionality. The ``SHFSweeper`` is part of the ``zhinst`` module\nand can be found in the utils.\n\nToolkit wraps around the ``SHFSweeper`` and exposes a interface that is\nsimilar to the LabOne modules, meaning the parameters are exposed in a\nnode tree like structure.\n\nAll parameters can be accessed through their corresponding node:\n* device: Device to run the sweeper with\n* sweep: Frequency range settings for a sweep\n* rf: RF in- and output settings for a sweep\n* average: Averaging settings for a sweep\n* trigger: Settings for the trigger\n* envelope: Settings for defining a complex envelope for pulsed spectroscopy\n\nThe underlying module is updated with the parameter changes automatically.\nEvery functions from the underlying SHFSweeper module is exposed and can be\nused in the same way.\n\nArgs:\n    tk_object: Instance of the toolkit shfqa sweeper.\n    session: Session to the Data Server.\n\nFocal class methods:\n  [command] run(self)\n    comment: Perform a sweep with the specified settings.\n\n        This method eventually wraps around the `run` method of\n        `zhinst.utils.shf_sweeper`\n\n        Returns:\n             A dictionary with measur...\n  [status_getter] get_result(self)\n    comment: Get the measurement data of the last sweep.\n\n        This method eventually wraps around the `get_result` method of\n        `zhinst.utils.shf_sweeper`\n\n        Returns:\n             A dictionary with ...\n  [command] plot(self)\n    comment: Plot power over frequency for last sweep.\n\n        This method eventually wraps around the `plot` method of\n        `zhinst.utils.shf_sweeper`\n  [status_getter] get_offset_freq_vector(self)\n    comment: Get vector of frequency points.\n\n        This method wraps around the `get_offset_freq_vector` method of\n        `zhinst.utils.shf_sweeper`\n\n        Returns:\n            Vector of frequency points.\n\nRegistry actions:\n  auto-plot (from plot())\n  auto-run (from run())\n  auto-get_result (from get_result())\n  auto-get_offset_freq_vector (from get_offset_freq_vector())\n\nRequired output action ids:\n  auto-plot\n  auto-run\n  auto-get_result\n  auto-get_offset_freq_vector"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0e40ee57b6bfd8220069d5c10047688196aac5f307b74256fc",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3687,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5312,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0e40ee57b6bfd8220069d5c100d0b8819689a721ce1c8cb277",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0e40ee57b6bfd8220069d5c111c8a48196bebd979470f4ed93",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"SHFQA 扫频软件模块\",\n  \"name_en\": \"SHFQA Sweeper Software Module\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"这是一个面向 Zurich Instruments SHFQA 的非物理扫频软件模块，用于配置频率范围、射频收发、平均、触发和脉冲包络等参数，并执行扫频、返回结果和绘图。它常用于量子器件、谐振器或频谱响应测量流程中的自动化扫描。\",\n  \"description_en\": \"This is a non-physical sweeper software module for the Zurich Instruments SHFQA. It configures sweep range, RF I/O, averaging, trigger, and pulse envelope settings, then runs sweeps, returns results, and plots data. It is commonly used in automated measurements of quantum devices, resonators, or frequency-response experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"执行按当前设置配置的频率扫频测量。\",\n      \"description_en\": \"Run a frequency sweep using the current settings.\"\n    },\n    {\n      \"action_name\": \"auto-get_result\",\n      \"description\": \"获取上一次扫频的测量数据。\",\n      \"description_en\": \"get measurement data of the last sweep\"\n    },\n    {\n      \"action_name\": \"auto-plot\",\n      \"description\": \"绘制上一次扫频的功率-频率曲线。\",\n      \"description_en\": \"Plot power versus frequency for the last sweep.\"\n    },\n    {\n      \"action_name\": \"auto-get_offset_freq_vector\",\n      \"description\": \"获取频率点向量。\",\n      \"description_en\": \"get vector of frequency points\"\n    }\n  ],\n  \"tag_hints\": [\n    \"SHFQA\",\n    \"frequency sweep\",\n    \"spectroscopy\",\n    \"quantum measurement\",\n    \"RF sweep configuration\",\n    \"sweep result plotting\",\n    \"Zurich Instruments\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1308,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1384,
+      "output_tokens_details": {
+        "reasoning_tokens": 949
+      },
+      "total_tokens": 2692
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1308,
+      "output_token_count": 1384,
+      "predict_time": 26.832831831
+    }
+  },
+  "output_text": "{\n  \"name\": \"SHFQA 扫频软件模块\",\n  \"name_en\": \"SHFQA Sweeper Software Module\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"这是一个面向 Zurich Instruments SHFQA 的非物理扫频软件模块，用于配置频率范围、射频收发、平均、触发和脉冲包络等参数，并执行扫频、返回结果和绘图。它常用于量子器件、谐振器或频谱响应测量流程中的自动化扫描。\",\n  \"description_en\": \"This is a non-physical sweeper software module for the Zurich Instruments SHFQA. It configures sweep range, RF I/O, averaging, trigger, and pulse envelope settings, then runs sweeps, returns results, and plots data. It is commonly used in automated measurements of quantum devices, resonators, or frequency-response experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"执行按当前设置配置的频率扫频测量。\",\n      \"description_en\": \"Run a frequency sweep using the current settings.\"\n    },\n    {\n      \"action_name\": \"auto-get_result\",\n      \"description\": \"获取上一次扫频的测量数据。\",\n      \"description_en\": \"get measurement data of the last sweep\"\n    },\n    {\n      \"action_name\": \"auto-plot\",\n      \"description\": \"绘制上一次扫频的功率-频率曲线。\",\n      \"description_en\": \"Plot power versus frequency for the last sweep.\"\n    },\n    {\n      \"action_name\": \"auto-get_offset_freq_vector\",\n      \"description\": \"获取频率点向量。\",\n      \"description_en\": \"get vector of frequency points\"\n    }\n  ],\n  \"tag_hints\": [\n    \"SHFQA\",\n    \"frequency sweep\",\n    \"spectroscopy\",\n    \"quantum measurement\",\n    \"RF sweep configuration\",\n    \"sweep result plotting\",\n    \"Zurich Instruments\"\n  ]\n}"
+}

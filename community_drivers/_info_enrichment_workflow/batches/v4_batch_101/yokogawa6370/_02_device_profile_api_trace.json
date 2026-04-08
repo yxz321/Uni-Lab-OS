@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: yokogawa6370\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/yokogawa/yokogawa6370.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.optical_spectrum_analyzer.yokogawa_6370:Yokogawa6370\n\nClass: Yokogawa6370 (focal)\n  Bases: ['OpticalSpectrumAnalyzer']\n  Docstring: The Yokogawa 6370 is an optical spectrum analyzer.\n\nExample usage:\n\n>>> import instruments as ik\n>>> import instruments.units as u\n>>> inst = ik.yokogawa.Yokogawa6370.open_visa('TCPIP0:192.168.0.35')\n>>> inst.start_wl = 1030e-9 * u.m\n\nExample usage with TCP/IP connection and user authentication:\n\n>>> import instruments as ik\n>>> auth = (\"username\", \"password\")\n>>> inst = ik.yokogawa.Yokogawa6370.open_tcpip(\"192.168.0.35\", 10001, auth=auth)\n\nFocal class methods:\n  [status_getter] channel(self)\n    comment: Gets the specific channel object.\n        This channel is accessed as a list in the following manner::\n\n        >>> import instruments as ik\n        >>> osa = ik.yokogawa.Yokogawa6370.open_gpibusb('/d...\n  [command] data(self, limits=None)\n    comment: METHODS #\n    comment: Function to query the active Trace data of the OSA.\n\n        :param limits: Range of samples to transfer as a tuple of min and\n            max value, e.g. (5, 100) transfers data from the fifth to the...\n  [command] wavelength(self, limits=None)\n    comment: Query the wavelength axis of the active trace.\n\n        :param limits: Range of samples to transfer as a tuple of min and\n            max value, e.g. (5, 100) transfers data from the fifth to the\n    ...\n  [command] analysis(self)\n    comment: Get the analysis data.\n  [command] start_sweep(self)\n    comment: Triggering function for the Yokogawa 6370.\n        After changing the sweep mode, the device needs to be triggered before\n        it will update.\n  [command] abort(self)\n    comment: Abort a running sweep or calibration etc.\n  [command] clear(self)\n    comment: Clear status registers.\n  [command] query(self, cmd, size=-1)\n    comment: todo: remove\n\nRegistry actions:\n  auto-abort (from abort())\n  auto-active_trace (from active_trace())\n  auto-analysis (from analysis())\n  auto-bandwidth (from bandwidth())\n  auto-center_wl (from center_wl())\n  auto-clear (from clear())\n  auto-data (from data())\n  auto-points (from points())\n  auto-query (from query())\n  auto-span (from span())\n  auto-start_sweep (from start_sweep())\n  auto-start_wl (from start_wl())\n  auto-stop_wl (from stop_wl())\n  auto-sweep_mode (from sweep_mode())\n  auto-wavelength (from wavelength())\n  auto-channel (from channel())\n\nRequired output action ids:\n  auto-abort\n  auto-active_trace\n  auto-analysis\n  auto-bandwidth\n  auto-center_wl\n  auto-clear\n  auto-data\n  auto-points\n  auto-query\n  auto-span\n  auto-start_sweep\n  auto-start_wl\n  auto-stop_wl\n  auto-sweep_mode\n  auto-wavelength\n  auto-channel"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_03d61f4b0ca58b140069d5bfefb1e08194b203fe2e9a813e0c",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3915,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5596,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_03d61f4b0ca58b140069d5bff0222481949415c025b8d28c99",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_03d61f4b0ca58b140069d5bffbc6408194bf46adb90394bbd4",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"横河 AQ6370 光谱分析仪\",\n  \"name_en\": \"Yokogawa AQ6370 Optical Spectrum Analyzer\",\n  \"manufacturer\": \"Yokogawa\",\n  \"description\": \"用于测量和分析光信号光谱的光谱分析仪，可执行波长扫描、读取迹线数据与波长轴，并获取分析结果，常用于激光器、光纤器件和光通信实验中的光谱表征。\",\n  \"description_en\": \"An optical spectrum analyzer used to measure and analyze optical spectra. It can perform wavelength sweeps, read trace data and wavelength axes, and retrieve analysis results for spectral characterization in lasers, fiber devices, and optical communication experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-abort\",\n      \"description\": \"中止正在进行的扫描、校准或其他当前操作。\",\n      \"description_en\": \"Abort a running sweep, calibration, or other current operation.\"\n    },\n    {\n      \"action_name\": \"auto-active_trace\",\n      \"description\": \"定义当前活动迹线。\",\n      \"description_en\": \"Define the active trace.\"\n    },\n    {\n      \"action_name\": \"auto-analysis\",\n      \"description\": \"获取分析结果数据。\",\n      \"description_en\": \"Get the analysis result data.\"\n    },\n    {\n      \"action_name\": \"auto-bandwidth\",\n      \"description\": \"定义测量带宽。\",\n      \"description_en\": \"Define the measurement bandwidth.\"\n    },\n    {\n      \"action_name\": \"auto-center_wl\",\n      \"description\": \"定义中心波长。\",\n      \"description_en\": \"Define the center wavelength.\"\n    },\n    {\n      \"action_name\": \"auto-clear\",\n      \"description\": \"清除状态寄存器。\",\n      \"description_en\": \"Clear the status registers.\"\n    },\n    {\n      \"action_name\": \"auto-data\",\n      \"description\": \"读取当前活动迹线的数据。\",\n      \"description_en\": \"Read the data of the active trace.\"\n    },\n    {\n      \"action_name\": \"auto-points\",\n      \"description\": \"定义扫描点数。\",\n      \"description_en\": \"Define the number of sweep points.\"\n    },\n    {\n      \"action_name\": \"auto-query\",\n      \"description\": \"发送底层查询命令并返回响应。\",\n      \"description_en\": \"Send a low-level query command and return the response.\"\n    },\n    {\n      \"action_name\": \"auto-span\",\n      \"description\": \"定义扫描波长跨度。\",\n      \"description_en\": \"Define the sweep wavelength span.\"\n    },\n    {\n      \"action_name\": \"auto-start_sweep\",\n      \"description\": \"触发并启动一次扫描更新。\",\n      \"description_en\": \"Trigger and start a sweep update.\"\n    },\n    {\n      \"action_name\": \"auto-start_wl\",\n      \"description\": \"定义扫描起始波长。\",\n      \"description_en\": \"Define the sweep start wavelength.\"\n    },\n    {\n      \"action_name\": \"auto-stop_wl\",\n      \"description\": \"定义扫描终止波长。\",\n      \"description_en\": \"Define the sweep stop wavelength.\"\n    },\n    {\n      \"action_name\": \"auto-sweep_mode\",\n      \"description\": \"定义扫描模式。\",\n      \"description_en\": \"Define the sweep mode.\"\n    },\n    {\n      \"action_name\": \"auto-wavelength\",\n      \"description\": \"读取当前活动迹线的波长轴。\",\n      \"description_en\": \"Read the wavelength axis of the active trace.\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取指定通道对象。\",\n      \"description_en\": \"Get the specified channel object.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"optical spectrum analyzer\",\n    \"OSA\",\n    \"wavelength sweep\",\n    \"trace data acquisition\",\n    \"laser spectrum measurement\",\n    \"fiber optics characterization\",\n    \"Yokogawa AQ6370\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1441,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1358,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2799
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1441,
+      "output_token_count": 1358,
+      "predict_time": 25.495705124
+    }
+  },
+  "output_text": "{\n  \"name\": \"横河 AQ6370 光谱分析仪\",\n  \"name_en\": \"Yokogawa AQ6370 Optical Spectrum Analyzer\",\n  \"manufacturer\": \"Yokogawa\",\n  \"description\": \"用于测量和分析光信号光谱的光谱分析仪，可执行波长扫描、读取迹线数据与波长轴，并获取分析结果，常用于激光器、光纤器件和光通信实验中的光谱表征。\",\n  \"description_en\": \"An optical spectrum analyzer used to measure and analyze optical spectra. It can perform wavelength sweeps, read trace data and wavelength axes, and retrieve analysis results for spectral characterization in lasers, fiber devices, and optical communication experiments.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-abort\",\n      \"description\": \"中止正在进行的扫描、校准或其他当前操作。\",\n      \"description_en\": \"Abort a running sweep, calibration, or other current operation.\"\n    },\n    {\n      \"action_name\": \"auto-active_trace\",\n      \"description\": \"定义当前活动迹线。\",\n      \"description_en\": \"Define the active trace.\"\n    },\n    {\n      \"action_name\": \"auto-analysis\",\n      \"description\": \"获取分析结果数据。\",\n      \"description_en\": \"Get the analysis result data.\"\n    },\n    {\n      \"action_name\": \"auto-bandwidth\",\n      \"description\": \"定义测量带宽。\",\n      \"description_en\": \"Define the measurement bandwidth.\"\n    },\n    {\n      \"action_name\": \"auto-center_wl\",\n      \"description\": \"定义中心波长。\",\n      \"description_en\": \"Define the center wavelength.\"\n    },\n    {\n      \"action_name\": \"auto-clear\",\n      \"description\": \"清除状态寄存器。\",\n      \"description_en\": \"Clear the status registers.\"\n    },\n    {\n      \"action_name\": \"auto-data\",\n      \"description\": \"读取当前活动迹线的数据。\",\n      \"description_en\": \"Read the data of the active trace.\"\n    },\n    {\n      \"action_name\": \"auto-points\",\n      \"description\": \"定义扫描点数。\",\n      \"description_en\": \"Define the number of sweep points.\"\n    },\n    {\n      \"action_name\": \"auto-query\",\n      \"description\": \"发送底层查询命令并返回响应。\",\n      \"description_en\": \"Send a low-level query command and return the response.\"\n    },\n    {\n      \"action_name\": \"auto-span\",\n      \"description\": \"定义扫描波长跨度。\",\n      \"description_en\": \"Define the sweep wavelength span.\"\n    },\n    {\n      \"action_name\": \"auto-start_sweep\",\n      \"description\": \"触发并启动一次扫描更新。\",\n      \"description_en\": \"Trigger and start a sweep update.\"\n    },\n    {\n      \"action_name\": \"auto-start_wl\",\n      \"description\": \"定义扫描起始波长。\",\n      \"description_en\": \"Define the sweep start wavelength.\"\n    },\n    {\n      \"action_name\": \"auto-stop_wl\",\n      \"description\": \"定义扫描终止波长。\",\n      \"description_en\": \"Define the sweep stop wavelength.\"\n    },\n    {\n      \"action_name\": \"auto-sweep_mode\",\n      \"description\": \"定义扫描模式。\",\n      \"description_en\": \"Define the sweep mode.\"\n    },\n    {\n      \"action_name\": \"auto-wavelength\",\n      \"description\": \"读取当前活动迹线的波长轴。\",\n      \"description_en\": \"Read the wavelength axis of the active trace.\"\n    },\n    {\n      \"action_name\": \"auto-channel\",\n      \"description\": \"获取指定通道对象。\",\n      \"description_en\": \"Get the specified channel object.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"optical spectrum analyzer\",\n    \"OSA\",\n    \"wavelength sweep\",\n    \"trace data acquisition\",\n    \"laser spectrum measurement\",\n    \"fiber optics characterization\",\n    \"Yokogawa AQ6370\"\n  ]\n}"
+}

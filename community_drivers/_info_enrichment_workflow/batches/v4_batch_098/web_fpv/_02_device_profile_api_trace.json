@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: web_fpv\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: donkeycar/parts/web_controller/web.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.web_fpv.web_fpv:WebFpv\n\nClass: RemoteWebServer \n  Bases: []\n  Docstring: A controller that repeatedly polls a remote webserver and expects\nthe response to be angle, throttle and drive mode.\n\nClass: LocalWebController \n  Bases: ['tornado.web.Application']\n\nClass: DriveAPI \n  Bases: ['RequestHandler']\n\nClass: WsTest \n  Bases: ['RequestHandler']\n\nClass: CalibrateHandler \n  Bases: ['RequestHandler']\n  Docstring: Serves the calibration web page\n\nClass: WebSocketDriveAPI \n  Bases: ['tornado.websocket.WebSocketHandler']\n\nClass: WebSocketCalibrateAPI \n  Bases: ['tornado.websocket.WebSocketHandler']\n\nClass: VideoAPI \n  Bases: ['RequestHandler']\n  Docstring: Serves a MJPEG of the images posted from the vehicle.\n\nClass: BaseHandler \n  Bases: ['RequestHandler']\n  Docstring: Serves the FPV web page\n\nClass: WebFpv (focal)\n  Bases: ['Application']\n  Docstring: Class for running an FPV web server that only shows the camera in real-time.\nThe web page contains the camera view and auto-adjusts to the web browser\nwindow size. Conjecture: this picture up-scaling is performed by the\nclient OS using graphics acceleration. Hence a web browser on the PC is\nfaster than a pure python application based on open cv or similar.\n\nFocal class methods:\n  [command] update(self)\n    comment: Start the tornado webserver.\n  [command] run_threaded(self, img_arr=None)\n  [command] run(self, img_arr=None)\n  [command] shutdown(self)\n\nRegistry actions:\n  auto-update (from update())\n  auto-run_threaded (from run_threaded())\n  auto-run (from run())\n  auto-shutdown (from shutdown())\n\nRequired output action ids:\n  auto-update\n  auto-run_threaded\n  auto-run\n  auto-shutdown"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_05a56b466241e0ca0069d5bbcb6308819484ed2e43af7e4ab7",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2866,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3194,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_05a56b466241e0ca0069d5bbcda6808194a7dd955a7d59a15d",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_05a56b466241e0ca0069d5bbd6891881949f63c573a4c852b9",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"网页FPV实时画面服务器\",\n  \"name_en\": \"Web FPV Live View Server\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非实体的软件组件，用于运行基于 Tornado 的网页 FPV 实时画面服务。它主要在实验或移动平台场景中把相机图像通过浏览器页面以实时方式展示，并提供相关的网页控制、校准与视频流接口。\",\n  \"description_en\": \"A non-physical software component that runs a Tornado-based web FPV live-view service. It is used in lab or mobile-platform workflows to present camera images in real time through a browser, with related web control, calibration, and video streaming endpoints.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-update\",\n      \"description\": \"启动网页服务器。\",\n      \"description_en\": \"Start the web server.\"\n    },\n    {\n      \"action_name\": \"auto-run_threaded\",\n      \"description\": \"在线程化运行模式下更新并提供最新图像帧用于网页实时显示。\",\n      \"description_en\": \"Update and serve the latest image frame for live web viewing in threaded mode.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"在普通运行模式下更新并提供最新图像帧用于网页实时显示。\",\n      \"description_en\": \"Update and serve the latest image frame for live web viewing in normal mode.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭网页服务器。\",\n      \"description_en\": \"Shut down the web server.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"web FPV\",\n    \"live camera view\",\n    \"browser video streaming\",\n    \"Tornado web server\",\n    \"MJPEG streaming\",\n    \"remote vehicle interface\",\n    \"web calibration page\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1136,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 771,
+      "output_tokens_details": {
+        "reasoning_tokens": 366
+      },
+      "total_tokens": 1907
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1136,
+      "output_token_count": 771,
+      "predict_time": 20.110463579
+    }
+  },
+  "output_text": "{\n  \"name\": \"网页FPV实时画面服务器\",\n  \"name_en\": \"Web FPV Live View Server\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非实体的软件组件，用于运行基于 Tornado 的网页 FPV 实时画面服务。它主要在实验或移动平台场景中把相机图像通过浏览器页面以实时方式展示，并提供相关的网页控制、校准与视频流接口。\",\n  \"description_en\": \"A non-physical software component that runs a Tornado-based web FPV live-view service. It is used in lab or mobile-platform workflows to present camera images in real time through a browser, with related web control, calibration, and video streaming endpoints.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-update\",\n      \"description\": \"启动网页服务器。\",\n      \"description_en\": \"Start the web server.\"\n    },\n    {\n      \"action_name\": \"auto-run_threaded\",\n      \"description\": \"在线程化运行模式下更新并提供最新图像帧用于网页实时显示。\",\n      \"description_en\": \"Update and serve the latest image frame for live web viewing in threaded mode.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"在普通运行模式下更新并提供最新图像帧用于网页实时显示。\",\n      \"description_en\": \"Update and serve the latest image frame for live web viewing in normal mode.\"\n    },\n    {\n      \"action_name\": \"auto-shutdown\",\n      \"description\": \"关闭网页服务器。\",\n      \"description_en\": \"Shut down the web server.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"web FPV\",\n    \"live camera view\",\n    \"browser video streaming\",\n    \"Tornado web server\",\n    \"MJPEG streaming\",\n    \"remote vehicle interface\",\n    \"web calibration page\"\n  ]\n}"
+}

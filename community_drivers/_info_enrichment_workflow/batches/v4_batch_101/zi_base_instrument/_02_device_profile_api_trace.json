@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: zi_base_instrument\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pycqed/instrument_drivers/physical_instruments/ZurichInstruments/ZI_base_instrument.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.zurich_instruments.zi_base_instrument:ZI_base_instrument\n\nClass: ziDAQError \n  Bases: ['Exception']\n  Docstring: Exception raised when no DAQ has been connected.\n\nClass: ziModuleError \n  Bases: ['Exception']\n  Docstring: Exception raised when a module generates an error.\n\nClass: ziValueError \n  Bases: ['Exception']\n  Docstring: Exception raised when a wrong or empty value is returned.\n\nClass: ziCompilationError \n  Bases: ['Exception']\n  Docstring: Exception raised when an AWG program fails to compile.\n\nClass: ziDeviceError \n  Bases: ['Exception']\n  Docstring: Exception raised when a class is used with the wrong device type.\n\nClass: ziOptionsError \n  Bases: ['Exception']\n  Docstring: Exception raised when a device does not have the right options installed.\n\nClass: ziVersionError \n  Bases: ['Exception']\n  Docstring: Exception raised when a device does not have the right firmware versions.\n\nClass: ziReadyError \n  Bases: ['Exception']\n  Docstring: Exception raised when a device was started which is not ready.\n\nClass: ziRuntimeError \n  Bases: ['Exception']\n  Docstring: Exception raised when a device detects an error at runtime.\n\nClass: ziConfigurationError \n  Bases: ['Exception']\n  Docstring: Exception raised when a wrong configuration is detected.\n\nClass: MockDAQServer \n  Bases: []\n  Docstring: This class implements a mock version of the DAQ object used for\ncommunicating with the instruments. It contains dummy declarations of\nthe most important methods implemented by the server and used by\nthe instrument drivers.\n\nImportant: The Mock server creates some default 'nodes' (basically\njust entries in a 'dict') based on the device name that is used when\nconnecting to a device. These nodes differ depending on the instrument\ntype, which is determined by the number in the device name: dev2XXX are\nUHFQA instruments, dev8XXX are HDAWG8 instruments, dev10XXX are PQSC\ninstruments.\n\nClass: MockAwgModule \n  Bases: []\n  Docstring: This class implements a mock version of the awgModule object used for\ncompiling and uploading AWG programs. It doesn't actually compile anything, but\nonly maintains a counter of how often the compilation method has been executed.\n\nFor the future, the class could be updated to allow the user to select whether\nthe next compilation should be successful or not in order to enable more\nflexibility in the unit tests of the actual drivers.\n\nClass: ZI_base_instrument (focal)\n  Bases: ['Instrument']\n  Docstring: This is a base class for Zurich Instruments instrument drivers.\nIt includes functionality that is common to all instruments. It maintains\na list of available nodes as JSON files in the 'zi_parameter_files'\nsubfolder. The parameter files should be regenerated when newer versions\nof the firmware are installed on the instrument.\n\nThe base class also manages waveforms for the instruments. The waveforms\nare kept in a table, which is kept synchronized with CSV files in the\nawg/waves folder belonging to LabOne. The base class will select whether\nto compile and configure an instrument based on changes to the waveforms\nand to the requested AWG program. Basically, if a waveform changes length\nor if the AWG program changes, then the program will be compiled and\nuploaded the next time the user executes the 'start' method. If a waveform\nhas changed, but the length is the same, then the waveform will simply\nbe updated on the instrument using a a fast waveform upload technique. Again,\nthis is triggered when the 'start' method is called.\n\nFocal class methods:\n  [command] setd(self, path, value)\n    comment: \n    comment: Public methods: node helpers\n    comment: \n  [command] getd(self, path)\n  [command] seti(self, path, value)\n  [command] geti(self, path)\n  [command] sets(self, path, value)\n  [command] gets(self, path)\n  [command] setc(self, path, value)\n  [command] getc(self, path)\n  [command] setv(self, path, value)\n    comment: Handle absolute path\n    comment: print('DEBUG::setv {} {}'.format(path,value))\n    comment: self._write_cmd_to_logfile(f'daq.setVector(\"{path}\", np.array({np.array2string(value, separator=\",\")}))')\n  [command] getv(self, path)\n  [command] getdeep(self, path, timeout=5.0)\n  [command] subs(self, path)\n  [command] unsubs(self, path=None)\n  [command] poll(self, poll_time=0.1)\n  [command] sync(self)\n  [command] start(self)\n    comment: \n    comment: Public methods\n    comment: \n    comment: Loop through each AWG and check whether to reconfigure it\n    comment: If the reconfiguration flag is set, upload new program\n    comment: Loop through all waveforms and update accordingly\n    comment: Start all AWG's\n    comment: Skip AWG's without programs\n    comment: to configure all awgs use \"upload_codeword_program\" or specify\n    comment: another program\n    comment: Check that the AWG is ready\n    comment: Enable it\n  [command] stop(self)\n    comment: Stop all AWG's\n  [command] FIXMEclose(self)\n    comment: FIXME: temporary solution for issue\n    comment: Disconnect application server\n  [command] check_errors(self, errors_to_ignore=None)\n    comment: If this is the first time we are called, log the detected errors, but don't raise\n    comment: any exceptions\n    comment: Asserted in case errors were found\n    comment: Combine errors_to_ignore with commandline\n    comment: Go through the errors and update our structure, raise exceptions if anything changed\n    comment: Check if there are new errors\n  [command] clear_errors(self)\n  [command] demote_error(self, code)\n    comment: Demote a ZIRuntime error to a warning.\n\n        Arguments\n            code (str)\n            The error code of the exception to ignore.\n            The error code gets logged as an error before the ex...\n  [command] reset_waveforms_zeros(self)\n    comment: Sets all waveforms to an array of 48 zeros.\n  [command] configure_awg_from_string(self, awg_nr, program_string, timeout=15)\n    comment: Check that awg_nr is set in accordance with devtype\n    comment: This check (and while loop) is added as a workaround for #9\n    comment: Success is set to False when either a timeout or a bad compilation\n    comment: message is encountered.\n    comment: Give the device one second to respond\n    comment: Check status\n    comment: Uploads a program string to one of the AWGs in a UHF-QA or AWG-8.\n\n        This function is tested to work and give the correct error messages\n        when compilation fails.\n  [command] plot_dio_snapshot(self, bits=range(32))\n  [command] plot_awg_codewords(self, awg_nr=0, range=None)\n  [status_getter] get_idn(self)\n  [command] load_default_settings(self)\n  [command] assure_ext_clock(self)\n\nRegistry actions:\n  auto-FIXMEclose (from FIXMEclose())\n  auto-assure_ext_clock (from assure_ext_clock())\n  auto-check_errors (from check_errors())\n  auto-clear_errors (from clear_errors())\n  auto-configure_awg_from_string (from configure_awg_from_string())\n  auto-demote_error (from demote_error())\n  auto-getc (from getc())\n  auto-getd (from getd())\n  auto-getdeep (from getdeep())\n  auto-geti (from geti())\n  auto-gets (from gets())\n  auto-getv (from getv())\n  auto-load_default_settings (from load_default_settings())\n  auto-plot_awg_codewords (from plot_awg_codewords())\n  auto-plot_dio_snapshot (from plot_dio_snapshot())\n  auto-poll (from poll())\n  auto-reset_waveforms_zeros (from reset_waveforms_zeros())\n  auto-setc (from setc())\n  auto-setd (from setd())\n  auto-seti (from seti())\n  auto-sets (from sets())\n  auto-setv (from setv())\n  auto-start (from start())\n  auto-stop (from stop())\n  auto-subs (from subs())\n  auto-sync (from sync())\n  auto-unsubs (from unsubs())\n  auto-awgModule (from awgModule())\n  auto-setDebugLevel (from setDebugLevel())\n  auto-connectDevice (from connectDevice())\n  auto-listNodesJSON (from listNodesJSON())\n  auto-getString (from getString())\n  auto-getInt (from getInt())\n  auto-getDouble (from getDouble())\n  auto-setInt (from setInt())\n  auto-setDouble (from setDouble())\n  auto-setVector (from setVector())\n  auto-setComplex (from setComplex())\n  auto-getComplex (from getComplex())\n  auto-get (from get())\n  auto-getAsEvent (from getAsEvent())\n  auto-subscribe (from subscribe())\n  auto-unsubscribe (from unsubscribe())\n  auto-get_compilation_count (from get_compilation_count())\n  auto-set (from set())\n  auto-execute (from execute())\n  auto-get_idn (from get_idn())\n\nRequired output action ids:\n  auto-FIXMEclose\n  auto-assure_ext_clock\n  auto-check_errors\n  auto-clear_errors\n  auto-configure_awg_from_string\n  auto-demote_error\n  auto-getc\n  auto-getd\n  auto-getdeep\n  auto-geti\n  auto-gets\n  auto-getv\n  auto-load_default_settings\n  auto-plot_awg_codewords\n  auto-plot_dio_snapshot\n  auto-poll\n  auto-reset_waveforms_zeros\n  auto-setc\n  auto-setd\n  auto-seti\n  auto-sets\n  auto-setv\n  auto-start\n  auto-stop\n  auto-subs\n  auto-sync\n  auto-unsubs\n  auto-awgModule\n  auto-setDebugLevel\n  auto-connectDevice\n  auto-listNodesJSON\n  auto-getString\n  auto-getInt\n  auto-getDouble\n  auto-setInt\n  auto-setDouble\n  auto-setVector\n  auto-setComplex\n  auto-getComplex\n  auto-get\n  auto-getAsEvent\n  auto-subscribe\n  auto-unsubscribe\n  auto-get_compilation_count\n  auto-set\n  auto-execute\n  auto-get_idn"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_084532c60f087dfc0069d5c019d64081979dc9353f1d8f94c7",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 10625,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 16552,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_084532c60f087dfc0069d5c01a5ca48197a39d5dfe84a61cd7",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_084532c60f087dfc0069d5c043961c8197bae31856217bcf97",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"苏黎世仪器通用控制基类\",\n  \"name_en\": \"Zurich Instruments Base Control Module\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"一个非实体的软件控制基类，用于在实验中通过 LabOne/DAQ 服务器连接和管理多类苏黎世仪器设备。它提供节点读写、订阅与轮询、AWG 程序编译上传、波形表同步、时钟管理以及错误处理等通用功能，供具体仪器驱动复用。\",\n  \"description_en\": \"A non-physical software base control component used in experiments to connect to and manage multiple Zurich Instruments devices through the LabOne/DAQ server. It provides shared functions for node read/write access, subscriptions and polling, AWG program compilation and upload, waveform-table synchronization, clock handling, and error management for reuse by concrete instrument drivers.\",\n  \"tag_hints\": [\n    \"Zurich Instruments\",\n    \"LabOne DAQ\",\n    \"AWG program upload\",\n    \"waveform synchronization\",\n    \"node-based control\",\n    \"subscription polling\",\n    \"external clock\",\n    \"error handling\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-FIXMEclose\",\n      \"description\": \"断开应用服务器连接\",\n      \"description_en\": \"disconnect the application server connection\"\n    },\n    {\n      \"action_name\": \"auto-assure_ext_clock\",\n      \"description\": \"确保设备使用外部参考时钟\",\n      \"description_en\": \"ensure use of an external reference clock\"\n    },\n    {\n      \"action_name\": \"auto-check_errors\",\n      \"description\": \"检查设备或服务器错误状态\",\n      \"description_en\": \"check device or server error status\"\n    },\n    {\n      \"action_name\": \"auto-clear_errors\",\n      \"description\": \"清除已记录的错误\",\n      \"description_en\": \"clear recorded errors\"\n    },\n    {\n      \"action_name\": \"auto-configure_awg_from_string\",\n      \"description\": \"将程序字符串编译并上传到指定 AWG\",\n      \"description_en\": \"compile and upload a program string to the selected AWG\"\n    },\n    {\n      \"action_name\": \"auto-demote_error\",\n      \"description\": \"将指定错误代码降级为警告\",\n      \"description_en\": \"demote a specified error code to a warning\"\n    },\n    {\n      \"action_name\": \"auto-getc\",\n      \"description\": \"读取复数节点值\",\n      \"description_en\": \"read a complex node value\"\n    },\n    {\n      \"action_name\": \"auto-getd\",\n      \"description\": \"读取双精度节点值\",\n      \"description_en\": \"read a double-precision node value\"\n    },\n    {\n      \"action_name\": \"auto-getdeep\",\n      \"description\": \"在超时范围内深度读取节点值\",\n      \"description_en\": \"read a node value with a deep query and timeout\"\n    },\n    {\n      \"action_name\": \"auto-geti\",\n      \"description\": \"读取整数节点值\",\n      \"description_en\": \"read an integer node value\"\n    },\n    {\n      \"action_name\": \"auto-gets\",\n      \"description\": \"读取字符串节点值\",\n      \"description_en\": \"read a string node value\"\n    },\n    {\n      \"action_name\": \"auto-getv\",\n      \"description\": \"读取向量节点值\",\n      \"description_en\": \"read a vector node value\"\n    },\n    {\n      \"action_name\": \"auto-load_default_settings\",\n      \"description\": \"加载默认设置\",\n      \"description_en\": \"load default settings\"\n    },\n    {\n      \"action_name\": \"auto-plot_awg_codewords\",\n      \"description\": \"绘制 AWG 码字数据图\",\n      \"description_en\": \"plot AWG codeword data\"\n    },\n    {\n      \"action_name\": \"auto-plot_dio_snapshot\",\n      \"description\": \"绘制 DIO 快照位图\",\n      \"description_en\": \"plot a DIO snapshot bit map\"\n    },\n    {\n      \"action_name\": \"auto-poll\",\n      \"description\": \"轮询已订阅数据\",\n      \"description_en\": \"poll subscribed data\"\n    },\n    {\n      \"action_name\": \"auto-reset_waveforms_zeros\",\n      \"description\": \"将所有波形重置为零值波形\",\n      \"description_en\": \"reset all waveforms to zero-valued waveforms\"\n    },\n    {\n      \"action_name\": \"auto-setc\",\n      \"description\": \"写入复数节点值\",\n      \"description_en\": \"write a complex node value\"\n    },\n    {\n      \"action_name\": \"auto-setd\",\n      \"description\": \"写入双精度节点值\",\n      \"description_en\": \"write a double-precision node value\"\n    },\n    {\n      \"action_name\": \"auto-seti\",\n      \"description\": \"写入整数节点值\",\n      \"description_en\": \"write an integer node value\"\n    },\n    {\n      \"action_name\": \"auto-sets\",\n      \"description\": \"写入字符串节点值\",\n      \"description_en\": \"write a string node value\"\n    },\n    {\n      \"action_name\": \"auto-setv\",\n      \"description\": \"写入向量节点值\",\n      \"description_en\": \"write a vector node value\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"按需重新配置 AWG、更新波形并启动所有 AWG\",\n      \"description_en\": \"reconfigure AWGs as needed, update waveforms, and start all AWGs\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止所有 AWG\",\n      \"description_en\": \"stop all AWGs\"\n    },\n    {\n      \"action_name\": \"auto-subs\",\n      \"description\": \"订阅节点路径更新\",\n      \"description_en\": \"subscribe to updates for a node path\"\n    },\n    {\n      \"action_name\": \"auto-sync\",\n      \"description\": \"同步设备与服务器状态\",\n      \"description_en\": \"synchronize device and server state\"\n    },\n    {\n      \"action_name\": \"auto-unsubs\",\n      \"description\": \"取消订阅节点路径更新\",\n      \"description_en\": \"unsubscribe from updates for a node path\"\n    },\n    {\n      \"action_name\": \"auto-awgModule\",\n      \"description\": \"创建或访问 AWG 编译上传模块\",\n      \"description_en\": \"create or access the AWG compile/upload module\"\n    },\n    {\n      \"action_name\": \"auto-setDebugLevel\",\n      \"description\": \"设置调试日志级别\",\n      \"description_en\": \"set the debug logging level\"\n    },\n    {\n      \"action_name\": \"auto-connectDevice\",\n      \"description\": \"连接指定的苏黎世仪器设备\",\n      \"description_en\": \"connect to a specified Zurich Instruments device\"\n    },\n    {\n      \"action_name\": \"auto-listNodesJSON\",\n      \"description\": \"以 JSON 形式列出可用节点\",\n      \"description_en\": \"list available nodes in JSON format\"\n    },\n    {\n      \"action_name\": \"auto-getString\",\n      \"description\": \"读取字符串节点值\",\n      \"description_en\": \"read a string node value\"\n    },\n    {\n      \"action_name\": \"auto-getInt\",\n      \"description\": \"读取整数节点值\",\n      \"description_en\": \"read an integer node value\"\n    },\n    {\n      \"action_name\": \"auto-getDouble\",\n      \"description\": \"读取双精度节点值\",\n      \"description_en\": \"read a double-precision node value\"\n    },\n    {\n      \"action_name\": \"auto-setInt\",\n      \"description\": \"写入整数节点值\",\n      \"description_en\": \"write an integer node value\"\n    },\n    {\n      \"action_name\": \"auto-setDouble\",\n      \"description\": \"写入双精度节点值\",\n      \"description_en\": \"write a double-precision node value\"\n    },\n    {\n      \"action_name\": \"auto-setVector\",\n      \"description\": \"写入向量节点值\",\n      \"description_en\": \"write a vector node value\"\n    },\n    {\n      \"action_name\": \"auto-setComplex\",\n      \"description\": \"写入复数节点值\",\n      \"description_en\": \"write a complex node value\"\n    },\n    {\n      \"action_name\": \"auto-getComplex\",\n      \"description\": \"读取复数节点值\",\n      \"description_en\": \"read a complex node value\"\n    },\n    {\n      \"action_name\": \"auto-get\",\n      \"description\": \"读取节点值\",\n      \"description_en\": \"read a node value\"\n    },\n    {\n      \"action_name\": \"auto-getAsEvent\",\n      \"description\": \"以事件形式读取节点值\",\n      \"description_en\": \"read a node value as an event\"\n    },\n    {\n      \"action_name\": \"auto-subscribe\",\n      \"description\": \"订阅节点更新\",\n      \"description_en\": \"subscribe to node updates\"\n    },\n    {\n      \"action_name\": \"auto-unsubscribe\",\n      \"description\": \"取消订阅节点更新\",\n      \"description_en\": \"unsubscribe from node updates\"\n    },\n    {\n      \"action_name\": \"auto-get_compilation_count\",\n      \"description\": \"获取 AWG 程序编译计数\",\n      \"description_en\": \"get the AWG program compilation count\"\n    },\n    {\n      \"action_name\": \"auto-set\",\n      \"description\": \"写入节点值\",\n      \"description_en\": \"write a node value\"\n    },\n    {\n      \"action_name\": \"auto-execute\",\n      \"description\": \"执行模块操作\",\n      \"description_en\": \"execute the module operation\"\n    },\n    {\n      \"action_name\": \"auto-get_idn\",\n      \"description\": \"获取设备识别信息\",\n      \"description_en\": \"get device identification information\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 3021,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 4374,
+      "output_tokens_details": {
+        "reasoning_tokens": 2241
+      },
+      "total_tokens": 7395
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 3021,
+      "output_token_count": 4374,
+      "predict_time": 73.871744639
+    }
+  },
+  "output_text": "{\n  \"name\": \"苏黎世仪器通用控制基类\",\n  \"name_en\": \"Zurich Instruments Base Control Module\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"一个非实体的软件控制基类，用于在实验中通过 LabOne/DAQ 服务器连接和管理多类苏黎世仪器设备。它提供节点读写、订阅与轮询、AWG 程序编译上传、波形表同步、时钟管理以及错误处理等通用功能，供具体仪器驱动复用。\",\n  \"description_en\": \"A non-physical software base control component used in experiments to connect to and manage multiple Zurich Instruments devices through the LabOne/DAQ server. It provides shared functions for node read/write access, subscriptions and polling, AWG program compilation and upload, waveform-table synchronization, clock handling, and error management for reuse by concrete instrument drivers.\",\n  \"tag_hints\": [\n    \"Zurich Instruments\",\n    \"LabOne DAQ\",\n    \"AWG program upload\",\n    \"waveform synchronization\",\n    \"node-based control\",\n    \"subscription polling\",\n    \"external clock\",\n    \"error handling\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-FIXMEclose\",\n      \"description\": \"断开应用服务器连接\",\n      \"description_en\": \"disconnect the application server connection\"\n    },\n    {\n      \"action_name\": \"auto-assure_ext_clock\",\n      \"description\": \"确保设备使用外部参考时钟\",\n      \"description_en\": \"ensure use of an external reference clock\"\n    },\n    {\n      \"action_name\": \"auto-check_errors\",\n      \"description\": \"检查设备或服务器错误状态\",\n      \"description_en\": \"check device or server error status\"\n    },\n    {\n      \"action_name\": \"auto-clear_errors\",\n      \"description\": \"清除已记录的错误\",\n      \"description_en\": \"clear recorded errors\"\n    },\n    {\n      \"action_name\": \"auto-configure_awg_from_string\",\n      \"description\": \"将程序字符串编译并上传到指定 AWG\",\n      \"description_en\": \"compile and upload a program string to the selected AWG\"\n    },\n    {\n      \"action_name\": \"auto-demote_error\",\n      \"description\": \"将指定错误代码降级为警告\",\n      \"description_en\": \"demote a specified error code to a warning\"\n    },\n    {\n      \"action_name\": \"auto-getc\",\n      \"description\": \"读取复数节点值\",\n      \"description_en\": \"read a complex node value\"\n    },\n    {\n      \"action_name\": \"auto-getd\",\n      \"description\": \"读取双精度节点值\",\n      \"description_en\": \"read a double-precision node value\"\n    },\n    {\n      \"action_name\": \"auto-getdeep\",\n      \"description\": \"在超时范围内深度读取节点值\",\n      \"description_en\": \"read a node value with a deep query and timeout\"\n    },\n    {\n      \"action_name\": \"auto-geti\",\n      \"description\": \"读取整数节点值\",\n      \"description_en\": \"read an integer node value\"\n    },\n    {\n      \"action_name\": \"auto-gets\",\n      \"description\": \"读取字符串节点值\",\n      \"description_en\": \"read a string node value\"\n    },\n    {\n      \"action_name\": \"auto-getv\",\n      \"description\": \"读取向量节点值\",\n      \"description_en\": \"read a vector node value\"\n    },\n    {\n      \"action_name\": \"auto-load_default_settings\",\n      \"description\": \"加载默认设置\",\n      \"description_en\": \"load default settings\"\n    },\n    {\n      \"action_name\": \"auto-plot_awg_codewords\",\n      \"description\": \"绘制 AWG 码字数据图\",\n      \"description_en\": \"plot AWG codeword data\"\n    },\n    {\n      \"action_name\": \"auto-plot_dio_snapshot\",\n      \"description\": \"绘制 DIO 快照位图\",\n      \"description_en\": \"plot a DIO snapshot bit map\"\n    },\n    {\n      \"action_name\": \"auto-poll\",\n      \"description\": \"轮询已订阅数据\",\n      \"description_en\": \"poll subscribed data\"\n    },\n    {\n      \"action_name\": \"auto-reset_waveforms_zeros\",\n      \"description\": \"将所有波形重置为零值波形\",\n      \"description_en\": \"reset all waveforms to zero-valued waveforms\"\n    },\n    {\n      \"action_name\": \"auto-setc\",\n      \"description\": \"写入复数节点值\",\n      \"description_en\": \"write a complex node value\"\n    },\n    {\n      \"action_name\": \"auto-setd\",\n      \"description\": \"写入双精度节点值\",\n      \"description_en\": \"write a double-precision node value\"\n    },\n    {\n      \"action_name\": \"auto-seti\",\n      \"description\": \"写入整数节点值\",\n      \"description_en\": \"write an integer node value\"\n    },\n    {\n      \"action_name\": \"auto-sets\",\n      \"description\": \"写入字符串节点值\",\n      \"description_en\": \"write a string node value\"\n    },\n    {\n      \"action_name\": \"auto-setv\",\n      \"description\": \"写入向量节点值\",\n      \"description_en\": \"write a vector node value\"\n    },\n    {\n      \"action_name\": \"auto-start\",\n      \"description\": \"按需重新配置 AWG、更新波形并启动所有 AWG\",\n      \"description_en\": \"reconfigure AWGs as needed, update waveforms, and start all AWGs\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止所有 AWG\",\n      \"description_en\": \"stop all AWGs\"\n    },\n    {\n      \"action_name\": \"auto-subs\",\n      \"description\": \"订阅节点路径更新\",\n      \"description_en\": \"subscribe to updates for a node path\"\n    },\n    {\n      \"action_name\": \"auto-sync\",\n      \"description\": \"同步设备与服务器状态\",\n      \"description_en\": \"synchronize device and server state\"\n    },\n    {\n      \"action_name\": \"auto-unsubs\",\n      \"description\": \"取消订阅节点路径更新\",\n      \"description_en\": \"unsubscribe from updates for a node path\"\n    },\n    {\n      \"action_name\": \"auto-awgModule\",\n      \"description\": \"创建或访问 AWG 编译上传模块\",\n      \"description_en\": \"create or access the AWG compile/upload module\"\n    },\n    {\n      \"action_name\": \"auto-setDebugLevel\",\n      \"description\": \"设置调试日志级别\",\n      \"description_en\": \"set the debug logging level\"\n    },\n    {\n      \"action_name\": \"auto-connectDevice\",\n      \"description\": \"连接指定的苏黎世仪器设备\",\n      \"description_en\": \"connect to a specified Zurich Instruments device\"\n    },\n    {\n      \"action_name\": \"auto-listNodesJSON\",\n      \"description\": \"以 JSON 形式列出可用节点\",\n      \"description_en\": \"list available nodes in JSON format\"\n    },\n    {\n      \"action_name\": \"auto-getString\",\n      \"description\": \"读取字符串节点值\",\n      \"description_en\": \"read a string node value\"\n    },\n    {\n      \"action_name\": \"auto-getInt\",\n      \"description\": \"读取整数节点值\",\n      \"description_en\": \"read an integer node value\"\n    },\n    {\n      \"action_name\": \"auto-getDouble\",\n      \"description\": \"读取双精度节点值\",\n      \"description_en\": \"read a double-precision node value\"\n    },\n    {\n      \"action_name\": \"auto-setInt\",\n      \"description\": \"写入整数节点值\",\n      \"description_en\": \"write an integer node value\"\n    },\n    {\n      \"action_name\": \"auto-setDouble\",\n      \"description\": \"写入双精度节点值\",\n      \"description_en\": \"write a double-precision node value\"\n    },\n    {\n      \"action_name\": \"auto-setVector\",\n      \"description\": \"写入向量节点值\",\n      \"description_en\": \"write a vector node value\"\n    },\n    {\n      \"action_name\": \"auto-setComplex\",\n      \"description\": \"写入复数节点值\",\n      \"description_en\": \"write a complex node value\"\n    },\n    {\n      \"action_name\": \"auto-getComplex\",\n      \"description\": \"读取复数节点值\",\n      \"description_en\": \"read a complex node value\"\n    },\n    {\n      \"action_name\": \"auto-get\",\n      \"description\": \"读取节点值\",\n      \"description_en\": \"read a node value\"\n    },\n    {\n      \"action_name\": \"auto-getAsEvent\",\n      \"description\": \"以事件形式读取节点值\",\n      \"description_en\": \"read a node value as an event\"\n    },\n    {\n      \"action_name\": \"auto-subscribe\",\n      \"description\": \"订阅节点更新\",\n      \"description_en\": \"subscribe to node updates\"\n    },\n    {\n      \"action_name\": \"auto-unsubscribe\",\n      \"description\": \"取消订阅节点更新\",\n      \"description_en\": \"unsubscribe from node updates\"\n    },\n    {\n      \"action_name\": \"auto-get_compilation_count\",\n      \"description\": \"获取 AWG 程序编译计数\",\n      \"description_en\": \"get the AWG program compilation count\"\n    },\n    {\n      \"action_name\": \"auto-set\",\n      \"description\": \"写入节点值\",\n      \"description_en\": \"write a node value\"\n    },\n    {\n      \"action_name\": \"auto-execute\",\n      \"description\": \"执行模块操作\",\n      \"description_en\": \"execute the module operation\"\n    },\n    {\n      \"action_name\": \"auto-get_idn\",\n      \"description\": \"获取设备识别信息\",\n      \"description_en\": \"get device identification information\"\n    }\n  ]\n}"
+}

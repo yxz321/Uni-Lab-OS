@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: wasatch_device\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: wasatch/WasatchDevice.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.custom.wasatch_device:WasatchDevice\n\nClass: WasatchDevice (focal)\n  Bases: ['InterfaceDevice']\n  Docstring: This is the top-level interface for controlling and communicating with\nWasatch Photonics USB 2.0 spectrometers using the FeatureInterfaceDevice \n(FID) protocol as defined in ENG-0001.\n\nThis class is essentially a clunky wrapper over FeatureInterfaceDevice, \nproviding the higher-level InterfaceDevice interface making WasatchDevice a \npeer to AndorDevice, OceanDevice, TCPDevice, IDSDevice etc.\n\nSeveral points will stand out:\n\n1. WasatchDevice should probably be renamed to FIDDevice, because Wasatch \n   Photonics is also the manufacturer for spectrometers using AndorDevice,\n   TCPDevice, IDSDevice etc.\n\n2. This class could be simplified considerably, and possibly merged with\n   FeatureIdentificationDevice.\n\nENLIGHTEN does not instantiate WasatchDevices directly, but instead uses\na WasatchDeviceWrapper to access a single WasatchDevice in a dedicated child\nthread.  Other users of Wasatch.PY may of course instantiate a WasatchDevice \ndirectly, or go straight to a FeatureInterfaceDevice.\n\nMain things this \"wrapper\" provides:\n\n- Implements software-based, library-based scan averaging (badly). Although\n  ARM-based spectrometers can do this in firmware, FX2-based models have to\n  do it in software. Between Wasatch.PY and ENLIGHTEN, it seems preferable\n  to have this in the Wasatch.PY library, where it is easier for customers\n  to use.\n\n- Distinguishes between normal, averaged, AutoRaman and AreaScan  \n  acquisitions.\n\n@par History\n\nThis class exists because it used to wrap TWO types of spectrometers:\n\n- FeatureIdentificationDevices, which follow the ENG-0001 API and\n  have EEPROMs\n- StrokerDevices, which didn't have EEPROMs and didn't obey ENG-0001.\n\nI don't know if we have an ENG document specifying the protocol that the old\nStroker electronics used. It was already deprecated when I started, and was \nrapidly removed from Wasatch.PY. Which kind of made this class superfluous.\n\nThis class (and all who inherit InterfaceDevice) use a somewhat clunky\ndata-passing and error-handling mechanism via SpectrometerRequest and\nSpectrometerResponse objects. That could probably be streamlined.\n\nPart of the legacy \"ugly-isms\" in this class date back to when ENLIGHTEN\nwas multi-process rather than multi-threaded, and all data flows between\nWasatch.PY and ENLIGHTEN were via pickled queues :-(\n\nFocal class methods:\n  [command] connect(self)\n    comment: ######################################################################## #\n    comment: #\n    comment: Connection                                 #\n    comment: #\n    comment: ######################################################################## #\n    comment: Attempt low level connection to the specified DeviceID\n  [command] disconnect(self)\n  [command] connect_feature_identification(self)\n    comment: Given a specified universal identifier, attempt to connect to the device using FID protocol.\n    comment: @todo merge with the hardcoded list in DeviceFinderUSB\n    comment: check to see if valid FID PID\n  [command] initialize_settings(self)\n    comment: WasatchDevice and FID share same SpectrometerSettings\n    comment: could read the defaults for these ss.state volatiles from FID too:\n    comment: self.tec_setpoint_degC\n    comment: self.high_gain_mode_enabled\n    comment: self.triggering_enabled\n    comment: self.laser_enabled\n    comment: self.laser_power\n    comment: self.ccd_offset\n  [command] acquire_data(self)\n    comment: ######################################################################## #\n    comment: #\n    comment: Acquisition                                #\n    comment: #\n    comment: ######################################################################## #\n    comment: process queued commands, and find out if we've been asked to read a\n    comment: spectrum\n    comment: if we don't yet have an integration time, nothing to do\n    comment: if not self.hardware.is_sensor_stable():\n    comment: # technically, we could do all the other stuff in acquire_spectrum\n    comment: # (read battery, laser temperature, ambient temperature, detector\n    comment: # temperature etc), not bothering for now\n    comment: log.debug(\"declining to read spectra while stabilizing\")\n    comment: return SpectrometerResponse(None)\n    comment: note that right now, all we return are Readings (encapsulating both\n    comment: spectra and temperatures).  If we disable spectra, ENLIGHTEN stops\n    comment: receiving temperatures as well.  In the future perhaps we should return\n    comment: multiple object types (Acquisitions, Temperatures, etc)\n    comment: Process all enqueued settings, then read actual data (spectrum and\n        temperatures) from the device.\n\n        ENLIGHTEN calls this function via WrapperWorker.run().\n\n        @see Controller.acqui...\n  [command] acquire_spectrum(self)\n    comment: \n    comment: Generate one Reading from the spectrometer, including one\n    comment: optionally-averaged spectrum, device temperatures and other hardware\n    comment: status.\n    comment: \n    comment: This is normally called by self.acquire_data when that function decides it\n    comment: is time to perform an acquisition.\n    comment: \n    comment: @par Scan Averaging\n    comment: \n    comment: IF the driver is in free-running mode, AND performing scan averaging,\n    comment: THEN scan averaging is NOT encapsulated within a single call to this\n    comment: function.  Instead, we let ths spectrometer run in free-running mode,\n    comment: collecting individual spectra as per normal, and returning each \"partial\"\n    comment: readings while \"building up\" to the final averaged measurement.\n    comment: \n    comment: That is to say, if scan averaging is set to 10, then this function will\n    comment: get called 10 times, as ticked by the regular free-running timers, before\n    comment: the fully averaged spectrum is returned.  A total of 10 (not 11) spectra\n    comment: will be generated and sent upstream: the first 9 \"partial\" (unaveraged)\n    comment: reads, and the final 10th spectrum which will contain the average of all\n    comment: 10 measurements.\n    comment: \n    comment: This gives the user-facing GUI an opportunity to update the \"collected\n    comment: X-of-Y\" readout on-screen, and potentially even graph the traces of\n    comment: in-process partial readings.\n    comment: \n    comment: HOWEVER, this doesn't make as much sense if we're not in free-running mode,\n    comment: i.e. the subprocess has been slaved to explicit control by the Controller\n    comment: (likely a feature object like BatchCollection), and is collecting exactly\n    comment: those measurements we're being commanded, as they're commanded.\n    comment: \n    comment: THEREFORE, if the driver IS NOT in free-running mode, then we ONLY return\n    comment: the final averaged spectrum as one atomic operation.\n    comment: \n    comment: In this case, if scan averaging is set to 10, then A SINGLE CALL to this\n    comment: function will \"block\" while the full 10 measurements are made, and then\n    comment: a single, fully-averaged spectrum will be returned upstream.\n    comment: \n    comment: @return a Reading wrapped in a SpectrometerResponse\n    comment: \n    comment: @returns a SpectrometerResponse(data=Reading)\n  [command] acquire_spectrum_auto_raman(self)\n    comment: return the completed TakeOneRequest and clear our internal handle\n    comment: Note that Auto-Raman doesn't currently support \"fast BatchCollection\"\n    comment: with TakeOneRequest.readings_target. I think that's okay, because that's\n    comment: not really what Auto-Raman is for.\n    comment: @returns a SpectrometerResponse(data=Reading)\n        @todo fold-in a lot of the post-reading sensor measurements \n              (temperature, interlock etc) provided by acquire_spectrum_standard\n  [command] acquire_spectrum_standard(self)\n    comment: Batch Collection silliness\n    comment: Note that BatchCollection's \"auto-enable laser\" is not nearly as\n    comment: involved as the Auto-Raman performed by acquire_spectrum_auto_raman.\n    comment: BatchCollection uses TakeOneRequest.enable_laser_before,\n    comment: .disable_laser_after, .take_dark, .laser_warmup_ms and .scans_to_average\n    comment: to take an averaged, dark-corrected Raman measurement WITH FIXED\n    comment: ACQUISITION PARAMETERS (integration time, gain). It does not perform\n    comment: any optimization of integration time or gain.\n    comment: By implication then, we should simplify this by changing\n    comment: BatchCollection to use AutoRamanRequest, adding a checkbox to\n    comment: BatchCollection to allow # optimization; if unchecked, min/max integ\n    comment: and gain will equal start integ/gain, and no optimization will occur.\n    comment: Then we can remove all the auto laser stuff from the following code.\n    comment: This has been captured in https://github.com/WasatchPhotonics/ENLIGHTEN/issues/474\n    comment: log.debug(\"acquire_spectrum: auto_enable_laser = %s\", auto_enable_laser)\n    comment: disable laser if it was on\n    comment: Take a Reading (possibly averaged)\n    comment: log.debug(f\"acquire_spectrum_standard: declining to float up keep alive\")\n    comment: don't perform dark subtraction, but pass the dark measurement along\n    comment: with the averaged reading\n    comment: provide early exit-ramp if we've been asked to return bare Readings\n    comment: (just averaged spectra with corrected bad pixels, no metadata)\n    comment: We're done with the (possibly-averaged) spectrum, so we'd like to now\n    comment: disable the automatically-enabled laser, if it was engaged; but before\n    comment: we can do that that, we should take any requested measurements of the\n    comment: laser temperature and photodiode, as those would obviously be invalid-\n    comment: ated if we took them AFTER the laser was off.\n    comment: only read laser temperature if we have a laser\n    comment: MZ: we might want to do these for auto_enable_laser as well...\n    comment: log.debug(f\"WasatchDevice.acquire_spectrum: storing {attr} = {value}\")\n    comment: laser temperature\n    comment: read secondary ADC if requested\n    comment: we've read the laser temperature and photodiode, so we can now safely\n    comment: disable the laser (if we're the one who enabled it)\n    comment: finish collecting any metadata that doesn't require the laser\n    comment: read detector temperature if applicable\n    comment: read ambient temperature if applicable\n    comment: reading.ambient_temperature_degC = self.hardware.get_ambient_temperature_degC()\n    comment: read battery every 5sec\n    comment: note that the following 3 requests should actually only generate\n    comment: one USB transaction as raw is cached internally\n    comment: this was for a \"fast BatchCollection\" with a streaming multi-reading TakeOneRequest\n    comment: @returns a SpectrometerResponse(data=Reading)\n  [command] perform_optional_throwaways(self)\n    comment: \n    comment: It's unclear how many throwaways are really needed for a stable Raman\n    comment: spectrum, and whether they're really based on number of integrations\n    comment: (sensor stabilization) or time (laser warmup); I suspect both.  Also note\n    comment: the potential need for sensor warm-up, but I think that's handled inside FW.\n    comment: \n    comment: Optimal would probably be something like \"As many integrations as it takes\n    comment: to span 2sec, but not fewer than two.\"\n    comment: \n    comment: These are NOT the same throwaways added to smooth spectra over changes to\n    comment: integration time and gain. These are separate throwaways potentially\n    comment: required when waking the sensor from sleep. However, I'm using the same\n    comment: mechanism for tracking (self.remaining_throwaways) for commonality.\n    comment: \n    comment: @todo This shouldn't be required at all if we're in free-running mode, or\n    comment: if it's been less than a second since the last acquisition.\n    comment: @returns SpectrometerResponse IFF error occurred (normally None)\n    comment: Assume that if we FINISHED the last measurement less than a second\n    comment: ago, the sensor probably has not gone to sleep and doesn't need SW-\n    comment: driven warmups.\n    comment: for now, default to 2sec worth of acquisitions\n  [command] take_one_averaged_reading(self, label=None)\n    comment: clear any pending throwaways\n    comment: either take one measurement (normal), or a bunch (sum_locally)\n    comment: log.debug(f\"take_one_averaged_reading: loop_index {loop_index+1} of {loop_count}\")\n    comment: start a new reading\n    comment: NOTE: reading.timestamp is when reading STARTED, not FINISHED!\n    comment: TODO...just include a copy of SpectrometerState? something to think\n    comment: about. That would actually provide a reason to roll all the\n    comment: temperature etc readouts into the SpectrometerState class...\n    comment: collect ONE spectrum (it's in a while loop because we may have\n    comment: to wait for an external trigger, and must wait through a series\n    comment: of timeouts)\n    comment: @todo get rid of spectrum_and_row...get_spectrum() can go back to only returning spectrum\n    comment: float up poison\n    comment: get_spectrum returned a poison-pill, so flow it upstream\n    comment: FeatureIdentificationDevice can return None when waiting\n    comment: on an external trigger.\n    comment: if we got the timeout after switching from externally triggered back to internal, let it ride\n    comment: Aggregate scan averaging\n    comment: It's important to note here that the scan averaging \"sum\" buffer\n    comment: here (self.summed_spectra) and counter (self.sum_count) are\n    comment: attributes of this WasatchDevice object: they are not part of the\n    comment: Reading being sent back to the caller.\n    comment: The current architecture in Wasatch.PY, which is a little different\n    comment: than other Wasatch drivers, is that even when scan averaging is\n    comment: enabled, EVERY SPECTRUM will be flowed back to the caller.\n    comment: This is because early versions of ENLIGHTEN showed the \"individual\"\n    comment: (pre-averaged) spectra as a faint grey trace in the background,\n    comment: updating with each integration, showing the higher noise level of\n    comment: \"raw\" spectra while an on-screen counter showed the incrementing\n    comment: tally of summed spectra in the buffer.\n    comment: Then, when the FINAL raw spectrum had been read and the complete\n    comment: average could be computed, that averaged spectrum was returned\n    comment: with a special flag in the Reading object to indicate \"fully\n    comment: averaged.\"\n    comment: We no longer show the \"background\" spectral trace in ENLIGHTEN,\n    comment: so this is kind of wasting some intra-process bandwidth, but we\n    comment: do still increment the on-screen tally as feedback while the\n    comment: averaging is taking place, so the in-process Reading messages\n    comment: sent during an averaged collection are not entirely wasted.\n    comment: Still, this is not the way we would have designed a Python driver\n    comment: \"from a blank sheet,\" and our other driver architectures show that.\n    comment: @todo: since we're actually passing every pre-averaged spectrum\n    comment: back to ENLIGHTEN, for non-TakeOneRequest averaging, I feel like\n    comment: we should probably perform the summation in ENLIGHTEN too (for\n    comment: non-TakeOneRequest averages).\n    comment: log.debug(\"take_one_averaged_reading: not failure\")\n    comment: count spectra\n    comment: have we completed the averaged reading?\n    comment: reset for next average\n    comment: if averaging isn't enabled...then a single reading is the\n    comment: \"averaged\" final measurement (check reading.sum_count to confirm)\n    comment: Okay, let's talk about averaging.  We only perform averaging as a \n        blocking call in Wasatch.PY when given a TakeOneRequest with non-zero \n        scans_to_average, typically from ENLIGHTEN's T...\n  [command] monitor_memory(self)\n  [command] process_commands(self)\n    comment: \n    comment: Process every entry on the incoming command (settings) queue, writing each\n    comment: to the device.\n    comment: \n    comment: Essentially this iterates through all the (setting, value) pairs we've\n    comment: received through change_setting() which have not yet been processed, and <-- MZ: incomplete sentence\n    comment: \n    comment: \n    comment: Note that WrapperWorker.run \"de-dupes\" commands on\n    comment: receipt from ENLIGHTEN, so the command stream arising from that source\n    comment: should already be optimized and minimal.  Commands injected manually by\n    comment: calling WasatchDevice.change_setting() do not receive this treatment.\n    comment: \n    comment: In the normal multithreaded (ENLIGHTEN) workflow, this function is called\n    comment: at the beginning of acquire_data, itself ticked regularly by\n    comment: WrapperWorker.run.\n    comment: is this a command used by WasatchDevice itself, and not\n    comment: passed down to FeatureIdentificationDevice?\n    comment: MZ: does this ever happen? It looks like the current\n    comment: request sent down from WrapperWorker is \"acquire_data\"\n    comment: not \"acquire\"...\n    comment: send setting downstream to be processed by the spectrometer HAL\n    comment: (probably FeatureIdentificationDevice)\n  [command] acquire_area_scan(self)\n    comment: ######################################################################## #\n    comment: #\n    comment: Area Scan                                 #\n    comment: #\n    comment: ######################################################################## #\n    comment: FeatureIdentificationDevice.get_area_scan returns a Reading because it\n        really needs to return both the AreaScanImage (whatever form that may \n        take) and the vertically-binned spectrum (...\n  [command] balance_acquisition(self, device=None, mode=None, intensity=45000, threshold=2500, pixel=None, max_integration_time_ms=5000, max_tries=20)\n    comment: ######################################################################## #\n    comment: #\n    comment: BalanceAcquisition                           #\n    comment: #\n    comment: ######################################################################## #\n  [command] change_setting(self, setting, value, allow_immediate=True)\n    comment: \n    comment: Processes an incoming (setting, value) pair.\n    comment: \n    comment: Some settings are processed internally within this function, if the\n    comment: functionality they are controlling is implemented by WasatchDevice.\n    comment: This includes scan averaging, and anything related to scan averaging\n    comment: (such as \"take one\" behavior).\n    comment: \n    comment: Most tuples are queued to be sent downstream to the connected hardware\n    comment: (usually FeatureIdentificationDevice) at the start of the next\n    comment: acquisition.\n    comment: \n    comment: Some hardware settings (those involving triggering or the laser) are\n    comment: sent downstream immediately, rather than waiting for the next \"scheduled\"\n    comment: settings update.\n    comment: \n    comment: ENLIGHTEN commands to WasatchDeviceWrapper are sent here by\n    comment: WasatchDeviceWrapper.continuous_poll.\n    comment: \n    comment: @param setting (Input) which setting to change\n    comment: @param value   (Input) the new value of the setting (required, but can\n    comment: be None or \"anything\" for commands like \"acquire\" which\n    comment: don't use the argument).\n    comment: @param allow_immediate\n    comment: Since scan averaging lives in WasatchDevice, handle commands which affect\n    comment: averaging at this level\n    comment: always process trigger_source commands promptly (can't wait for end of\n    comment: acquisition which may never come)\n  [command] handle_requests(self, requests)\n    comment: override handle_requests. I didn't see a good way to overwrite change_setting without\n    comment: having to redo that pass through.\n\nRegistry actions:\n  auto-connect (from connect())\n  auto-disconnect (from disconnect())\n  auto-connect_feature_identification (from connect_feature_identification())\n  auto-initialize_settings (from initialize_settings())\n  auto-acquire_data (from acquire_data())\n  auto-acquire_spectrum (from acquire_spectrum())\n  auto-acquire_spectrum_auto_raman (from acquire_spectrum_auto_raman())\n  auto-acquire_spectrum_standard (from acquire_spectrum_standard())\n  auto-perform_optional_throwaways (from perform_optional_throwaways())\n  auto-take_one_averaged_reading (from take_one_averaged_reading())\n  auto-monitor_memory (from monitor_memory())\n  auto-process_commands (from process_commands())\n  auto-acquire_area_scan (from acquire_area_scan())\n  auto-balance_acquisition (from balance_acquisition())\n  auto-change_setting (from change_setting())\n  auto-handle_requests (from handle_requests())\n\nRequired output action ids:\n  auto-connect\n  auto-disconnect\n  auto-connect_feature_identification\n  auto-initialize_settings\n  auto-acquire_data\n  auto-acquire_spectrum\n  auto-acquire_spectrum_auto_raman\n  auto-acquire_spectrum_standard\n  auto-perform_optional_throwaways\n  auto-take_one_averaged_reading\n  auto-monitor_memory\n  auto-process_commands\n  auto-acquire_area_scan\n  auto-balance_acquisition\n  auto-change_setting\n  auto-handle_requests"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_06fd3d611d47f9360069d5bbada0a08197abb76928d164e506",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 23101,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6371,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_06fd3d611d47f9360069d5bbae26708197924d56c078181c9e",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_06fd3d611d47f9360069d5bbb8890881979cb5f9f43de18ad4",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Wasatch USB光谱仪\",\n  \"name_en\": \"Wasatch USB Spectrometer\",\n  \"manufacturer\": \"Wasatch Photonics\",\n  \"description\": \"通过 FID 协议控制 Wasatch Photonics USB 2.0 光谱仪的设备接口，用于采集光谱数据，并支持扫描平均、Auto-Raman、区域扫描、激光相关测量以及温度与状态信息读取，适用于拉曼和通用光谱实验。\",\n  \"description_en\": \"A device interface for controlling Wasatch Photonics USB 2.0 spectrometers over the FID protocol. It is used for spectral acquisition and supports scan averaging, Auto-Raman, area scanning, laser-related measurements, and temperature/status readback for Raman and general spectroscopy workflows.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"连接指定的 Wasatch 光谱仪。\",\n      \"description_en\": \"Connect to the specified Wasatch spectrometer.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开与光谱仪的连接。\",\n      \"description_en\": \"Disconnect from the spectrometer.\"\n    },\n    {\n      \"action_name\": \"auto-connect_feature_identification\",\n      \"description\": \"使用 FID 协议连接兼容的光谱仪设备。\",\n      \"description_en\": \"Connect to a compatible spectrometer using the FID protocol.\"\n    },\n    {\n      \"action_name\": \"auto-initialize_settings\",\n      \"description\": \"初始化光谱仪设置与采集相关状态。\",\n      \"description_en\": \"Initialize spectrometer settings and acquisition-related state.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_data\",\n      \"description\": \"处理待执行命令并从设备采集光谱与温度等数据。\",\n      \"description_en\": \"Process pending commands and acquire spectrum and temperature-related data from the device.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_spectrum\",\n      \"description\": \"执行一次光谱采集，返回单次或平均后的读数及相关状态。\",\n      \"description_en\": \"Perform a spectrum acquisition and return a single or averaged reading with related status.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_spectrum_auto_raman\",\n      \"description\": \"执行 Auto-Raman 光谱采集流程。\",\n      \"description_en\": \"Run an Auto-Raman spectrum acquisition sequence.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_spectrum_standard\",\n      \"description\": \"执行标准光谱采集，可结合激光控制、平均和附加元数据读取。\",\n      \"description_en\": \"Perform a standard spectrum acquisition, optionally with laser control, averaging, and additional metadata readout.\"\n    },\n    {\n      \"action_name\": \"auto-perform_optional_throwaways\",\n      \"description\": \"执行可选的预热丢弃采集，以提高传感器或激光稳定性。\",\n      \"description_en\": \"Perform optional throwaway acquisitions to improve sensor or laser stabilization.\"\n    },\n    {\n      \"action_name\": \"auto-take_one_averaged_reading\",\n      \"description\": \"采集一次读数，必要时执行多次积分并在本地完成平均。\",\n      \"description_en\": \"Acquire one reading, optionally performing multiple integrations and local averaging.\"\n    },\n    {\n      \"action_name\": \"auto-monitor_memory\",\n      \"description\": \"监控采集过程中的内存使用情况。\",\n      \"description_en\": \"Monitor memory usage during acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-process_commands\",\n      \"description\": \"处理队列中的设置命令并将其写入设备。\",\n      \"description_en\": \"Process queued setting commands and write them to the device.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_area_scan\",\n      \"description\": \"执行区域扫描采集，返回区域扫描图像及相关光谱数据。\",\n      \"description_en\": \"Perform an area scan acquisition and return area-scan image data with related spectral data.\"\n    },\n    {\n      \"action_name\": \"auto-balance_acquisition\",\n      \"description\": \"调整采集参数以使目标像素或强度达到设定范围。\",\n      \"description_en\": \"Adjust acquisition parameters to bring a target pixel or intensity into the desired range.\"\n    },\n    {\n      \"action_name\": \"auto-change_setting\",\n      \"description\": \"更改设备或采集设置，必要时立即下发到硬件。\",\n      \"description_en\": \"Change a device or acquisition setting, sending it to hardware immediately when needed.\"\n    },\n    {\n      \"action_name\": \"auto-handle_requests\",\n      \"description\": \"处理上层发送的请求集合并分发到相应设备操作。\",\n      \"description_en\": \"Handle batches of incoming requests and dispatch them to the appropriate device operations.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB spectrometer\",\n    \"Raman spectroscopy\",\n    \"spectral acquisition\",\n    \"scan averaging\",\n    \"laser control\",\n    \"area scan\",\n    \"temperature monitoring\",\n    \"FID protocol\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 5378,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1616,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 6994
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 5378,
+      "output_token_count": 1616,
+      "predict_time": 30.323171582
+    }
+  },
+  "output_text": "{\n  \"name\": \"Wasatch USB光谱仪\",\n  \"name_en\": \"Wasatch USB Spectrometer\",\n  \"manufacturer\": \"Wasatch Photonics\",\n  \"description\": \"通过 FID 协议控制 Wasatch Photonics USB 2.0 光谱仪的设备接口，用于采集光谱数据，并支持扫描平均、Auto-Raman、区域扫描、激光相关测量以及温度与状态信息读取，适用于拉曼和通用光谱实验。\",\n  \"description_en\": \"A device interface for controlling Wasatch Photonics USB 2.0 spectrometers over the FID protocol. It is used for spectral acquisition and supports scan averaging, Auto-Raman, area scanning, laser-related measurements, and temperature/status readback for Raman and general spectroscopy workflows.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"连接指定的 Wasatch 光谱仪。\",\n      \"description_en\": \"Connect to the specified Wasatch spectrometer.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开与光谱仪的连接。\",\n      \"description_en\": \"Disconnect from the spectrometer.\"\n    },\n    {\n      \"action_name\": \"auto-connect_feature_identification\",\n      \"description\": \"使用 FID 协议连接兼容的光谱仪设备。\",\n      \"description_en\": \"Connect to a compatible spectrometer using the FID protocol.\"\n    },\n    {\n      \"action_name\": \"auto-initialize_settings\",\n      \"description\": \"初始化光谱仪设置与采集相关状态。\",\n      \"description_en\": \"Initialize spectrometer settings and acquisition-related state.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_data\",\n      \"description\": \"处理待执行命令并从设备采集光谱与温度等数据。\",\n      \"description_en\": \"Process pending commands and acquire spectrum and temperature-related data from the device.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_spectrum\",\n      \"description\": \"执行一次光谱采集，返回单次或平均后的读数及相关状态。\",\n      \"description_en\": \"Perform a spectrum acquisition and return a single or averaged reading with related status.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_spectrum_auto_raman\",\n      \"description\": \"执行 Auto-Raman 光谱采集流程。\",\n      \"description_en\": \"Run an Auto-Raman spectrum acquisition sequence.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_spectrum_standard\",\n      \"description\": \"执行标准光谱采集，可结合激光控制、平均和附加元数据读取。\",\n      \"description_en\": \"Perform a standard spectrum acquisition, optionally with laser control, averaging, and additional metadata readout.\"\n    },\n    {\n      \"action_name\": \"auto-perform_optional_throwaways\",\n      \"description\": \"执行可选的预热丢弃采集，以提高传感器或激光稳定性。\",\n      \"description_en\": \"Perform optional throwaway acquisitions to improve sensor or laser stabilization.\"\n    },\n    {\n      \"action_name\": \"auto-take_one_averaged_reading\",\n      \"description\": \"采集一次读数，必要时执行多次积分并在本地完成平均。\",\n      \"description_en\": \"Acquire one reading, optionally performing multiple integrations and local averaging.\"\n    },\n    {\n      \"action_name\": \"auto-monitor_memory\",\n      \"description\": \"监控采集过程中的内存使用情况。\",\n      \"description_en\": \"Monitor memory usage during acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-process_commands\",\n      \"description\": \"处理队列中的设置命令并将其写入设备。\",\n      \"description_en\": \"Process queued setting commands and write them to the device.\"\n    },\n    {\n      \"action_name\": \"auto-acquire_area_scan\",\n      \"description\": \"执行区域扫描采集，返回区域扫描图像及相关光谱数据。\",\n      \"description_en\": \"Perform an area scan acquisition and return area-scan image data with related spectral data.\"\n    },\n    {\n      \"action_name\": \"auto-balance_acquisition\",\n      \"description\": \"调整采集参数以使目标像素或强度达到设定范围。\",\n      \"description_en\": \"Adjust acquisition parameters to bring a target pixel or intensity into the desired range.\"\n    },\n    {\n      \"action_name\": \"auto-change_setting\",\n      \"description\": \"更改设备或采集设置，必要时立即下发到硬件。\",\n      \"description_en\": \"Change a device or acquisition setting, sending it to hardware immediately when needed.\"\n    },\n    {\n      \"action_name\": \"auto-handle_requests\",\n      \"description\": \"处理上层发送的请求集合并分发到相应设备操作。\",\n      \"description_en\": \"Handle batches of incoming requests and dispatch them to the appropriate device operations.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB spectrometer\",\n    \"Raman spectroscopy\",\n    \"spectral acquisition\",\n    \"scan averaging\",\n    \"laser control\",\n    \"area scan\",\n    \"temperature monitoring\",\n    \"FID protocol\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: vxi11_driver\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: lantz/drivers/legacy/vxi11.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.vxi11.driver:Vxi11Driver\n\nClass: ERROR_CODES \n  Bases: ['enum.IntEnum']\n\nClass: Vxi11Error \n  Bases: ['InstrumentError']\n\nClass: Vxi11Packer \n  Bases: ['rpc.Packer']\n\nClass: Vxi11Unpacker \n  Bases: ['rpc.Unpacker']\n\nClass: CoreClient \n  Bases: ['rpc.TCPClient']\n\nClass: Vxi11Driver (focal)\n  Bases: ['Driver']\n  Docstring: VXI-11 instrument interface client.\nWe do not inherit from TCPDriver because the RPC implementation has its own socket.\n\nFocal class methods:\n  [command] initialize(self)\n    comment: Open connection to VXI-11 instrument\n  [command] finalize(self)\n    comment: Close connection\n  [command] write_raw(self, data)\n    comment: Write binary data to instrument\n  [command] read_raw(self, num=-1)\n    comment: Read binary data from instrument\n  [command] read_stb(self)\n    comment: Read status byte\n  [command] trigger(self)\n    comment: Send trigger command.\n  [command] clear(self)\n    comment: Send clear command.\n  [command] remote(self)\n    comment: Send remote command.\n  [command] local(self)\n    comment: Send local command\n  [command] lock(self)\n    comment: Send lock command.\n  [command] unlock(self)\n    comment: Send unlock command.\n\nRegistry actions:\n  auto-clear (from clear())\n  auto-finalize (from finalize())\n  auto-initialize (from initialize())\n  auto-local (from local())\n  auto-lock (from lock())\n  auto-read_raw (from read_raw())\n  auto-read_stb (from read_stb())\n  auto-remote (from remote())\n  auto-trigger (from trigger())\n  auto-unlock (from unlock())\n  auto-write_raw (from write_raw())\n  auto-pack_device_link (from pack_device_link())\n  auto-pack_create_link_parms (from pack_create_link_parms())\n  auto-pack_device_write_parms (from pack_device_write_parms())\n  auto-pack_device_read_parms (from pack_device_read_parms())\n  auto-pack_device_generic_parms (from pack_device_generic_parms())\n  auto-pack_device_remote_func_parms (from pack_device_remote_func_parms())\n  auto-pack_device_enable_srq_parms (from pack_device_enable_srq_parms())\n  auto-pack_device_lock_parms (from pack_device_lock_parms())\n  auto-pack_device_docmd_parms (from pack_device_docmd_parms())\n  auto-unpack_device_link (from unpack_device_link())\n  auto-unpack_device_error (from unpack_device_error())\n  auto-unpack_create_link_resp (from unpack_create_link_resp())\n  auto-unpack_device_write_resp (from unpack_device_write_resp())\n  auto-unpack_device_read_resp (from unpack_device_read_resp())\n  auto-unpack_device_read_stb_resp (from unpack_device_read_stb_resp())\n  auto-unpack_device_docmd_resp (from unpack_device_docmd_resp())\n  auto-create_link (from create_link())\n  auto-device_write (from device_write())\n  auto-device_read (from device_read())\n  auto-device_read_stb (from device_read_stb())\n  auto-device_trigger (from device_trigger())\n  auto-device_clear (from device_clear())\n  auto-device_remote (from device_remote())\n  auto-device_local (from device_local())\n  auto-device_lock (from device_lock())\n  auto-device_unlock (from device_unlock())\n  auto-device_enable_srq (from device_enable_srq())\n  auto-device_docmd (from device_docmd())\n  auto-destroy_link (from destroy_link())\n  auto-create_intr_chan (from create_intr_chan())\n  auto-destroy_intr_chan (from destroy_intr_chan())\n\nRequired output action ids:\n  auto-clear\n  auto-finalize\n  auto-initialize\n  auto-local\n  auto-lock\n  auto-read_raw\n  auto-read_stb\n  auto-remote\n  auto-trigger\n  auto-unlock\n  auto-write_raw\n  auto-pack_device_link\n  auto-pack_create_link_parms\n  auto-pack_device_write_parms\n  auto-pack_device_read_parms\n  auto-pack_device_generic_parms\n  auto-pack_device_remote_func_parms\n  auto-pack_device_enable_srq_parms\n  auto-pack_device_lock_parms\n  auto-pack_device_docmd_parms\n  auto-unpack_device_link\n  auto-unpack_device_error\n  auto-unpack_create_link_resp\n  auto-unpack_device_write_resp\n  auto-unpack_device_read_resp\n  auto-unpack_device_read_stb_resp\n  auto-unpack_device_docmd_resp\n  auto-create_link\n  auto-device_write\n  auto-device_read\n  auto-device_read_stb\n  auto-device_trigger\n  auto-device_clear\n  auto-device_remote\n  auto-device_local\n  auto-device_lock\n  auto-device_unlock\n  auto-device_enable_srq\n  auto-device_docmd\n  auto-destroy_link\n  auto-create_intr_chan\n  auto-destroy_intr_chan"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_06a6e5d4372f65fb0069d5bbcf29d881959c077f01ab5976d5",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1805,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 9680,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_06a6e5d4372f65fb0069d5bbcf930c81959a5afab422831a44",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_06a6e5d4372f65fb0069d5bbd9eb408195b4e2233dcc18c021",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"VXI-11仪器通信客户端\",\n  \"name_en\": \"VXI-11 Instrument Communication Client\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于通过 VXI-11/RPC 协议与网络实验仪器建立连接并交换数据的非物理软件组件。它提供原始读写、状态字读取、触发、清除、远程/本地切换、锁定控制，以及底层链路创建、打包与解包等通用通信功能，适合在实验自动化中连接支持 VXI-11 的仪器。\",\n  \"description_en\": \"A non-physical software component for connecting to and exchanging data with networked laboratory instruments via the VXI-11/RPC protocol. It provides raw read/write, status-byte reading, trigger, clear, remote/local switching, lock control, and low-level link creation plus packet packing/unpacking for automation workflows with VXI-11-capable instruments.\",\n  \"tag_hints\": [\n    \"VXI-11\",\n    \"RPC instrument control\",\n    \"LAN instrument communication\",\n    \"SCPI over Ethernet\",\n    \"status byte polling\",\n    \"remote/local lock control\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-clear\",\n      \"description\": \"向仪器发送清除命令。\",\n      \"description_en\": \"Send a clear command to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-finalize\",\n      \"description\": \"关闭与 VXI-11 仪器的连接。\",\n      \"description_en\": \"Close the connection to the VXI-11 instrument.\"\n    },\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"打开与 VXI-11 仪器的连接。\",\n      \"description_en\": \"Open a connection to the VXI-11 instrument.\"\n    },\n    {\n      \"action_name\": \"auto-local\",\n      \"description\": \"向仪器发送本地控制命令。\",\n      \"description_en\": \"Send a local-control command to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-lock\",\n      \"description\": \"向仪器发送锁定命令。\",\n      \"description_en\": \"Send a lock command to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-read_raw\",\n      \"description\": \"从仪器读取原始二进制数据。\",\n      \"description_en\": \"Read raw binary data from the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-read_stb\",\n      \"description\": \"读取仪器状态字节。\",\n      \"description_en\": \"Read the instrument status byte.\"\n    },\n    {\n      \"action_name\": \"auto-remote\",\n      \"description\": \"向仪器发送远程控制命令。\",\n      \"description_en\": \"Send a remote-control command to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"向仪器发送触发命令。\",\n      \"description_en\": \"Send a trigger command to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-unlock\",\n      \"description\": \"向仪器发送解锁命令。\",\n      \"description_en\": \"Send an unlock command to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-write_raw\",\n      \"description\": \"向仪器写入原始二进制数据。\",\n      \"description_en\": \"Write raw binary data to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_link\",\n      \"description\": \"打包设备链路标识数据。\",\n      \"description_en\": \"Pack device link identifier data.\"\n    },\n    {\n      \"action_name\": \"auto-pack_create_link_parms\",\n      \"description\": \"打包创建链路请求参数。\",\n      \"description_en\": \"Pack parameters for a create-link request.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_write_parms\",\n      \"description\": \"打包设备写入请求参数。\",\n      \"description_en\": \"Pack parameters for a device write request.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_read_parms\",\n      \"description\": \"打包设备读取请求参数。\",\n      \"description_en\": \"Pack parameters for a device read request.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_generic_parms\",\n      \"description\": \"打包通用设备请求参数。\",\n      \"description_en\": \"Pack generic device request parameters.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_remote_func_parms\",\n      \"description\": \"打包设备远程功能请求参数。\",\n      \"description_en\": \"Pack parameters for a device remote-function request.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_enable_srq_parms\",\n      \"description\": \"打包启用 SRQ 的请求参数。\",\n      \"description_en\": \"Pack parameters for enabling SRQ.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_lock_parms\",\n      \"description\": \"打包设备锁定请求参数。\",\n      \"description_en\": \"Pack parameters for a device lock request.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_docmd_parms\",\n      \"description\": \"打包设备通用命令请求参数。\",\n      \"description_en\": \"Pack parameters for a generic device command request.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_device_link\",\n      \"description\": \"解包设备链路标识数据。\",\n      \"description_en\": \"Unpack device link identifier data.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_device_error\",\n      \"description\": \"解包设备错误信息。\",\n      \"description_en\": \"Unpack device error information.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_create_link_resp\",\n      \"description\": \"解包创建链路响应。\",\n      \"description_en\": \"Unpack a create-link response.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_device_write_resp\",\n      \"description\": \"解包设备写入响应。\",\n      \"description_en\": \"Unpack a device write response.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_device_read_resp\",\n      \"description\": \"解包设备读取响应。\",\n      \"description_en\": \"Unpack a device read response.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_device_read_stb_resp\",\n      \"description\": \"解包状态字节读取响应。\",\n      \"description_en\": \"Unpack a status-byte read response.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_device_docmd_resp\",\n      \"description\": \"解包设备通用命令响应。\",\n      \"description_en\": \"Unpack a generic device command response.\"\n    },\n    {\n      \"action_name\": \"auto-create_link\",\n      \"description\": \"创建到 VXI-11 设备的通信链路。\",\n      \"description_en\": \"Create a communication link to a VXI-11 device.\"\n    },\n    {\n      \"action_name\": \"auto-device_write\",\n      \"description\": \"执行 VXI-11 设备写入操作。\",\n      \"description_en\": \"Perform a VXI-11 device write operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_read\",\n      \"description\": \"执行 VXI-11 设备读取操作。\",\n      \"description_en\": \"Perform a VXI-11 device read operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_read_stb\",\n      \"description\": \"执行 VXI-11 状态字节读取操作。\",\n      \"description_en\": \"Perform a VXI-11 status-byte read operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_trigger\",\n      \"description\": \"执行 VXI-11 设备触发操作。\",\n      \"description_en\": \"Perform a VXI-11 device trigger operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_clear\",\n      \"description\": \"执行 VXI-11 设备清除操作。\",\n      \"description_en\": \"Perform a VXI-11 device clear operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_remote\",\n      \"description\": \"执行 VXI-11 设备远程控制切换。\",\n      \"description_en\": \"Perform a VXI-11 device remote-control operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_local\",\n      \"description\": \"执行 VXI-11 设备本地控制切换。\",\n      \"description_en\": \"Perform a VXI-11 device local-control operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_lock\",\n      \"description\": \"执行 VXI-11 设备锁定操作。\",\n      \"description_en\": \"Perform a VXI-11 device lock operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_unlock\",\n      \"description\": \"执行 VXI-11 设备解锁操作。\",\n      \"description_en\": \"Perform a VXI-11 device unlock operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_enable_srq\",\n      \"description\": \"启用设备 SRQ 服务请求功能。\",\n      \"description_en\": \"Enable device SRQ service requests.\"\n    },\n    {\n      \"action_name\": \"auto-device_docmd\",\n      \"description\": \"执行设备通用命令操作。\",\n      \"description_en\": \"Perform a generic device command operation.\"\n    },\n    {\n      \"action_name\": \"auto-destroy_link\",\n      \"description\": \"销毁与设备的通信链路。\",\n      \"description_en\": \"Destroy the communication link to the device.\"\n    },\n    {\n      \"action_name\": \"auto-create_intr_chan\",\n      \"description\": \"创建中断通信通道。\",\n      \"description_en\": \"Create an interrupt communication channel.\"\n    },\n    {\n      \"action_name\": \"auto-destroy_intr_chan\",\n      \"description\": \"销毁中断通信通道。\",\n      \"description_en\": \"Destroy an interrupt communication channel.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1786,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2594,
+      "output_tokens_details": {
+        "reasoning_tokens": 471
+      },
+      "total_tokens": 4380
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1786,
+      "output_token_count": 2594,
+      "predict_time": 42.041901506
+    }
+  },
+  "output_text": "{\n  \"name\": \"VXI-11仪器通信客户端\",\n  \"name_en\": \"VXI-11 Instrument Communication Client\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于通过 VXI-11/RPC 协议与网络实验仪器建立连接并交换数据的非物理软件组件。它提供原始读写、状态字读取、触发、清除、远程/本地切换、锁定控制，以及底层链路创建、打包与解包等通用通信功能，适合在实验自动化中连接支持 VXI-11 的仪器。\",\n  \"description_en\": \"A non-physical software component for connecting to and exchanging data with networked laboratory instruments via the VXI-11/RPC protocol. It provides raw read/write, status-byte reading, trigger, clear, remote/local switching, lock control, and low-level link creation plus packet packing/unpacking for automation workflows with VXI-11-capable instruments.\",\n  \"tag_hints\": [\n    \"VXI-11\",\n    \"RPC instrument control\",\n    \"LAN instrument communication\",\n    \"SCPI over Ethernet\",\n    \"status byte polling\",\n    \"remote/local lock control\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-clear\",\n      \"description\": \"向仪器发送清除命令。\",\n      \"description_en\": \"Send a clear command to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-finalize\",\n      \"description\": \"关闭与 VXI-11 仪器的连接。\",\n      \"description_en\": \"Close the connection to the VXI-11 instrument.\"\n    },\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"打开与 VXI-11 仪器的连接。\",\n      \"description_en\": \"Open a connection to the VXI-11 instrument.\"\n    },\n    {\n      \"action_name\": \"auto-local\",\n      \"description\": \"向仪器发送本地控制命令。\",\n      \"description_en\": \"Send a local-control command to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-lock\",\n      \"description\": \"向仪器发送锁定命令。\",\n      \"description_en\": \"Send a lock command to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-read_raw\",\n      \"description\": \"从仪器读取原始二进制数据。\",\n      \"description_en\": \"Read raw binary data from the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-read_stb\",\n      \"description\": \"读取仪器状态字节。\",\n      \"description_en\": \"Read the instrument status byte.\"\n    },\n    {\n      \"action_name\": \"auto-remote\",\n      \"description\": \"向仪器发送远程控制命令。\",\n      \"description_en\": \"Send a remote-control command to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"向仪器发送触发命令。\",\n      \"description_en\": \"Send a trigger command to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-unlock\",\n      \"description\": \"向仪器发送解锁命令。\",\n      \"description_en\": \"Send an unlock command to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-write_raw\",\n      \"description\": \"向仪器写入原始二进制数据。\",\n      \"description_en\": \"Write raw binary data to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_link\",\n      \"description\": \"打包设备链路标识数据。\",\n      \"description_en\": \"Pack device link identifier data.\"\n    },\n    {\n      \"action_name\": \"auto-pack_create_link_parms\",\n      \"description\": \"打包创建链路请求参数。\",\n      \"description_en\": \"Pack parameters for a create-link request.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_write_parms\",\n      \"description\": \"打包设备写入请求参数。\",\n      \"description_en\": \"Pack parameters for a device write request.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_read_parms\",\n      \"description\": \"打包设备读取请求参数。\",\n      \"description_en\": \"Pack parameters for a device read request.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_generic_parms\",\n      \"description\": \"打包通用设备请求参数。\",\n      \"description_en\": \"Pack generic device request parameters.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_remote_func_parms\",\n      \"description\": \"打包设备远程功能请求参数。\",\n      \"description_en\": \"Pack parameters for a device remote-function request.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_enable_srq_parms\",\n      \"description\": \"打包启用 SRQ 的请求参数。\",\n      \"description_en\": \"Pack parameters for enabling SRQ.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_lock_parms\",\n      \"description\": \"打包设备锁定请求参数。\",\n      \"description_en\": \"Pack parameters for a device lock request.\"\n    },\n    {\n      \"action_name\": \"auto-pack_device_docmd_parms\",\n      \"description\": \"打包设备通用命令请求参数。\",\n      \"description_en\": \"Pack parameters for a generic device command request.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_device_link\",\n      \"description\": \"解包设备链路标识数据。\",\n      \"description_en\": \"Unpack device link identifier data.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_device_error\",\n      \"description\": \"解包设备错误信息。\",\n      \"description_en\": \"Unpack device error information.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_create_link_resp\",\n      \"description\": \"解包创建链路响应。\",\n      \"description_en\": \"Unpack a create-link response.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_device_write_resp\",\n      \"description\": \"解包设备写入响应。\",\n      \"description_en\": \"Unpack a device write response.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_device_read_resp\",\n      \"description\": \"解包设备读取响应。\",\n      \"description_en\": \"Unpack a device read response.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_device_read_stb_resp\",\n      \"description\": \"解包状态字节读取响应。\",\n      \"description_en\": \"Unpack a status-byte read response.\"\n    },\n    {\n      \"action_name\": \"auto-unpack_device_docmd_resp\",\n      \"description\": \"解包设备通用命令响应。\",\n      \"description_en\": \"Unpack a generic device command response.\"\n    },\n    {\n      \"action_name\": \"auto-create_link\",\n      \"description\": \"创建到 VXI-11 设备的通信链路。\",\n      \"description_en\": \"Create a communication link to a VXI-11 device.\"\n    },\n    {\n      \"action_name\": \"auto-device_write\",\n      \"description\": \"执行 VXI-11 设备写入操作。\",\n      \"description_en\": \"Perform a VXI-11 device write operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_read\",\n      \"description\": \"执行 VXI-11 设备读取操作。\",\n      \"description_en\": \"Perform a VXI-11 device read operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_read_stb\",\n      \"description\": \"执行 VXI-11 状态字节读取操作。\",\n      \"description_en\": \"Perform a VXI-11 status-byte read operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_trigger\",\n      \"description\": \"执行 VXI-11 设备触发操作。\",\n      \"description_en\": \"Perform a VXI-11 device trigger operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_clear\",\n      \"description\": \"执行 VXI-11 设备清除操作。\",\n      \"description_en\": \"Perform a VXI-11 device clear operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_remote\",\n      \"description\": \"执行 VXI-11 设备远程控制切换。\",\n      \"description_en\": \"Perform a VXI-11 device remote-control operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_local\",\n      \"description\": \"执行 VXI-11 设备本地控制切换。\",\n      \"description_en\": \"Perform a VXI-11 device local-control operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_lock\",\n      \"description\": \"执行 VXI-11 设备锁定操作。\",\n      \"description_en\": \"Perform a VXI-11 device lock operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_unlock\",\n      \"description\": \"执行 VXI-11 设备解锁操作。\",\n      \"description_en\": \"Perform a VXI-11 device unlock operation.\"\n    },\n    {\n      \"action_name\": \"auto-device_enable_srq\",\n      \"description\": \"启用设备 SRQ 服务请求功能。\",\n      \"description_en\": \"Enable device SRQ service requests.\"\n    },\n    {\n      \"action_name\": \"auto-device_docmd\",\n      \"description\": \"执行设备通用命令操作。\",\n      \"description_en\": \"Perform a generic device command operation.\"\n    },\n    {\n      \"action_name\": \"auto-destroy_link\",\n      \"description\": \"销毁与设备的通信链路。\",\n      \"description_en\": \"Destroy the communication link to the device.\"\n    },\n    {\n      \"action_name\": \"auto-create_intr_chan\",\n      \"description\": \"创建中断通信通道。\",\n      \"description_en\": \"Create an interrupt communication channel.\"\n    },\n    {\n      \"action_name\": \"auto-destroy_intr_chan\",\n      \"description\": \"销毁中断通信通道。\",\n      \"description_en\": \"Destroy an interrupt communication channel.\"\n    }\n  ]\n}"
+}

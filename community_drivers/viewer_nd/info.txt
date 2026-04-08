@@ -1,69 +1,117 @@
-Device: viewer_nd
-Registry Key: viewer_nd
-Short Description: Viewer ND是一款实验执行&合成设备，主要功能包括初始化、设备连接、设置、读取数据、过滤。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (11):
-- auto-connect_things -> connect_things [UniLabJsonCommand] goal_params: none
-- auto-prepare_ui -> prepare_ui [UniLabJsonCommand] goal_params: none
-- auto-reshape_data -> reshape_data [UniLabJsonCommand] goal_params: none
-- auto-set_data_test -> set_data_test [UniLabJsonCommand] goal_params: data_shape
-- auto-setup_actions -> setup_actions [UniLabJsonCommand] goal_params: none
-- auto-setup_widgets -> setup_widgets [UniLabJsonCommand] goal_params: none
-- auto-show_settings -> show_settings [UniLabJsonCommand] goal_params: show
-- auto-update_data_dim -> update_data_dim [UniLabJsonCommand] goal_params: dim
-- auto-update_data_displayer -> update_data_displayer [UniLabJsonCommand] goal_params: distribution
-- auto-update_filters -> update_filters [UniLabJsonCommand] goal_params: processor
-- auto-update_widget_visibility -> update_widget_visibility [UniLabJsonCommand] goal_params: data, nav_indexes
-
-Driver Functions (45):
-- BaseDataDisplayer.__init__(self, viewer0D, viewer1D, viewer2D, navigator1D, navigator2D, axes_viewer) (line 107)
-- BaseDataDisplayer.data_shape(self) (line 129)
-- BaseDataDisplayer.update_filter(self, filter_type) (line 132)
-- BaseDataDisplayer.update_processor(self, math_processor) (line 137)
-- BaseDataDisplayer.update_data(self, data, force_update) (line 141)
-- BaseDataDisplayer.show_nav_integration(self, show) (line 153)
-- BaseDataDisplayer.init_rois(self, data) (line 158)
-- BaseDataDisplayer.init(self) (line 163)
-- BaseDataDisplayer.update_viewer_data(self, **kwargs) (line 168)
-- BaseDataDisplayer.updated_nav_integration(self) (line 174)
-- BaseDataDisplayer.update_nav_data(self, x, y, width, height) (line 179)
-- BaseDataDisplayer.get_nav_data(self, data, x, y, width, height) (line 184)
-- BaseDataDisplayer.update_nav_data_from_roi(self, roi) (line 188)
-- BaseDataDisplayer.get_out_of_range_limits(x, y, width, height) (line 199)
-- BaseDataDisplayer.update_nav_indexes(self, nav_indexes) (line 208)
-- BaseDataDisplayer.update_nav_limits(self, x, y, width, height) (line 212)
-- UniformDataDisplayer.__init__(self, *args, **kwargs) (line 223)
-- UniformDataDisplayer.init(self, data) (line 226)
-- UniformDataDisplayer.init_rois(self, nav_axes_limits, sig_axis_limits) (line 232)
-- UniformDataDisplayer.updated_nav_integration(self) (line 261)
-- UniformDataDisplayer.update_viewer_data(self, posx, posy) (line 265)
-- UniformDataDisplayer.update_nav_data(self, x, y, width, height) (line 337)
-- UniformDataDisplayer.get_nav_data(self, data, x, y, width, height) (line 349)
-- SpreadDataDisplayer.__init__(self, *args, **kwargs) (line 383)
-- SpreadDataDisplayer.init(self, data) (line 388)
-- SpreadDataDisplayer.init_rois(self, nav_axes_limits, sig_axis_limits) (line 392)
-- SpreadDataDisplayer.update_viewer_data(self, posx, posy) (line 396)
-- SpreadDataDisplayer.update_nav_data(self, x, y, width, height) (line 454)
-- SpreadDataDisplayer.get_nav_data(self, data, x, y, width, height) (line 482)
-- SpreadDataDisplayer.get_nav_position(self, posx, posy) (line 509)
-- ViewerND.__init__(self, parent, title) (line 562)
-- ViewerND.update_data_displayer(self, distribution) (line 588)
-- ViewerND._show_data(self, data, **kwargs) (line 617)
-- ViewerND.set_data_test(self, data_shape) (line 643)
-- ViewerND.update_widget_visibility(self, data, nav_indexes) (line 734)
-- ViewerND.update_filters(self, processor) (line 762)
-- ViewerND.show_settings(self, show) (line 767)
-- ViewerND.prepare_ui(self) (line 774)
-- ViewerND.setup_actions(self) (line 781)
-- ViewerND.reshape_data(self) (line 788)
-- ViewerND.connect_things(self) (line 795)
-- ViewerND.setup_widgets(self) (line 813)
-- ViewerND.update_data_dim(self, dim) (line 863)
-- main() (line 868)
-- spread_main() (line 881)
+viewer_nd:
+  name: 多维数据查看器
+  name_en: ND Data Viewer
+  manufacturer: ''
+  category:
+  - 二维科学数据查看器
+  - 一维科学数据查看器
+  tags:
+  - 表征设备
+  - 实验数据可视化与分析
+  - 多维实验数据可视化
+  - 二维科学数据查看器
+  - 一维科学数据查看器
+  description: 用于实验数据可视化的非物理软件组件。它面向多维数据的过滤、重排与显示，可根据均匀或非均匀采样数据选择合适的数据展示方式，并支持导航轴及最高到二维信号图像的显示，适合在实验过程中浏览和检查多维测量结果。
+  description_en: A non-physical software component for experimental data visualization.
+    It filters, reshapes, and displays multidimensional data, selects suitable display
+    logic for uniformly or non-uniformly spaced datasets, and supports navigation
+    axes with signal display up to 2D images. It is used to browse and inspect multidimensional
+    measurement results during experiments.
+  class:
+    action_value_mappings:
+      auto-update_data_displayer:
+        schema:
+          description: 根据数据分布类型更新数据展示组件。
+          description_en: Update the data displayer according to the data distribution
+            type.
+      auto-set_data_test:
+        schema:
+          description: 生成或设置用于查看器测试的示例多维数据。
+          description_en: Generate or set example multidimensional data for viewer
+            testing.
+      auto-update_widget_visibility:
+        schema:
+          description: 根据数据内容或导航索引更新界面控件的可见性。
+          description_en: Update widget visibility based on the data content or navigation
+            indexes.
+      auto-update_filters:
+        schema:
+          description: 更新用于数据处理或显示的数据过滤器。
+          description_en: Update the data filters used for processing or display.
+      auto-show_settings:
+        schema:
+          description: 显示或隐藏查看器设置界面。
+          description_en: Show or hide the viewer settings interface.
+      auto-prepare_ui:
+        schema:
+          description: 准备查看器用户界面。
+          description_en: Prepare the viewer user interface.
+      auto-setup_actions:
+        schema:
+          description: 配置查看器可用的界面操作项。
+          description_en: Set up the available viewer UI actions.
+      auto-reshape_data:
+        schema:
+          description: 将输入数据重排为适合显示的结构。
+          description_en: Reshape input data into a structure suitable for display.
+      auto-connect_things:
+        schema:
+          description: 连接查看器内部的界面与逻辑信号。
+          description_en: Connect internal viewer UI elements and logic signals.
+      auto-setup_widgets:
+        schema:
+          description: 创建并配置查看器界面控件。
+          description_en: Create and configure the viewer widgets.
+      auto-update_data_dim:
+        schema:
+          description: 更新当前显示的数据维度。
+          description_en: Update the currently displayed data dimensionality.
+auto_annotation_metadata:
+  registry_key: viewer_nd
+  annotation_workflow_version: v4
+  tag_hints:
+  - multidimensional data visualization
+  - scientific plotting
+  - navigation axes
+  - image display
+  - data filtering
+  - GUI viewer
+  - uniform and nonuniform data
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该组件用于实验过程中浏览、检查和解释多维测量结果，属于表征结果查看环节。
+  - id: P-1101
+    name: 实验数据可视化与分析
+    name_en: Experimental Data Visualization & Analysis
+    type: experimental_domain
+    rationale: 设备核心功能是对实验数据进行过滤、重排和可视化分析。
+  - id: P-1102
+    name: 多维实验数据可视化
+    name_en: Multidimensional Experimental Data Visualization
+    type: experimental_scene
+    rationale: 该查看器面向多维数据，支持导航轴、维度切换和不同采样分布下的显示。
+  - id: P-970006
+    name: 二维科学数据查看器
+    name_en: 2D Scientific Data Viewer
+    type: device_template_tag
+    rationale: 该组件可将多维实验结果显示为二维图像切片，符合二维科学数据查看器特征。
+  - id: P-970007
+    name: 一维科学数据查看器
+    name_en: 1D Scientific Data Viewer
+    type: device_template_tag
+    rationale: 该组件也支持从多维数据中抽取并显示一维信号曲线。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: wasatch_shell\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: WasatchShell/wasatch-shell.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.custom.wasatch_shell:WasatchShell\n\nClass: WasatchShell (focal)\n  Bases: []\n\nFocal class methods:\n  [command] usage(self)\n    comment: ##############################################################################\n    comment: Utility Functions\n    comment: ##############################################################################\n  [command] disconnected(self)\n  [status_getter] get_line(self, prompt='args> ')\n    comment: encapsulating in case any platforms don't like GNU readline\n  [command] has_input(self)\n  [status_getter] get_next_token(self)\n  [command] read_bool(self)\n  [command] read_int(self)\n  [command] read_float(self)\n  [command] read_str(self)\n  [command] display(self, msg)\n  [command] configure_logging(self)\n  [command] run(self)\n    comment: ##############################################################################\n    comment: command loop\n    comment: ##############################################################################\n    comment: ignore comments\n    comment: tokenize\n    comment: these commands always work\n    comment: these commands work if currently closed\n    comment: anything past this point assumes spectrometer already open\n    comment: pass-through gettors\n    comment: special processing for these\n    comment: currently these are the only setters implemented\n    comment: These originally called directly into\n    comment: FeatureIdentificationDevice, which was efficient, but:\n    comment: 1. missed value-add processing in WasatchDevice.change_setting,\n    comment: 2. couldn't utilize inline (non functional)\n    comment: implementations in FID.write_setting,\n    comment: 3. provided no obvious path to achieve scan averaging\n    comment: (issues 1 and 2)\n    comment: 4. potentially differed than ENLIGHTEN processing\n    comment: while failing to exercise ENLIGHTEN communication\n    comment: path (part of the script's purpose)\n    comment: Therefore, setters now utilize WasatchDevice.change_setting\n    comment: where possible.\n    comment: An obvious CONSEQUENCE of using change_setting() over\n    comment: direct FID function calls is that no return value is\n    comment: possible on \"settor\" functions :-(\n    comment: if user re-sends open command when already open, do nothing\n    comment: whatever happened, flush stdout\n    comment: disable the laser if connected\n  [command] open(self)\n    comment: \n    comment: If the current device is disconnected, and there is a new device,\n    comment: attempt to connect to it. \"\"\"\n    comment: if we're already connected, nevermind\n    comment: lazy-load a USB bus\n    comment: enable exceptions\n    comment: enable immediate mode (don't queue commands until acquire_data)\n    comment: enable bare readings (don't query extra hardware metadata during acquisitions)\n    comment: disable free-running mode (interactive shell is the definition of \"slaved to user commands\")\n    comment: laser should not be on, but even so\n    comment: enable high-resolution laser power by default\n    comment: if laser has power calibration, require it and initialize accordingly\n    comment: (so if the user enables the laser, it won't fire at an out-of-bounds\n    comment: 100% unmodulated)\n    comment: throw random errors\n    comment: self.device.hardware.random_errors = True\n    comment: validate gettors (in case this is used against a StrokerProtocol unit, for instance)\n    comment: default to minimum configured integration time\n  [command] run_gettor(self, command)\n  [status_getter] get_dark(self)\n  [command] clear_dark(self)\n  [command] set_raman_intensity_correction_enable(self, device, status)\n  [command] srm_process(self, spectrum, device)\n  [status_getter] get_spectrum(self, quiet=True)\n    comment: \n    comment: This calls WasatchDevice.acquire_data, rather than FID.get_line, because\n    comment: scan averaging, bad-pixel correction, acquisition laser trigger and other\n    comment: high-level acquisition features are implemented in WasatchDevice rather\n    comment: than FID.\n    comment: enqueue ACQUIRE command, as we're not in free-running mode\n    comment: now collect the spectrum\n  [status_getter] get_spectrum_save(self)\n  [status_getter] get_spectrum_pretty(self)\n  [command] set_laser_enable(self, flag, quiet=False)\n  [command] generate_interpolated_x_axis(self, start, end, incr)\n    comment: should use numpy.arange\n  [command] set_interpolated_x_axis_cm(self, start, end, incr)\n  [command] set_interpolated_x_axis_nm(self, start, end, incr)\n  [command] clear(self)\n  [command] balance_acquisition(self)\n    comment: takes mode [integ, laser, laser_and_integ], intensity, threshold, x, unit [px, nm, cm]\n  [status_getter] get_all(self)\n\nRegistry actions:\n  auto-usage (from usage())\n  auto-disconnected (from disconnected())\n  auto-has_input (from has_input())\n  auto-read_bool (from read_bool())\n  auto-read_int (from read_int())\n  auto-read_float (from read_float())\n  auto-read_str (from read_str())\n  auto-display (from display())\n  auto-configure_logging (from configure_logging())\n  auto-run (from run())\n  auto-open (from open())\n  auto-run_gettor (from run_gettor())\n  auto-clear_dark (from clear_dark())\n  auto-set_raman_intensity_correction_enable (from set_raman_intensity_correction_enable())\n  auto-srm_process (from srm_process())\n  auto-set_laser_enable (from set_laser_enable())\n  auto-generate_interpolated_x_axis (from generate_interpolated_x_axis())\n  auto-set_interpolated_x_axis_cm (from set_interpolated_x_axis_cm())\n  auto-set_interpolated_x_axis_nm (from set_interpolated_x_axis_nm())\n  auto-clear (from clear())\n  auto-balance_acquisition (from balance_acquisition())\n  auto-get_line (from get_line())\n  auto-get_next_token (from get_next_token())\n  auto-get_dark (from get_dark())\n  auto-get_spectrum (from get_spectrum())\n  auto-get_spectrum_save (from get_spectrum_save())\n  auto-get_spectrum_pretty (from get_spectrum_pretty())\n  auto-get_all (from get_all())\n\nRequired output action ids:\n  auto-usage\n  auto-disconnected\n  auto-has_input\n  auto-read_bool\n  auto-read_int\n  auto-read_float\n  auto-read_str\n  auto-display\n  auto-configure_logging\n  auto-run\n  auto-open\n  auto-run_gettor\n  auto-clear_dark\n  auto-set_raman_intensity_correction_enable\n  auto-srm_process\n  auto-set_laser_enable\n  auto-generate_interpolated_x_axis\n  auto-set_interpolated_x_axis_cm\n  auto-set_interpolated_x_axis_nm\n  auto-clear\n  auto-balance_acquisition\n  auto-get_line\n  auto-get_next_token\n  auto-get_dark\n  auto-get_spectrum\n  auto-get_spectrum_save\n  auto-get_spectrum_pretty\n  auto-get_all"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0aad6faa7c5a78f50069d5bbacaa3c819588f8c0f4e3895f8e",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1791,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 10194,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0aad6faa7c5a78f50069d5bbad1898819589a5f8ec4d645a4a",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0aad6faa7c5a78f50069d5bbc586388195b86376602d34b1ee",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Wasatch 光谱仪交互式命令行外壳\",\n  \"name_en\": \"Wasatch Spectrometer Interactive Shell\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件命令行工具，用于连接和操作 Wasatch 光谱仪设备。它主要服务于实验调试、交互式测试和数据采集，可执行连接设备、采集光谱、控制激光、管理暗谱、设置插值坐标轴以及平衡采集参数等操作。\",\n  \"description_en\": \"A non-physical command-line software tool for connecting to and operating Wasatch spectrometer devices. It is mainly used for experiment debugging, interactive testing, and data acquisition, including device connection, spectrum capture, laser control, dark-spectrum management, interpolated axis setup, and acquisition balancing.\",\n  \"tag_hints\": [\n    \"command-line spectrometer control\",\n    \"Raman spectroscopy\",\n    \"spectrum acquisition\",\n    \"laser enable control\",\n    \"dark spectrum management\",\n    \"interactive testing\",\n    \"interpolated spectral axis\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-usage\",\n      \"description\": \"显示命令用法说明\",\n      \"description_en\": \"show command usage information\"\n    },\n    {\n      \"action_name\": \"auto-disconnected\",\n      \"description\": \"显示或判断设备是否已断开连接\",\n      \"description_en\": \"show or determine whether the device is disconnected\"\n    },\n    {\n      \"action_name\": \"auto-has_input\",\n      \"description\": \"检查是否有可用输入\",\n      \"description_en\": \"check whether input is available\"\n    },\n    {\n      \"action_name\": \"auto-read_bool\",\n      \"description\": \"读取布尔值输入\",\n      \"description_en\": \"read a boolean input value\"\n    },\n    {\n      \"action_name\": \"auto-read_int\",\n      \"description\": \"读取整数输入\",\n      \"description_en\": \"read an integer input value\"\n    },\n    {\n      \"action_name\": \"auto-read_float\",\n      \"description\": \"读取浮点数输入\",\n      \"description_en\": \"read a floating-point input value\"\n    },\n    {\n      \"action_name\": \"auto-read_str\",\n      \"description\": \"读取字符串输入\",\n      \"description_en\": \"read a string input value\"\n    },\n    {\n      \"action_name\": \"auto-display\",\n      \"description\": \"显示消息\",\n      \"description_en\": \"display a message\"\n    },\n    {\n      \"action_name\": \"auto-configure_logging\",\n      \"description\": \"配置日志记录\",\n      \"description_en\": \"configure logging\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"运行交互式命令循环\",\n      \"description_en\": \"run the interactive command loop\"\n    },\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开并连接可用光谱仪\",\n      \"description_en\": \"open and connect to an available spectrometer\"\n    },\n    {\n      \"action_name\": \"auto-run_gettor\",\n      \"description\": \"执行获取类命令\",\n      \"description_en\": \"run a getter-style command\"\n    },\n    {\n      \"action_name\": \"auto-clear_dark\",\n      \"description\": \"清除已保存的暗谱\",\n      \"description_en\": \"clear the stored dark spectrum\"\n    },\n    {\n      \"action_name\": \"auto-set_raman_intensity_correction_enable\",\n      \"description\": \"启用或禁用拉曼强度校正\",\n      \"description_en\": \"enable or disable Raman intensity correction\"\n    },\n    {\n      \"action_name\": \"auto-srm_process\",\n      \"description\": \"对光谱执行 SRM 处理\",\n      \"description_en\": \"process a spectrum using SRM handling\"\n    },\n    {\n      \"action_name\": \"auto-set_laser_enable\",\n      \"description\": \"启用或禁用激光\",\n      \"description_en\": \"enable or disable the laser\"\n    },\n    {\n      \"action_name\": \"auto-generate_interpolated_x_axis\",\n      \"description\": \"生成插值 x 轴\",\n      \"description_en\": \"generate an interpolated x-axis\"\n    },\n    {\n      \"action_name\": \"auto-set_interpolated_x_axis_cm\",\n      \"description\": \"定义以 cm⁻¹ 为单位的插值 x 轴\",\n      \"description_en\": \"define the interpolated x-axis in cm⁻¹\"\n    },\n    {\n      \"action_name\": \"auto-set_interpolated_x_axis_nm\",\n      \"description\": \"定义以 nm 为单位的插值 x 轴\",\n      \"description_en\": \"define the interpolated x-axis in nm\"\n    },\n    {\n      \"action_name\": \"auto-clear\",\n      \"description\": \"清除当前外壳管理的状态或数据\",\n      \"description_en\": \"clear the current shell-managed state or data\"\n    },\n    {\n      \"action_name\": \"auto-balance_acquisition\",\n      \"description\": \"平衡采集参数以接近目标强度\",\n      \"description_en\": \"balance acquisition settings toward a target intensity\"\n    },\n    {\n      \"action_name\": \"auto-get_line\",\n      \"description\": \"获取一行输入\",\n      \"description_en\": \"get an input line\"\n    },\n    {\n      \"action_name\": \"auto-get_next_token\",\n      \"description\": \"获取下一个输入标记\",\n      \"description_en\": \"get the next input token\"\n    },\n    {\n      \"action_name\": \"auto-get_dark\",\n      \"description\": \"获取暗谱\",\n      \"description_en\": \"get the dark spectrum\"\n    },\n    {\n      \"action_name\": \"auto-get_spectrum\",\n      \"description\": \"获取光谱\",\n      \"description_en\": \"get the spectrum\"\n    },\n    {\n      \"action_name\": \"auto-get_spectrum_save\",\n      \"description\": \"获取并保存光谱\",\n      \"description_en\": \"get and save the spectrum\"\n    },\n    {\n      \"action_name\": \"auto-get_spectrum_pretty\",\n      \"description\": \"获取格式化显示的光谱\",\n      \"description_en\": \"get the spectrum in a formatted view\"\n    },\n    {\n      \"action_name\": \"auto-get_all\",\n      \"description\": \"获取全部状态信息\",\n      \"description_en\": \"get all status information\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2243,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2485,
+      "output_tokens_details": {
+        "reasoning_tokens": 1116
+      },
+      "total_tokens": 4728
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2243,
+      "output_token_count": 2485,
+      "predict_time": 46.117738579
+    }
+  },
+  "output_text": "{\n  \"name\": \"Wasatch 光谱仪交互式命令行外壳\",\n  \"name_en\": \"Wasatch Spectrometer Interactive Shell\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件命令行工具，用于连接和操作 Wasatch 光谱仪设备。它主要服务于实验调试、交互式测试和数据采集，可执行连接设备、采集光谱、控制激光、管理暗谱、设置插值坐标轴以及平衡采集参数等操作。\",\n  \"description_en\": \"A non-physical command-line software tool for connecting to and operating Wasatch spectrometer devices. It is mainly used for experiment debugging, interactive testing, and data acquisition, including device connection, spectrum capture, laser control, dark-spectrum management, interpolated axis setup, and acquisition balancing.\",\n  \"tag_hints\": [\n    \"command-line spectrometer control\",\n    \"Raman spectroscopy\",\n    \"spectrum acquisition\",\n    \"laser enable control\",\n    \"dark spectrum management\",\n    \"interactive testing\",\n    \"interpolated spectral axis\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-usage\",\n      \"description\": \"显示命令用法说明\",\n      \"description_en\": \"show command usage information\"\n    },\n    {\n      \"action_name\": \"auto-disconnected\",\n      \"description\": \"显示或判断设备是否已断开连接\",\n      \"description_en\": \"show or determine whether the device is disconnected\"\n    },\n    {\n      \"action_name\": \"auto-has_input\",\n      \"description\": \"检查是否有可用输入\",\n      \"description_en\": \"check whether input is available\"\n    },\n    {\n      \"action_name\": \"auto-read_bool\",\n      \"description\": \"读取布尔值输入\",\n      \"description_en\": \"read a boolean input value\"\n    },\n    {\n      \"action_name\": \"auto-read_int\",\n      \"description\": \"读取整数输入\",\n      \"description_en\": \"read an integer input value\"\n    },\n    {\n      \"action_name\": \"auto-read_float\",\n      \"description\": \"读取浮点数输入\",\n      \"description_en\": \"read a floating-point input value\"\n    },\n    {\n      \"action_name\": \"auto-read_str\",\n      \"description\": \"读取字符串输入\",\n      \"description_en\": \"read a string input value\"\n    },\n    {\n      \"action_name\": \"auto-display\",\n      \"description\": \"显示消息\",\n      \"description_en\": \"display a message\"\n    },\n    {\n      \"action_name\": \"auto-configure_logging\",\n      \"description\": \"配置日志记录\",\n      \"description_en\": \"configure logging\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"运行交互式命令循环\",\n      \"description_en\": \"run the interactive command loop\"\n    },\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开并连接可用光谱仪\",\n      \"description_en\": \"open and connect to an available spectrometer\"\n    },\n    {\n      \"action_name\": \"auto-run_gettor\",\n      \"description\": \"执行获取类命令\",\n      \"description_en\": \"run a getter-style command\"\n    },\n    {\n      \"action_name\": \"auto-clear_dark\",\n      \"description\": \"清除已保存的暗谱\",\n      \"description_en\": \"clear the stored dark spectrum\"\n    },\n    {\n      \"action_name\": \"auto-set_raman_intensity_correction_enable\",\n      \"description\": \"启用或禁用拉曼强度校正\",\n      \"description_en\": \"enable or disable Raman intensity correction\"\n    },\n    {\n      \"action_name\": \"auto-srm_process\",\n      \"description\": \"对光谱执行 SRM 处理\",\n      \"description_en\": \"process a spectrum using SRM handling\"\n    },\n    {\n      \"action_name\": \"auto-set_laser_enable\",\n      \"description\": \"启用或禁用激光\",\n      \"description_en\": \"enable or disable the laser\"\n    },\n    {\n      \"action_name\": \"auto-generate_interpolated_x_axis\",\n      \"description\": \"生成插值 x 轴\",\n      \"description_en\": \"generate an interpolated x-axis\"\n    },\n    {\n      \"action_name\": \"auto-set_interpolated_x_axis_cm\",\n      \"description\": \"定义以 cm⁻¹ 为单位的插值 x 轴\",\n      \"description_en\": \"define the interpolated x-axis in cm⁻¹\"\n    },\n    {\n      \"action_name\": \"auto-set_interpolated_x_axis_nm\",\n      \"description\": \"定义以 nm 为单位的插值 x 轴\",\n      \"description_en\": \"define the interpolated x-axis in nm\"\n    },\n    {\n      \"action_name\": \"auto-clear\",\n      \"description\": \"清除当前外壳管理的状态或数据\",\n      \"description_en\": \"clear the current shell-managed state or data\"\n    },\n    {\n      \"action_name\": \"auto-balance_acquisition\",\n      \"description\": \"平衡采集参数以接近目标强度\",\n      \"description_en\": \"balance acquisition settings toward a target intensity\"\n    },\n    {\n      \"action_name\": \"auto-get_line\",\n      \"description\": \"获取一行输入\",\n      \"description_en\": \"get an input line\"\n    },\n    {\n      \"action_name\": \"auto-get_next_token\",\n      \"description\": \"获取下一个输入标记\",\n      \"description_en\": \"get the next input token\"\n    },\n    {\n      \"action_name\": \"auto-get_dark\",\n      \"description\": \"获取暗谱\",\n      \"description_en\": \"get the dark spectrum\"\n    },\n    {\n      \"action_name\": \"auto-get_spectrum\",\n      \"description\": \"获取光谱\",\n      \"description_en\": \"get the spectrum\"\n    },\n    {\n      \"action_name\": \"auto-get_spectrum_save\",\n      \"description\": \"获取并保存光谱\",\n      \"description_en\": \"get and save the spectrum\"\n    },\n    {\n      \"action_name\": \"auto-get_spectrum_pretty\",\n      \"description\": \"获取格式化显示的光谱\",\n      \"description_en\": \"get the spectrum in a formatted view\"\n    },\n    {\n      \"action_name\": \"auto-get_all\",\n      \"description\": \"获取全部状态信息\",\n      \"description_en\": \"get all status information\"\n    }\n  ]\n}"
+}

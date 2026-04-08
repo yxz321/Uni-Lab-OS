@@ -1,37 +1,116 @@
-Device: watlow
-Registry Key: watlow
-Short Description: Watlow 温度控制器 温控设备 Watlow是由Watlow Electric生产的专业实验设备。
-
-Categories:
-- 冷热水机
-
-Related Tags (from tag 标签列表.csv):
-- [4369] 冷热水机 / Chiller / Heater Unit (device_template_tag)
-
-Atom Actions (7):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-open -> open [UniLabJsonCommand] goal_params: none
-- auto-read -> read [UniLabJsonCommand] goal_params: instance
-- auto-readParam -> readParam [UniLabJsonCommand] goal_params: data_type, instance, param
-- auto-readSetpoint -> readSetpoint [UniLabJsonCommand] goal_params: instance
-- auto-write -> write [UniLabJsonCommand] goal_params: instance, value
-- auto-writeParam -> writeParam [UniLabJsonCommand] goal_params: data_type, instance, param, value
-
-Driver Functions (17):
-- Watlow.__init__(self, serial, port, timeout, address) (line 92)
-- Watlow.open(self) (line 104)
-- Watlow.close(self) (line 108)
-- Watlow._headerCheckByte(self, headerBytes) (line 113)
-- Watlow._dataCheckByte(self, dataBytes) (line 164)
-- Watlow._intDataParamToHex(self, dataParam) (line 176)
-- Watlow._byteDataParamToInt(self, hexParam) (line 184)
-- Watlow._buildZone(self, address) (line 190)
-- Watlow._buildReadRequest(self, dataParam, instance) (line 198)
-- Watlow._buildWriteRequest(self, dataParam, value, data_type, instance) (line 234)
-- Watlow._validateResponse(self, bytesResponse) (line 278)
-- Watlow._parseResponse(self, bytesResponse) (line 295)
-- Watlow.read(self, instance) (line 352)
-- Watlow.readSetpoint(self, instance) (line 363)
-- Watlow.readParam(self, param, data_type, instance) (line 374)
-- Watlow.write(self, value, instance) (line 411)
-- Watlow.writeParam(self, param, value, data_type, instance) (line 428)
+watlow:
+  name: 沃特洛PID温度控制器
+  name_en: Watlow PID Temperature Controller
+  manufacturer: Watlow
+  category:
+  - 温度控制器
+  - PID过程控制器
+  tags:
+  - 实验执行&合成设备
+  - 过程控制与工业仪表实验
+  - 环境控制与稳定性测试
+  - 外接设备恒温控制
+  - 热管理与温升监测
+  - BACnet现场总线通信与设备集成
+  - 温度控制器
+  - PID过程控制器
+  description: 用于实验室温度调节的PID温度控制器。该设备通过串口使用 BACnet TP/MS 通信，可读取当前温度、读取或修改温度设定值，并访问控制器参数，以实现加热过程或热工系统的闭环控制。
+  description_en: A PID temperature controller used for laboratory temperature regulation.
+    It communicates over serial using BACnet TP/MS and supports reading the current
+    temperature, reading or changing the temperature setpoint, and accessing controller
+    parameters for closed-loop control of heating or thermal processes.
+  class:
+    action_value_mappings:
+      auto-open:
+        schema:
+          description: 打开与温度控制器的串口通信连接。
+          description_en: Open the serial communication connection to the temperature
+            controller.
+      auto-close:
+        schema:
+          description: 关闭与温度控制器的串口通信连接。
+          description_en: Close the serial communication connection to the temperature
+            controller.
+      auto-read:
+        schema:
+          description: 读取控制器当前测得的温度值。
+          description_en: Read the current measured temperature from the controller.
+      auto-readSetpoint:
+        schema:
+          description: 读取控制器当前的温度设定值。
+          description_en: Read the current temperature setpoint from the controller.
+      auto-readParam:
+        schema:
+          description: 按参数 ID 读取控制器参数值。
+          description_en: Read a controller parameter value by parameter ID.
+      auto-write:
+        schema:
+          description: 写入新的温度设定值到控制器。
+          description_en: Write a new temperature setpoint to the controller.
+      auto-writeParam:
+        schema:
+          description: 按参数 ID 写入控制器参数值。
+          description_en: Write a controller parameter value by parameter ID.
+auto_annotation_metadata:
+  registry_key: watlow
+  annotation_workflow_version: v4
+  tag_hints:
+  - PID temperature control
+  - temperature setpoint control
+  - BACnet TP/MS
+  - serial communication
+  - thermal process control
+  - heating control
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该控制器在实验进行中闭环调节温度设定值和实际温度。
+  - id: P-0040
+    name: 过程控制与工业仪表实验
+    name_en: Process Control & Industrial Instrumentation
+    type: experimental_domain
+    rationale: 设备以PID回路实现热过程闭环控制，符合过程控制领域。
+  - id: P-9004
+    name: 环境控制与稳定性测试
+    name_en: Environmental Control & Stability Testing
+    type: experimental_domain
+    rationale: 其核心用途是实验室温度调节和稳定维持。
+  - id: P-6002
+    name: 外接设备恒温控制
+    name_en: External Equipment Thermostating
+    type: experimental_scene
+    rationale: 该控制器用于为外部加热或热工系统提供恒温控制。
+  - id: P-0202
+    name: 热管理与温升监测
+    name_en: Thermal Management & Temperature Rise Monitoring
+    type: experimental_scene
+    rationale: 设备可读取当前温度并调节设定值，适合热管理场景。
+  - id: P-900003
+    name: BACnet现场总线通信与设备集成
+    name_en: BACnet Fieldbus Communication & Device Integration
+    type: experimental_scene
+    rationale: 设备明确通过BACnet TP/MS串口通信接入控制系统。
+  - id: P-90001
+    name: 温度控制器
+    name_en: Temperature Controller
+    type: device_template_tag
+    rationale: 该设备直接用于读写温度与设定值，是标准温度控制器。
+  - id: P-11003
+    name: PID过程控制器
+    name_en: PID Process Controller
+    type: device_template_tag
+    rationale: 描述中明确为PID温度控制器，支持控制参数访问与闭环调节。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

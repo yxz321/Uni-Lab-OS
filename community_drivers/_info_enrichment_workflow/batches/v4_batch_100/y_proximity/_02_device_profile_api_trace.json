@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: y_proximity\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/Switch-Yoctopuce_Yocto-Relay/libs/yoctopuce/yocto_proximity.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.custom.y_proximity:YProximity\n\nClass: YProximity (focal)\n  Bases: ['YSensor']\n  Docstring: The YProximity class allows you to read and configure Yoctopuce proximity sensors.\nIt inherits from YSensor class the core functions to read measurements,\nto register callback functions, and to access the autonomous datalogger.\nThis class adds the ability to setup a detection threshold and to count the\nnumber of detected state changes.\n\nFocal class methods:\n  [status_getter] get_signalValue(self)\n    comment: res\n    comment: Returns the current value of signal measured by the proximity sensor.\n\n        @return a floating point number corresponding to the current value of signal measured by the proximity sensor\n\n        On...\n  [status_getter] get_detectionThreshold(self)\n    comment: res\n    comment: Returns the threshold used to determine the logical state of the proximity sensor, when considered\n        as a binary input (on/off).\n\n        @return an integer corresponding to the threshold used t...\n  [status_setter] set_detectionThreshold(self, newval)\n    comment: Changes the threshold used to determine the logical state of the proximity sensor, when considered\n        as a binary input (on/off).\n        Remember to call the saveToFlash() method of the module i...\n  [status_getter] get_detectionHysteresis(self)\n    comment: res\n    comment: Returns the hysteresis used to determine the logical state of the proximity sensor, when considered\n        as a binary input (on/off).\n\n        @return an integer corresponding to the hysteresis used...\n  [status_setter] set_detectionHysteresis(self, newval)\n    comment: Changes the hysteresis used to determine the logical state of the proximity sensor, when considered\n        as a binary input (on/off).\n        Remember to call the saveToFlash() method of the module ...\n  [status_getter] get_presenceMinTime(self)\n    comment: res\n    comment: Returns the minimal detection duration before signalling a presence event. Any shorter detection is\n        considered as noise or bounce (false positive) and filtered out.\n\n        @return an integer...\n  [status_setter] set_presenceMinTime(self, newval)\n    comment: Changes the minimal detection duration before signalling a presence event. Any shorter detection is\n        considered as noise or bounce (false positive) and filtered out.\n        Remember to call th...\n  [status_getter] get_removalMinTime(self)\n    comment: res\n    comment: Returns the minimal detection duration before signalling a removal event. Any shorter detection is\n        considered as noise or bounce (false positive) and filtered out.\n\n        @return an integer ...\n  [status_setter] set_removalMinTime(self, newval)\n    comment: Changes the minimal detection duration before signalling a removal event. Any shorter detection is\n        considered as noise or bounce (false positive) and filtered out.\n        Remember to call the...\n  [status_getter] get_isPresent(self)\n    comment: res\n    comment: Returns true if the input (considered as binary) is active (detection value is smaller than the\n        specified threshold), and false otherwise.\n\n        @return either YProximity.ISPRESENT_FALSE or...\n  [status_getter] get_lastTimeApproached(self)\n    comment: res\n    comment: Returns the number of elapsed milliseconds between the module power on and the last observed\n        detection (the input contact transitioned from absent to present).\n\n        @return an integer corr...\n  [status_getter] get_lastTimeRemoved(self)\n    comment: res\n    comment: Returns the number of elapsed milliseconds between the module power on and the last observed\n        detection (the input contact transitioned from present to absent).\n\n        @return an integer corr...\n  [status_getter] get_pulseCounter(self)\n    comment: res\n    comment: Returns the pulse counter value. The value is a 32 bit integer. In case\n        of overflow (>=2^32), the counter will wrap. To reset the counter, just\n        call the resetCounter() method.\n\n       ...\n  [status_setter] set_pulseCounter(self, newval)\n  [status_getter] get_pulseTimer(self)\n    comment: res\n    comment: Returns the timer of the pulse counter (ms).\n\n        @return an integer corresponding to the timer of the pulse counter (ms)\n\n        On failure, throws an exception or returns YProximity.PULSETIMER_...\n  [status_getter] get_proximityReportMode(self)\n    comment: res\n    comment: Returns the parameter (sensor value, presence or pulse count) returned by the get_currentValue\n        function and callbacks.\n\n        @return a value among YProximity.PROXIMITYREPORTMODE_NUMERIC,\n  ...\n  [status_setter] set_proximityReportMode(self, newval)\n    comment: Changes the  parameter  type (sensor value, presence or pulse count) returned by the\n        get_currentValue function and callbacks.\n        The edge count value is limited to the 6 lowest digits. Fo...\n  [command] FindProximity(func)\n    comment: obj\n    comment: Retrieves a proximity sensor for a given identifier.\n        The identifier can be specified using several formats:\n        <ul>\n        <li>FunctionLogicalName</li>\n        <li>ModuleSerialNumber.Fun...\n  [command] resetCounter(self)\n    comment: Resets the pulse counter value as well as its timer.\n\n        @return YAPI.SUCCESS if the call succeeds.\n\n        On failure, throws an exception or returns a negative error code.\n  [command] nextProximity(self)\n    comment: Continues the enumeration of proximity sensors started using yFirstProximity().\n        Caution: You can't make any assumption about the returned proximity sensors order.\n        If you want to find a...\n  [command] FirstProximity()\n    comment: noinspection PyTypeChecker,PyCallingNonCallable\n    comment: Starts the enumeration of proximity sensors currently accessible.\n        Use the method YProximity.nextProximity() to iterate on\n        next proximity sensors.\n\n        @return a pointer to a YProxi...\n\nRegistry actions:\n  auto-set_detectionThreshold (from set_detectionThreshold())\n  auto-set_detectionHysteresis (from set_detectionHysteresis())\n  auto-set_presenceMinTime (from set_presenceMinTime())\n  auto-set_removalMinTime (from set_removalMinTime())\n  auto-set_pulseCounter (from set_pulseCounter())\n  auto-set_proximityReportMode (from set_proximityReportMode())\n  auto-resetCounter (from resetCounter())\n  auto-nextProximity (from nextProximity())\n\nRequired output action ids:\n  auto-set_detectionThreshold\n  auto-set_detectionHysteresis\n  auto-set_presenceMinTime\n  auto-set_removalMinTime\n  auto-set_pulseCounter\n  auto-set_proximityReportMode\n  auto-resetCounter\n  auto-nextProximity"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_014e80e7284d6b950069d5bf387c108195b6aacaec9487d28b",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7980,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3738,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_014e80e7284d6b950069d5bf38f0bc8195852bafc4f2c717b3",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_014e80e7284d6b950069d5bf40f3c08195ba2c0f11da3ee7a1",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Yoctopuce 接近传感器\",\n  \"name_en\": \"Yoctopuce Proximity Sensor\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"用于检测物体接近与离开状态的接近传感器，可读取接近信号值、存在状态和脉冲计数，并可配置检测阈值、迟滞以及存在/移除最小时间，适合实验装置中的到位检测、非接触触发和状态监测。\",\n  \"description_en\": \"A proximity sensor for detecting object approach and removal. It can read the proximity signal value, presence state, and pulse count, and supports configuration of detection threshold, hysteresis, and minimum presence/removal times. It is suitable for in-lab position detection, non-contact triggering, and status monitoring.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_detectionThreshold\",\n      \"description\": \"设置接近检测阈值。\",\n      \"description_en\": \"Set the proximity detection threshold.\"\n    },\n    {\n      \"action_name\": \"auto-set_detectionHysteresis\",\n      \"description\": \"设置接近检测迟滞。\",\n      \"description_en\": \"Set the proximity detection hysteresis.\"\n    },\n    {\n      \"action_name\": \"auto-set_presenceMinTime\",\n      \"description\": \"设置存在事件的最小检测时间。\",\n      \"description_en\": \"Set the minimum detection time for a presence event.\"\n    },\n    {\n      \"action_name\": \"auto-set_removalMinTime\",\n      \"description\": \"设置移除事件的最小检测时间。\",\n      \"description_en\": \"Set the minimum detection time for a removal event.\"\n    },\n    {\n      \"action_name\": \"auto-set_pulseCounter\",\n      \"description\": \"设置脉冲计数器值。\",\n      \"description_en\": \"Set the pulse counter value.\"\n    },\n    {\n      \"action_name\": \"auto-set_proximityReportMode\",\n      \"description\": \"设置接近报告模式。\",\n      \"description_en\": \"Set the proximity report mode.\"\n    },\n    {\n      \"action_name\": \"auto-resetCounter\",\n      \"description\": \"重置脉冲计数器及其计时器。\",\n      \"description_en\": \"Reset the pulse counter and its timer.\"\n    },\n    {\n      \"action_name\": \"auto-nextProximity\",\n      \"description\": \"枚举下一个可访问的接近传感器。\",\n      \"description_en\": \"Enumerate the next accessible proximity sensor.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"proximity sensing\",\n    \"presence detection\",\n    \"non-contact trigger\",\n    \"threshold and hysteresis\",\n    \"pulse counting\",\n    \"object approach/removal detection\",\n    \"Yoctopuce\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2187,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 971,
+      "output_tokens_details": {
+        "reasoning_tokens": 368
+      },
+      "total_tokens": 3158
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2187,
+      "output_token_count": 971,
+      "predict_time": 18.815944189
+    }
+  },
+  "output_text": "{\n  \"name\": \"Yoctopuce 接近传感器\",\n  \"name_en\": \"Yoctopuce Proximity Sensor\",\n  \"manufacturer\": \"Yoctopuce\",\n  \"description\": \"用于检测物体接近与离开状态的接近传感器，可读取接近信号值、存在状态和脉冲计数，并可配置检测阈值、迟滞以及存在/移除最小时间，适合实验装置中的到位检测、非接触触发和状态监测。\",\n  \"description_en\": \"A proximity sensor for detecting object approach and removal. It can read the proximity signal value, presence state, and pulse count, and supports configuration of detection threshold, hysteresis, and minimum presence/removal times. It is suitable for in-lab position detection, non-contact triggering, and status monitoring.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set_detectionThreshold\",\n      \"description\": \"设置接近检测阈值。\",\n      \"description_en\": \"Set the proximity detection threshold.\"\n    },\n    {\n      \"action_name\": \"auto-set_detectionHysteresis\",\n      \"description\": \"设置接近检测迟滞。\",\n      \"description_en\": \"Set the proximity detection hysteresis.\"\n    },\n    {\n      \"action_name\": \"auto-set_presenceMinTime\",\n      \"description\": \"设置存在事件的最小检测时间。\",\n      \"description_en\": \"Set the minimum detection time for a presence event.\"\n    },\n    {\n      \"action_name\": \"auto-set_removalMinTime\",\n      \"description\": \"设置移除事件的最小检测时间。\",\n      \"description_en\": \"Set the minimum detection time for a removal event.\"\n    },\n    {\n      \"action_name\": \"auto-set_pulseCounter\",\n      \"description\": \"设置脉冲计数器值。\",\n      \"description_en\": \"Set the pulse counter value.\"\n    },\n    {\n      \"action_name\": \"auto-set_proximityReportMode\",\n      \"description\": \"设置接近报告模式。\",\n      \"description_en\": \"Set the proximity report mode.\"\n    },\n    {\n      \"action_name\": \"auto-resetCounter\",\n      \"description\": \"重置脉冲计数器及其计时器。\",\n      \"description_en\": \"Reset the pulse counter and its timer.\"\n    },\n    {\n      \"action_name\": \"auto-nextProximity\",\n      \"description\": \"枚举下一个可访问的接近传感器。\",\n      \"description_en\": \"Enumerate the next accessible proximity sensor.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"proximity sensing\",\n    \"presence detection\",\n    \"non-contact trigger\",\n    \"threshold and hysteresis\",\n    \"pulse counting\",\n    \"object approach/removal detection\",\n    \"Yoctopuce\"\n  ]\n}"
+}

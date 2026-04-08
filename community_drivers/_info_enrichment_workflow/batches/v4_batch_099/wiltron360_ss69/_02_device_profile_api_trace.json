@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: wiltron360_ss69\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/labtoolkit/SignalGenerator/Wiltron360SS69.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.wiltron360_ss69:Wiltron360SS69\n\nClass: Wiltron360SS69 (focal)\n  Bases: ['Instrument', 'SignalGenerator']\n  Docstring: Wiltron 360SS69 10e6, 40e9.\n\n.. figure::  images/SignalGenerator/Wiltron360SS69.jpg\n\nFocal class methods:\n  [command] frequency(self)\n    comment: .\n  [command] frequency(self, frequency)\n  [command] amplitude(self)\n    comment: .\n  [command] amplitude(self, amplitude)\n\nRegistry actions:\n  auto-frequency (from frequency())\n  auto-amplitude (from amplitude())\n\nRequired output action ids:\n  auto-frequency\n  auto-amplitude"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0bbbf074659e2ce20069d5bd6a67508190808d7b863bec4d2d",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1745,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3051,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0bbbf074659e2ce20069d5bd6ca7948190b12eef3d8b638239",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0bbbf074659e2ce20069d5bd75506c8190919715f764a74caf",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"Wiltron 360SS69 微波信号发生器\",\n  \"name_en\": \"Wiltron 360SS69 Microwave Signal Generator\",\n  \"manufacturer\": \"Wiltron\",\n  \"description\": \"一款用于输出可调频率和幅度射频/微波信号的信号发生器，文档显示频率范围约为 10 MHz 至 40 GHz，适用于射频器件、链路和系统测试。\",\n  \"description_en\": \"A signal generator for producing RF/microwave output with adjustable frequency and amplitude. The documentation indicates a frequency range of about 10 MHz to 40 GHz, suitable for testing RF components, links, and systems.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-frequency\",\n      \"description\": \"获取/设置输出频率。\",\n      \"description_en\": \"Get/set output frequency.\"\n    },\n    {\n      \"action_name\": \"auto-amplitude\",\n      \"description\": \"获取/设置输出幅度。\",\n      \"description_en\": \"Get/set output amplitude.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"RF signal generation\",\n    \"microwave source\",\n    \"frequency control\",\n    \"amplitude control\",\n    \"10 MHz to 40 GHz\",\n    \"RF testing\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 882,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 799,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 1681
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 882,
+      "output_token_count": 799,
+      "predict_time": 16.399783921
+    }
+  },
+  "output_text": "{\n  \"name\": \"Wiltron 360SS69 微波信号发生器\",\n  \"name_en\": \"Wiltron 360SS69 Microwave Signal Generator\",\n  \"manufacturer\": \"Wiltron\",\n  \"description\": \"一款用于输出可调频率和幅度射频/微波信号的信号发生器，文档显示频率范围约为 10 MHz 至 40 GHz，适用于射频器件、链路和系统测试。\",\n  \"description_en\": \"A signal generator for producing RF/microwave output with adjustable frequency and amplitude. The documentation indicates a frequency range of about 10 MHz to 40 GHz, suitable for testing RF components, links, and systems.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-frequency\",\n      \"description\": \"获取/设置输出频率。\",\n      \"description_en\": \"Get/set output frequency.\"\n    },\n    {\n      \"action_name\": \"auto-amplitude\",\n      \"description\": \"获取/设置输出幅度。\",\n      \"description_en\": \"Get/set output amplitude.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"RF signal generation\",\n    \"microwave source\",\n    \"frequency control\",\n    \"amplitude control\",\n    \"10 MHz to 40 GHz\",\n    \"RF testing\"\n  ]\n}"
+}

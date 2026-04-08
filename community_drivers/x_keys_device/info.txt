@@ -1,46 +1,100 @@
-Device: x_keys_device
-Registry Key: x_keys_device
-Short Description: X Keys Device是由P.
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (8):
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-getState -> getState [UniLabJsonCommand] goal_params: refresh
-- auto-setBacklight -> setBacklight [UniLabJsonCommand] goal_params: bl1, bl2, col, row
-- auto-setBacklightRows -> setBacklightRows [UniLabJsonCommand] goal_params: bl1, bl2
-- auto-setBacklights -> setBacklights [UniLabJsonCommand] goal_params: axis, reverse, state
-- auto-setCallback -> setCallback [UniLabJsonCommand] goal_params: cb
-- auto-setIntensity -> setIntensity [UniLabJsonCommand] goal_params: b1, b2
-- auto-setLED -> setLED [UniLabJsonCommand] goal_params: state
-
-Driver Functions (25):
-- pielib() (line 88)
-- PIEException.__init__(self, errno, *args) (line 243)
-- callPieFunc(func, *args) (line 248)
-- getDeviceHandles() (line 257)
-- XKeysDevice.__init__(self, handle) (line 273)
-- XKeysDevice.getState(self, refresh) (line 316)
-- XKeysDevice.setCallback(self, cb) (line 330)
-- XKeysDevice.setLED(self, state) (line 340)
-- XKeysDevice.setIntensity(self, b1, b2) (line 348)
-- XKeysDevice.setBacklights(self, state, axis, reverse) (line 354)
-- XKeysDevice.setBacklight(self, row, col, bl1, bl2) (line 380)
-- XKeysDevice.setBacklightRows(self, bl1, bl2) (line 414)
-- XKeysDevice.close(self) (line 426)
-- XKeysDevice._clearEvents(self) (line 432)
-- XKeysDevice._send(self, *args) (line 438)
-- XKeysDevice._read(self) (line 455)
-- XKeysDevice._readOne(self) (line 468)
-- XKeysDevice._unpackDescData(self, data) (line 478)
-- XKeysDevice._unpackEventData_XK12JS(self, data) (line 487)
-- XKeysDevice._unpackEventData_XKE128(self, data) (line 495)
-- XKeysDevice._unpackEventData_XK60(self, data) (line 502)
-- XKeysDevice._unpackEventData_XK80(self, data) (line 511)
-- XKeysDevice._handleData(self, data) (line 519)
-- XKeysDevice._dataCallback(self, data, devid, err) (line 550)
-- hexdump(data, size) (line 559)
+x_keys_device:
+  name: X-keys 可编程按键面板
+  name_en: X-keys Programmable Keypad
+  manufacturer: PI Engineering
+  category:
+  - 模块化实验控制面板
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 人工输入与实验交互控制
+  - 实验流程状态指示与告警
+  - 模块化实验控制面板
+  description: 一类通过 USB HID 连接的物理按键控制面板，可读取按键状态，并控制状态指示灯与按键背光。适合在实验系统中用作人工触发、模式切换、状态显示和自定义快捷控制界面。
+  description_en: A physical USB HID keypad/control panel that can read button states
+    and control status LEDs and key backlighting. It is suitable for manual triggering,
+    mode switching, status indication, and custom shortcut control in laboratory setups.
+  class:
+    action_value_mappings:
+      auto-getState:
+        schema:
+          description: 获取设备当前状态，可选择从硬件刷新按键状态。
+          description_en: Get the current device state, optionally refreshing button
+            state from the hardware.
+      auto-setCallback:
+        schema:
+          description: 设置设备状态变化时触发的回调函数。
+          description_en: Set a callback to be invoked when the device state changes.
+      auto-setLED:
+        schema:
+          description: 设置设备状态指示灯。
+          description_en: Set the device status LEDs.
+      auto-setIntensity:
+        schema:
+          description: 设置背光亮度强度。
+          description_en: Set the backlight intensity.
+      auto-setBacklights:
+        schema:
+          description: 设置所有按键背光状态。
+          description_en: Set the backlight state of all keys.
+      auto-setBacklight:
+        schema:
+          description: 设置指定按键、行或列的背光状态。
+          description_en: Set the backlight state of a specific key, row, or column.
+      auto-setBacklightRows:
+        schema:
+          description: 设置按键各行的背光状态。
+          description_en: Set the backlight state for key rows.
+      auto-close:
+        schema:
+          description: 关闭设备并停止事件处理线程。
+          description_en: Close the device and stop its event handling thread.
+auto_annotation_metadata:
+  registry_key: x_keys_device
+  annotation_workflow_version: v4
+  tag_hints:
+  - programmable keypad
+  - USB HID
+  - manual experiment control
+  - button state input
+  - LED backlight control
+  - status indicator LEDs
+  - control panel
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该按键面板用于实验过程中的人工触发、模式切换和运行控制，属于实验执行辅助设备。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 设备通过 USB HID 接入实验系统，承担人工交互与自动化系统集成角色。
+  - id: P-40007
+    name: 人工输入与实验交互控制
+    name_en: Manual Input & Experimental Interaction Control
+    type: experimental_scene
+    rationale: 其核心功能是读取按键状态并提供人工触发与快捷控制。
+  - id: P-8106
+    name: 实验流程状态指示与告警
+    name_en: Laboratory Workflow Status Indication & Alerting
+    type: experimental_scene
+    rationale: 设备可控制状态指示灯和按键背光，适合流程状态显示和提醒。
+  - id: P-40008
+    name: 模块化实验控制面板
+    name_en: Modular Experimental Control Console
+    type: device_template_tag
+    rationale: X-keys 是实验系统中的物理按键控制面板，和模块化实验控制面板模板高度一致。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review
