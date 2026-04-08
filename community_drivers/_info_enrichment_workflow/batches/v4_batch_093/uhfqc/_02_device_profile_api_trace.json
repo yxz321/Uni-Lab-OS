@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: uhfqc\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pycqed/instrument_drivers/physical_instruments/ZurichInstruments/UHFQuantumController.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.custom.uhfqc:UHFQC\n\nClass: UHFQC (focal)\n  Bases: ['uhf.UHFQA_core', 'DIO.CalInterface']\n  Docstring: This is the PycQED driver for the 1.8 Gsample/s UHFQA developed\nby Zurich Instruments.\n\nRequirements:\nInstallation instructions for Zurich Instrument Libraries.\n1. install ziPython 3.5/3.6 ucs4 19.05 for 64bit Windows from\n    http://www.zhinst.com/downloads, https://people.zhinst.com/~niels/\n2. upload the latest firmware to the UHFQA using the LabOne GUI\n\nFocal class methods:\n  [command] load_default_settings(self, upload_sequence=True)\n    comment: \n    comment: 'public' overrides for UHFQA_core\n    comment: \n    comment: Load an AWG program\n    comment: Configure the codeword protocol\n    comment: No rotation on the output of the weighted integration unit, i.e. take\n    comment: real part of result\n    comment: remove offsets to weight function\n  [command] load_awg_program_from_file(self, filename)\n    comment: \n    comment: 'public' functions: generic AWG/waveform support\n    comment: \n    comment: Loads an awg sequence onto the UHFQA from a text file.\n        File needs to obey formatting specified in the manual.\n        Only provided for backwards compatibility purposes.\n  [command] awg_file(self, filename)\n    comment: Only provided for backwards compatibility purposes.\n  [command] awg_update_waveform(self, index, data)\n  [command] plot_dio(self, bits=range(32), line_length=64)\n    comment: \n    comment: 'public' functions: DIO support\n    comment: \n  [command] prepare_SSB_weight_and_rotation(self, IF, weight_chI=0, weight_chQ=1, rotation_angle=0, length=4096 / 1800000000.0, scaling_factor=1)\n    comment: \n    comment: 'public' functions: weight & matrix function helpers\n    comment: \n    comment: setting the samples beyond the length to 0\n    comment: Sets default integration weights for SSB modulation, beware does not\n        load pulses or prepare the UFHQC progarm to do data acquisition\n  [command] prepare_DSB_weight_and_rotation(self, IF, weight_chI=0, weight_chQ=1)\n    comment: the factor 2 is needed so that scaling matches SSB downconversion\n  [command] plot_dio_snapshot(self, bits=range(32))\n  [command] snapshot_base(self, update=False, params_to_skip_update=None, params_to_exclude=None)\n    comment: \n    comment: Overriding Qcodes InstrumentBase methods\n    comment: \n    comment: State of the instrument as a JSON-compatible dict.\n        Args:\n            update: If True, update the state by querying the\n                instrument. If False, just use the latest values in memor...\n  [command] awg_sequence_acquisition_and_DIO_triggered_pulse(self, Iwaves=None, Qwaves=None, cases=None, acquisition_delay=0, timeout=5)\n    comment: setting the acquisition delay samples\n    comment: If no cases are defined, then we simply create all possible cases\n    comment: There is probably a more efficient way of doing this\n    comment: Sanity check on the parameters\n    comment: Sanity check on I channel waveforms\n    comment: Update waveform table\n    comment: Sanity check on Q channel waveforms\n    comment: Update waveform table\n    comment: Define the behavior of our program\n    comment: Updating cases will cause our AWG program to update\n    comment: Loads the program for DIO acquisition on the AWG of the UHFQC.\n\n        Arguments:\n            Iwaves list of I waveforms (arrays) used (historical).\n            Qwaves list of Q waveforms (arrays) us...\n  [command] awg_sequence_acquisition_and_DIO_RED_test(self, Iwaves=None, Qwaves=None, cases=None, acquisition_delay=0, dio_out_vect=None, timeout=5)\n    comment: setting the delay in the instrument\n    comment: starting the loop\n    comment: Define the behavior of our program\n  [command] awg_sequence_test_pattern(self, dio_out_vect=None)\n    comment: starting the loop\n    comment: Define the behavior of our program\n  [command] awg_sequence_acquisition_and_pulse(self, Iwave=None, Qwave=None, acquisition_delay=0, dig_trigger=True)\n    comment: Check the we have sufficient codewords defined\n    comment: Configure the actual waveforms\n    comment: Configure the delay\n  [command] awg_sequence_acquisition(self)\n    comment: Reset delay\n  [command] awg_debug_acquisition(self, dly=0)\n    comment: Reset delay\n  [command] awg_sequence_acquisition_and_pulse_SSB(self, f_RO_mod, RO_amp, RO_pulse_length, acquisition_delay, dig_trigger=True)\n  [command] spec_mode_on(self, acq_length=1 / 1500, IF=20000000.0, ro_amp=0.1, wint_length=2 ** 14)\n    comment: Reset delay\n    comment: Check the we have sufficient codewords defined\n    comment: Define number of samples\n    comment: Define alpha parameter\n    comment: Define support parameters\n    comment: Generate window function\n    comment: Configure the actual waveforms\n    comment: Also added by us\n    comment: setting the internal oscillator to the IF\n    comment: QuExpress thresholds on DIO (mode == 2), AWG control of DIO (mode == 1)\n    comment: Drive DIO bits 31 to 16\n    comment: setting the integration path to use the oscillator instead of\n    comment: integration functions. Should be done before modifying the length.\n    comment: Copy from the manual\n    comment: Configure some thresholds\n    comment: Also adder by us\n    comment: result_source 0 => lin_trans readout(includes crosstalk corr)\n  [command] spec_mode_off(self)\n    comment: Default settings copied\n    comment: setting to DSB by default\n    comment: switching off the modulation tone\n  [command] output_dio_calibration_data(self, dio_mode, port=0)\n    comment: \n    comment: overrides for CalInterface interface\n    comment: \n    comment: FIXME: set uhfqa0.dios_0_mode(uhfqa0.DIOS_0_MODE_AWG_SEQ), but reset after the calibration is done\n  [command] calibrate_dio_protocol(self, dio_mask, expected_sequence, port=0)\n    comment: Get the integration length and result enable settings to be able to\n    comment: restore them later\n    comment: Find center of first valid region\n    comment: Print information\n    comment: And configure the delays\n    comment: Clear all detected errors (caused by DIO timing calibration)\n    comment: Restore settings either in case of an exception or if the DIO\n    comment: routine finishes correctly\n  [command] calibrate_CC_dio_protocol(self, CC, feedline=None, verbose=False)\n    comment: \n    comment: DIO calibration functions for *CC*\n    comment: \n\nRegistry actions:\n  auto-load_default_settings (from load_default_settings())\n  auto-load_awg_program_from_file (from load_awg_program_from_file())\n  auto-awg_file (from awg_file())\n  auto-awg_update_waveform (from awg_update_waveform())\n  auto-plot_dio (from plot_dio())\n  auto-prepare_SSB_weight_and_rotation (from prepare_SSB_weight_and_rotation())\n  auto-prepare_DSB_weight_and_rotation (from prepare_DSB_weight_and_rotation())\n  auto-plot_dio_snapshot (from plot_dio_snapshot())\n  auto-snapshot_base (from snapshot_base())\n  auto-awg_sequence_acquisition_and_DIO_triggered_pulse (from awg_sequence_acquisition_and_DIO_triggered_pulse())\n  auto-awg_sequence_acquisition_and_DIO_RED_test (from awg_sequence_acquisition_and_DIO_RED_test())\n  auto-awg_sequence_test_pattern (from awg_sequence_test_pattern())\n  auto-awg_sequence_acquisition_and_pulse (from awg_sequence_acquisition_and_pulse())\n  auto-awg_sequence_acquisition (from awg_sequence_acquisition())\n  auto-awg_debug_acquisition (from awg_debug_acquisition())\n  auto-awg_sequence_acquisition_and_pulse_SSB (from awg_sequence_acquisition_and_pulse_SSB())\n  auto-spec_mode_on (from spec_mode_on())\n  auto-spec_mode_off (from spec_mode_off())\n  auto-output_dio_calibration_data (from output_dio_calibration_data())\n  auto-calibrate_dio_protocol (from calibrate_dio_protocol())\n  auto-calibrate_CC_dio_protocol (from calibrate_CC_dio_protocol())\n\nRequired output action ids:\n  auto-load_default_settings\n  auto-load_awg_program_from_file\n  auto-awg_file\n  auto-awg_update_waveform\n  auto-plot_dio\n  auto-prepare_SSB_weight_and_rotation\n  auto-prepare_DSB_weight_and_rotation\n  auto-plot_dio_snapshot\n  auto-snapshot_base\n  auto-awg_sequence_acquisition_and_DIO_triggered_pulse\n  auto-awg_sequence_acquisition_and_DIO_RED_test\n  auto-awg_sequence_test_pattern\n  auto-awg_sequence_acquisition_and_pulse\n  auto-awg_sequence_acquisition\n  auto-awg_debug_acquisition\n  auto-awg_sequence_acquisition_and_pulse_SSB\n  auto-spec_mode_on\n  auto-spec_mode_off\n  auto-output_dio_calibration_data\n  auto-calibrate_dio_protocol\n  auto-calibrate_CC_dio_protocol"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0b76a35c670a4ec50069d5ae4e99908196ac203a11cf4ebf3a",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1797,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7537,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0b76a35c670a4ec50069d5ae4efd248196b5765ab4bc83411e",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0b76a35c670a4ec50069d5ae5980008196880e9515cb28d45d",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"UHFQA量子分析控制器\",\n  \"name_en\": \"UHFQA Quantum Analyzer/Controller\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"这是一台苏黎世仪器的 UHFQA 超高频量子分析/控制仪器，用于量子实验中的读出脉冲生成、AWG波形下载、积分权重配置、DIO触发与时序校准，以及光谱测量模式配置。\",\n  \"description_en\": \"This is a Zurich Instruments UHFQA ultra-high-frequency quantum analyzer/controller used in quantum experiments for readout pulse generation, AWG waveform loading, integration weight configuration, DIO triggering and timing calibration, and spectroscopy mode setup.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-load_default_settings\",\n      \"description\": \"加载仪器默认设置，并可上传默认AWG序列与读出相关配置。\",\n      \"description_en\": \"Load default instrument settings, optionally uploading a default AWG sequence and readout-related configuration.\"\n    },\n    {\n      \"action_name\": \"auto-load_awg_program_from_file\",\n      \"description\": \"从文本文件加载AWG程序到仪器。\",\n      \"description_en\": \"Load an AWG program onto the instrument from a text file.\"\n    },\n    {\n      \"action_name\": \"auto-awg_file\",\n      \"description\": \"通过兼容接口从文件加载AWG程序。\",\n      \"description_en\": \"Load an AWG program from a file through a backward-compatible interface.\"\n    },\n    {\n      \"action_name\": \"auto-awg_update_waveform\",\n      \"description\": \"更新指定索引的AWG波形数据。\",\n      \"description_en\": \"Update AWG waveform data at a specified index.\"\n    },\n    {\n      \"action_name\": \"auto-plot_dio\",\n      \"description\": \"绘制DIO位线数据以检查数字输入输出时序。\",\n      \"description_en\": \"Plot DIO bit-line data to inspect digital input/output timing.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_SSB_weight_and_rotation\",\n      \"description\": \"配置单边带读出的积分权重与旋转参数。\",\n      \"description_en\": \"Prepare integration weights and rotation parameters for single-sideband readout.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_DSB_weight_and_rotation\",\n      \"description\": \"配置双边带读出的积分权重与旋转参数。\",\n      \"description_en\": \"Prepare integration weights and rotation parameters for double-sideband readout.\"\n    },\n    {\n      \"action_name\": \"auto-plot_dio_snapshot\",\n      \"description\": \"绘制当前DIO快照以查看数字位状态。\",\n      \"description_en\": \"Plot a current DIO snapshot to inspect digital bit states.\"\n    },\n    {\n      \"action_name\": \"auto-snapshot_base\",\n      \"description\": \"获取仪器当前状态的JSON兼容快照。\",\n      \"description_en\": \"Get a JSON-compatible snapshot of the current instrument state.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_DIO_triggered_pulse\",\n      \"description\": \"加载并配置由DIO触发的脉冲与采集AWG序列。\",\n      \"description_en\": \"Load and configure an AWG sequence for acquisition with DIO-triggered pulses.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_DIO_RED_test\",\n      \"description\": \"加载用于DIO相关RED测试的脉冲与采集AWG序列。\",\n      \"description_en\": \"Load an AWG sequence for acquisition and pulse generation in a DIO-related RED test.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_test_pattern\",\n      \"description\": \"加载用于数字测试图样输出的AWG序列。\",\n      \"description_en\": \"Load an AWG sequence that outputs a digital test pattern.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_pulse\",\n      \"description\": \"加载同时执行脉冲输出与数据采集的AWG序列。\",\n      \"description_en\": \"Load an AWG sequence that performs pulse output together with data acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition\",\n      \"description\": \"加载仅用于数据采集的AWG序列。\",\n      \"description_en\": \"Load an AWG sequence for data acquisition only.\"\n    },\n    {\n      \"action_name\": \"auto-awg_debug_acquisition\",\n      \"description\": \"加载带调试延迟设置的数据采集序列。\",\n      \"description_en\": \"Load a data acquisition sequence with debug delay settings.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_pulse_SSB\",\n      \"description\": \"加载单边带调制读出脉冲与采集AWG序列。\",\n      \"description_en\": \"Load an AWG sequence for single-sideband modulated readout pulse generation and acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-spec_mode_on\",\n      \"description\": \"开启光谱测量模式并配置内部振荡器、窗口和读出参数。\",\n      \"description_en\": \"Enable spectroscopy mode and configure the internal oscillator, windowing, and readout parameters.\"\n    },\n    {\n      \"action_name\": \"auto-spec_mode_off\",\n      \"description\": \"关闭光谱测量模式并恢复默认读出配置。\",\n      \"description_en\": \"Disable spectroscopy mode and restore default readout configuration.\"\n    },\n    {\n      \"action_name\": \"auto-output_dio_calibration_data\",\n      \"description\": \"输出DIO校准数据用于数字接口时序校准。\",\n      \"description_en\": \"Output DIO calibration data for digital interface timing calibration.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_dio_protocol\",\n      \"description\": \"校准DIO协议时序与延迟设置。\",\n      \"description_en\": \"Calibrate DIO protocol timing and delay settings.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_CC_dio_protocol\",\n      \"description\": \"与中央控制器配合校准DIO协议。\",\n      \"description_en\": \"Calibrate the DIO protocol in coordination with a central controller.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"quantum readout\",\n    \"UHFQA\",\n    \"AWG waveform generation\",\n    \"integration weights\",\n    \"DIO timing calibration\",\n    \"single-sideband readout\",\n    \"spectroscopy mode\",\n    \"Zurich Instruments\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2838,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1931,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 4769
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2838,
+      "output_token_count": 1931,
+      "predict_time": 35.968592384
+    }
+  },
+  "output_text": "{\n  \"name\": \"UHFQA量子分析控制器\",\n  \"name_en\": \"UHFQA Quantum Analyzer/Controller\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"这是一台苏黎世仪器的 UHFQA 超高频量子分析/控制仪器，用于量子实验中的读出脉冲生成、AWG波形下载、积分权重配置、DIO触发与时序校准，以及光谱测量模式配置。\",\n  \"description_en\": \"This is a Zurich Instruments UHFQA ultra-high-frequency quantum analyzer/controller used in quantum experiments for readout pulse generation, AWG waveform loading, integration weight configuration, DIO triggering and timing calibration, and spectroscopy mode setup.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-load_default_settings\",\n      \"description\": \"加载仪器默认设置，并可上传默认AWG序列与读出相关配置。\",\n      \"description_en\": \"Load default instrument settings, optionally uploading a default AWG sequence and readout-related configuration.\"\n    },\n    {\n      \"action_name\": \"auto-load_awg_program_from_file\",\n      \"description\": \"从文本文件加载AWG程序到仪器。\",\n      \"description_en\": \"Load an AWG program onto the instrument from a text file.\"\n    },\n    {\n      \"action_name\": \"auto-awg_file\",\n      \"description\": \"通过兼容接口从文件加载AWG程序。\",\n      \"description_en\": \"Load an AWG program from a file through a backward-compatible interface.\"\n    },\n    {\n      \"action_name\": \"auto-awg_update_waveform\",\n      \"description\": \"更新指定索引的AWG波形数据。\",\n      \"description_en\": \"Update AWG waveform data at a specified index.\"\n    },\n    {\n      \"action_name\": \"auto-plot_dio\",\n      \"description\": \"绘制DIO位线数据以检查数字输入输出时序。\",\n      \"description_en\": \"Plot DIO bit-line data to inspect digital input/output timing.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_SSB_weight_and_rotation\",\n      \"description\": \"配置单边带读出的积分权重与旋转参数。\",\n      \"description_en\": \"Prepare integration weights and rotation parameters for single-sideband readout.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_DSB_weight_and_rotation\",\n      \"description\": \"配置双边带读出的积分权重与旋转参数。\",\n      \"description_en\": \"Prepare integration weights and rotation parameters for double-sideband readout.\"\n    },\n    {\n      \"action_name\": \"auto-plot_dio_snapshot\",\n      \"description\": \"绘制当前DIO快照以查看数字位状态。\",\n      \"description_en\": \"Plot a current DIO snapshot to inspect digital bit states.\"\n    },\n    {\n      \"action_name\": \"auto-snapshot_base\",\n      \"description\": \"获取仪器当前状态的JSON兼容快照。\",\n      \"description_en\": \"Get a JSON-compatible snapshot of the current instrument state.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_DIO_triggered_pulse\",\n      \"description\": \"加载并配置由DIO触发的脉冲与采集AWG序列。\",\n      \"description_en\": \"Load and configure an AWG sequence for acquisition with DIO-triggered pulses.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_DIO_RED_test\",\n      \"description\": \"加载用于DIO相关RED测试的脉冲与采集AWG序列。\",\n      \"description_en\": \"Load an AWG sequence for acquisition and pulse generation in a DIO-related RED test.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_test_pattern\",\n      \"description\": \"加载用于数字测试图样输出的AWG序列。\",\n      \"description_en\": \"Load an AWG sequence that outputs a digital test pattern.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_pulse\",\n      \"description\": \"加载同时执行脉冲输出与数据采集的AWG序列。\",\n      \"description_en\": \"Load an AWG sequence that performs pulse output together with data acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition\",\n      \"description\": \"加载仅用于数据采集的AWG序列。\",\n      \"description_en\": \"Load an AWG sequence for data acquisition only.\"\n    },\n    {\n      \"action_name\": \"auto-awg_debug_acquisition\",\n      \"description\": \"加载带调试延迟设置的数据采集序列。\",\n      \"description_en\": \"Load a data acquisition sequence with debug delay settings.\"\n    },\n    {\n      \"action_name\": \"auto-awg_sequence_acquisition_and_pulse_SSB\",\n      \"description\": \"加载单边带调制读出脉冲与采集AWG序列。\",\n      \"description_en\": \"Load an AWG sequence for single-sideband modulated readout pulse generation and acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-spec_mode_on\",\n      \"description\": \"开启光谱测量模式并配置内部振荡器、窗口和读出参数。\",\n      \"description_en\": \"Enable spectroscopy mode and configure the internal oscillator, windowing, and readout parameters.\"\n    },\n    {\n      \"action_name\": \"auto-spec_mode_off\",\n      \"description\": \"关闭光谱测量模式并恢复默认读出配置。\",\n      \"description_en\": \"Disable spectroscopy mode and restore default readout configuration.\"\n    },\n    {\n      \"action_name\": \"auto-output_dio_calibration_data\",\n      \"description\": \"输出DIO校准数据用于数字接口时序校准。\",\n      \"description_en\": \"Output DIO calibration data for digital interface timing calibration.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_dio_protocol\",\n      \"description\": \"校准DIO协议时序与延迟设置。\",\n      \"description_en\": \"Calibrate DIO protocol timing and delay settings.\"\n    },\n    {\n      \"action_name\": \"auto-calibrate_CC_dio_protocol\",\n      \"description\": \"与中央控制器配合校准DIO协议。\",\n      \"description_en\": \"Calibrate the DIO protocol in coordination with a central controller.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"quantum readout\",\n    \"UHFQA\",\n    \"AWG waveform generation\",\n    \"integration weights\",\n    \"DIO timing calibration\",\n    \"single-sideband readout\",\n    \"spectroscopy mode\",\n    \"Zurich Instruments\"\n  ]\n}"
+}

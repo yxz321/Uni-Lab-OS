@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: usb_class\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: Software/AddOnModules/HardwareFiles/UsbInterface.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic_usb.generic_usb:usbClass\n\nClass: usbClass (focal)\n  Bases: []\n\nFocal class methods:\n  [command] init(self)\n    comment: called manually after instantiation, starts checking USB connection possibilities\n  [command] checkConnections(self)\n    comment: function to routinely poll the USB connections, looking for FPGAs to connect with\n    comment: format the variables as ctypes for the DLL call\n    comment: list of FPGAs found (with vendor ID 0x10C4 and product ID 0xEA80) this scan\n    comment: add found devices to the scan by their serial number\n    comment: if the total length of currently found FPGAs doesn't match up with previously found ones, update\n    comment: restart the timer because it doesn't automatically restart for you (huh?)\n  [command] connectUsb(self, index)\n    comment: function to connect to the FPGA via USB-to-UART conversion\n    comment: if a usb device has not been connected, try to connect\n    comment: if the device index is -1, then there were no found devices, so we can't connect\n    comment: attempt to open the USB-to-UART bridge device\n    comment: set up the UART communication - Baud rate, stop bits, etc\n    comment: baudRate = (c_long)(230400)\n    comment: HidUart_SetUartConfig(device, baudRate, dataBits, parity, stopBits, flowControl)\n    comment: dataBits, parity, stopBits, flowControl are all BYTE values, formed as a look up table\n    comment: check the manual, but I've set them here to:\n    comment: 230,400 baud, 8 data bits, no parity, 1 stop bit, no flow control\n    comment: set timeouts to 5 ms (1/200 of a second) from a default value of 1 second, which is uber long\n    comment: set the UART communication on, which will flush the buffer as an initialization operation\n    comment: flush the buffers initially\n    comment: start the timer for receiving checks - constantly checks the receive buffer\n  [command] set(self, register, setValue)\n    comment: function to set parameters in the FPGA - sent as \"xxByyyyyyF\"\n    comment: please ensure value sent into register is an INTEGER variable.\n    comment: determine the number of digits in the value to be sent for setting\n    comment: set up the first three nibbles of the write value, \"xxB\"\n    comment: xx is the register to set\n    comment: B is the operation, aka \"set\"\n    comment: add the value nibbles after that, one-by-one\n    comment: finish the write value off with an \"F\" to signify end-of-transmission\n    comment: if digits aren't even, add one to keep correct byte spacing, and add a zero at the end of the string\n    comment: determine the number of bytes in the string\n    comment: format the variables as ctypes for the DLL call\n    comment: write the set request to the FPGA\n  [command] poll(self)\n    comment: function to request polling - usually only sent once\n    comment: Polling is different - this string gets sent once, and the FPGA feeds back a long string of values\n    comment: when received and converted, another poll request is made\n    comment: format the variables as ctypes for the DLL call\n    comment: request polling - if this is never sent, polling does not start\n  [command] receive(self)\n    comment: function to receive bytes from the FPGA via UART-to-USB conversion\n    comment: only run here if there is no new data to be read - otherwise we might be overwriting the data our parent program might be reading\n    comment: format the variables as ctypes for the DLL call\n    comment: the bytes that were read are contained in the readBuffer, as it is by reference\n    comment: define a string to hold the decoded read value\n    comment: to byte-by-byte and decode each byte into a string equivalent\n    comment: if bytes were read, then trigger the calling software to look in \"self.readValue\"\n    comment: if last character read is an \"f\", then the read is complete, so trigger new data\n    comment: self.newData.emit()\n    comment: if last character is not an 'f', then continue reading until you see an 'f'\n    comment: restart the read timer because it doesn't keep going for us (!!)\n  [command] restartTimer(self)\n    comment: function to restart the receive timer unless shutdown has been started\n    comment: start checking the receive buffer every 100ms\n    comment: closing the software, disconnect from USB\n  [command] closing(self)\n    comment: function called when the calling software is closing, and it turns off the timers\n\nRegistry actions:\n  auto-init (from init())\n  auto-checkConnections (from checkConnections())\n  auto-connectUsb (from connectUsb())\n  auto-set (from set())\n  auto-poll (from poll())\n  auto-receive (from receive())\n  auto-restartTimer (from restartTimer())\n  auto-closing (from closing())\n\nRequired output action ids:\n  auto-init\n  auto-checkConnections\n  auto-connectUsb\n  auto-set\n  auto-poll\n  auto-receive\n  auto-restartTimer\n  auto-closing"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0150ba8d90138cbf0069d5ae4c04808190b8f12e3f5c1925d7",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1795,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4643,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0150ba8d90138cbf0069d5ae4c5d888190a9e5c257726fce32",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0150ba8d90138cbf0069d5ae5550708190b22b29d37f38497e",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"通用 USB-FPGA 通信组件\",\n  \"name_en\": \"Generic USB-to-FPGA Communication Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件通信组件，用于扫描 USB 设备、连接 USB 转 UART 桥接器，并与 FPGA 板卡进行串口数据收发。它主要供上层实验软件用于发现设备、发送寄存器设置命令和轮询读取数据。\",\n  \"description_en\": \"A non-physical software communication component that scans USB devices, connects through a USB-to-UART bridge, and exchanges serial data with FPGA boards. It is used by higher-level lab software to discover devices, send register-setting commands, and poll for returned data.\",\n  \"tag_hints\": [\n    \"USB-to-UART communication\",\n    \"FPGA interface\",\n    \"device discovery\",\n    \"serial polling\",\n    \"register write commands\",\n    \"ctypes DLL access\",\n    \"lab software helper\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化该非物理通信组件并启动 USB 连接检查流程。\",\n      \"description_en\": \"Initialize this non-physical communication component and start checking for USB connections.\"\n    },\n    {\n      \"action_name\": \"auto-checkConnections\",\n      \"description\": \"轮询 USB 连接，扫描可用的 FPGA 相关设备并更新发现列表。\",\n      \"description_en\": \"Poll USB connections, scan for available FPGA-related devices, and update the discovered-device list.\"\n    },\n    {\n      \"action_name\": \"auto-connectUsb\",\n      \"description\": \"连接选定的 USB 转 UART 设备，并配置串口参数以与 FPGA 通信。\",\n      \"description_en\": \"Connect to the selected USB-to-UART device and configure UART parameters for communication with the FPGA.\"\n    },\n    {\n      \"action_name\": \"auto-set\",\n      \"description\": \"向 FPGA 寄存器发送设置命令并写入指定值。\",\n      \"description_en\": \"Send a set command to an FPGA register and write the specified value.\"\n    },\n    {\n      \"action_name\": \"auto-poll\",\n      \"description\": \"发送轮询请求，以启动或继续从 FPGA 获取连续返回数据。\",\n      \"description_en\": \"Send a poll request to start or continue receiving streaming response data from the FPGA.\"\n    },\n    {\n      \"action_name\": \"auto-receive\",\n      \"description\": \"通过 USB-UART 接收 FPGA 返回的数据，并在完整消息到达时通知上层软件。\",\n      \"description_en\": \"Receive data returned by the FPGA over USB-UART and notify higher-level software when a complete message arrives.\"\n    },\n    {\n      \"action_name\": \"auto-restartTimer\",\n      \"description\": \"重启接收定时器，以持续周期性检查接收缓冲区。\",\n      \"description_en\": \"Restart the receive timer to continue periodically checking the receive buffer.\"\n    },\n    {\n      \"action_name\": \"auto-closing\",\n      \"description\": \"在软件关闭时停止定时器并断开 USB 通信。\",\n      \"description_en\": \"Stop timers and disconnect USB communication when the software is closing.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1864,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1205,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 3069
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1864,
+      "output_token_count": 1205,
+      "predict_time": 21.990451064
+    }
+  },
+  "output_text": "{\n  \"name\": \"通用 USB-FPGA 通信组件\",\n  \"name_en\": \"Generic USB-to-FPGA Communication Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个非物理的软件通信组件，用于扫描 USB 设备、连接 USB 转 UART 桥接器，并与 FPGA 板卡进行串口数据收发。它主要供上层实验软件用于发现设备、发送寄存器设置命令和轮询读取数据。\",\n  \"description_en\": \"A non-physical software communication component that scans USB devices, connects through a USB-to-UART bridge, and exchanges serial data with FPGA boards. It is used by higher-level lab software to discover devices, send register-setting commands, and poll for returned data.\",\n  \"tag_hints\": [\n    \"USB-to-UART communication\",\n    \"FPGA interface\",\n    \"device discovery\",\n    \"serial polling\",\n    \"register write commands\",\n    \"ctypes DLL access\",\n    \"lab software helper\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-init\",\n      \"description\": \"初始化该非物理通信组件并启动 USB 连接检查流程。\",\n      \"description_en\": \"Initialize this non-physical communication component and start checking for USB connections.\"\n    },\n    {\n      \"action_name\": \"auto-checkConnections\",\n      \"description\": \"轮询 USB 连接，扫描可用的 FPGA 相关设备并更新发现列表。\",\n      \"description_en\": \"Poll USB connections, scan for available FPGA-related devices, and update the discovered-device list.\"\n    },\n    {\n      \"action_name\": \"auto-connectUsb\",\n      \"description\": \"连接选定的 USB 转 UART 设备，并配置串口参数以与 FPGA 通信。\",\n      \"description_en\": \"Connect to the selected USB-to-UART device and configure UART parameters for communication with the FPGA.\"\n    },\n    {\n      \"action_name\": \"auto-set\",\n      \"description\": \"向 FPGA 寄存器发送设置命令并写入指定值。\",\n      \"description_en\": \"Send a set command to an FPGA register and write the specified value.\"\n    },\n    {\n      \"action_name\": \"auto-poll\",\n      \"description\": \"发送轮询请求，以启动或继续从 FPGA 获取连续返回数据。\",\n      \"description_en\": \"Send a poll request to start or continue receiving streaming response data from the FPGA.\"\n    },\n    {\n      \"action_name\": \"auto-receive\",\n      \"description\": \"通过 USB-UART 接收 FPGA 返回的数据，并在完整消息到达时通知上层软件。\",\n      \"description_en\": \"Receive data returned by the FPGA over USB-UART and notify higher-level software when a complete message arrives.\"\n    },\n    {\n      \"action_name\": \"auto-restartTimer\",\n      \"description\": \"重启接收定时器，以持续周期性检查接收缓冲区。\",\n      \"description_en\": \"Restart the receive timer to continue periodically checking the receive buffer.\"\n    },\n    {\n      \"action_name\": \"auto-closing\",\n      \"description\": \"在软件关闭时停止定时器并断开 USB 通信。\",\n      \"description_en\": \"Stop timers and disconnect USB communication when the software is closing.\"\n    }\n  ]\n}"
+}

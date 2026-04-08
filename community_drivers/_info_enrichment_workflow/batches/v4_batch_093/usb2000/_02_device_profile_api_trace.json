@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: usb2000\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: hardwarelibrary/spectrometers/oceaninsight.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.usb2000:USB2000\n\nClass: NoSpectrometerConnected \n  Bases: ['RuntimeError']\n\nClass: UnableToInitialize \n  Bases: ['RuntimeError']\n\nClass: UnableToCommunicate \n  Bases: ['RuntimeError']\n\nClass: SpectrumRequestTimeoutError \n  Bases: ['RuntimeError']\n\nClass: OISpectrometer \n  Bases: ['Spectrometer']\n  Docstring: An Ocean insight (Ocean Optics) spectrometer.  This allows complete access\nto the hardware with simple functions to get the spectrum, or modify the\nintegration time. It is the base class for all Ocean Insight Spectrometers,\nbut you will not instantiate this directly: use USB2000() or USB4000(),\nor simply: OISpectrometer.any() to get any spectrometer.\n\nAccess to the device is done with pyusb and does not require any\nadditional information. The USB-specific attributes of the spectrometers are\navailable,  but are not needed for standard usage.  If you need to\nimplement additional functions and communicate with the device (not all\ncapabilities are currently coded), then you could implement them in a\nseparate function.\n\nMethods starting with \"get\" and \"set\" will actually communication with the\nspectrometer and correspond to a command as defined in the OEM manual\n\"USB2000 Data Sheet\". The manuals can be found here:\nhttps://github.com/DCC-Lab/PyHardwareLibrary/tree/master/hardwarelibrary/manuals\n\nAttributes\n----------\nidVendor: int\n    USB idVendor for OceanInsight (0x2457)\n\nidProduct: int\n    USB idProduct for spectrometer (e.g., USB2000 is 0x1002)\n\nwavelength: np.array(float)\n    The wavelength corresponding to each pixel, as obtained from \n    factory calibration\n\ndevice : Device\n    The USB device as obtained from pyusb core.find()\n\nconfiguration: Configuration\n    The active USB configuration\n\ninterface: Interface\n    The active USB interface from the configuration\n\nserialNumber: str\n    The serial number from the USB configuration descriptor\n\nepCommandOut: EndPoint\n    The USB endpoint (i.e. the USB communication channel) to send commands\n\nepMainIn: EndPoint\n    The USB endpoint (i.e. the USB communication channel) to receive replies\n    for most commands\n\nepSecondaryIn: EndPoint\n    The USB endpoint (i.e. the USB communication channel) to receive replies\n    for spectral data and other commands\n\nClass: USB2000 (focal)\n  Bases: ['OISpectrometer']\n  Docstring: A USB2000 spectrometer.  The main differences:\n1. The idProduct is 0x1002\n2. The integration time is 16-bit\n3. The format of the retrieved data is different for each spectrometer.\n\nClass: USB4000_2000Plus \n  Bases: ['OISpectrometer']\n  Docstring: A USB4000/USB2000+ spectrometer.  The main differences from USB2000:\n1. The idProduct is 0x1022 for USB4000 and 0x101e for USB2000+\n2. The integration time is 16-bit\n3. The format of the retrieved data is different for each spectrometer.\n\nClass: USB650 \n  Bases: ['USB2000']\n\nClass: USB4000 \n  Bases: ['USB4000_2000Plus']\n\nClass: USB2000Plus \n  Bases: ['USB4000_2000Plus']\n\nClass: SAS \n  Bases: ['USB4000_2000Plus']\n\nClass: DebugSpectro \n  Bases: []\n\nFocal class methods:\n  [command] doInitializeDevice(self)\n    comment: Nothing particular to do, but making it explicit\n  [command] getSpectrumData(self)\n    comment: Retrieve the spectral data.  You must call requestSpectrum first.\n        If the spectrum is not ready yet, it will simply wait. The timeout \n        is set short so it may timeout.  You would normall...\n  [command] setIntegrationTime(self, timeInMs)\n    comment: Set the integration time in an integer value of milliseconds \n        for a spectrum. If the value is smaller than 3 ms, it will be unchanged.\n\nRegistry actions:\n  auto-doInitializeDevice (from doInitializeDevice())\n  auto-getSpectrumData (from getSpectrumData())\n  auto-setIntegrationTime (from setIntegrationTime())\n\nRequired output action ids:\n  auto-doInitializeDevice\n  auto-getSpectrumData\n  auto-setIntegrationTime"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_027d9e303b1fd4520069d5ae770dfc8195aa30d3ebdf93345a",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5147,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3211,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_027d9e303b1fd4520069d5ae7772508195a4f35da7bc4463d2",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_027d9e303b1fd4520069d5ae7fab748195b1b2376f1d706994",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"USB2000光谱仪\",\n  \"name_en\": \"USB2000 spectrometer\",\n  \"manufacturer\": \"Ocean Insight (Ocean Optics)\",\n  \"description\": \"Ocean Insight 的 USB2000 光谱仪，用于实验中采集样品的光谱数据，并通过设置积分时间来适配不同信号强度的光学测量。\",\n  \"description_en\": \"An Ocean Insight USB2000 spectrometer used in laboratory experiments to acquire spectral data and adjust integration time for optical measurements with different signal levels.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-doInitializeDevice\",\n      \"description\": \"初始化 USB2000 光谱仪并建立基本通信状态。\",\n      \"description_en\": \"Initialize the USB2000 spectrometer and establish its basic communication state.\"\n    },\n    {\n      \"action_name\": \"auto-getSpectrumData\",\n      \"description\": \"读取光谱仪采集到的光谱数据。\",\n      \"description_en\": \"Retrieve the spectral data acquired by the spectrometer.\"\n    },\n    {\n      \"action_name\": \"auto-setIntegrationTime\",\n      \"description\": \"设置光谱采集的积分时间。\",\n      \"description_en\": \"Set the integration time for spectral acquisition.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"UV-Vis spectroscopy\",\n    \"optical spectrum acquisition\",\n    \"integration time control\",\n    \"Ocean Insight spectrometer\",\n    \"USB spectrometer\",\n    \"emission detection\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1673,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 772,
+      "output_tokens_details": {
+        "reasoning_tokens": 450
+      },
+      "total_tokens": 2445
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1673,
+      "output_token_count": 772,
+      "predict_time": 14.916470323
+    }
+  },
+  "output_text": "{\n  \"name\": \"USB2000光谱仪\",\n  \"name_en\": \"USB2000 spectrometer\",\n  \"manufacturer\": \"Ocean Insight (Ocean Optics)\",\n  \"description\": \"Ocean Insight 的 USB2000 光谱仪，用于实验中采集样品的光谱数据，并通过设置积分时间来适配不同信号强度的光学测量。\",\n  \"description_en\": \"An Ocean Insight USB2000 spectrometer used in laboratory experiments to acquire spectral data and adjust integration time for optical measurements with different signal levels.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-doInitializeDevice\",\n      \"description\": \"初始化 USB2000 光谱仪并建立基本通信状态。\",\n      \"description_en\": \"Initialize the USB2000 spectrometer and establish its basic communication state.\"\n    },\n    {\n      \"action_name\": \"auto-getSpectrumData\",\n      \"description\": \"读取光谱仪采集到的光谱数据。\",\n      \"description_en\": \"Retrieve the spectral data acquired by the spectrometer.\"\n    },\n    {\n      \"action_name\": \"auto-setIntegrationTime\",\n      \"description\": \"设置光谱采集的积分时间。\",\n      \"description_en\": \"Set the integration time for spectral acquisition.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"UV-Vis spectroscopy\",\n    \"optical spectrum acquisition\",\n    \"integration time control\",\n    \"Ocean Insight spectrometer\",\n    \"USB spectrometer\",\n    \"emission detection\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: uploader\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: bin/gui.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.common.uploader:Uploader\n\nClass: WorkerThread \n  Bases: ['Thread']\n\nClass: TcpPanel \n  Bases: ['wx.Panel']\n\nClass: RtuPanel \n  Bases: ['wx.Panel']\n\nClass: MBPanel \n  Bases: ['wx.Panel']\n\nClass: IoPanel \n  Bases: ['wx.Panel']\n\nClass: Uploader (focal)\n  Bases: ['wx.Frame']\n\nFocal class methods:\n  [command] init_ui(self)\n  [command] hide_ioconfig(self, s)\n  [command] on_timer(self, e)\n    comment: OpenPLC editor has terminated\n  [command] on_port(self, e)\n  [command] on_config_change(self, msg)\n  [status_getter] get_config(self)\n  [command] load_config(self)\n  [command] save_config(self)\n  [command] on_upload(self, e)\n  [command] on_close(self, e)\n  [command] on_result(self, e)\n  [command] on_combo(self, e)\n  [command] on_update(self, e)\n\nRegistry actions:\n  auto-hide_ioconfig (from hide_ioconfig())\n  auto-init_ui (from init_ui())\n  auto-load_config (from load_config())\n  auto-on_close (from on_close())\n  auto-on_combo (from on_combo())\n  auto-on_config_change (from on_config_change())\n  auto-on_port (from on_port())\n  auto-on_result (from on_result())\n  auto-on_timer (from on_timer())\n  auto-on_update (from on_update())\n  auto-on_upload (from on_upload())\n  auto-save_config (from save_config())\n  auto-get_config (from get_config())\n  auto-on_wifi (from on_wifi())\n  auto-on_ip (from on_ip())\n  auto-on_gw (from on_gw())\n  auto-on_dns (from on_dns())\n  auto-on_subnet (from on_subnet())\n  auto-on_mac (from on_mac())\n  auto-enable_forms (from enable_forms())\n  auto-enable_tcp (from enable_tcp())\n  auto-update_src (from update_src())\n  auto-get_values (from get_values())\n  auto-set_values (from set_values())\n  auto-on_id (from on_id())\n  auto-on_pins (from on_pins())\n  auto-send_pin_change (from send_pin_change())\n  auto-clear_master_en (from clear_master_en())\n  auto-clear_slave_en (from clear_slave_en())\n  auto-enable_slave (from enable_slave())\n  auto-enable_master (from enable_master())\n  auto-update_inputs (from update_inputs())\n  auto-enable_override (from enable_override())\n  auto-on_inputs (from on_inputs())\n  auto-on_io_change (from on_io_change())\n  auto-update_text_ctrl (from update_text_ctrl())\n  auto-exclude_en_pins (from exclude_en_pins())\n  auto-on_pin_change (from on_pin_change())\n\nRequired output action ids:\n  auto-hide_ioconfig\n  auto-init_ui\n  auto-load_config\n  auto-on_close\n  auto-on_combo\n  auto-on_config_change\n  auto-on_port\n  auto-on_result\n  auto-on_timer\n  auto-on_update\n  auto-on_upload\n  auto-save_config\n  auto-get_config\n  auto-on_wifi\n  auto-on_ip\n  auto-on_gw\n  auto-on_dns\n  auto-on_subnet\n  auto-on_mac\n  auto-enable_forms\n  auto-enable_tcp\n  auto-update_src\n  auto-get_values\n  auto-set_values\n  auto-on_id\n  auto-on_pins\n  auto-send_pin_change\n  auto-clear_master_en\n  auto-clear_slave_en\n  auto-enable_slave\n  auto-enable_master\n  auto-update_inputs\n  auto-enable_override\n  auto-on_inputs\n  auto-on_io_change\n  auto-update_text_ctrl\n  auto-exclude_en_pins\n  auto-on_pin_change"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_00b7ed164b258ec60069d5ae715b308193a1bf9a9c92af0d68",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4193,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 11239,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_00b7ed164b258ec60069d5ae71cdb881938f1b2f8950e79081",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_00b7ed164b258ec60069d5ae87977c8193b47499a56fc9cda2",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"OpenPLC 上传配置工具\",\n  \"name_en\": \"OpenPLC Uploader Utility\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于配置并上传 OpenPLC 相关参数的非实体图形工具，提供网络、端口、Modbus 与 I/O 选项的界面，实验中可用于准备控制逻辑部署和通信设置。\",\n  \"description_en\": \"A non-physical graphical utility for configuring and uploading OpenPLC-related settings. It provides interfaces for network, port, Modbus, and I/O options, and is used in labs to prepare control-logic deployment and communication settings.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-hide_ioconfig\",\n      \"description\": \"隐藏或显示 I/O 配置界面\",\n      \"description_en\": \"Hide or show the I/O configuration interface.\"\n    },\n    {\n      \"action_name\": \"auto-init_ui\",\n      \"description\": \"初始化图形界面\",\n      \"description_en\": \"Initialize the graphical user interface.\"\n    },\n    {\n      \"action_name\": \"auto-load_config\",\n      \"description\": \"加载配置\",\n      \"description_en\": \"Load configuration.\"\n    },\n    {\n      \"action_name\": \"auto-on_close\",\n      \"description\": \"处理窗口关闭操作\",\n      \"description_en\": \"Handle the window close operation.\"\n    },\n    {\n      \"action_name\": \"auto-on_combo\",\n      \"description\": \"处理下拉选项变化\",\n      \"description_en\": \"Handle combo-box selection changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_config_change\",\n      \"description\": \"处理配置变更\",\n      \"description_en\": \"Handle configuration changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_port\",\n      \"description\": \"处理端口选择或端口设置变化\",\n      \"description_en\": \"Handle port selection or port setting changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_result\",\n      \"description\": \"处理上传或操作结果\",\n      \"description_en\": \"Handle upload or operation results.\"\n    },\n    {\n      \"action_name\": \"auto-on_timer\",\n      \"description\": \"处理定时器事件并检查编辑器结束状态\",\n      \"description_en\": \"Handle timer events and check whether the editor has terminated.\"\n    },\n    {\n      \"action_name\": \"auto-on_update\",\n      \"description\": \"处理更新或刷新操作\",\n      \"description_en\": \"Handle update or refresh operations.\"\n    },\n    {\n      \"action_name\": \"auto-on_upload\",\n      \"description\": \"启动上传操作\",\n      \"description_en\": \"Start the upload operation.\"\n    },\n    {\n      \"action_name\": \"auto-save_config\",\n      \"description\": \"保存配置\",\n      \"description_en\": \"Save configuration.\"\n    },\n    {\n      \"action_name\": \"auto-get_config\",\n      \"description\": \"获取配置\",\n      \"description_en\": \"Get configuration.\"\n    },\n    {\n      \"action_name\": \"auto-on_wifi\",\n      \"description\": \"处理 Wi‑Fi 设置变更\",\n      \"description_en\": \"Handle Wi-Fi setting changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_ip\",\n      \"description\": \"处理 IP 地址设置变更\",\n      \"description_en\": \"Handle IP address setting changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_gw\",\n      \"description\": \"处理网关设置变更\",\n      \"description_en\": \"Handle gateway setting changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_dns\",\n      \"description\": \"处理 DNS 设置变更\",\n      \"description_en\": \"Handle DNS setting changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_subnet\",\n      \"description\": \"处理子网掩码设置变更\",\n      \"description_en\": \"Handle subnet mask setting changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_mac\",\n      \"description\": \"处理 MAC 地址设置变更\",\n      \"description_en\": \"Handle MAC address setting changes.\"\n    },\n    {\n      \"action_name\": \"auto-enable_forms\",\n      \"description\": \"启用或禁用表单输入区域\",\n      \"description_en\": \"Enable or disable form input sections.\"\n    },\n    {\n      \"action_name\": \"auto-enable_tcp\",\n      \"description\": \"启用或禁用 TCP 相关选项\",\n      \"description_en\": \"Enable or disable TCP-related options.\"\n    },\n    {\n      \"action_name\": \"auto-update_src\",\n      \"description\": \"更新源文件或来源路径显示\",\n      \"description_en\": \"Update the source file or source path display.\"\n    },\n    {\n      \"action_name\": \"auto-get_values\",\n      \"description\": \"获取界面当前输入值\",\n      \"description_en\": \"Get the current values from the interface.\"\n    },\n    {\n      \"action_name\": \"auto-set_values\",\n      \"description\": \"设置界面输入值\",\n      \"description_en\": \"Set values in the interface.\"\n    },\n    {\n      \"action_name\": \"auto-on_id\",\n      \"description\": \"处理设备 ID 或站号变化\",\n      \"description_en\": \"Handle device ID or node address changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_pins\",\n      \"description\": \"处理引脚配置输入\",\n      \"description_en\": \"Handle pin configuration input.\"\n    },\n    {\n      \"action_name\": \"auto-send_pin_change\",\n      \"description\": \"发送引脚配置变更\",\n      \"description_en\": \"Send pin configuration changes.\"\n    },\n    {\n      \"action_name\": \"auto-clear_master_en\",\n      \"description\": \"清除主站相关启用状态\",\n      \"description_en\": \"Clear master-related enabled states.\"\n    },\n    {\n      \"action_name\": \"auto-clear_slave_en\",\n      \"description\": \"清除从站相关启用状态\",\n      \"description_en\": \"Clear slave-related enabled states.\"\n    },\n    {\n      \"action_name\": \"auto-enable_slave\",\n      \"description\": \"启用或禁用从站相关选项\",\n      \"description_en\": \"Enable or disable slave-related options.\"\n    },\n    {\n      \"action_name\": \"auto-enable_master\",\n      \"description\": \"启用或禁用主站相关选项\",\n      \"description_en\": \"Enable or disable master-related options.\"\n    },\n    {\n      \"action_name\": \"auto-update_inputs\",\n      \"description\": \"更新输入项显示或内容\",\n      \"description_en\": \"Update input field display or contents.\"\n    },\n    {\n      \"action_name\": \"auto-enable_override\",\n      \"description\": \"启用或禁用覆盖设置选项\",\n      \"description_en\": \"Enable or disable override setting options.\"\n    },\n    {\n      \"action_name\": \"auto-on_inputs\",\n      \"description\": \"处理输入配置变更\",\n      \"description_en\": \"Handle input configuration changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_io_change\",\n      \"description\": \"处理 I/O 配置变化\",\n      \"description_en\": \"Handle I/O configuration changes.\"\n    },\n    {\n      \"action_name\": \"auto-update_text_ctrl\",\n      \"description\": \"更新文本输入控件内容\",\n      \"description_en\": \"Update the text control contents.\"\n    },\n    {\n      \"action_name\": \"auto-exclude_en_pins\",\n      \"description\": \"排除或禁用特定已启用引脚选项\",\n      \"description_en\": \"Exclude or disable specific enabled pin options.\"\n    },\n    {\n      \"action_name\": \"auto-on_pin_change\",\n      \"description\": \"处理单个引脚设置变化\",\n      \"description_en\": \"Handle individual pin setting changes.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"OpenPLC\",\n    \"PLC upload tool\",\n    \"Modbus TCP/RTU configuration\",\n    \"network settings\",\n    \"I/O pin mapping\",\n    \"wxPython GUI\",\n    \"control logic deployment\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1524,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2688,
+      "output_tokens_details": {
+        "reasoning_tokens": 998
+      },
+      "total_tokens": 4212
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1524,
+      "output_token_count": 2688,
+      "predict_time": 46.343112476
+    }
+  },
+  "output_text": "{\n  \"name\": \"OpenPLC 上传配置工具\",\n  \"name_en\": \"OpenPLC Uploader Utility\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于配置并上传 OpenPLC 相关参数的非实体图形工具，提供网络、端口、Modbus 与 I/O 选项的界面，实验中可用于准备控制逻辑部署和通信设置。\",\n  \"description_en\": \"A non-physical graphical utility for configuring and uploading OpenPLC-related settings. It provides interfaces for network, port, Modbus, and I/O options, and is used in labs to prepare control-logic deployment and communication settings.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-hide_ioconfig\",\n      \"description\": \"隐藏或显示 I/O 配置界面\",\n      \"description_en\": \"Hide or show the I/O configuration interface.\"\n    },\n    {\n      \"action_name\": \"auto-init_ui\",\n      \"description\": \"初始化图形界面\",\n      \"description_en\": \"Initialize the graphical user interface.\"\n    },\n    {\n      \"action_name\": \"auto-load_config\",\n      \"description\": \"加载配置\",\n      \"description_en\": \"Load configuration.\"\n    },\n    {\n      \"action_name\": \"auto-on_close\",\n      \"description\": \"处理窗口关闭操作\",\n      \"description_en\": \"Handle the window close operation.\"\n    },\n    {\n      \"action_name\": \"auto-on_combo\",\n      \"description\": \"处理下拉选项变化\",\n      \"description_en\": \"Handle combo-box selection changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_config_change\",\n      \"description\": \"处理配置变更\",\n      \"description_en\": \"Handle configuration changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_port\",\n      \"description\": \"处理端口选择或端口设置变化\",\n      \"description_en\": \"Handle port selection or port setting changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_result\",\n      \"description\": \"处理上传或操作结果\",\n      \"description_en\": \"Handle upload or operation results.\"\n    },\n    {\n      \"action_name\": \"auto-on_timer\",\n      \"description\": \"处理定时器事件并检查编辑器结束状态\",\n      \"description_en\": \"Handle timer events and check whether the editor has terminated.\"\n    },\n    {\n      \"action_name\": \"auto-on_update\",\n      \"description\": \"处理更新或刷新操作\",\n      \"description_en\": \"Handle update or refresh operations.\"\n    },\n    {\n      \"action_name\": \"auto-on_upload\",\n      \"description\": \"启动上传操作\",\n      \"description_en\": \"Start the upload operation.\"\n    },\n    {\n      \"action_name\": \"auto-save_config\",\n      \"description\": \"保存配置\",\n      \"description_en\": \"Save configuration.\"\n    },\n    {\n      \"action_name\": \"auto-get_config\",\n      \"description\": \"获取配置\",\n      \"description_en\": \"Get configuration.\"\n    },\n    {\n      \"action_name\": \"auto-on_wifi\",\n      \"description\": \"处理 Wi‑Fi 设置变更\",\n      \"description_en\": \"Handle Wi-Fi setting changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_ip\",\n      \"description\": \"处理 IP 地址设置变更\",\n      \"description_en\": \"Handle IP address setting changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_gw\",\n      \"description\": \"处理网关设置变更\",\n      \"description_en\": \"Handle gateway setting changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_dns\",\n      \"description\": \"处理 DNS 设置变更\",\n      \"description_en\": \"Handle DNS setting changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_subnet\",\n      \"description\": \"处理子网掩码设置变更\",\n      \"description_en\": \"Handle subnet mask setting changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_mac\",\n      \"description\": \"处理 MAC 地址设置变更\",\n      \"description_en\": \"Handle MAC address setting changes.\"\n    },\n    {\n      \"action_name\": \"auto-enable_forms\",\n      \"description\": \"启用或禁用表单输入区域\",\n      \"description_en\": \"Enable or disable form input sections.\"\n    },\n    {\n      \"action_name\": \"auto-enable_tcp\",\n      \"description\": \"启用或禁用 TCP 相关选项\",\n      \"description_en\": \"Enable or disable TCP-related options.\"\n    },\n    {\n      \"action_name\": \"auto-update_src\",\n      \"description\": \"更新源文件或来源路径显示\",\n      \"description_en\": \"Update the source file or source path display.\"\n    },\n    {\n      \"action_name\": \"auto-get_values\",\n      \"description\": \"获取界面当前输入值\",\n      \"description_en\": \"Get the current values from the interface.\"\n    },\n    {\n      \"action_name\": \"auto-set_values\",\n      \"description\": \"设置界面输入值\",\n      \"description_en\": \"Set values in the interface.\"\n    },\n    {\n      \"action_name\": \"auto-on_id\",\n      \"description\": \"处理设备 ID 或站号变化\",\n      \"description_en\": \"Handle device ID or node address changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_pins\",\n      \"description\": \"处理引脚配置输入\",\n      \"description_en\": \"Handle pin configuration input.\"\n    },\n    {\n      \"action_name\": \"auto-send_pin_change\",\n      \"description\": \"发送引脚配置变更\",\n      \"description_en\": \"Send pin configuration changes.\"\n    },\n    {\n      \"action_name\": \"auto-clear_master_en\",\n      \"description\": \"清除主站相关启用状态\",\n      \"description_en\": \"Clear master-related enabled states.\"\n    },\n    {\n      \"action_name\": \"auto-clear_slave_en\",\n      \"description\": \"清除从站相关启用状态\",\n      \"description_en\": \"Clear slave-related enabled states.\"\n    },\n    {\n      \"action_name\": \"auto-enable_slave\",\n      \"description\": \"启用或禁用从站相关选项\",\n      \"description_en\": \"Enable or disable slave-related options.\"\n    },\n    {\n      \"action_name\": \"auto-enable_master\",\n      \"description\": \"启用或禁用主站相关选项\",\n      \"description_en\": \"Enable or disable master-related options.\"\n    },\n    {\n      \"action_name\": \"auto-update_inputs\",\n      \"description\": \"更新输入项显示或内容\",\n      \"description_en\": \"Update input field display or contents.\"\n    },\n    {\n      \"action_name\": \"auto-enable_override\",\n      \"description\": \"启用或禁用覆盖设置选项\",\n      \"description_en\": \"Enable or disable override setting options.\"\n    },\n    {\n      \"action_name\": \"auto-on_inputs\",\n      \"description\": \"处理输入配置变更\",\n      \"description_en\": \"Handle input configuration changes.\"\n    },\n    {\n      \"action_name\": \"auto-on_io_change\",\n      \"description\": \"处理 I/O 配置变化\",\n      \"description_en\": \"Handle I/O configuration changes.\"\n    },\n    {\n      \"action_name\": \"auto-update_text_ctrl\",\n      \"description\": \"更新文本输入控件内容\",\n      \"description_en\": \"Update the text control contents.\"\n    },\n    {\n      \"action_name\": \"auto-exclude_en_pins\",\n      \"description\": \"排除或禁用特定已启用引脚选项\",\n      \"description_en\": \"Exclude or disable specific enabled pin options.\"\n    },\n    {\n      \"action_name\": \"auto-on_pin_change\",\n      \"description\": \"处理单个引脚设置变化\",\n      \"description_en\": \"Handle individual pin setting changes.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"OpenPLC\",\n    \"PLC upload tool\",\n    \"Modbus TCP/RTU configuration\",\n    \"network settings\",\n    \"I/O pin mapping\",\n    \"wxPython GUI\",\n    \"control logic deployment\"\n  ]\n}"
+}

@@ -1,55 +1,73 @@
-Device: usb2000
-Registry Key: usb2000
-Short Description: Usb2000是由Ocean Insight生产的实验执行&合成设备，主要功能包括初始化、数据保存、状态查询、读取数据。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (3):
-- auto-doInitializeDevice -> doInitializeDevice [UniLabJsonCommand] goal_params: none
-- auto-getSpectrumData -> getSpectrumData [UniLabJsonCommand] goal_params: none
-- auto-setIntegrationTime -> setIntegrationTime [UniLabJsonCommand] goal_params: timeInMs
-
-Driver Functions (39):
-- OISpectrometer.__init__(self, serialNumber, idProduct, idVendor, model) (line 212)
-- OISpectrometer.doInitializeDevice(self) (line 293)
-- OISpectrometer.doShutdownDevice(self) (line 352)
-- OISpectrometer.flushEndpoints(self) (line 360)
-- OISpectrometer.setIntegrationTime(self, timeInMs) (line 373)
-- OISpectrometer.getIntegrationTime(self) (line 382)
-- OISpectrometer.getSerialNumber(self) (line 389)
-- OISpectrometer.getCalibration(self) (line 395)
-- OISpectrometer.getParameter(self, index) (line 411)
-- OISpectrometer.requestSpectrum(self) (line 465)
-- OISpectrometer.isSpectrumRequested(self) (line 478)
-- OISpectrometer.isSpectrumReady(self) (line 491)
-- OISpectrometer.getStatus(self) (line 502)
-- OISpectrometer.getSpectrumData(self) (line 529)
-- OISpectrometer.getSpectrum(self, integrationTime) (line 544)
-- OISpectrometer.sendCommand(self, cmdBytes, payloadBytes) (line 577)
-- OISpectrometer.readReply(self, inputEndpoint, size, unpackingFormat, timeout) (line 591)
-- USB2000.__init__(self, serialNumber, idProduct, idVendor) (line 654)
-- USB2000.doInitializeDevice(self) (line 660)
-- USB2000.getSpectrumData(self) (line 667)
-- USB2000.setIntegrationTime(self, timeInMs) (line 697)
-- USB4000_2000Plus.__init__(self, serialNumber, idProduct, idVendor, model) (line 754)
-- USB4000_2000Plus.doInitializeDevice(self) (line 763)
-- USB4000_2000Plus.getSpectrumData(self) (line 768)
-- USB4000_2000Plus.setIntegrationTime(self, timeInMs) (line 811)
-- USB4000_2000Plus.isSpectrumRequested(self) (line 818)
-- USB4000_2000Plus.isSpectrumReady(self) (line 839)
-- USB650.__init__(self, serialNumber, idProduct, idVendor) (line 865)
-- USB4000.__init__(self, serialNumber, idProduct, idVendor) (line 880)
-- USB2000Plus.__init__(self, serialNumber, idProduct, idVendor) (line 887)
-- SAS.__init__(self, serialNumber, idProduct, idVendor) (line 894)
-- DebugSpectro.__init__(self) (line 904)
-- DebugSpectro.getSerialNumber(self) (line 916)
-- DebugSpectro.getSpectrum(self) (line 919)
-- DebugSpectro.display(self) (line 936)
-- DebugSpectro.getIntegrationTime(self) (line 941)
-- DebugSpectro.setIntegrationTime(self, value) (line 944)
-- DebugSpectro.saveSpectrum(self, filepath, spectrum, whiteReference, darkReference) (line 947)
-- validateUSBBackend() (line 988)
+usb2000:
+  name: USB2000光谱仪
+  name_en: USB2000 spectrometer
+  manufacturer: Ocean Insight (Ocean Optics)
+  category:
+  - 光谱仪
+  tags:
+  - 表征设备
+  - 光学与光谱实验
+  - 光谱采集与检测
+  - 光谱仪
+  description: Ocean Insight 的 USB2000 光谱仪，用于实验中采集样品的光谱数据，并通过设置积分时间来适配不同信号强度的光学测量。
+  description_en: An Ocean Insight USB2000 spectrometer used in laboratory experiments
+    to acquire spectral data and adjust integration time for optical measurements
+    with different signal levels.
+  class:
+    action_value_mappings:
+      auto-doInitializeDevice:
+        schema:
+          description: 初始化 USB2000 光谱仪并建立基本通信状态。
+          description_en: Initialize the USB2000 spectrometer and establish its basic
+            communication state.
+      auto-getSpectrumData:
+        schema:
+          description: 读取光谱仪采集到的光谱数据。
+          description_en: Retrieve the spectral data acquired by the spectrometer.
+      auto-setIntegrationTime:
+        schema:
+          description: 设置光谱采集的积分时间。
+          description_en: Set the integration time for spectral acquisition.
+auto_annotation_metadata:
+  registry_key: usb2000
+  annotation_workflow_version: v4
+  tag_hints:
+  - UV-Vis spectroscopy
+  - optical spectrum acquisition
+  - integration time control
+  - Ocean Insight spectrometer
+  - USB spectrometer
+  - emission detection
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该设备用于采集样品光谱数据并调节积分时间，属于光学表征设备。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: USB2000用于样品光谱采集，直接属于光学与光谱实验领域。
+  - id: P-3002
+    name: 光谱采集与检测
+    name_en: Spectral Acquisition & Detection
+    type: experimental_scene
+    rationale: 设备核心功能是设置积分时间并获取光谱数据。
+  - id: P-9806
+    name: 光谱仪
+    name_en: Spectrometer
+    type: device_template_tag
+    rationale: 产品名称和功能都表明其为实验室光谱仪。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

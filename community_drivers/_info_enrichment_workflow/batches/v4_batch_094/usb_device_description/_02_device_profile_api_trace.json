@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: usb_device_description\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: hardwarelibrary/communication/diagnostics.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.usb_device_description:USBDeviceDescription\n\nClass: USBParameters \n  Bases: ['NamedTuple']\n\nClass: DeviceCommand \n  Bases: ['NamedTuple']\n\nClass: USBDeviceDescription (focal)\n  Bases: []\n\nFocal class methods:\n  [command] isVisible(self)\n  [command] isVisibleOnUSBHub(self)\n  [command] diagnoseConnectivity(self)\n  [command] isVisibleAsPOSIXPort(self)\n  [command] isValidPOSIXPath(self)\n  [command] isVisibleAsPOSIXPort(self)\n  [command] hasUniquePOSIXPortMatch(self)\n  [command] bsdPath(self)\n  [command] bsdPathMatches(self)\n  [command] portCanBeOpened(self)\n  [command] usbPortCanBeOpened(self)\n  [command] usbPort(self)\n  [command] posixPort(self)\n  [command] posixPortCanBeOpened(self)\n  [command] canReadWritePOSIXCommands(self)\n  [command] canReadWriteUSBCommands(self)\n  [command] assertTrue(self, property)\n  [command] assertFalseOrRaise(self, property)\n  [command] assertRaise(self, property)\n  [command] assertEqual(self, property, expectation)\n  [command] assertNotEqual(self, property, expectation)\n  [command] report(self)\n\nRegistry actions:\n  auto-isVisible (from isVisible())\n  auto-isVisibleOnUSBHub (from isVisibleOnUSBHub())\n  auto-diagnoseConnectivity (from diagnoseConnectivity())\n  auto-isVisibleAsPOSIXPort (from isVisibleAsPOSIXPort())\n  auto-isValidPOSIXPath (from isValidPOSIXPath())\n  auto-hasUniquePOSIXPortMatch (from hasUniquePOSIXPortMatch())\n  auto-bsdPath (from bsdPath())\n  auto-bsdPathMatches (from bsdPathMatches())\n  auto-portCanBeOpened (from portCanBeOpened())\n  auto-usbPortCanBeOpened (from usbPortCanBeOpened())\n  auto-usbPort (from usbPort())\n  auto-posixPort (from posixPort())\n  auto-posixPortCanBeOpened (from posixPortCanBeOpened())\n  auto-canReadWritePOSIXCommands (from canReadWritePOSIXCommands())\n  auto-canReadWriteUSBCommands (from canReadWriteUSBCommands())\n  auto-assertTrue (from assertTrue())\n  auto-assertFalseOrRaise (from assertFalseOrRaise())\n  auto-assertRaise (from assertRaise())\n  auto-assertEqual (from assertEqual())\n  auto-assertNotEqual (from assertNotEqual())\n  auto-report (from report())\n\nRequired output action ids:\n  auto-isVisible\n  auto-isVisibleOnUSBHub\n  auto-diagnoseConnectivity\n  auto-isVisibleAsPOSIXPort\n  auto-isValidPOSIXPath\n  auto-hasUniquePOSIXPortMatch\n  auto-bsdPath\n  auto-bsdPathMatches\n  auto-portCanBeOpened\n  auto-usbPortCanBeOpened\n  auto-usbPort\n  auto-posixPort\n  auto-posixPortCanBeOpened\n  auto-canReadWritePOSIXCommands\n  auto-canReadWriteUSBCommands\n  auto-assertTrue\n  auto-assertFalseOrRaise\n  auto-assertRaise\n  auto-assertEqual\n  auto-assertNotEqual\n  auto-report"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0916ead5df28c9640069d5ae6552a08195bdf6cf96d66c6a2e",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1804,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 9104,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0916ead5df28c9640069d5ae65b81081958b26083e647e6348",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0916ead5df28c9640069d5ae7c7b84819592191572c460ede4",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"USB设备连通性诊断组件\",\n  \"name_en\": \"USB Device Connectivity Diagnostic Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非实体软件组件，用于在实验系统中描述USB设备并执行连接诊断。它主要检查设备是否可见、是否映射为POSIX端口、端口路径是否有效、端口能否打开，以及是否能够进行命令读写，以帮助排查仪器与主机之间的USB连接问题。\",\n  \"description_en\": \"This is a non-physical software component used in laboratory systems to describe USB devices and perform connectivity diagnostics. It checks whether a device is visible, whether it appears as a POSIX port, whether port paths are valid, whether ports can be opened, and whether command read/write is possible, helping troubleshoot USB connections between instruments and host computers.\",\n  \"tag_hints\": [\n    \"USB connectivity diagnostics\",\n    \"POSIX serial port detection\",\n    \"device enumeration\",\n    \"port open test\",\n    \"USB command I/O check\",\n    \"instrument connection troubleshooting\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-isVisible\",\n      \"description\": \"检查目标USB设备是否被系统识别并可见。\",\n      \"description_en\": \"Check whether the target USB device is detected and visible to the system.\"\n    },\n    {\n      \"action_name\": \"auto-isVisibleOnUSBHub\",\n      \"description\": \"检查目标设备是否在USB集线器枚举中可见。\",\n      \"description_en\": \"Check whether the target device is visible in USB hub enumeration.\"\n    },\n    {\n      \"action_name\": \"auto-diagnoseConnectivity\",\n      \"description\": \"执行USB设备与端口的连通性诊断。\",\n      \"description_en\": \"Run connectivity diagnostics for the USB device and its ports.\"\n    },\n    {\n      \"action_name\": \"auto-isVisibleAsPOSIXPort\",\n      \"description\": \"检查设备是否以POSIX端口形式出现在系统中。\",\n      \"description_en\": \"Check whether the device appears in the system as a POSIX port.\"\n    },\n    {\n      \"action_name\": \"auto-isValidPOSIXPath\",\n      \"description\": \"验证POSIX设备路径是否有效。\",\n      \"description_en\": \"Validate whether the POSIX device path is valid.\"\n    },\n    {\n      \"action_name\": \"auto-hasUniquePOSIXPortMatch\",\n      \"description\": \"检查是否能唯一匹配到一个POSIX端口。\",\n      \"description_en\": \"Check whether there is a unique matching POSIX port.\"\n    },\n    {\n      \"action_name\": \"auto-bsdPath\",\n      \"description\": \"获取或解析对应的BSD设备路径。\",\n      \"description_en\": \"Get or resolve the corresponding BSD device path.\"\n    },\n    {\n      \"action_name\": \"auto-bsdPathMatches\",\n      \"description\": \"检查BSD设备路径是否与预期匹配。\",\n      \"description_en\": \"Check whether the BSD device path matches the expected value.\"\n    },\n    {\n      \"action_name\": \"auto-portCanBeOpened\",\n      \"description\": \"检查已识别端口是否可以打开。\",\n      \"description_en\": \"Check whether the identified port can be opened.\"\n    },\n    {\n      \"action_name\": \"auto-usbPortCanBeOpened\",\n      \"description\": \"检查USB端口是否可以打开。\",\n      \"description_en\": \"Check whether the USB port can be opened.\"\n    },\n    {\n      \"action_name\": \"auto-usbPort\",\n      \"description\": \"获取USB端口标识或端口信息。\",\n      \"description_en\": \"Get the USB port identifier or port information.\"\n    },\n    {\n      \"action_name\": \"auto-posixPort\",\n      \"description\": \"获取对应的POSIX端口路径或标识。\",\n      \"description_en\": \"Get the corresponding POSIX port path or identifier.\"\n    },\n    {\n      \"action_name\": \"auto-posixPortCanBeOpened\",\n      \"description\": \"检查POSIX端口是否可以打开。\",\n      \"description_en\": \"Check whether the POSIX port can be opened.\"\n    },\n    {\n      \"action_name\": \"auto-canReadWritePOSIXCommands\",\n      \"description\": \"检查是否可通过POSIX端口进行命令读写。\",\n      \"description_en\": \"Check whether commands can be read and written through the POSIX port.\"\n    },\n    {\n      \"action_name\": \"auto-canReadWriteUSBCommands\",\n      \"description\": \"检查是否可通过USB接口进行命令读写。\",\n      \"description_en\": \"Check whether commands can be read and written through the USB interface.\"\n    },\n    {\n      \"action_name\": \"auto-assertTrue\",\n      \"description\": \"断言某项检查结果为真。\",\n      \"description_en\": \"Assert that a diagnostic property or check result is true.\"\n    },\n    {\n      \"action_name\": \"auto-assertFalseOrRaise\",\n      \"description\": \"断言某项检查结果为假，否则抛出异常。\",\n      \"description_en\": \"Assert that a diagnostic property or check result is false; otherwise raise an exception.\"\n    },\n    {\n      \"action_name\": \"auto-assertRaise\",\n      \"description\": \"断言某项检查应触发异常。\",\n      \"description_en\": \"Assert that a diagnostic check is expected to raise an exception.\"\n    },\n    {\n      \"action_name\": \"auto-assertEqual\",\n      \"description\": \"断言某项检查结果等于期望值。\",\n      \"description_en\": \"Assert that a diagnostic result equals the expected value.\"\n    },\n    {\n      \"action_name\": \"auto-assertNotEqual\",\n      \"description\": \"断言某项检查结果不等于期望值。\",\n      \"description_en\": \"Assert that a diagnostic result does not equal the expected value.\"\n    },\n    {\n      \"action_name\": \"auto-report\",\n      \"description\": \"生成USB设备连通性诊断报告。\",\n      \"description_en\": \"Generate a USB device connectivity diagnostic report.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1437,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2512,
+      "output_tokens_details": {
+        "reasoning_tokens": 1221
+      },
+      "total_tokens": 3949
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1437,
+      "output_token_count": 2512,
+      "predict_time": 41.21154329
+    }
+  },
+  "output_text": "{\n  \"name\": \"USB设备连通性诊断组件\",\n  \"name_en\": \"USB Device Connectivity Diagnostic Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非实体软件组件，用于在实验系统中描述USB设备并执行连接诊断。它主要检查设备是否可见、是否映射为POSIX端口、端口路径是否有效、端口能否打开，以及是否能够进行命令读写，以帮助排查仪器与主机之间的USB连接问题。\",\n  \"description_en\": \"This is a non-physical software component used in laboratory systems to describe USB devices and perform connectivity diagnostics. It checks whether a device is visible, whether it appears as a POSIX port, whether port paths are valid, whether ports can be opened, and whether command read/write is possible, helping troubleshoot USB connections between instruments and host computers.\",\n  \"tag_hints\": [\n    \"USB connectivity diagnostics\",\n    \"POSIX serial port detection\",\n    \"device enumeration\",\n    \"port open test\",\n    \"USB command I/O check\",\n    \"instrument connection troubleshooting\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-isVisible\",\n      \"description\": \"检查目标USB设备是否被系统识别并可见。\",\n      \"description_en\": \"Check whether the target USB device is detected and visible to the system.\"\n    },\n    {\n      \"action_name\": \"auto-isVisibleOnUSBHub\",\n      \"description\": \"检查目标设备是否在USB集线器枚举中可见。\",\n      \"description_en\": \"Check whether the target device is visible in USB hub enumeration.\"\n    },\n    {\n      \"action_name\": \"auto-diagnoseConnectivity\",\n      \"description\": \"执行USB设备与端口的连通性诊断。\",\n      \"description_en\": \"Run connectivity diagnostics for the USB device and its ports.\"\n    },\n    {\n      \"action_name\": \"auto-isVisibleAsPOSIXPort\",\n      \"description\": \"检查设备是否以POSIX端口形式出现在系统中。\",\n      \"description_en\": \"Check whether the device appears in the system as a POSIX port.\"\n    },\n    {\n      \"action_name\": \"auto-isValidPOSIXPath\",\n      \"description\": \"验证POSIX设备路径是否有效。\",\n      \"description_en\": \"Validate whether the POSIX device path is valid.\"\n    },\n    {\n      \"action_name\": \"auto-hasUniquePOSIXPortMatch\",\n      \"description\": \"检查是否能唯一匹配到一个POSIX端口。\",\n      \"description_en\": \"Check whether there is a unique matching POSIX port.\"\n    },\n    {\n      \"action_name\": \"auto-bsdPath\",\n      \"description\": \"获取或解析对应的BSD设备路径。\",\n      \"description_en\": \"Get or resolve the corresponding BSD device path.\"\n    },\n    {\n      \"action_name\": \"auto-bsdPathMatches\",\n      \"description\": \"检查BSD设备路径是否与预期匹配。\",\n      \"description_en\": \"Check whether the BSD device path matches the expected value.\"\n    },\n    {\n      \"action_name\": \"auto-portCanBeOpened\",\n      \"description\": \"检查已识别端口是否可以打开。\",\n      \"description_en\": \"Check whether the identified port can be opened.\"\n    },\n    {\n      \"action_name\": \"auto-usbPortCanBeOpened\",\n      \"description\": \"检查USB端口是否可以打开。\",\n      \"description_en\": \"Check whether the USB port can be opened.\"\n    },\n    {\n      \"action_name\": \"auto-usbPort\",\n      \"description\": \"获取USB端口标识或端口信息。\",\n      \"description_en\": \"Get the USB port identifier or port information.\"\n    },\n    {\n      \"action_name\": \"auto-posixPort\",\n      \"description\": \"获取对应的POSIX端口路径或标识。\",\n      \"description_en\": \"Get the corresponding POSIX port path or identifier.\"\n    },\n    {\n      \"action_name\": \"auto-posixPortCanBeOpened\",\n      \"description\": \"检查POSIX端口是否可以打开。\",\n      \"description_en\": \"Check whether the POSIX port can be opened.\"\n    },\n    {\n      \"action_name\": \"auto-canReadWritePOSIXCommands\",\n      \"description\": \"检查是否可通过POSIX端口进行命令读写。\",\n      \"description_en\": \"Check whether commands can be read and written through the POSIX port.\"\n    },\n    {\n      \"action_name\": \"auto-canReadWriteUSBCommands\",\n      \"description\": \"检查是否可通过USB接口进行命令读写。\",\n      \"description_en\": \"Check whether commands can be read and written through the USB interface.\"\n    },\n    {\n      \"action_name\": \"auto-assertTrue\",\n      \"description\": \"断言某项检查结果为真。\",\n      \"description_en\": \"Assert that a diagnostic property or check result is true.\"\n    },\n    {\n      \"action_name\": \"auto-assertFalseOrRaise\",\n      \"description\": \"断言某项检查结果为假，否则抛出异常。\",\n      \"description_en\": \"Assert that a diagnostic property or check result is false; otherwise raise an exception.\"\n    },\n    {\n      \"action_name\": \"auto-assertRaise\",\n      \"description\": \"断言某项检查应触发异常。\",\n      \"description_en\": \"Assert that a diagnostic check is expected to raise an exception.\"\n    },\n    {\n      \"action_name\": \"auto-assertEqual\",\n      \"description\": \"断言某项检查结果等于期望值。\",\n      \"description_en\": \"Assert that a diagnostic result equals the expected value.\"\n    },\n    {\n      \"action_name\": \"auto-assertNotEqual\",\n      \"description\": \"断言某项检查结果不等于期望值。\",\n      \"description_en\": \"Assert that a diagnostic result does not equal the expected value.\"\n    },\n    {\n      \"action_name\": \"auto-report\",\n      \"description\": \"生成USB设备连通性诊断报告。\",\n      \"description_en\": \"Generate a USB device connectivity diagnostic report.\"\n    }\n  ]\n}"
+}

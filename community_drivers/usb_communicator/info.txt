@@ -1,37 +1,111 @@
-Device: usb_communicator
-Registry Key: usb_communicator
-Short Description: Usb Communicator驱动，支持address/close/flush input/read raw/seek等9个操作。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (9):
-- auto-address -> address [UniLabJsonCommand] goal_params: _
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-flush_input -> flush_input [UniLabJsonCommand] goal_params: none
-- auto-read_raw -> read_raw [UniLabJsonCommand] goal_params: size
-- auto-seek -> seek [UniLabJsonCommand] goal_params: offset
-- auto-tell -> tell [UniLabJsonCommand] goal_params: none
-- auto-terminator -> terminator [UniLabJsonCommand] goal_params: newval
-- auto-timeout -> timeout [UniLabJsonCommand] goal_params: newval
-- auto-write_raw -> write_raw [UniLabJsonCommand] goal_params: msg
-
-Driver Functions (15):
-- USBCommunicator.__init__(self, dev) (line 101)
-- USBCommunicator.address(self) (line 146)
-- USBCommunicator.address(self, _) (line 151)
-- USBCommunicator.terminator(self) (line 156)
-- USBCommunicator.terminator(self, newval) (line 166)
-- USBCommunicator.timeout(self) (line 176)
-- USBCommunicator.timeout(self, newval) (line 187)
-- USBCommunicator.close(self) (line 194)
-- USBCommunicator.read_raw(self, size) (line 202)
-- USBCommunicator.write_raw(self, msg) (line 224)
-- USBCommunicator.seek(self, offset) (line 233)
-- USBCommunicator.tell(self) (line 236)
-- USBCommunicator.flush_input(self) (line 239)
-- USBCommunicator._sendcmd(self, msg) (line 249)
-- USBCommunicator._query(self, msg, size) (line 262)
+usb_communicator:
+  name: USB 原始通信组件
+  name_en: USB Raw Communicator
+  manufacturer: ''
+  category:
+  - USB仪器通信接口
+  - 通用字节流仪器通信接口
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验仪器通信与驱动集成
+  - 实验仪器数据采集与联机控制
+  - USB仪器通信接口
+  - 通用字节流仪器通信接口
+  description: 这是一个非物理的软件通信组件，用于封装 pyusb 连接对象，为实验系统提供与 USB 连接设备之间的原始字节读写、超时、终止符和输入缓冲区管理功能。它主要用于底层通信，不对应某一特定硬件仪器。
+  description_en: This is a non-physical software communication component that wraps
+    a pyusb connection object. It provides raw byte read/write access, timeout handling,
+    terminator configuration, and input buffer management for USB-connected devices
+    in laboratory systems. It is a low-level communication helper rather than a specific
+    hardware instrument.
+  class:
+    action_value_mappings:
+      auto-address:
+        schema:
+          description: 获取/设置 USB 地址
+          description_en: get/set the USB address
+      auto-close:
+        schema:
+          description: 关闭 USB 连接
+          description_en: close the USB connection
+      auto-flush_input:
+        schema:
+          description: 清空输入缓冲区
+          description_en: flush the input buffer
+      auto-read_raw:
+        schema:
+          description: 读取 USB 连接中的原始字节数据
+          description_en: read raw bytes from the USB connection
+      auto-seek:
+        schema:
+          description: 设置流位置
+          description_en: set the stream position
+      auto-tell:
+        schema:
+          description: 获取当前流位置
+          description_en: get the current stream position
+      auto-terminator:
+        schema:
+          description: 获取/设置通信终止字符
+          description_en: get/set the communication termination character
+      auto-timeout:
+        schema:
+          description: 获取/设置通信超时时间
+          description_en: get/set the communication timeout
+      auto-write_raw:
+        schema:
+          description: 向 USB 连接写入原始字节数据
+          description_en: write raw bytes to the USB connection
+auto_annotation_metadata:
+  registry_key: usb_communicator
+  annotation_workflow_version: v4
+  tag_hints:
+  - raw USB communication
+  - pyusb
+  - instrument I/O
+  - byte stream read/write
+  - communication timeout
+  - input buffer flushing
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该原始通信组件为实验系统中的设备控制与数据收发提供底层能力，属于实验执行支撑环节。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 作为 pyusb 封装层，它服务于多类 USB 实验设备的统一集成。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 其核心作用是对 USB 连接对象提供原始读写、终止符和缓冲区管理，符合通信驱动集成。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 该组件支撑上层实验软件进行在线读写和状态交互，是联机控制基础。
+  - id: P-0005
+    name: USB仪器通信接口
+    name_en: USB Instrument Communication Interface
+    type: device_template_tag
+    rationale: 这是面向 USB 连接实验设备的通用通信接口封装。
+  - id: P-21001
+    name: 通用字节流仪器通信接口
+    name_en: Generic Byte-Stream Instrument Communication Interface
+    type: device_template_tag
+    rationale: 描述中强调 raw byte read/write、timeout 和 buffer 管理，典型属于通用字节流接口。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

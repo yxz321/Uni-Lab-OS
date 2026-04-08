@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: usb_comm_obp\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: Ocean_Optics_Spectrometer/seabreeze/pyseabreeze/interfaces/communication.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.spectrometers.usb_comm_obp:USBCommOBP\n\nClass: USBCommBase \n  Bases: ['object']\n\nClass: USBCommOOI \n  Bases: ['USBCommBase']\n\nClass: USBCommOBP (focal)\n  Bases: ['USBCommBase']\n\nFocal class methods:\n  [command] send_command(self, msgtype, payload, timeout=None)\n    comment: Constructing message and querying usb.\n    comment: TODO: raise Error\n    comment: OBP command function\n  [command] innitiate_query(self, msgtype, payload)\n  [command] receive_query(self, timeout=None)\n    comment: we already received some data\n    comment: TODO: raise Error\n    comment: receive_query needs to be called after innitiate_query\n  [command] query(self, msgtype, payload, timeout=None)\n    comment: OBP query function\n\nRegistry actions:\n  auto-send_command (from send_command())\n  auto-innitiate_query (from innitiate_query())\n  auto-receive_query (from receive_query())\n  auto-query (from query())\n  auto-open_device (from open_device())\n  auto-is_open (from is_open())\n  auto-close_device (from close_device())\n  auto-usb_send (from usb_send())\n  auto-usb_read_lowspeed (from usb_read_lowspeed())\n  auto-usb_read_highspeed (from usb_read_highspeed())\n  auto-usb_read_highspeed_alt (from usb_read_highspeed_alt())\n  auto-set_default_read (from set_default_read())\n\nRequired output action ids:\n  auto-send_command\n  auto-innitiate_query\n  auto-receive_query\n  auto-query\n  auto-open_device\n  auto-is_open\n  auto-close_device\n  auto-usb_send\n  auto-usb_read_lowspeed\n  auto-usb_read_highspeed\n  auto-usb_read_highspeed_alt\n  auto-set_default_read"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_04f38cc51d61f7730069d5ae4b0c988195aedd6c2c5fd21e3b",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2781,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6578,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_04f38cc51d61f7730069d5ae4b88ec8195ac796215c9a8b449",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_04f38cc51d61f7730069d5ae5aea3c8195b1881581e52a45e5",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"OBP USB通信组件\",\n  \"name_en\": \"OBP USB Communication Interface\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的USB通信组件，用于海洋光学系列光谱仪的OBP协议通信。它负责打开和关闭USB连接、发送命令、发起与接收查询，以及按不同读取模式获取USB数据，供实验软件与光谱仪进行底层数据交换。\",\n  \"description_en\": \"This is a non-physical USB communication component for OBP-based communication with Ocean Optics spectrometers. It handles opening and closing the USB connection, sending commands, initiating and receiving queries, and reading USB data through different transfer modes so that experiment software can exchange low-level data with the spectrometer.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-send_command\",\n      \"description\": \"向USB设备发送一条OBP命令消息。\",\n      \"description_en\": \"Send an OBP command message to the USB device.\"\n    },\n    {\n      \"action_name\": \"auto-innitiate_query\",\n      \"description\": \"发起一次OBP查询，但暂不接收回复。\",\n      \"description_en\": \"Initiate an OBP query without receiving the reply yet.\"\n    },\n    {\n      \"action_name\": \"auto-receive_query\",\n      \"description\": \"接收先前发起的OBP查询回复。\",\n      \"description_en\": \"Receive the reply for a previously initiated OBP query.\"\n    },\n    {\n      \"action_name\": \"auto-query\",\n      \"description\": \"执行一次完整的OBP查询并获取回复。\",\n      \"description_en\": \"Perform a complete OBP query and obtain the reply.\"\n    },\n    {\n      \"action_name\": \"auto-open_device\",\n      \"description\": \"打开USB设备连接。\",\n      \"description_en\": \"Open the USB device connection.\"\n    },\n    {\n      \"action_name\": \"auto-is_open\",\n      \"description\": \"检查USB设备连接是否已打开。\",\n      \"description_en\": \"Check whether the USB device connection is open.\"\n    },\n    {\n      \"action_name\": \"auto-close_device\",\n      \"description\": \"关闭USB设备连接。\",\n      \"description_en\": \"Close the USB device connection.\"\n    },\n    {\n      \"action_name\": \"auto-usb_send\",\n      \"description\": \"通过USB发送原始数据。\",\n      \"description_en\": \"Send raw data over USB.\"\n    },\n    {\n      \"action_name\": \"auto-usb_read_lowspeed\",\n      \"description\": \"以低速方式从USB读取数据。\",\n      \"description_en\": \"Read data from USB using the low-speed mode.\"\n    },\n    {\n      \"action_name\": \"auto-usb_read_highspeed\",\n      \"description\": \"以高速方式从USB读取数据。\",\n      \"description_en\": \"Read data from USB using the high-speed mode.\"\n    },\n    {\n      \"action_name\": \"auto-usb_read_highspeed_alt\",\n      \"description\": \"以备用高速方式从USB读取数据。\",\n      \"description_en\": \"Read data from USB using the alternate high-speed mode.\"\n    },\n    {\n      \"action_name\": \"auto-set_default_read\",\n      \"description\": \"设置默认的USB读取方式。\",\n      \"description_en\": \"Set the default USB read mode.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB communication\",\n    \"Ocean Binary Protocol\",\n    \"spectrometer interface\",\n    \"message transport\",\n    \"USB read modes\",\n    \"Ocean Optics\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1145,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1678,
+      "output_tokens_details": {
+        "reasoning_tokens": 922
+      },
+      "total_tokens": 2823
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1145,
+      "output_token_count": 1678,
+      "predict_time": 25.816595483
+    }
+  },
+  "output_text": "{\n  \"name\": \"OBP USB通信组件\",\n  \"name_en\": \"OBP USB Communication Interface\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的USB通信组件，用于海洋光学系列光谱仪的OBP协议通信。它负责打开和关闭USB连接、发送命令、发起与接收查询，以及按不同读取模式获取USB数据，供实验软件与光谱仪进行底层数据交换。\",\n  \"description_en\": \"This is a non-physical USB communication component for OBP-based communication with Ocean Optics spectrometers. It handles opening and closing the USB connection, sending commands, initiating and receiving queries, and reading USB data through different transfer modes so that experiment software can exchange low-level data with the spectrometer.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-send_command\",\n      \"description\": \"向USB设备发送一条OBP命令消息。\",\n      \"description_en\": \"Send an OBP command message to the USB device.\"\n    },\n    {\n      \"action_name\": \"auto-innitiate_query\",\n      \"description\": \"发起一次OBP查询，但暂不接收回复。\",\n      \"description_en\": \"Initiate an OBP query without receiving the reply yet.\"\n    },\n    {\n      \"action_name\": \"auto-receive_query\",\n      \"description\": \"接收先前发起的OBP查询回复。\",\n      \"description_en\": \"Receive the reply for a previously initiated OBP query.\"\n    },\n    {\n      \"action_name\": \"auto-query\",\n      \"description\": \"执行一次完整的OBP查询并获取回复。\",\n      \"description_en\": \"Perform a complete OBP query and obtain the reply.\"\n    },\n    {\n      \"action_name\": \"auto-open_device\",\n      \"description\": \"打开USB设备连接。\",\n      \"description_en\": \"Open the USB device connection.\"\n    },\n    {\n      \"action_name\": \"auto-is_open\",\n      \"description\": \"检查USB设备连接是否已打开。\",\n      \"description_en\": \"Check whether the USB device connection is open.\"\n    },\n    {\n      \"action_name\": \"auto-close_device\",\n      \"description\": \"关闭USB设备连接。\",\n      \"description_en\": \"Close the USB device connection.\"\n    },\n    {\n      \"action_name\": \"auto-usb_send\",\n      \"description\": \"通过USB发送原始数据。\",\n      \"description_en\": \"Send raw data over USB.\"\n    },\n    {\n      \"action_name\": \"auto-usb_read_lowspeed\",\n      \"description\": \"以低速方式从USB读取数据。\",\n      \"description_en\": \"Read data from USB using the low-speed mode.\"\n    },\n    {\n      \"action_name\": \"auto-usb_read_highspeed\",\n      \"description\": \"以高速方式从USB读取数据。\",\n      \"description_en\": \"Read data from USB using the high-speed mode.\"\n    },\n    {\n      \"action_name\": \"auto-usb_read_highspeed_alt\",\n      \"description\": \"以备用高速方式从USB读取数据。\",\n      \"description_en\": \"Read data from USB using the alternate high-speed mode.\"\n    },\n    {\n      \"action_name\": \"auto-set_default_read\",\n      \"description\": \"设置默认的USB读取方式。\",\n      \"description_en\": \"Set the default USB read mode.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB communication\",\n    \"Ocean Binary Protocol\",\n    \"spectrometer interface\",\n    \"message transport\",\n    \"USB read modes\",\n    \"Ocean Optics\"\n  ]\n}"
+}

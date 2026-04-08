@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: usb4000\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: lantz/drivers/oceanoptics/usb4000.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.spectrometer.oceanoptics_usb4000:USB4000\n\nClass: USB4000 (focal)\n  Bases: ['USBDriver']\n  Docstring: Ocean Optics spectrometer\n    \n\nFocal class methods:\n  [command] initialize(self)\n    comment: Ends the initialization command to the USB4000 spectrometer\n            \n        This command initializes certain parameters on the USB4000 and sets internal variables\n        based on the USB communi...\n  [command] integration_time(self, dt)\n    comment: Sets the integration time to use by the spectrometer in microseconds\n\n        This command sets the integration time that the USB4000 uses when acquiring spectra. The\n        value is passed as a 32 b...\n  [command] query_config(self, position)\n    comment: Check that proper echo is returned\n    comment: returns the value stored in register `reg` of the spectrometer\n  [command] reset(self)\n  [command] pcb_temperature(self)\n    comment: Check that proper echo is returned\n  [command] firmware_version(self)\n  [command] trigger(self, mode)\n  [command] request_spectra(self)\n  [command] get_status(self)\n\nRegistry actions:\n  auto-initialize (from initialize())\n  auto-integration_time (from integration_time())\n  auto-query_config (from query_config())\n  auto-reset (from reset())\n  auto-pcb_temperature (from pcb_temperature())\n  auto-firmware_version (from firmware_version())\n  auto-trigger (from trigger())\n  auto-request_spectra (from request_spectra())\n  auto-get_status (from get_status())\n\nRequired output action ids:\n  auto-initialize\n  auto-integration_time\n  auto-query_config\n  auto-reset\n  auto-pcb_temperature\n  auto-firmware_version\n  auto-trigger\n  auto-request_spectra\n  auto-get_status"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0a04edfe0475fc350069d5ae8f95208190bf877132e5de2924",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2859,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4267,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0a04edfe0475fc350069d5ae8ffd108190962650ba1839a2bb",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0a04edfe0475fc350069d5ae9994288190a940960514ce097f",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"USB4000光谱仪\",\n  \"name_en\": \"USB4000 Spectrometer\",\n  \"manufacturer\": \"Ocean Optics\",\n  \"description\": \"Ocean Optics USB4000 是一款通过 USB 控制的实验室光谱仪，可设置积分时间、配置触发方式、采集光谱，并查询温度、固件版本和设备状态，常用于光谱测量与光学表征。\",\n  \"description_en\": \"The Ocean Optics USB4000 is a USB-controlled laboratory spectrometer used to set integration time, configure trigger modes, acquire spectra, and query temperature, firmware version, and device status for spectroscopy and optical characterization.\",\n  \"tag_hints\": [\n    \"spectroscopy\",\n    \"USB spectrometer\",\n    \"optical detection\",\n    \"integration time control\",\n    \"triggered acquisition\",\n    \"Ocean Optics\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"初始化光谱仪并建立内部通信参数。\",\n      \"description_en\": \"Initialize the spectrometer and set up internal communication parameters.\"\n    },\n    {\n      \"action_name\": \"auto-integration_time\",\n      \"description\": \"设置光谱采集的积分时间（微秒）。\",\n      \"description_en\": \"Set the spectrometer integration time for acquisitions in microseconds.\"\n    },\n    {\n      \"action_name\": \"auto-query_config\",\n      \"description\": \"查询光谱仪指定配置位置或寄存器中的值。\",\n      \"description_en\": \"Query the value stored at a specified spectrometer configuration position or register.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"重置光谱仪。\",\n      \"description_en\": \"Reset the spectrometer.\"\n    },\n    {\n      \"action_name\": \"auto-pcb_temperature\",\n      \"description\": \"读取仪器电路板温度。\",\n      \"description_en\": \"Read the instrument PCB temperature.\"\n    },\n    {\n      \"action_name\": \"auto-firmware_version\",\n      \"description\": \"读取光谱仪固件版本。\",\n      \"description_en\": \"Read the spectrometer firmware version.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"设置光谱采集的触发模式。\",\n      \"description_en\": \"Set the trigger mode for spectral acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-request_spectra\",\n      \"description\": \"请求采集并返回光谱数据。\",\n      \"description_en\": \"Request an acquisition and return spectral data.\"\n    },\n    {\n      \"action_name\": \"auto-get_status\",\n      \"description\": \"获取设备状态信息。\",\n      \"description_en\": \"Get device status information.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1114,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1107,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2221
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1114,
+      "output_token_count": 1107,
+      "predict_time": 18.718440775
+    }
+  },
+  "output_text": "{\n  \"name\": \"USB4000光谱仪\",\n  \"name_en\": \"USB4000 Spectrometer\",\n  \"manufacturer\": \"Ocean Optics\",\n  \"description\": \"Ocean Optics USB4000 是一款通过 USB 控制的实验室光谱仪，可设置积分时间、配置触发方式、采集光谱，并查询温度、固件版本和设备状态，常用于光谱测量与光学表征。\",\n  \"description_en\": \"The Ocean Optics USB4000 is a USB-controlled laboratory spectrometer used to set integration time, configure trigger modes, acquire spectra, and query temperature, firmware version, and device status for spectroscopy and optical characterization.\",\n  \"tag_hints\": [\n    \"spectroscopy\",\n    \"USB spectrometer\",\n    \"optical detection\",\n    \"integration time control\",\n    \"triggered acquisition\",\n    \"Ocean Optics\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"初始化光谱仪并建立内部通信参数。\",\n      \"description_en\": \"Initialize the spectrometer and set up internal communication parameters.\"\n    },\n    {\n      \"action_name\": \"auto-integration_time\",\n      \"description\": \"设置光谱采集的积分时间（微秒）。\",\n      \"description_en\": \"Set the spectrometer integration time for acquisitions in microseconds.\"\n    },\n    {\n      \"action_name\": \"auto-query_config\",\n      \"description\": \"查询光谱仪指定配置位置或寄存器中的值。\",\n      \"description_en\": \"Query the value stored at a specified spectrometer configuration position or register.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"重置光谱仪。\",\n      \"description_en\": \"Reset the spectrometer.\"\n    },\n    {\n      \"action_name\": \"auto-pcb_temperature\",\n      \"description\": \"读取仪器电路板温度。\",\n      \"description_en\": \"Read the instrument PCB temperature.\"\n    },\n    {\n      \"action_name\": \"auto-firmware_version\",\n      \"description\": \"读取光谱仪固件版本。\",\n      \"description_en\": \"Read the spectrometer firmware version.\"\n    },\n    {\n      \"action_name\": \"auto-trigger\",\n      \"description\": \"设置光谱采集的触发模式。\",\n      \"description_en\": \"Set the trigger mode for spectral acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-request_spectra\",\n      \"description\": \"请求采集并返回光谱数据。\",\n      \"description_en\": \"Request an acquisition and return spectral data.\"\n    },\n    {\n      \"action_name\": \"auto-get_status\",\n      \"description\": \"获取设备状态信息。\",\n      \"description_en\": \"Get device status information.\"\n    }\n  ]\n}"
+}

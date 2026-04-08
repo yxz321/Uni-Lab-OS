@@ -1,34 +1,124 @@
-Device: usb_port
-Registry Key: usb_port
-Short Description: USB Port是由Open Standard生产的实验执行&合成设备，主要功能包括关闭、写入数据、打开、读取数据。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (10):
-- auto-allDevices -> allDevices [UniLabJsonCommand] goal_params: cls, verbose
-- auto-bytesAvailable -> bytesAvailable [UniLabJsonCommand] goal_params: endPoint
-- auto-close -> close [UniLabJsonCommand] goal_params: none
-- auto-flush -> flush [UniLabJsonCommand] goal_params: endPoint
-- auto-isNotOpen -> isNotOpen [UniLabJsonCommand] goal_params: none
-- auto-isOpen -> isOpen [UniLabJsonCommand] goal_params: none
-- auto-open -> open [UniLabJsonCommand] goal_params: none
-- auto-readData -> readData [UniLabJsonCommand] goal_params: endPoint, length
-- auto-readString -> readString [UniLabJsonCommand] goal_params: endPoint
-- auto-writeData -> writeData [UniLabJsonCommand] goal_params: data, endPoint
-
-Driver Functions (11):
-- USBPort.allDevices(cls, verbose) (line 85)
-- USBPort.__init__(self, idVendor, idProduct, serialNumber, interfaceNumber, defaultEndPoints) (line 104)
-- USBPort.isOpen(self) (line 122)
-- USBPort.isNotOpen(self) (line 129)
-- USBPort.open(self) (line 133)
-- USBPort.close(self) (line 159)
-- USBPort.bytesAvailable(self, endPoint) (line 172)
-- USBPort.flush(self, endPoint) (line 177)
-- USBPort.readData(self, length, endPoint) (line 200)
-- USBPort.writeData(self, data, endPoint) (line 221)
-- USBPort.readString(self, endPoint) (line 238)
+usb_port:
+  name: USB通信端口组件
+  name_en: USB Communication Port Component
+  manufacturer: ''
+  category:
+  - USB仪器通信接口
+  - 通用字节流仪器通信接口
+  - 实验室仪器枚举器
+  tags:
+  - 实验执行&合成设备
+  - 实验室自动化与仪器集成
+  - 实验仪器通信与驱动集成
+  - 实验仪器数据采集与联机控制
+  - USB仪器通信接口
+  - 通用字节流仪器通信接口
+  - 实验室仪器枚举器
+  description: 用于实验系统中通过USB与外部设备交换数据的非物理通信组件。它提供设备枚举、端口打开与关闭、缓冲区查询与清空、字节读写以及字符串读取等基础通信能力，用于承载上层仪器协议。
+  description_en: A non-physical communication component used in laboratory systems
+    to exchange data with external devices over USB. It provides basic functions for
+    device enumeration, opening and closing a port, checking and flushing buffers,
+    reading and writing bytes, and reading strings, serving as a transport layer for
+    higher-level instrument protocols.
+  class:
+    action_value_mappings:
+      auto-allDevices:
+        schema:
+          description: 列出可用的USB设备或端口。
+          description_en: List available USB devices or ports.
+      auto-isOpen:
+        schema:
+          description: 检查USB端口当前是否已打开。
+          description_en: Check whether the USB port is currently open.
+      auto-isNotOpen:
+        schema:
+          description: 检查USB端口当前是否未打开。
+          description_en: Check whether the USB port is currently not open.
+      auto-open:
+        schema:
+          description: 打开USB通信端口以开始数据交换。
+          description_en: Open the USB communication port to start data exchange.
+      auto-close:
+        schema:
+          description: 关闭USB通信端口。
+          description_en: Close the USB communication port.
+      auto-bytesAvailable:
+        schema:
+          description: 查询指定端点当前可读取的字节数。
+          description_en: Query the number of bytes currently available to read on
+            the specified endpoint.
+      auto-flush:
+        schema:
+          description: 清空指定端点的通信缓冲区。
+          description_en: Flush the communication buffer of the specified endpoint.
+      auto-readData:
+        schema:
+          description: 从指定端点读取指定长度的原始数据。
+          description_en: Read raw data of the specified length from the specified
+            endpoint.
+      auto-writeData:
+        schema:
+          description: 向指定端点写入原始数据。
+          description_en: Write raw data to the specified endpoint.
+      auto-readString:
+        schema:
+          description: 从指定端点读取字符串数据。
+          description_en: Read string data from the specified endpoint.
+auto_annotation_metadata:
+  registry_key: usb_port
+  annotation_workflow_version: v4
+  tag_hints:
+  - USB communication
+  - instrument connectivity
+  - byte stream I/O
+  - device enumeration
+  - endpoint access
+  - protocol transport
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该端口组件承载上层仪器协议所需的打开、关闭、读写与缓冲区操作，属于实验执行阶段的通信基础。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它是实验系统中通用 USB 通信传输层，典型属于仪器集成基础设施。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 该组件提供枚举、端口控制、端点读写等能力，正是协议承载层和驱动集成场景。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: bytesAvailable、readData、writeData 和 readString 等操作用于实验设备联机读写。
+  - id: P-0005
+    name: USB仪器通信接口
+    name_en: USB Instrument Communication Interface
+    type: device_template_tag
+    rationale: 其角色就是为 USB 外设提供标准通信端口接口。
+  - id: P-21001
+    name: 通用字节流仪器通信接口
+    name_en: Generic Byte-Stream Instrument Communication Interface
+    type: device_template_tag
+    rationale: 组件聚焦字节流读写和缓冲区管理，符合通用字节流接口模板。
+  - id: P-10016
+    name: 实验室仪器枚举器
+    name_en: Laboratory Instrument Enumerator
+    type: device_template_tag
+    rationale: auto-allDevices 体现了对可用 USB 设备/端口的枚举能力。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

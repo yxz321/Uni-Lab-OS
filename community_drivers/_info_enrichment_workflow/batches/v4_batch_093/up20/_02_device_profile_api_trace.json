@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: up20\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pyusbus/acq.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.up20:UP20\n\nClass: Interson \n  Bases: []\n\nClass: UP20 (focal)\n  Bases: []\n\nClass: Convex \n  Bases: []\n\nClass: Doppler \n  Bases: []\n\nFocal class methods:\n  [command] BulkOut(self, payload)\n    comment: print(\"Probe should be ready\")\n  [command] BulkIn(self, Length)\n    comment: Receive from Bulk\n  [command] ControlIn(self)\n  [command] ControlOut(self, request, value, index, length)\n  [command] InitOneA(self, TwoBytes)\n    comment: Inits\n  [command] Read512(self)\n  [command] BulkOutTwo(self, Two)\n  [command] BulkOutTwo512(self, Two)\n  [command] BulkOutFour(self, Four)\n  [command] BulkOutLarge(self, Large)\n    comment: print(k,len(Large[4096*k:4096*(k+1)]))\n    comment: print(k,len(Large[4096*k:]))\n  [command] readWrite(self, command)\n    comment: Used to write something somewhere, and check if the reply is identical\n  [command] Init1004(self, FourBytes)\n  [command] InitOn(self)\n    comment: Init facility\n  [command] InitSeries10(self)\n    comment: What would we have here ?\n    comment: 10x04\n  [command] InitArrays(self)\n    comment: ATGC\n    comment: DTGC\n  [command] InitRegisters(self)\n    comment: Should guess what we have here\n    comment: These 3 should be for the depth, see 05.Depth/00.ProcessPCAPs.ipynb\n    comment: for each depth change, the TGC values should be updated\n    comment: Normalement update de 1008 à ce moment (why?) --\n    comment: Next ?\n    comment: Focus zone:\n    comment: Next ?\n  [command] freeze(self)\n    comment: Image acquisition\n  [command] unfreeze(self)\n  [command] getImages(self, n=1)\n  [command] saveImage(self, n=0)\n  [command] DLImgs(self, n=1)\n    comment: self.freeze()\n  [command] checkAddress(self, address)\n    comment: Facility\n  [command] checkAddressFull(self, address)\n\nRegistry actions:\n  auto-BulkOut (from BulkOut())\n  auto-BulkIn (from BulkIn())\n  auto-ControlIn (from ControlIn())\n  auto-ControlOut (from ControlOut())\n  auto-InitOneA (from InitOneA())\n  auto-Read512 (from Read512())\n  auto-BulkOutTwo (from BulkOutTwo())\n  auto-BulkOutTwo512 (from BulkOutTwo512())\n  auto-BulkOutFour (from BulkOutFour())\n  auto-BulkOutLarge (from BulkOutLarge())\n  auto-readWrite (from readWrite())\n  auto-Init1004 (from Init1004())\n  auto-InitOn (from InitOn())\n  auto-InitSeries10 (from InitSeries10())\n  auto-InitArrays (from InitArrays())\n  auto-InitRegisters (from InitRegisters())\n  auto-freeze (from freeze())\n  auto-unfreeze (from unfreeze())\n  auto-getImages (from getImages())\n  auto-saveImage (from saveImage())\n  auto-DLImgs (from DLImgs())\n  auto-checkAddress (from checkAddress())\n  auto-checkAddressFull (from checkAddressFull())\n  auto-StartRun (from StartRun())\n  auto-startMotor (from startMotor())\n  auto-startAcq (from startAcq())\n  auto-stopMotor (from stopMotor())\n  auto-stopAcq (from stopAcq())\n  auto-fastMotor (from fastMotor())\n  auto-getRawImages (from getRawImages())\n  auto-getUSBImages (from getUSBImages())\n  auto-progIt (from progIt())\n  auto-createLoop (from createLoop())\n  auto-initProbe (from initProbe())\n  auto-startDoppler (from startDoppler())\n  auto-getImagesDoppler (from getImagesDoppler())\n  auto-createLoopDoppler (from createLoopDoppler())\n\nRequired output action ids:\n  auto-BulkOut\n  auto-BulkIn\n  auto-ControlIn\n  auto-ControlOut\n  auto-InitOneA\n  auto-Read512\n  auto-BulkOutTwo\n  auto-BulkOutTwo512\n  auto-BulkOutFour\n  auto-BulkOutLarge\n  auto-readWrite\n  auto-Init1004\n  auto-InitOn\n  auto-InitSeries10\n  auto-InitArrays\n  auto-InitRegisters\n  auto-freeze\n  auto-unfreeze\n  auto-getImages\n  auto-saveImage\n  auto-DLImgs\n  auto-checkAddress\n  auto-checkAddressFull\n  auto-StartRun\n  auto-startMotor\n  auto-startAcq\n  auto-stopMotor\n  auto-stopAcq\n  auto-fastMotor\n  auto-getRawImages\n  auto-getUSBImages\n  auto-progIt\n  auto-createLoop\n  auto-initProbe\n  auto-startDoppler\n  auto-getImagesDoppler\n  auto-createLoopDoppler"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0f911a3bec44f1bb0069d5ae4ea4dc8197b9b806deeaf84f11",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5104,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 8914,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0f911a3bec44f1bb0069d5ae4f0a708197a717c96b6aea5a2e",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0f911a3bec44f1bb0069d5ae573a008197bf09fd6cef497d92",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"UP20超声探头\",\n  \"name_en\": \"UP20 Ultrasound Probe\",\n  \"manufacturer\": \"Interson\",\n  \"description\": \"用于超声成像的USB探头设备，可通过USB控制传输与批量传输进行初始化、寄存器配置、图像采集、冻结/解冻、原始图像读取以及多普勒相关采集控制，适用于实验中的超声观察与数据获取。\",\n  \"description_en\": \"A USB ultrasound probe used for ultrasound imaging. It is controlled through USB control and bulk transfers for initialization, register configuration, image acquisition, freeze/unfreeze operation, raw image retrieval, and Doppler-related acquisition, making it suitable for experimental ultrasound observation and data capture.\",\n  \"tag_hints\": [\n    \"ultrasound imaging\",\n    \"USB probe\",\n    \"Doppler ultrasound\",\n    \"image acquisition\",\n    \"bulk/control USB transfer\",\n    \"probe initialization\",\n    \"raw image capture\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-BulkOut\",\n      \"description\": \"通过USB批量输出向探头发送数据负载。\",\n      \"description_en\": \"Send a data payload to the probe through USB bulk-out transfer.\"\n    },\n    {\n      \"action_name\": \"auto-BulkIn\",\n      \"description\": \"通过USB批量输入从探头接收指定长度的数据。\",\n      \"description_en\": \"Receive a specified amount of data from the probe through USB bulk-in transfer.\"\n    },\n    {\n      \"action_name\": \"auto-ControlIn\",\n      \"description\": \"通过USB控制输入从设备读取控制响应。\",\n      \"description_en\": \"Read a control response from the device through USB control-in transfer.\"\n    },\n    {\n      \"action_name\": \"auto-ControlOut\",\n      \"description\": \"通过USB控制输出向设备发送控制请求与参数。\",\n      \"description_en\": \"Send a control request and parameters to the device through USB control-out transfer.\"\n    },\n    {\n      \"action_name\": \"auto-InitOneA\",\n      \"description\": \"发送两字节初始化命令以设置探头。\",\n      \"description_en\": \"Send a two-byte initialization command to configure the probe.\"\n    },\n    {\n      \"action_name\": \"auto-Read512\",\n      \"description\": \"从设备读取512字节数据块。\",\n      \"description_en\": \"Read a 512-byte data block from the device.\"\n    },\n    {\n      \"action_name\": \"auto-BulkOutTwo\",\n      \"description\": \"通过USB批量输出发送两字节数据。\",\n      \"description_en\": \"Send a two-byte payload through USB bulk-out transfer.\"\n    },\n    {\n      \"action_name\": \"auto-BulkOutTwo512\",\n      \"description\": \"发送与512字节读写流程相关的两字节批量命令。\",\n      \"description_en\": \"Send a two-byte bulk command associated with a 512-byte transfer workflow.\"\n    },\n    {\n      \"action_name\": \"auto-BulkOutFour\",\n      \"description\": \"通过USB批量输出发送四字节数据。\",\n      \"description_en\": \"Send a four-byte payload through USB bulk-out transfer.\"\n    },\n    {\n      \"action_name\": \"auto-BulkOutLarge\",\n      \"description\": \"分块向设备发送大容量数据。\",\n      \"description_en\": \"Send a large payload to the device in chunks.\"\n    },\n    {\n      \"action_name\": \"auto-readWrite\",\n      \"description\": \"写入命令并检查返回内容是否与预期一致。\",\n      \"description_en\": \"Write a command and verify that the returned data matches the expected reply.\"\n    },\n    {\n      \"action_name\": \"auto-Init1004\",\n      \"description\": \"发送四字节1004类初始化命令。\",\n      \"description_en\": \"Send a four-byte 1004-type initialization command.\"\n    },\n    {\n      \"action_name\": \"auto-InitOn\",\n      \"description\": \"执行设备上电或启用初始化流程。\",\n      \"description_en\": \"Run the device power-on or enable initialization sequence.\"\n    },\n    {\n      \"action_name\": \"auto-InitSeries10\",\n      \"description\": \"执行10系列初始化步骤。\",\n      \"description_en\": \"Run the series-10 initialization sequence.\"\n    },\n    {\n      \"action_name\": \"auto-InitArrays\",\n      \"description\": \"初始化探头内部数组参数。\",\n      \"description_en\": \"Initialize internal array parameters of the probe.\"\n    },\n    {\n      \"action_name\": \"auto-InitRegisters\",\n      \"description\": \"初始化设备寄存器与采集相关参数。\",\n      \"description_en\": \"Initialize device registers and acquisition-related parameters.\"\n    },\n    {\n      \"action_name\": \"auto-freeze\",\n      \"description\": \"冻结超声图像采集。\",\n      \"description_en\": \"Freeze ultrasound image acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-unfreeze\",\n      \"description\": \"解除冻结并恢复超声图像采集。\",\n      \"description_en\": \"Unfreeze the system and resume ultrasound image acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-getImages\",\n      \"description\": \"获取指定数量的超声图像。\",\n      \"description_en\": \"Acquire the specified number of ultrasound images.\"\n    },\n    {\n      \"action_name\": \"auto-saveImage\",\n      \"description\": \"保存指定编号的采集图像。\",\n      \"description_en\": \"Save an acquired image by index.\"\n    },\n    {\n      \"action_name\": \"auto-DLImgs\",\n      \"description\": \"下载一组超声图像。\",\n      \"description_en\": \"Download a set of ultrasound images.\"\n    },\n    {\n      \"action_name\": \"auto-checkAddress\",\n      \"description\": \"检查指定设备地址是否可访问或有效。\",\n      \"description_en\": \"Check whether a specified device address is accessible or valid.\"\n    },\n    {\n      \"action_name\": \"auto-checkAddressFull\",\n      \"description\": \"执行更完整的设备地址检查。\",\n      \"description_en\": \"Perform a more complete check of a device address.\"\n    },\n    {\n      \"action_name\": \"auto-StartRun\",\n      \"description\": \"启动一次设备运行或扫描流程。\",\n      \"description_en\": \"Start a device run or scan sequence.\"\n    },\n    {\n      \"action_name\": \"auto-startMotor\",\n      \"description\": \"启动探头相关电机机构。\",\n      \"description_en\": \"Start the probe-related motor mechanism.\"\n    },\n    {\n      \"action_name\": \"auto-startAcq\",\n      \"description\": \"开始数据或图像采集。\",\n      \"description_en\": \"Start data or image acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-stopMotor\",\n      \"description\": \"停止探头相关电机机构。\",\n      \"description_en\": \"Stop the probe-related motor mechanism.\"\n    },\n    {\n      \"action_name\": \"auto-stopAcq\",\n      \"description\": \"停止数据或图像采集。\",\n      \"description_en\": \"Stop data or image acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-fastMotor\",\n      \"description\": \"将电机切换到更快的运行方式。\",\n      \"description_en\": \"Switch the motor to a faster operating mode.\"\n    },\n    {\n      \"action_name\": \"auto-getRawImages\",\n      \"description\": \"获取原始超声图像数据。\",\n      \"description_en\": \"Retrieve raw ultrasound image data.\"\n    },\n    {\n      \"action_name\": \"auto-getUSBImages\",\n      \"description\": \"通过USB读取超声图像数据。\",\n      \"description_en\": \"Read ultrasound image data over USB.\"\n    },\n    {\n      \"action_name\": \"auto-progIt\",\n      \"description\": \"向设备写入或编程配置数据。\",\n      \"description_en\": \"Program or write configuration data to the device.\"\n    },\n    {\n      \"action_name\": \"auto-createLoop\",\n      \"description\": \"创建连续采集或扫描循环。\",\n      \"description_en\": \"Create a continuous acquisition or scanning loop.\"\n    },\n    {\n      \"action_name\": \"auto-initProbe\",\n      \"description\": \"初始化超声探头。\",\n      \"description_en\": \"Initialize the ultrasound probe.\"\n    },\n    {\n      \"action_name\": \"auto-startDoppler\",\n      \"description\": \"启动多普勒超声模式。\",\n      \"description_en\": \"Start Doppler ultrasound mode.\"\n    },\n    {\n      \"action_name\": \"auto-getImagesDoppler\",\n      \"description\": \"获取多普勒模式下的图像数据。\",\n      \"description_en\": \"Acquire image data in Doppler mode.\"\n    },\n    {\n      \"action_name\": \"auto-createLoopDoppler\",\n      \"description\": \"创建多普勒模式的连续采集循环。\",\n      \"description_en\": \"Create a continuous acquisition loop for Doppler mode.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1841,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2290,
+      "output_tokens_details": {
+        "reasoning_tokens": 393
+      },
+      "total_tokens": 4131
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1841,
+      "output_token_count": 2290,
+      "predict_time": 34.485845796
+    }
+  },
+  "output_text": "{\n  \"name\": \"UP20超声探头\",\n  \"name_en\": \"UP20 Ultrasound Probe\",\n  \"manufacturer\": \"Interson\",\n  \"description\": \"用于超声成像的USB探头设备，可通过USB控制传输与批量传输进行初始化、寄存器配置、图像采集、冻结/解冻、原始图像读取以及多普勒相关采集控制，适用于实验中的超声观察与数据获取。\",\n  \"description_en\": \"A USB ultrasound probe used for ultrasound imaging. It is controlled through USB control and bulk transfers for initialization, register configuration, image acquisition, freeze/unfreeze operation, raw image retrieval, and Doppler-related acquisition, making it suitable for experimental ultrasound observation and data capture.\",\n  \"tag_hints\": [\n    \"ultrasound imaging\",\n    \"USB probe\",\n    \"Doppler ultrasound\",\n    \"image acquisition\",\n    \"bulk/control USB transfer\",\n    \"probe initialization\",\n    \"raw image capture\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-BulkOut\",\n      \"description\": \"通过USB批量输出向探头发送数据负载。\",\n      \"description_en\": \"Send a data payload to the probe through USB bulk-out transfer.\"\n    },\n    {\n      \"action_name\": \"auto-BulkIn\",\n      \"description\": \"通过USB批量输入从探头接收指定长度的数据。\",\n      \"description_en\": \"Receive a specified amount of data from the probe through USB bulk-in transfer.\"\n    },\n    {\n      \"action_name\": \"auto-ControlIn\",\n      \"description\": \"通过USB控制输入从设备读取控制响应。\",\n      \"description_en\": \"Read a control response from the device through USB control-in transfer.\"\n    },\n    {\n      \"action_name\": \"auto-ControlOut\",\n      \"description\": \"通过USB控制输出向设备发送控制请求与参数。\",\n      \"description_en\": \"Send a control request and parameters to the device through USB control-out transfer.\"\n    },\n    {\n      \"action_name\": \"auto-InitOneA\",\n      \"description\": \"发送两字节初始化命令以设置探头。\",\n      \"description_en\": \"Send a two-byte initialization command to configure the probe.\"\n    },\n    {\n      \"action_name\": \"auto-Read512\",\n      \"description\": \"从设备读取512字节数据块。\",\n      \"description_en\": \"Read a 512-byte data block from the device.\"\n    },\n    {\n      \"action_name\": \"auto-BulkOutTwo\",\n      \"description\": \"通过USB批量输出发送两字节数据。\",\n      \"description_en\": \"Send a two-byte payload through USB bulk-out transfer.\"\n    },\n    {\n      \"action_name\": \"auto-BulkOutTwo512\",\n      \"description\": \"发送与512字节读写流程相关的两字节批量命令。\",\n      \"description_en\": \"Send a two-byte bulk command associated with a 512-byte transfer workflow.\"\n    },\n    {\n      \"action_name\": \"auto-BulkOutFour\",\n      \"description\": \"通过USB批量输出发送四字节数据。\",\n      \"description_en\": \"Send a four-byte payload through USB bulk-out transfer.\"\n    },\n    {\n      \"action_name\": \"auto-BulkOutLarge\",\n      \"description\": \"分块向设备发送大容量数据。\",\n      \"description_en\": \"Send a large payload to the device in chunks.\"\n    },\n    {\n      \"action_name\": \"auto-readWrite\",\n      \"description\": \"写入命令并检查返回内容是否与预期一致。\",\n      \"description_en\": \"Write a command and verify that the returned data matches the expected reply.\"\n    },\n    {\n      \"action_name\": \"auto-Init1004\",\n      \"description\": \"发送四字节1004类初始化命令。\",\n      \"description_en\": \"Send a four-byte 1004-type initialization command.\"\n    },\n    {\n      \"action_name\": \"auto-InitOn\",\n      \"description\": \"执行设备上电或启用初始化流程。\",\n      \"description_en\": \"Run the device power-on or enable initialization sequence.\"\n    },\n    {\n      \"action_name\": \"auto-InitSeries10\",\n      \"description\": \"执行10系列初始化步骤。\",\n      \"description_en\": \"Run the series-10 initialization sequence.\"\n    },\n    {\n      \"action_name\": \"auto-InitArrays\",\n      \"description\": \"初始化探头内部数组参数。\",\n      \"description_en\": \"Initialize internal array parameters of the probe.\"\n    },\n    {\n      \"action_name\": \"auto-InitRegisters\",\n      \"description\": \"初始化设备寄存器与采集相关参数。\",\n      \"description_en\": \"Initialize device registers and acquisition-related parameters.\"\n    },\n    {\n      \"action_name\": \"auto-freeze\",\n      \"description\": \"冻结超声图像采集。\",\n      \"description_en\": \"Freeze ultrasound image acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-unfreeze\",\n      \"description\": \"解除冻结并恢复超声图像采集。\",\n      \"description_en\": \"Unfreeze the system and resume ultrasound image acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-getImages\",\n      \"description\": \"获取指定数量的超声图像。\",\n      \"description_en\": \"Acquire the specified number of ultrasound images.\"\n    },\n    {\n      \"action_name\": \"auto-saveImage\",\n      \"description\": \"保存指定编号的采集图像。\",\n      \"description_en\": \"Save an acquired image by index.\"\n    },\n    {\n      \"action_name\": \"auto-DLImgs\",\n      \"description\": \"下载一组超声图像。\",\n      \"description_en\": \"Download a set of ultrasound images.\"\n    },\n    {\n      \"action_name\": \"auto-checkAddress\",\n      \"description\": \"检查指定设备地址是否可访问或有效。\",\n      \"description_en\": \"Check whether a specified device address is accessible or valid.\"\n    },\n    {\n      \"action_name\": \"auto-checkAddressFull\",\n      \"description\": \"执行更完整的设备地址检查。\",\n      \"description_en\": \"Perform a more complete check of a device address.\"\n    },\n    {\n      \"action_name\": \"auto-StartRun\",\n      \"description\": \"启动一次设备运行或扫描流程。\",\n      \"description_en\": \"Start a device run or scan sequence.\"\n    },\n    {\n      \"action_name\": \"auto-startMotor\",\n      \"description\": \"启动探头相关电机机构。\",\n      \"description_en\": \"Start the probe-related motor mechanism.\"\n    },\n    {\n      \"action_name\": \"auto-startAcq\",\n      \"description\": \"开始数据或图像采集。\",\n      \"description_en\": \"Start data or image acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-stopMotor\",\n      \"description\": \"停止探头相关电机机构。\",\n      \"description_en\": \"Stop the probe-related motor mechanism.\"\n    },\n    {\n      \"action_name\": \"auto-stopAcq\",\n      \"description\": \"停止数据或图像采集。\",\n      \"description_en\": \"Stop data or image acquisition.\"\n    },\n    {\n      \"action_name\": \"auto-fastMotor\",\n      \"description\": \"将电机切换到更快的运行方式。\",\n      \"description_en\": \"Switch the motor to a faster operating mode.\"\n    },\n    {\n      \"action_name\": \"auto-getRawImages\",\n      \"description\": \"获取原始超声图像数据。\",\n      \"description_en\": \"Retrieve raw ultrasound image data.\"\n    },\n    {\n      \"action_name\": \"auto-getUSBImages\",\n      \"description\": \"通过USB读取超声图像数据。\",\n      \"description_en\": \"Read ultrasound image data over USB.\"\n    },\n    {\n      \"action_name\": \"auto-progIt\",\n      \"description\": \"向设备写入或编程配置数据。\",\n      \"description_en\": \"Program or write configuration data to the device.\"\n    },\n    {\n      \"action_name\": \"auto-createLoop\",\n      \"description\": \"创建连续采集或扫描循环。\",\n      \"description_en\": \"Create a continuous acquisition or scanning loop.\"\n    },\n    {\n      \"action_name\": \"auto-initProbe\",\n      \"description\": \"初始化超声探头。\",\n      \"description_en\": \"Initialize the ultrasound probe.\"\n    },\n    {\n      \"action_name\": \"auto-startDoppler\",\n      \"description\": \"启动多普勒超声模式。\",\n      \"description_en\": \"Start Doppler ultrasound mode.\"\n    },\n    {\n      \"action_name\": \"auto-getImagesDoppler\",\n      \"description\": \"获取多普勒模式下的图像数据。\",\n      \"description_en\": \"Acquire image data in Doppler mode.\"\n    },\n    {\n      \"action_name\": \"auto-createLoopDoppler\",\n      \"description\": \"创建多普勒模式的连续采集循环。\",\n      \"description_en\": \"Create a continuous acquisition loop for Doppler mode.\"\n    }\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: us_blini\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: usblini/usblini.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.usb_device.usblini:USBlini\n\nClass: USBlini (focal)\n  Bases: ['object']\n\nClass: LINFrame \n  Bases: ['object']\n\nClass: StatusReport \n  Bases: ['object']\n\nClass: USBliniUSBEventHandler \n  Bases: ['threading.Thread']\n\nClass: USBliniError \n  Bases: ['Exception']\n\nClass: USBliniNotFoundError \n  Bases: ['USBliniError']\n\nFocal class methods:\n  [command] open(self, serialnumber=None)\n    comment: Open connection to USBlini.\n        :param serialnumber: USB serial number\n        :type serialnumber: string\n  [command] close(self)\n    comment: Close connection to USBlini.\n  [status_getter] get_usb_device(self, serialnumber=None)\n    comment: Get USB device matching VID and PID and if given also check the USB serial number.\n        :rtype: USBDeviceHandle\n        :param serialnumber: USB serial number\n        :type serialnumber: string\n  [command] usbtransfer_ep1_callback(self, t)\n  [command] usbtransfer_ep2_callback(self, t)\n  [status_getter] get_version(self)\n  [command] start_bootloader(self)\n    comment: Jump to bootloader.\n  [command] echo_test(self)\n    comment: Echo test. Send code to device and check response.\n  [command] reset(self)\n    comment: Reset the device: clear master and slave tables and set default configuration.\n  [command] set_baudrate(self, baudrate, autobaud=False)\n    comment: Set baudrate.\n        :param baudrate: Baudrate in Hz\n        :type baudrate: integer\n        :param autobaud: Set autobaud feature (only slave functions use it)\n        :type autobaud: bool\n  [command] slave_set_frame(self, tableid, frameid, checksummode, data, reloadvalue=0, resetmask=0)\n    comment: Set frame in slave table.\n        :param tableid: Table identifier (row)\n        :type tableid: integer\n        :param frameid: LIN frame identifier\n        :type frameid: integer\n        :param check...\n  [command] master_write(self, frameid, checksummode, data)\n    comment: TODO: check report id, check pid, check checksum\n    comment: Master write. Blocks until response.\n        :type tableid: integer\n        :param frameid: LIN frame identifier\n        :type frameid: integer\n        :param checksummode: Checksum mode (none/LIN1/LI...\n  [command] clear_errorflags(self, clearmask=255)\n    comment: Clear errorflags.\n        :param clearmask: Bit mask of errors to clear\n        :type baudrate: integer\n  [command] master_set_sequence(self, period, frametime, sequence)\n    comment: Set master sequence.\n        :param period: Period of complete sequence in milliseconds\n        :type period: integer\n        :param frametime: Time of one frame slot (time between start of two frames...\n  [command] frame_listener_add(self, func)\n    comment: Add a frame listener (callback)\n        :param func: Function to add to listener list\n        :type func: function\n  [command] frame_listener_remove(self, func)\n    comment: Remove given function from listeners list\n        :param func: Function to remove from listener list\n        :type func: function\n  [command] statusreport_listener_add(self, func)\n    comment: Add a statusreport listener (callback)\n        :param func: Function to add to listener list\n        :type func: function\n  [command] statusreport_listener_remove(self, func)\n    comment: Remove given function from listeners list\n        :param func: Function to remove from listener list\n        :type func: function\n  [command] logic_listener_add(self, func)\n    comment: Add a logic listener (callback)\n        :param func: Function to add to listener list\n        :type func: function\n  [command] logic_listener_remove(self, func)\n    comment: Remove given function from listeners list\n        :param func: Function to remove from listener list\n        :type func: function\n\nRegistry actions:\n  auto-open (from open())\n  auto-close (from close())\n  auto-usbtransfer_ep1_callback (from usbtransfer_ep1_callback())\n  auto-usbtransfer_ep2_callback (from usbtransfer_ep2_callback())\n  auto-start_bootloader (from start_bootloader())\n  auto-echo_test (from echo_test())\n  auto-reset (from reset())\n  auto-set_baudrate (from set_baudrate())\n  auto-slave_set_frame (from slave_set_frame())\n  auto-master_write (from master_write())\n  auto-clear_errorflags (from clear_errorflags())\n  auto-master_set_sequence (from master_set_sequence())\n  auto-frame_listener_add (from frame_listener_add())\n  auto-frame_listener_remove (from frame_listener_remove())\n  auto-statusreport_listener_add (from statusreport_listener_add())\n  auto-statusreport_listener_remove (from statusreport_listener_remove())\n  auto-logic_listener_add (from logic_listener_add())\n  auto-logic_listener_remove (from logic_listener_remove())\n\nRequired output action ids:\n  auto-open\n  auto-close\n  auto-usbtransfer_ep1_callback\n  auto-usbtransfer_ep2_callback\n  auto-start_bootloader\n  auto-echo_test\n  auto-reset\n  auto-set_baudrate\n  auto-slave_set_frame\n  auto-master_write\n  auto-clear_errorflags\n  auto-master_set_sequence\n  auto-frame_listener_add\n  auto-frame_listener_remove\n  auto-statusreport_listener_add\n  auto-statusreport_listener_remove\n  auto-logic_listener_add\n  auto-logic_listener_remove"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0c2bbbfff0bdaaac0069d5ae72845c81979216346abafd6c47",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6369,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6408,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0c2bbbfff0bdaaac0069d5ae73be448197997976433d32e597",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0c2bbbfff0bdaaac0069d5ae7e7b288197a527098c7bdfc57a",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"USBlini USB-LIN总线接口\",\n  \"name_en\": \"USBlini USB LIN Interface\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一种通过 USB 连接的 LIN 总线接口设备，用于在实验或测试系统中配置 LIN 通信速率、发送主站帧、设置从站帧表、编排主站轮询序列，并接收帧、状态和逻辑相关回调，适合 LIN 总线联调、协议测试与设备仿真。\",\n  \"description_en\": \"This is a USB-connected LIN bus interface device used in lab or test setups to configure LIN communication speed, send master frames, define slave frame tables, schedule master sequences, and receive frame, status, and logic-related callbacks. It is suitable for LIN bus integration, protocol testing, and device emulation.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开与 USBlini 设备的连接。\",\n      \"description_en\": \"Open the connection to the USBlini device.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭与 USBlini 设备的连接。\",\n      \"description_en\": \"Close the connection to the USBlini device.\"\n    },\n    {\n      \"action_name\": \"auto-usbtransfer_ep1_callback\",\n      \"description\": \"处理 USB 端点 1 的传输回调。\",\n      \"description_en\": \"Handle the USB endpoint 1 transfer callback.\"\n    },\n    {\n      \"action_name\": \"auto-usbtransfer_ep2_callback\",\n      \"description\": \"处理 USB 端点 2 的传输回调。\",\n      \"description_en\": \"Handle the USB endpoint 2 transfer callback.\"\n    },\n    {\n      \"action_name\": \"auto-start_bootloader\",\n      \"description\": \"使设备跳转到引导加载程序模式。\",\n      \"description_en\": \"Jump the device into bootloader mode.\"\n    },\n    {\n      \"action_name\": \"auto-echo_test\",\n      \"description\": \"执行回显测试以验证设备通信。\",\n      \"description_en\": \"Run an echo test to verify device communication.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"复位设备，清除主站和从站表并恢复默认配置。\",\n      \"description_en\": \"Reset the device, clear the master and slave tables, and restore the default configuration.\"\n    },\n    {\n      \"action_name\": \"auto-set_baudrate\",\n      \"description\": \"设置 LIN 通信波特率，并可启用自动波特率功能。\",\n      \"description_en\": \"Set the LIN communication baud rate, with optional autobaud support.\"\n    },\n    {\n      \"action_name\": \"auto-slave_set_frame\",\n      \"description\": \"在从站表中设置一个 LIN 帧及其相关参数。\",\n      \"description_en\": \"Define a LIN frame and its related parameters in the slave table.\"\n    },\n    {\n      \"action_name\": \"auto-master_write\",\n      \"description\": \"以主站方式写入一个 LIN 帧并等待响应。\",\n      \"description_en\": \"Write a LIN frame as master and wait for the response.\"\n    },\n    {\n      \"action_name\": \"auto-clear_errorflags\",\n      \"description\": \"清除设备错误标志位。\",\n      \"description_en\": \"Clear the device error flags.\"\n    },\n    {\n      \"action_name\": \"auto-master_set_sequence\",\n      \"description\": \"设置主站帧序列及其周期和帧时隙时间。\",\n      \"description_en\": \"Configure the master frame sequence, including its period and frame slot timing.\"\n    },\n    {\n      \"action_name\": \"auto-frame_listener_add\",\n      \"description\": \"添加 LIN 帧监听回调函数。\",\n      \"description_en\": \"Add a LIN frame listener callback.\"\n    },\n    {\n      \"action_name\": \"auto-frame_listener_remove\",\n      \"description\": \"移除 LIN 帧监听回调函数。\",\n      \"description_en\": \"Remove a LIN frame listener callback.\"\n    },\n    {\n      \"action_name\": \"auto-statusreport_listener_add\",\n      \"description\": \"添加状态报告监听回调函数。\",\n      \"description_en\": \"Add a status report listener callback.\"\n    },\n    {\n      \"action_name\": \"auto-statusreport_listener_remove\",\n      \"description\": \"移除状态报告监听回调函数。\",\n      \"description_en\": \"Remove a status report listener callback.\"\n    },\n    {\n      \"action_name\": \"auto-logic_listener_add\",\n      \"description\": \"添加逻辑事件监听回调函数。\",\n      \"description_en\": \"Add a logic-event listener callback.\"\n    },\n    {\n      \"action_name\": \"auto-logic_listener_remove\",\n      \"description\": \"移除逻辑事件监听回调函数。\",\n      \"description_en\": \"Remove a logic-event listener callback.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"LIN bus communication\",\n    \"USB LIN interface\",\n    \"automotive serial bus\",\n    \"master/slave LIN emulation\",\n    \"frame scheduling\",\n    \"protocol testing\",\n    \"firmware bootloader\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1952,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1624,
+      "output_tokens_details": {
+        "reasoning_tokens": 515
+      },
+      "total_tokens": 3576
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1952,
+      "output_token_count": 1624,
+      "predict_time": 29.072991092
+    }
+  },
+  "output_text": "{\n  \"name\": \"USBlini USB-LIN总线接口\",\n  \"name_en\": \"USBlini USB LIN Interface\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一种通过 USB 连接的 LIN 总线接口设备，用于在实验或测试系统中配置 LIN 通信速率、发送主站帧、设置从站帧表、编排主站轮询序列，并接收帧、状态和逻辑相关回调，适合 LIN 总线联调、协议测试与设备仿真。\",\n  \"description_en\": \"This is a USB-connected LIN bus interface device used in lab or test setups to configure LIN communication speed, send master frames, define slave frame tables, schedule master sequences, and receive frame, status, and logic-related callbacks. It is suitable for LIN bus integration, protocol testing, and device emulation.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开与 USBlini 设备的连接。\",\n      \"description_en\": \"Open the connection to the USBlini device.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭与 USBlini 设备的连接。\",\n      \"description_en\": \"Close the connection to the USBlini device.\"\n    },\n    {\n      \"action_name\": \"auto-usbtransfer_ep1_callback\",\n      \"description\": \"处理 USB 端点 1 的传输回调。\",\n      \"description_en\": \"Handle the USB endpoint 1 transfer callback.\"\n    },\n    {\n      \"action_name\": \"auto-usbtransfer_ep2_callback\",\n      \"description\": \"处理 USB 端点 2 的传输回调。\",\n      \"description_en\": \"Handle the USB endpoint 2 transfer callback.\"\n    },\n    {\n      \"action_name\": \"auto-start_bootloader\",\n      \"description\": \"使设备跳转到引导加载程序模式。\",\n      \"description_en\": \"Jump the device into bootloader mode.\"\n    },\n    {\n      \"action_name\": \"auto-echo_test\",\n      \"description\": \"执行回显测试以验证设备通信。\",\n      \"description_en\": \"Run an echo test to verify device communication.\"\n    },\n    {\n      \"action_name\": \"auto-reset\",\n      \"description\": \"复位设备，清除主站和从站表并恢复默认配置。\",\n      \"description_en\": \"Reset the device, clear the master and slave tables, and restore the default configuration.\"\n    },\n    {\n      \"action_name\": \"auto-set_baudrate\",\n      \"description\": \"设置 LIN 通信波特率，并可启用自动波特率功能。\",\n      \"description_en\": \"Set the LIN communication baud rate, with optional autobaud support.\"\n    },\n    {\n      \"action_name\": \"auto-slave_set_frame\",\n      \"description\": \"在从站表中设置一个 LIN 帧及其相关参数。\",\n      \"description_en\": \"Define a LIN frame and its related parameters in the slave table.\"\n    },\n    {\n      \"action_name\": \"auto-master_write\",\n      \"description\": \"以主站方式写入一个 LIN 帧并等待响应。\",\n      \"description_en\": \"Write a LIN frame as master and wait for the response.\"\n    },\n    {\n      \"action_name\": \"auto-clear_errorflags\",\n      \"description\": \"清除设备错误标志位。\",\n      \"description_en\": \"Clear the device error flags.\"\n    },\n    {\n      \"action_name\": \"auto-master_set_sequence\",\n      \"description\": \"设置主站帧序列及其周期和帧时隙时间。\",\n      \"description_en\": \"Configure the master frame sequence, including its period and frame slot timing.\"\n    },\n    {\n      \"action_name\": \"auto-frame_listener_add\",\n      \"description\": \"添加 LIN 帧监听回调函数。\",\n      \"description_en\": \"Add a LIN frame listener callback.\"\n    },\n    {\n      \"action_name\": \"auto-frame_listener_remove\",\n      \"description\": \"移除 LIN 帧监听回调函数。\",\n      \"description_en\": \"Remove a LIN frame listener callback.\"\n    },\n    {\n      \"action_name\": \"auto-statusreport_listener_add\",\n      \"description\": \"添加状态报告监听回调函数。\",\n      \"description_en\": \"Add a status report listener callback.\"\n    },\n    {\n      \"action_name\": \"auto-statusreport_listener_remove\",\n      \"description\": \"移除状态报告监听回调函数。\",\n      \"description_en\": \"Remove a status report listener callback.\"\n    },\n    {\n      \"action_name\": \"auto-logic_listener_add\",\n      \"description\": \"添加逻辑事件监听回调函数。\",\n      \"description_en\": \"Add a logic-event listener callback.\"\n    },\n    {\n      \"action_name\": \"auto-logic_listener_remove\",\n      \"description\": \"移除逻辑事件监听回调函数。\",\n      \"description_en\": \"Remove a logic-event listener callback.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"LIN bus communication\",\n    \"USB LIN interface\",\n    \"automotive serial bus\",\n    \"master/slave LIN emulation\",\n    \"frame scheduling\",\n    \"protocol testing\",\n    \"firmware bootloader\"\n  ]\n}"
+}

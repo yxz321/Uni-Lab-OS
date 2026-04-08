@@ -1,46 +1,129 @@
-Device: usb_comm_obp
-Registry Key: usb_comm_obp
-Short Description: ABB Ltd Usb Comm Obp是由ABB Ltd生产的实验执行&合成设备，主要功能包括关闭、打开、读取数据。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (12):
-- auto-close_device -> close_device [UniLabJsonCommand] goal_params: none
-- auto-innitiate_query -> innitiate_query [UniLabJsonCommand] goal_params: msgtype, payload
-- auto-is_open -> is_open [UniLabJsonCommand] goal_params: none
-- auto-open_device -> open_device [UniLabJsonCommand] goal_params: device
-- auto-query -> query [UniLabJsonCommand] goal_params: msgtype, payload, timeout
-- auto-receive_query -> receive_query [UniLabJsonCommand] goal_params: timeout
-- auto-send_command -> send_command [UniLabJsonCommand] goal_params: msgtype, payload, timeout
-- auto-set_default_read -> set_default_read [UniLabJsonCommand] goal_params: mode
-- auto-usb_read_highspeed -> usb_read_highspeed [UniLabJsonCommand] goal_params: size, timeout
-- auto-usb_read_highspeed_alt -> usb_read_highspeed_alt [UniLabJsonCommand] goal_params: size, timeout
-- auto-usb_read_lowspeed -> usb_read_lowspeed [UniLabJsonCommand] goal_params: size, timeout
-- auto-usb_send -> usb_send [UniLabJsonCommand] goal_params: data
-
-Driver Functions (21):
-- USBCommBase.open_device(self, device) (line 94)
-- USBCommBase.is_open(self) (line 113)
-- USBCommBase.close_device(self) (line 119)
-- USBCommBase.usb_send(self, data) (line 126)
-- USBCommBase.usb_read_lowspeed(self, size, timeout) (line 129)
-- USBCommBase.usb_read_highspeed(self, size, timeout) (line 132)
-- USBCommBase.usb_read_highspeed_alt(self, size, timeout) (line 135)
-- USBCommBase.set_default_read(self, mode) (line 138)
-- USBCommOOI.send_command(self, msgtype, payload) (line 148)
-- USBCommOOI.innitiate_query(self, msgtype, payload) (line 152)
-- USBCommOOI.receive_query(self, alternate_endpoint) (line 156)
-- USBCommOOI.query(self, msgtype, payload) (line 162)
-- USBCommOBP.__init__(self, *args, **kwargs) (line 170)
-- USBCommOBP.send_command(self, msgtype, payload, timeout) (line 234)
-- USBCommOBP.innitiate_query(self, msgtype, payload) (line 251)
-- USBCommOBP.receive_query(self, timeout) (line 256)
-- USBCommOBP.query(self, msgtype, payload, timeout) (line 282)
-- USBCommOBP._construct_outgoing_message(self, msgtype, payload, requestACK, regarding) (line 289)
-- USBCommOBP._check_incoming_message_header(self, header) (line 333)
-- USBCommOBP._check_incoming_message_footer(self, footer) (line 379)
-- USBCommOBP._extract_message_data(self, msg) (line 393)
+usb_comm_obp:
+  name: OBP USB通信组件
+  name_en: OBP USB Communication Interface
+  manufacturer: ''
+  category:
+  - USB仪器通信接口
+  - 通用字节流仪器通信接口
+  tags:
+  - 表征设备
+  - 实验室自动化与仪器集成
+  - 光学与光谱实验
+  - 实验仪器通信与驱动集成
+  - 光谱采集与检测
+  - USB仪器通信接口
+  - 通用字节流仪器通信接口
+  description: 这是一个非物理的USB通信组件，用于海洋光学系列光谱仪的OBP协议通信。它负责打开和关闭USB连接、发送命令、发起与接收查询，以及按不同读取模式获取USB数据，供实验软件与光谱仪进行底层数据交换。
+  description_en: This is a non-physical USB communication component for OBP-based
+    communication with Ocean Optics spectrometers. It handles opening and closing
+    the USB connection, sending commands, initiating and receiving queries, and reading
+    USB data through different transfer modes so that experiment software can exchange
+    low-level data with the spectrometer.
+  class:
+    action_value_mappings:
+      auto-send_command:
+        schema:
+          description: 向USB设备发送一条OBP命令消息。
+          description_en: Send an OBP command message to the USB device.
+      auto-innitiate_query:
+        schema:
+          description: 发起一次OBP查询，但暂不接收回复。
+          description_en: Initiate an OBP query without receiving the reply yet.
+      auto-receive_query:
+        schema:
+          description: 接收先前发起的OBP查询回复。
+          description_en: Receive the reply for a previously initiated OBP query.
+      auto-query:
+        schema:
+          description: 执行一次完整的OBP查询并获取回复。
+          description_en: Perform a complete OBP query and obtain the reply.
+      auto-open_device:
+        schema:
+          description: 打开USB设备连接。
+          description_en: Open the USB device connection.
+      auto-is_open:
+        schema:
+          description: 检查USB设备连接是否已打开。
+          description_en: Check whether the USB device connection is open.
+      auto-close_device:
+        schema:
+          description: 关闭USB设备连接。
+          description_en: Close the USB device connection.
+      auto-usb_send:
+        schema:
+          description: 通过USB发送原始数据。
+          description_en: Send raw data over USB.
+      auto-usb_read_lowspeed:
+        schema:
+          description: 以低速方式从USB读取数据。
+          description_en: Read data from USB using the low-speed mode.
+      auto-usb_read_highspeed:
+        schema:
+          description: 以高速方式从USB读取数据。
+          description_en: Read data from USB using the high-speed mode.
+      auto-usb_read_highspeed_alt:
+        schema:
+          description: 以备用高速方式从USB读取数据。
+          description_en: Read data from USB using the alternate high-speed mode.
+      auto-set_default_read:
+        schema:
+          description: 设置默认的USB读取方式。
+          description_en: Set the default USB read mode.
+auto_annotation_metadata:
+  registry_key: usb_comm_obp
+  annotation_workflow_version: v4
+  tag_hints:
+  - USB communication
+  - Ocean Binary Protocol
+  - spectrometer interface
+  - message transport
+  - USB read modes
+  - Ocean Optics
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该组件专用于海洋光学光谱仪底层 OBP 通信，直接支撑光谱表征设备的数据交换。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 作为实验软件与光谱仪之间的底层 USB 协议组件，属于仪器集成自动化范畴。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: 该组件面向 Ocean Optics 光谱仪，服务于实验室光谱采集与测量。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 其功能包括打开连接、发送命令、发起查询和接收回复，典型属于仪器通信驱动集成。
+  - id: P-3002
+    name: 光谱采集与检测
+    name_en: Spectral Acquisition & Detection
+    type: experimental_scene
+    rationale: 该接口虽然是底层组件，但直接服务于光谱仪的数据读取和采集链路。
+  - id: P-0005
+    name: USB仪器通信接口
+    name_en: USB Instrument Communication Interface
+    type: device_template_tag
+    rationale: 该组件本质上是面向 OBP 光谱仪的 USB 通信接口。
+  - id: P-21001
+    name: 通用字节流仪器通信接口
+    name_en: Generic Byte-Stream Instrument Communication Interface
+    type: device_template_tag
+    rationale: 其核心操作是通过不同 USB 读取模式收发底层字节流消息。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

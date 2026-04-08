@@ -1,30 +1,117 @@
-Device: usb_driver
-Registry Key: usb_driver
-Short Description: Usb Driver驱动，支持finalize/raw recv/raw send/recv/send等7个操作。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (7):
-- auto-build_array -> build_array [UniLabJsonCommand] goal_params: chunk, eom
-- auto-finalize -> finalize [UniLabJsonCommand] goal_params: none
-- auto-from_bytes -> from_bytes [UniLabJsonCommand] goal_params: data
-- auto-raw_recv -> raw_recv [UniLabJsonCommand] goal_params: size
-- auto-raw_send -> raw_send [UniLabJsonCommand] goal_params: data
-- auto-recv -> recv [UniLabJsonCommand] goal_params: size
-- auto-send -> send [UniLabJsonCommand] goal_params: data
-
-Driver Functions (10):
-- find_tmc_devices(vendor, product, serial_number, custom_match, **kwargs) (line 117)
-- BulkOutMessage.build_array(btag, eom, chunk) (line 133)
-- BulkInMessage.from_bytes(cls, data) (line 149)
-- BulkInMessage.build_array(btag, transfer_size, term_char) (line 160)
-- USBTMCDriver.__init__(self, *args, **kwargs) (line 181)
-- USBTMCDriver.__init__(self, vendor, product, serial_number, **kwargs) (line 191)
-- USBTMCDriver._get_capabilities(self) (line 208)
-- USBTMCDriver._find_interface(self, dev, setting) (line 220)
-- USBTMCDriver.send(self, command, termination, encoding) (line 230)
-- USBTMCDriver.recv(self, termination, encoding, recv_chunk) (line 255)
+usb_driver:
+  name: USBTMC 通信组件
+  name_en: USBTMC Communication Component
+  manufacturer: ''
+  category:
+  - USB仪器通信接口
+  - 通用字节流仪器通信接口
+  tags:
+  - 实验执行&合成设备
+  - 表征设备
+  - 实验室自动化与仪器集成
+  - 电子与电气测试
+  - 实验仪器通信与驱动集成
+  - 实验仪器数据采集与联机控制
+  - USB仪器通信接口
+  - 通用字节流仪器通信接口
+  description: 用于通过 USB Test and Measurement Class（USBTMC）协议与实验仪器通信的软件组件，并非具体物理设备。它负责封装与解析
+    USBTMC 报文、发送命令、接收响应以及管理底层 USB 文本通信，适合连接支持 USBTMC 的测试测量仪器。
+  description_en: A software component for communicating with laboratory instruments
+    over the USB Test and Measurement Class (USBTMC) protocol, rather than a specific
+    physical device. It handles USBTMC message construction and parsing, command transmission,
+    response reception, and low-level USB text communication for instruments that
+    support USBTMC.
+  class:
+    action_value_mappings:
+      auto-finalize:
+        schema:
+          description: 结束并清理 USBTMC 通信会话。
+          description_en: Finalize and clean up the USBTMC communication session.
+      auto-raw_recv:
+        schema:
+          description: 从 USBTMC 连接原始接收字节数据。
+          description_en: Receive raw byte data from the USBTMC connection.
+      auto-raw_send:
+        schema:
+          description: 向 USBTMC 连接原始发送字节数据。
+          description_en: Send raw byte data over the USBTMC connection.
+      auto-recv:
+        schema:
+          description: 接收 USBTMC 设备返回的响应数据。
+          description_en: Receive response data returned by the USBTMC device.
+      auto-send:
+        schema:
+          description: 向 USBTMC 设备发送命令或文本数据。
+          description_en: Send commands or text data to the USBTMC device.
+      auto-build_array:
+        schema:
+          description: 构建用于 USBTMC 传输的字节数组或报文数据。
+          description_en: Build a byte array or message payload for USBTMC transfer.
+      auto-from_bytes:
+        schema:
+          description: 从原始字节数据解析 USBTMC 报文对象。
+          description_en: Parse a USBTMC message object from raw byte data.
+auto_annotation_metadata:
+  registry_key: usb_driver
+  annotation_workflow_version: v4
+  tag_hints:
+  - USBTMC
+  - USB instrument communication
+  - SCPI transport
+  - test and measurement protocol
+  - bulk IN/OUT transfer
+  - message parsing
+  - laboratory instrument control
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 该 USBTMC 组件负责命令发送、响应接收和会话管理，支撑实验中的仪器联机控制。
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: USBTMC 常用于测试测量仪器，该组件直接服务于实验室测量类仪器通信。
+  - id: P-0001
+    name: 实验室自动化与仪器集成
+    name_en: Laboratory Automation & Instrument Integration
+    type: experimental_domain
+    rationale: 它是标准化测试测量仪器的 USB 协议通信层，属于实验室仪器集成能力。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: 描述中明确指向 test and measurement protocol，常见应用对象为电子测试测量仪器。
+  - id: P-0003
+    name: 实验仪器通信与驱动集成
+    name_en: Instrument Communication & Driver Integration
+    type: experimental_scene
+    rationale: 组件负责 USBTMC 报文封装解析及收发，是典型的仪器驱动集成通信场景。
+  - id: P-0002
+    name: 实验仪器数据采集与联机控制
+    name_en: Instrument Data Acquisition & Online Control
+    type: experimental_scene
+    rationale: 其 send/recv 接口直接支撑实验软件对 USBTMC 仪器进行联机控制和数据获取。
+  - id: P-0005
+    name: USB仪器通信接口
+    name_en: USB Instrument Communication Interface
+    type: device_template_tag
+    rationale: 该组件通过 USB 与测试仪器交换报文，是 USB 仪器通信接口类组件。
+  - id: P-21001
+    name: 通用字节流仪器通信接口
+    name_en: Generic Byte-Stream Instrument Communication Interface
+    type: device_template_tag
+    rationale: 其核心操作是底层原始字节消息的构造、发送与解析。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: usb2_fir\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pyusb2fir/usb2fir.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.usb2_fir:USB2FIR\n\nClass: MLXCommonParameters \n  Bases: []\n\nClass: USB2FIR (focal)\n  Bases: ['object']\n\nFocal class methods:\n  [command] echo_test(self, echovalue)\n    comment: Transmit echo test values.\n        :rtype: int\n        :param echovalue: value to echo\n        :type echovalue: int\n        :return: Echoed value\n  [command] get_capability(self)\n    comment: Get capability. Every bit represents a function.\n        :rtype: list\n        :return: Capability\n  [command] get_status(self)\n    comment: Get status of last transaction.\n        :rtype: int\n        :return: Status\n  [command] start_bootloader(self)\n    comment: Jump to bootloader.\n  [command] read_memory(self, startaddress, length)\n    comment: Read a block of byte data from memory.\n        :param startaddress: memory start address\n        :type startaddress: int\n        :param length: Desired block length\n        :type length: int\n        :...\n  [command] write_memory(self, startaddress, data)\n    comment: Write a block of byte data to memory.\n        :param startaddress: memory start address\n        :type startaddress: int\n        :param data: List of bytes\n        :type data: list\n        :rtype: None\n  [command] bulkread(self)\n  [command] start_bfmode(self, refreshRate=3)\n  [command] stop_bfmode(self)\n  [command] initializeFrame(self, defaulttemp=0.0)\n  [command] updateFrame(self, frame)\n\nRegistry actions:\n  auto-echo_test (from echo_test())\n  auto-get_capability (from get_capability())\n  auto-get_status (from get_status())\n  auto-start_bootloader (from start_bootloader())\n  auto-read_memory (from read_memory())\n  auto-write_memory (from write_memory())\n  auto-bulkread (from bulkread())\n  auto-start_bfmode (from start_bfmode())\n  auto-stop_bfmode (from stop_bfmode())\n  auto-initializeFrame (from initializeFrame())\n  auto-updateFrame (from updateFrame())\n\nRequired output action ids:\n  auto-echo_test\n  auto-get_capability\n  auto-get_status\n  auto-start_bootloader\n  auto-read_memory\n  auto-write_memory\n  auto-bulkread\n  auto-start_bfmode\n  auto-stop_bfmode\n  auto-initializeFrame\n  auto-updateFrame"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_08e95cbba3fd51e00069d5ae8659588197bdb0e566ff0164f1",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1805,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6056,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_08e95cbba3fd51e00069d5ae86d1888197bad73e7faa29401d",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_08e95cbba3fd51e00069d5ae96cebc8197900e5b0a0d61e8bd",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"USB2FIR 远红外传感器接口模块\",\n  \"name_en\": \"USB2FIR far-infrared sensor interface module\",\n  \"manufacturer\": \"Melexis\",\n  \"description\": \"该设备是用于连接远红外热传感器的 USB 接口模块，常见于 Melexis MLX 系列 FIR 传感器评估或数据采集场景。它支持通信测试、能力与状态查询、存储器读写、进入引导加载模式，以及批量读取与热帧初始化/更新等操作。\",\n  \"description_en\": \"This device is a USB interface module for far-infrared thermal sensors, commonly used with Melexis MLX-series FIR sensors in evaluation or data acquisition setups. It supports communication tests, capability and status queries, memory read/write, bootloader entry, and bulk data readout plus thermal frame initialization and updates.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-echo_test\",\n      \"description\": \"发送回显测试值以验证通信链路是否正常。\",\n      \"description_en\": \"Transmit an echo test value to verify that the communication link is working.\"\n    },\n    {\n      \"action_name\": \"auto-get_capability\",\n      \"description\": \"读取接口模块支持的功能能力位。\",\n      \"description_en\": \"Read the capability bitfield that indicates which functions the interface module supports.\"\n    },\n    {\n      \"action_name\": \"auto-get_status\",\n      \"description\": \"读取最近一次事务的状态。\",\n      \"description_en\": \"Read the status of the most recent transaction.\"\n    },\n    {\n      \"action_name\": \"auto-start_bootloader\",\n      \"description\": \"使设备跳转到引导加载模式，用于固件维护或升级。\",\n      \"description_en\": \"Make the device jump to bootloader mode for firmware maintenance or updates.\"\n    },\n    {\n      \"action_name\": \"auto-read_memory\",\n      \"description\": \"从指定起始地址读取一段设备存储器数据。\",\n      \"description_en\": \"Read a block of device memory starting from a specified address.\"\n    },\n    {\n      \"action_name\": \"auto-write_memory\",\n      \"description\": \"向指定起始地址写入一段设备存储器数据。\",\n      \"description_en\": \"Write a block of data to device memory starting at a specified address.\"\n    },\n    {\n      \"action_name\": \"auto-bulkread\",\n      \"description\": \"执行一次批量数据读取。\",\n      \"description_en\": \"Perform a bulk data read operation.\"\n    },\n    {\n      \"action_name\": \"auto-start_bfmode\",\n      \"description\": \"启动 BF 模式，并可设置刷新率。\",\n      \"description_en\": \"Start BF mode, with an optional refresh rate setting.\"\n    },\n    {\n      \"action_name\": \"auto-stop_bfmode\",\n      \"description\": \"停止 BF 模式。\",\n      \"description_en\": \"Stop BF mode.\"\n    },\n    {\n      \"action_name\": \"auto-initializeFrame\",\n      \"description\": \"初始化帧数据结构，并设置默认温度值。\",\n      \"description_en\": \"Initialize the frame data structure and set a default temperature value.\"\n    },\n    {\n      \"action_name\": \"auto-updateFrame\",\n      \"description\": \"使用新数据更新当前帧。\",\n      \"description_en\": \"Update the current frame with new data.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"far-infrared sensing\",\n    \"thermal imaging\",\n    \"Melexis MLX\",\n    \"USB sensor interface\",\n    \"frame acquisition\",\n    \"memory read/write\",\n    \"firmware bootloader\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1276,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1656,
+      "output_tokens_details": {
+        "reasoning_tokens": 870
+      },
+      "total_tokens": 2932
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1276,
+      "output_token_count": 1656,
+      "predict_time": 27.875101116
+    }
+  },
+  "output_text": "{\n  \"name\": \"USB2FIR 远红外传感器接口模块\",\n  \"name_en\": \"USB2FIR far-infrared sensor interface module\",\n  \"manufacturer\": \"Melexis\",\n  \"description\": \"该设备是用于连接远红外热传感器的 USB 接口模块，常见于 Melexis MLX 系列 FIR 传感器评估或数据采集场景。它支持通信测试、能力与状态查询、存储器读写、进入引导加载模式，以及批量读取与热帧初始化/更新等操作。\",\n  \"description_en\": \"This device is a USB interface module for far-infrared thermal sensors, commonly used with Melexis MLX-series FIR sensors in evaluation or data acquisition setups. It supports communication tests, capability and status queries, memory read/write, bootloader entry, and bulk data readout plus thermal frame initialization and updates.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-echo_test\",\n      \"description\": \"发送回显测试值以验证通信链路是否正常。\",\n      \"description_en\": \"Transmit an echo test value to verify that the communication link is working.\"\n    },\n    {\n      \"action_name\": \"auto-get_capability\",\n      \"description\": \"读取接口模块支持的功能能力位。\",\n      \"description_en\": \"Read the capability bitfield that indicates which functions the interface module supports.\"\n    },\n    {\n      \"action_name\": \"auto-get_status\",\n      \"description\": \"读取最近一次事务的状态。\",\n      \"description_en\": \"Read the status of the most recent transaction.\"\n    },\n    {\n      \"action_name\": \"auto-start_bootloader\",\n      \"description\": \"使设备跳转到引导加载模式，用于固件维护或升级。\",\n      \"description_en\": \"Make the device jump to bootloader mode for firmware maintenance or updates.\"\n    },\n    {\n      \"action_name\": \"auto-read_memory\",\n      \"description\": \"从指定起始地址读取一段设备存储器数据。\",\n      \"description_en\": \"Read a block of device memory starting from a specified address.\"\n    },\n    {\n      \"action_name\": \"auto-write_memory\",\n      \"description\": \"向指定起始地址写入一段设备存储器数据。\",\n      \"description_en\": \"Write a block of data to device memory starting at a specified address.\"\n    },\n    {\n      \"action_name\": \"auto-bulkread\",\n      \"description\": \"执行一次批量数据读取。\",\n      \"description_en\": \"Perform a bulk data read operation.\"\n    },\n    {\n      \"action_name\": \"auto-start_bfmode\",\n      \"description\": \"启动 BF 模式，并可设置刷新率。\",\n      \"description_en\": \"Start BF mode, with an optional refresh rate setting.\"\n    },\n    {\n      \"action_name\": \"auto-stop_bfmode\",\n      \"description\": \"停止 BF 模式。\",\n      \"description_en\": \"Stop BF mode.\"\n    },\n    {\n      \"action_name\": \"auto-initializeFrame\",\n      \"description\": \"初始化帧数据结构，并设置默认温度值。\",\n      \"description_en\": \"Initialize the frame data structure and set a default temperature value.\"\n    },\n    {\n      \"action_name\": \"auto-updateFrame\",\n      \"description\": \"使用新数据更新当前帧。\",\n      \"description_en\": \"Update the current frame with new data.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"far-infrared sensing\",\n    \"thermal imaging\",\n    \"Melexis MLX\",\n    \"USB sensor interface\",\n    \"frame acquisition\",\n    \"memory read/write\",\n    \"firmware bootloader\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: usb_port\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: hardwarelibrary/communication/usbport.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.usb_port:USBPort\n\nClass: USBPort (focal)\n  Bases: ['CommunicationPort']\n  Docstring: USBPort class with basic application-level protocol \nfunctions to write strings and read strings, and abstract away\nthe details of the communication.\n\nFocal class methods:\n  [command] allDevices(cls, verbose=False)\n  [command] isOpen(self)\n  [command] isNotOpen(self)\n  [command] open(self)\n  [command] close(self)\n  [command] bytesAvailable(self, endPoint=None)\n  [command] flush(self, endPoint=None)\n  [command] readData(self, length, endPoint=None)\n  [command] writeData(self, data, endPoint=None)\n  [command] readString(self, endPoint=None)\n\nRegistry actions:\n  auto-allDevices (from allDevices())\n  auto-isOpen (from isOpen())\n  auto-isNotOpen (from isNotOpen())\n  auto-open (from open())\n  auto-close (from close())\n  auto-bytesAvailable (from bytesAvailable())\n  auto-flush (from flush())\n  auto-readData (from readData())\n  auto-writeData (from writeData())\n  auto-readString (from readString())\n\nRequired output action ids:\n  auto-allDevices\n  auto-isOpen\n  auto-isNotOpen\n  auto-open\n  auto-close\n  auto-bytesAvailable\n  auto-flush\n  auto-readData\n  auto-writeData\n  auto-readString"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_02f3fd9e4ef799950069d5ae75bb548193901c433c3c4f15a2",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2386,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3892,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_02f3fd9e4ef799950069d5ae7740f481938af35ce1e021db6c",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_02f3fd9e4ef799950069d5ae7d78bc8193acf4a6df6dbdf59f",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"USB通信端口组件\",\n  \"name_en\": \"USB Communication Port Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验系统中通过USB与外部设备交换数据的非物理通信组件。它提供设备枚举、端口打开与关闭、缓冲区查询与清空、字节读写以及字符串读取等基础通信能力，用于承载上层仪器协议。\",\n  \"description_en\": \"A non-physical communication component used in laboratory systems to exchange data with external devices over USB. It provides basic functions for device enumeration, opening and closing a port, checking and flushing buffers, reading and writing bytes, and reading strings, serving as a transport layer for higher-level instrument protocols.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-allDevices\",\n      \"description\": \"列出可用的USB设备或端口。\",\n      \"description_en\": \"List available USB devices or ports.\"\n    },\n    {\n      \"action_name\": \"auto-isOpen\",\n      \"description\": \"检查USB端口当前是否已打开。\",\n      \"description_en\": \"Check whether the USB port is currently open.\"\n    },\n    {\n      \"action_name\": \"auto-isNotOpen\",\n      \"description\": \"检查USB端口当前是否未打开。\",\n      \"description_en\": \"Check whether the USB port is currently not open.\"\n    },\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开USB通信端口以开始数据交换。\",\n      \"description_en\": \"Open the USB communication port to start data exchange.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭USB通信端口。\",\n      \"description_en\": \"Close the USB communication port.\"\n    },\n    {\n      \"action_name\": \"auto-bytesAvailable\",\n      \"description\": \"查询指定端点当前可读取的字节数。\",\n      \"description_en\": \"Query the number of bytes currently available to read on the specified endpoint.\"\n    },\n    {\n      \"action_name\": \"auto-flush\",\n      \"description\": \"清空指定端点的通信缓冲区。\",\n      \"description_en\": \"Flush the communication buffer of the specified endpoint.\"\n    },\n    {\n      \"action_name\": \"auto-readData\",\n      \"description\": \"从指定端点读取指定长度的原始数据。\",\n      \"description_en\": \"Read raw data of the specified length from the specified endpoint.\"\n    },\n    {\n      \"action_name\": \"auto-writeData\",\n      \"description\": \"向指定端点写入原始数据。\",\n      \"description_en\": \"Write raw data to the specified endpoint.\"\n    },\n    {\n      \"action_name\": \"auto-readString\",\n      \"description\": \"从指定端点读取字符串数据。\",\n      \"description_en\": \"Read string data from the specified endpoint.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB communication\",\n    \"instrument connectivity\",\n    \"byte stream I/O\",\n    \"device enumeration\",\n    \"endpoint access\",\n    \"protocol transport\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1034,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 949,
+      "output_tokens_details": {
+        "reasoning_tokens": 296
+      },
+      "total_tokens": 1983
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1034,
+      "output_token_count": 949,
+      "predict_time": 17.552530542
+    }
+  },
+  "output_text": "{\n  \"name\": \"USB通信端口组件\",\n  \"name_en\": \"USB Communication Port Component\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验系统中通过USB与外部设备交换数据的非物理通信组件。它提供设备枚举、端口打开与关闭、缓冲区查询与清空、字节读写以及字符串读取等基础通信能力，用于承载上层仪器协议。\",\n  \"description_en\": \"A non-physical communication component used in laboratory systems to exchange data with external devices over USB. It provides basic functions for device enumeration, opening and closing a port, checking and flushing buffers, reading and writing bytes, and reading strings, serving as a transport layer for higher-level instrument protocols.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-allDevices\",\n      \"description\": \"列出可用的USB设备或端口。\",\n      \"description_en\": \"List available USB devices or ports.\"\n    },\n    {\n      \"action_name\": \"auto-isOpen\",\n      \"description\": \"检查USB端口当前是否已打开。\",\n      \"description_en\": \"Check whether the USB port is currently open.\"\n    },\n    {\n      \"action_name\": \"auto-isNotOpen\",\n      \"description\": \"检查USB端口当前是否未打开。\",\n      \"description_en\": \"Check whether the USB port is currently not open.\"\n    },\n    {\n      \"action_name\": \"auto-open\",\n      \"description\": \"打开USB通信端口以开始数据交换。\",\n      \"description_en\": \"Open the USB communication port to start data exchange.\"\n    },\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭USB通信端口。\",\n      \"description_en\": \"Close the USB communication port.\"\n    },\n    {\n      \"action_name\": \"auto-bytesAvailable\",\n      \"description\": \"查询指定端点当前可读取的字节数。\",\n      \"description_en\": \"Query the number of bytes currently available to read on the specified endpoint.\"\n    },\n    {\n      \"action_name\": \"auto-flush\",\n      \"description\": \"清空指定端点的通信缓冲区。\",\n      \"description_en\": \"Flush the communication buffer of the specified endpoint.\"\n    },\n    {\n      \"action_name\": \"auto-readData\",\n      \"description\": \"从指定端点读取指定长度的原始数据。\",\n      \"description_en\": \"Read raw data of the specified length from the specified endpoint.\"\n    },\n    {\n      \"action_name\": \"auto-writeData\",\n      \"description\": \"向指定端点写入原始数据。\",\n      \"description_en\": \"Write raw data to the specified endpoint.\"\n    },\n    {\n      \"action_name\": \"auto-readString\",\n      \"description\": \"从指定端点读取字符串数据。\",\n      \"description_en\": \"Read string data from the specified endpoint.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB communication\",\n    \"instrument connectivity\",\n    \"byte stream I/O\",\n    \"device enumeration\",\n    \"endpoint access\",\n    \"protocol transport\"\n  ]\n}"
+}

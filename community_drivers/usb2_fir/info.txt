@@ -1,42 +1,113 @@
-Device: usb2_fir
-Registry Key: usb2_fir
-Short Description: Usb2 FIR是一款实验执行&合成设备，主要功能包括停止、写入数据、初始化、启动、状态查询、读取数据。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (11):
-- auto-bulkread -> bulkread [UniLabJsonCommand] goal_params: none
-- auto-echo_test -> echo_test [UniLabJsonCommand] goal_params: echovalue
-- auto-get_capability -> get_capability [UniLabJsonCommand] goal_params: none
-- auto-get_status -> get_status [UniLabJsonCommand] goal_params: none
-- auto-initializeFrame -> initializeFrame [UniLabJsonCommand] goal_params: defaulttemp
-- auto-read_memory -> read_memory [UniLabJsonCommand] goal_params: length, startaddress
-- auto-start_bfmode -> start_bfmode [UniLabJsonCommand] goal_params: refreshRate
-- auto-start_bootloader -> start_bootloader [UniLabJsonCommand] goal_params: none
-- auto-stop_bfmode -> stop_bfmode [UniLabJsonCommand] goal_params: none
-- auto-updateFrame -> updateFrame [UniLabJsonCommand] goal_params: frame
-- auto-write_memory -> write_memory [UniLabJsonCommand] goal_params: data, startaddress
-
-Driver Functions (18):
-- uint4_to_int4(i) (line 111)
-- uint6_to_int6(i) (line 117)
-- uint8_to_int8(i) (line 123)
-- uint10_to_int10(i) (line 129)
-- uint16_to_int16(i) (line 135)
-- MLXCommonParameters.__init__(self, eepromdata) (line 144)
-- USB2FIR.__init__(self, i2caddress, refreshRate) (line 324)
-- USB2FIR.echo_test(self, echovalue) (line 341)
-- USB2FIR.get_capability(self) (line 353)
-- USB2FIR.get_status(self) (line 364)
-- USB2FIR.start_bootloader(self) (line 375)
-- USB2FIR.read_memory(self, startaddress, length) (line 383)
-- USB2FIR.write_memory(self, startaddress, data) (line 397)
-- USB2FIR.bulkread(self) (line 409)
-- USB2FIR.start_bfmode(self, refreshRate) (line 414)
-- USB2FIR.stop_bfmode(self) (line 418)
-- USB2FIR.initializeFrame(self, defaulttemp) (line 422)
-- USB2FIR.updateFrame(self, frame) (line 426)
+usb2_fir:
+  name: USB2FIR 远红外传感器接口模块
+  name_en: USB2FIR far-infrared sensor interface module
+  manufacturer: Melexis
+  category:
+  - 远红外传感器接口模块
+  tags:
+  - 表征设备
+  - 传感测量与环境感知
+  - 红外热成像与热帧采集
+  - 远红外传感器接口模块
+  description: 该设备是用于连接远红外热传感器的 USB 接口模块，常见于 Melexis MLX 系列 FIR 传感器评估或数据采集场景。它支持通信测试、能力与状态查询、存储器读写、进入引导加载模式，以及批量读取与热帧初始化/更新等操作。
+  description_en: This device is a USB interface module for far-infrared thermal sensors,
+    commonly used with Melexis MLX-series FIR sensors in evaluation or data acquisition
+    setups. It supports communication tests, capability and status queries, memory
+    read/write, bootloader entry, and bulk data readout plus thermal frame initialization
+    and updates.
+  class:
+    action_value_mappings:
+      auto-echo_test:
+        schema:
+          description: 发送回显测试值以验证通信链路是否正常。
+          description_en: Transmit an echo test value to verify that the communication
+            link is working.
+      auto-get_capability:
+        schema:
+          description: 读取接口模块支持的功能能力位。
+          description_en: Read the capability bitfield that indicates which functions
+            the interface module supports.
+      auto-get_status:
+        schema:
+          description: 读取最近一次事务的状态。
+          description_en: Read the status of the most recent transaction.
+      auto-start_bootloader:
+        schema:
+          description: 使设备跳转到引导加载模式，用于固件维护或升级。
+          description_en: Make the device jump to bootloader mode for firmware maintenance
+            or updates.
+      auto-read_memory:
+        schema:
+          description: 从指定起始地址读取一段设备存储器数据。
+          description_en: Read a block of device memory starting from a specified
+            address.
+      auto-write_memory:
+        schema:
+          description: 向指定起始地址写入一段设备存储器数据。
+          description_en: Write a block of data to device memory starting at a specified
+            address.
+      auto-bulkread:
+        schema:
+          description: 执行一次批量数据读取。
+          description_en: Perform a bulk data read operation.
+      auto-start_bfmode:
+        schema:
+          description: 启动 BF 模式，并可设置刷新率。
+          description_en: Start BF mode, with an optional refresh rate setting.
+      auto-stop_bfmode:
+        schema:
+          description: 停止 BF 模式。
+          description_en: Stop BF mode.
+      auto-initializeFrame:
+        schema:
+          description: 初始化帧数据结构，并设置默认温度值。
+          description_en: Initialize the frame data structure and set a default temperature
+            value.
+      auto-updateFrame:
+        schema:
+          description: 使用新数据更新当前帧。
+          description_en: Update the current frame with new data.
+auto_annotation_metadata:
+  registry_key: usb2_fir
+  annotation_workflow_version: v4
+  tag_hints:
+  - far-infrared sensing
+  - thermal imaging
+  - Melexis MLX
+  - USB sensor interface
+  - frame acquisition
+  - memory read/write
+  - firmware bootloader
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该模块用于热帧读取、状态查询与传感器数据采集，属于测量表征设备。
+  - id: P-1108
+    name: 传感测量与环境感知
+    name_en: Sensing Measurement & Environmental Perception
+    type: experimental_domain
+    rationale: 设备连接远红外热传感器并进行帧更新与数据读取，属于传感测量范畴。
+  proposed_new_tags:
+  - id: P-99020004
+    name: 红外热成像与热帧采集
+    name_en: Infrared Thermal Imaging & Thermal Frame Acquisition
+    type: experimental_scene
+    rationale: 该模块支持热帧初始化、更新和批量读取，典型用于红外热成像与热帧采集场景。
+  - id: P-99020005
+    name: 远红外传感器接口模块
+    name_en: Far-Infrared Sensor Interface Module
+    type: device_template_tag
+    rationale: 设备本身是连接MLX类远红外热传感器并完成通信/数据采集的接口模块。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

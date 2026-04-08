@@ -1,51 +1,141 @@
-Device: us_btin
-Registry Key: us_btin
-Short Description: USBtin CAN总线适配器是一款实验执行&合成设备，主要功能包括关闭、写入数据、打开、设备连接、读取数据、过滤。
-
-Categories:
-- 实验执行&合成设备
-
-Related Tags (from tag 标签列表.csv):
-- [4313] 实验执行&合成设备 / Experiment Execution & Synthesis Equipment (experimental_step)
-
-Atom Actions (17):
-- auto-add_message_listener -> add_message_listener [UniLabJsonCommand] goal_params: func
-- auto-close_can_channel -> close_can_channel [UniLabJsonCommand] goal_params: none
-- auto-connect -> connect [UniLabJsonCommand] goal_params: port
-- auto-disconnect -> disconnect [UniLabJsonCommand] goal_params: none
-- auto-open_can_channel -> open_can_channel [UniLabJsonCommand] goal_params: baudrate, mode
-- auto-read_response -> read_response [UniLabJsonCommand] goal_params: none
-- auto-remove_message_listener -> remove_message_listener [UniLabJsonCommand] goal_params: func
-- auto-rx_thread -> rx_thread [UniLabJsonCommand] goal_params: none
-- auto-send -> send [UniLabJsonCommand] goal_params: canmsg
-- auto-send_first_tx_fifo_message -> send_first_tx_fifo_message [UniLabJsonCommand] goal_params: none
-- auto-set_filter -> set_filter [UniLabJsonCommand] goal_params: fc
-- auto-start_rx_thread -> start_rx_thread [UniLabJsonCommand] goal_params: none
-- auto-stop_rx_thread -> stop_rx_thread [UniLabJsonCommand] goal_params: none
-- auto-transmit -> transmit [UniLabJsonCommand] goal_params: cmd
-- auto-write_mcp_filter_mask_registers -> write_mcp_filter_mask_registers [UniLabJsonCommand] goal_params: maskid, registers
-- auto-write_mcp_filter_registers -> write_mcp_filter_registers [UniLabJsonCommand] goal_params: filterid, registers
-- auto-write_mcp_register -> write_mcp_register [UniLabJsonCommand] goal_params: register, value
-
-Driver Functions (21):
-- USBtin.__init__(self) (line 120)
-- USBtin.get_firmware_version(self) (line 137)
-- USBtin.get_hardware_version(self) (line 142)
-- USBtin.get_serial_number(self) (line 147)
-- USBtin.connect(self, port) (line 152)
-- USBtin.transmit(self, cmd) (line 198)
-- USBtin.read_response(self) (line 210)
-- USBtin.disconnect(self) (line 228)
-- USBtin.open_can_channel(self, baudrate, mode) (line 237)
-- USBtin.start_rx_thread(self) (line 325)
-- USBtin.stop_rx_thread(self) (line 334)
-- USBtin.rx_thread(self) (line 348)
-- USBtin.close_can_channel(self) (line 399)
-- USBtin.add_message_listener(self, func) (line 411)
-- USBtin.remove_message_listener(self, func) (line 416)
-- USBtin.send_first_tx_fifo_message(self) (line 424)
-- USBtin.send(self, canmsg) (line 437)
-- USBtin.write_mcp_register(self, register, value) (line 447)
-- USBtin.write_mcp_filter_mask_registers(self, maskid, registers) (line 461)
-- USBtin.write_mcp_filter_registers(self, filterid, registers) (line 472)
-- USBtin.set_filter(self, fc) (line 484)
+us_btin:
+  name: USBtin USB-CAN 适配器
+  name_en: USBtin USB-to-CAN Adapter
+  manufacturer: ''
+  category:
+  - USB-CAN总线适配器
+  tags:
+  - 表征设备
+  - 电子与电气测试
+  - CAN总线设备调试与集成
+  - CAN总线通信记录与离线分析
+  - USB-CAN总线适配器
+  description: USBtin 是一种通过串口命令控制的 USB 转 CAN 总线适配器，用于让计算机连接、监听和发送 CAN 报文。该设备支持设置 CAN
+    波特率与工作模式（如主动、只听、回环），并可配置 MCP2515 的寄存器、过滤器和掩码，适用于实验室中的 CAN 设备联机、总线监测、协议调试与嵌入式系统测试。
+  description_en: USBtin is a USB-to-CAN bus adapter controlled through serial commands,
+    used to let a computer connect to, monitor, and transmit CAN frames. It supports
+    CAN baud rate and mode configuration (such as active, listen-only, and loopback),
+    and can configure MCP2515 registers, filters, and masks for laboratory CAN device
+    interfacing, bus monitoring, protocol debugging, and embedded-system testing.
+  class:
+    action_value_mappings:
+      auto-connect:
+        schema:
+          description: 连接指定串口上的 USBtin，并进入配置模式。
+          description_en: Connect to the USBtin on the specified serial port and enter
+            configuration mode.
+      auto-transmit:
+        schema:
+          description: 向 USBtin 发送原始命令。
+          description_en: Transmit a raw command to the USBtin.
+      auto-read_response:
+        schema:
+          description: 读取 USBtin 返回的响应数据。
+          description_en: Read response data returned by the USBtin.
+      auto-disconnect:
+        schema:
+          description: 断开设备连接并关闭串口。
+          description_en: Disconnect the device and close the serial port.
+      auto-open_can_channel:
+        schema:
+          description: 设置 CAN 波特率和模式并打开 CAN 通道。
+          description_en: Set the CAN baud rate and mode, then open the CAN channel.
+      auto-start_rx_thread:
+        schema:
+          description: 启动接收线程以处理串口中的 CAN 数据。
+          description_en: Start the receive thread to process CAN data from the serial
+            port.
+      auto-stop_rx_thread:
+        schema:
+          description: 停止接收线程并等待其退出。
+          description_en: Stop the receive thread and wait for it to exit.
+      auto-rx_thread:
+        schema:
+          description: 运行主接收循环，解析接收数据、分发 CAN 消息并处理发送队列。
+          description_en: Run the main receive loop to parse incoming data, dispatch
+            CAN messages, and handle the transmit queue.
+      auto-close_can_channel:
+        schema:
+          description: 关闭 CAN 通道。
+          description_en: Close the CAN channel.
+      auto-add_message_listener:
+        schema:
+          description: 添加接收 CAN 消息的回调监听器。
+          description_en: Add a callback listener for received CAN messages.
+      auto-remove_message_listener:
+        schema:
+          description: 移除接收 CAN 消息的回调监听器。
+          description_en: Remove a callback listener for received CAN messages.
+      auto-send_first_tx_fifo_message:
+        schema:
+          description: 发送发送队列中排在最前面的 CAN 消息。
+          description_en: Send the first CAN message in the transmit FIFO queue.
+      auto-send:
+        schema:
+          description: 发送一条 CAN 消息。
+          description_en: Send a CAN message.
+      auto-write_mcp_register:
+        schema:
+          description: 写入 MCP2515 控制器的指定寄存器。
+          description_en: Write the specified register of the MCP2515 controller.
+      auto-write_mcp_filter_mask_registers:
+        schema:
+          description: 写入 MCP2515 的过滤掩码寄存器。
+          description_en: Write the MCP2515 filter mask registers.
+      auto-write_mcp_filter_registers:
+        schema:
+          description: 写入 MCP2515 的消息过滤寄存器。
+          description_en: Write the MCP2515 message filter registers.
+      auto-set_filter:
+        schema:
+          description: 配置 CAN 硬件过滤器和掩码。
+          description_en: Configure the CAN hardware filters and masks.
+auto_annotation_metadata:
+  registry_key: us_btin
+  annotation_workflow_version: v4
+  tag_hints:
+  - USB-to-CAN
+  - CAN bus communication
+  - serial-controlled adapter
+  - MCP2515 filtering
+  - CAN message transmission
+  - listen-only CAN
+  - loopback testing
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该适配器用于CAN报文监听、发送和过滤配置，主要承担总线测试与监测任务。
+  - id: P-0011
+    name: 电子与电气测试
+    name_en: Electronics & Electrical Testing
+    type: experimental_domain
+    rationale: CAN总线联机、监听和协议调试属于电子与电气测试范畴。
+  - id: P-20004
+    name: CAN总线设备调试与集成
+    name_en: CAN Device Debugging & Integration
+    type: experimental_scene
+    rationale: 设备支持CAN波特率、模式、过滤器和掩码配置，直接用于CAN设备调试与集成。
+  - id: P-5005
+    name: CAN总线通信记录与离线分析
+    name_en: CAN Bus Communication Logging & Offline Analysis
+    type: experimental_scene
+    rationale: 设备可监听和接收CAN报文，适合总线监测与日志分析。
+  - id: P-20003
+    name: USB-CAN总线适配器
+    name_en: USB-to-CAN Bus Adapter
+    type: device_template_tag
+    rationale: USBtin明确是通过USB连接计算机的CAN总线适配器。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

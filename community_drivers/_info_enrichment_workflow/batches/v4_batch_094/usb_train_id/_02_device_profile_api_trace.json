@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: usb_train_id\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pymepix/processing/usbtrainid.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic_usb.usb_train_id:USBTrainID\n\nClass: USBTrainID (focal)\n  Bases: ['multiprocessing.Process', 'ProcessLogger']\n  Docstring: Class for asynchronously writing raw files\nIntended to allow writing of raw data while minimizing impact on UDP reception reliability\n\nFocal class methods:\n  [command] connect_device(self, device)\n    comment: doesn't work\n    comment: Configure serial interface\n    comment: Establish connection to USB device\n  [command] run(self)\n    comment: variables needed in loop\n    comment: times, ids = [], []\n    comment: Information fields read from the USB interface\n    comment: Number of bytes in each information field\n    comment: State machine etc. local variables\n    comment: wait for instructions, valid commands are\n    comment: \"SHUTDOWN\": exits this loop and ends thread\n    comment: \"filename\" in the form \"/filename\n    comment: Open filehandle\n    comment: Align with beginning of word (STX = ASCII 02)\n    comment: Reset information on each run\n    comment: Get info according to Information fields and bytes fields\n    comment: Information fields are in order, so do not use standard Python dictionary\n    comment: Check if last byte is a ETX\n    comment: Calculate crc\n    comment: data payload\n    comment: Train ID in decimal\n    comment: ids.append(timingInfo['Train ID'])\n    comment: times.append(zeit)\n    comment: directly store data to disk\n    comment: print(timingInfo['Train ID'], zeit)\n    comment: close file\n    comment: We reach this point only after \"SHUTDOWN\" command received\n\nRegistry actions:\n  auto-connect_device (from connect_device())\n  auto-run (from run())\n\nRequired output action ids:\n  auto-connect_device\n  auto-run"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0296c06c462697830069d5ae7656a081948de21781e69d267a",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 2893,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3257,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0296c06c462697830069d5ae76cfc08194ab92b090cc16adf4",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0296c06c462697830069d5ae7e69bc81948a590f8a69f9c52c",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"USB列车ID采集器\",\n  \"name_en\": \"USB Train ID Reader\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于通过USB串行接口接收并解析列车ID与时间信息的通用设备/采集模块，可在独立进程中持续读取数据帧并将原始数据写入磁盘，以降低对主数据接收流程的影响。\",\n  \"description_en\": \"A generic USB serial device/component for receiving and parsing Train ID and timing information. It runs in a separate process to continuously read framed data and write raw data to disk while minimizing impact on the main data reception path.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect_device\",\n      \"description\": \"配置串行接口并连接USB设备。\",\n      \"description_en\": \"Configure the serial interface and connect to the USB device.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"在独立进程中循环读取USB数据帧，解析列车ID和时间信息，并将原始数据写入文件直到收到关闭指令。\",\n      \"description_en\": \"Continuously read framed data from the USB interface in a separate process, parse Train ID and timing information, and write raw data to file until a shutdown command is received.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB serial communication\",\n    \"Train ID acquisition\",\n    \"timing information\",\n    \"raw data logging\",\n    \"asynchronous data capture\",\n    \"frame parsing\",\n    \"CRC validation\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1109,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 766,
+      "output_tokens_details": {
+        "reasoning_tokens": 425
+      },
+      "total_tokens": 1875
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1109,
+      "output_token_count": 766,
+      "predict_time": 14.777420418
+    }
+  },
+  "output_text": "{\n  \"name\": \"USB列车ID采集器\",\n  \"name_en\": \"USB Train ID Reader\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于通过USB串行接口接收并解析列车ID与时间信息的通用设备/采集模块，可在独立进程中持续读取数据帧并将原始数据写入磁盘，以降低对主数据接收流程的影响。\",\n  \"description_en\": \"A generic USB serial device/component for receiving and parsing Train ID and timing information. It runs in a separate process to continuously read framed data and write raw data to disk while minimizing impact on the main data reception path.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-connect_device\",\n      \"description\": \"配置串行接口并连接USB设备。\",\n      \"description_en\": \"Configure the serial interface and connect to the USB device.\"\n    },\n    {\n      \"action_name\": \"auto-run\",\n      \"description\": \"在独立进程中循环读取USB数据帧，解析列车ID和时间信息，并将原始数据写入文件直到收到关闭指令。\",\n      \"description_en\": \"Continuously read framed data from the USB interface in a separate process, parse Train ID and timing information, and write raw data to file until a shutdown command is received.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USB serial communication\",\n    \"Train ID acquisition\",\n    \"timing information\",\n    \"raw data logging\",\n    \"asynchronous data capture\",\n    \"frame parsing\",\n    \"CRC validation\"\n  ]\n}"
+}

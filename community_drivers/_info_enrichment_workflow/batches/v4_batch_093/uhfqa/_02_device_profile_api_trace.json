@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: uhfqa\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/zhinst/qcodes/driver/devices/uhfqa.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.quantum_instruments.zhinst.uhfqa:UHFQA\n\nClass: CommandTableNode \n  Bases: ['ZINode']\n  Docstring: CommandTable node.\n\nThis class implements the basic functionality of the command table allowing\nthe user to load and upload their own command table.\n\nA dedicated class called ``CommandTable`` exists that is the preferred way\nto create a valid command table. For more information about the\n``CommandTable`` refer to the corresponding example or the documentation\nof that class directly.\n\nArgs:\n    root: Node used for the upload of the command table\n    tree: Tree (node path as tuple) of the current node\n    device_type: Device type.\n\nClass: AWG \n  Bases: ['ZINode']\n  Docstring: AWG node.\n\nThis class implements the basic functionality for the device specific\narbitrary waveform generator.\nBesides the upload/compilation of sequences it offers the upload of\nwaveforms and command tables.\n\nArgs:\n    root: Root of the nodetree\n    tree: Tree (node path as tuple) of the current node\n    session: Underlying session.\n    serial: Serial of the device.\n    index: Index of the corresponding awg channel\n    device_type: Device type\n\nClass: Integration \n  Bases: ['ZINode']\n  Docstring: Integration part for the UHFQA.\n\nArgs:\n    root: Underlying node tree.\n    tree: tree (node path as tuple) of the corresponding node.\n\n.. versionadded:: 0.3.2\n\nClass: QAS \n  Bases: ['ZINode']\n  Docstring: Quantum Analyzer Channel for the UHFQA.\n\nArgs:\n    root: Underlying node tree.\n    tree: tree (node path as tuple) of the corresponding node.\n\nClass: UHFQA (focal)\n  Bases: ['ZIBaseInstrument']\n  Docstring: QCoDeS driver for the Zurich Instruments UHFQA.\n\nFocal class methods:\n  [command] enable_qccs_mode(self)\n    comment: Configure the instrument to work with PQSC.\n\n        This method sets the reference clock source and DIO settings\n        correctly to connect the instrument to the PQSC.\n\n        Info:\n            Us...\n\nRegistry actions:\n  auto-enable_qccs_mode (from enable_qccs_mode())\n  auto-check_status (from check_status())\n  auto-load_validation_schema (from load_validation_schema())\n  auto-upload_to_device (from upload_to_device())\n  auto-load_from_device (from load_from_device())\n  auto-enable_sequencer (from enable_sequencer())\n  auto-wait_done (from wait_done())\n  auto-compile_sequencer_program (from compile_sequencer_program())\n  auto-load_sequencer_program (from load_sequencer_program())\n  auto-write_to_waveform_memory (from write_to_waveform_memory())\n  auto-read_from_waveform_memory (from read_from_waveform_memory())\n  auto-write_integration_weights (from write_integration_weights())\n  auto-crosstalk_matrix (from crosstalk_matrix())\n  auto-adjusted_delay (from adjusted_delay())\n\nRequired output action ids:\n  auto-enable_qccs_mode\n  auto-check_status\n  auto-load_validation_schema\n  auto-upload_to_device\n  auto-load_from_device\n  auto-enable_sequencer\n  auto-wait_done\n  auto-compile_sequencer_program\n  auto-load_sequencer_program\n  auto-write_to_waveform_memory\n  auto-read_from_waveform_memory\n  auto-write_integration_weights\n  auto-crosstalk_matrix\n  auto-adjusted_delay"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_03c206e0459210480069d5ae4ea31881969e305c29aa933d85",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1798,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7778,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_03c206e0459210480069d5ae4f20688196a7ba31e4db319d75",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_03c206e0459210480069d5ae635cd481969fa038727ee01056",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"超高频量子分析仪（UHFQA）\",\n  \"name_en\": \"UHF Quantum Analyzer (UHFQA)\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"这是一台用于量子实验的物理仪器，面向量子比特读出与控制场景。它提供量子分析通道、任意波形发生、序列器程序加载、波形存储器访问、积分权重配置，以及与 PQSC 配合的 QCCS 同步设置。\",\n  \"description_en\": \"This is a physical instrument for quantum experiments, used for qubit readout and control workflows. It provides quantum analyzer channels, arbitrary waveform generation, sequencer program loading, waveform memory access, integration weight configuration, and QCCS synchronization settings for operation with a PQSC.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-enable_qccs_mode\",\n      \"description\": \"配置仪器进入 QCCS 模式，以便与 PQSC 正确连接和同步。\",\n      \"description_en\": \"Configure the instrument for QCCS mode so it can connect to and synchronize with a PQSC.\"\n    },\n    {\n      \"action_name\": \"auto-check_status\",\n      \"description\": \"检查命令表或相关上传对象在仪器上的状态。\",\n      \"description_en\": \"Check the status of the command table or related uploaded object on the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-load_validation_schema\",\n      \"description\": \"加载用于校验命令表的验证模式。\",\n      \"description_en\": \"Load the validation schema used to validate a command table.\"\n    },\n    {\n      \"action_name\": \"auto-upload_to_device\",\n      \"description\": \"将命令表上传到仪器。\",\n      \"description_en\": \"Upload a command table to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-load_from_device\",\n      \"description\": \"从仪器读取命令表。\",\n      \"description_en\": \"Load a command table from the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-enable_sequencer\",\n      \"description\": \"启用 AWG 序列器运行。\",\n      \"description_en\": \"Enable the AWG sequencer.\"\n    },\n    {\n      \"action_name\": \"auto-wait_done\",\n      \"description\": \"等待序列器或相关 AWG 操作完成。\",\n      \"description_en\": \"Wait until the sequencer or related AWG operation is complete.\"\n    },\n    {\n      \"action_name\": \"auto-compile_sequencer_program\",\n      \"description\": \"编译序列器程序以供 AWG 执行。\",\n      \"description_en\": \"Compile a sequencer program for AWG execution.\"\n    },\n    {\n      \"action_name\": \"auto-load_sequencer_program\",\n      \"description\": \"将序列器程序加载到 AWG。\",\n      \"description_en\": \"Load a sequencer program onto the AWG.\"\n    },\n    {\n      \"action_name\": \"auto-write_to_waveform_memory\",\n      \"description\": \"向 AWG 波形存储器写入波形数据。\",\n      \"description_en\": \"Write waveform data to the AWG waveform memory.\"\n    },\n    {\n      \"action_name\": \"auto-read_from_waveform_memory\",\n      \"description\": \"从 AWG 波形存储器读取波形数据。\",\n      \"description_en\": \"Read waveform data from the AWG waveform memory.\"\n    },\n    {\n      \"action_name\": \"auto-write_integration_weights\",\n      \"description\": \"写入量子分析积分权重，用于读出信号积分处理。\",\n      \"description_en\": \"Write integration weights for quantum analyzer readout signal integration.\"\n    },\n    {\n      \"action_name\": \"auto-crosstalk_matrix\",\n      \"description\": \"获取或设置串扰补偿矩阵。\",\n      \"description_en\": \"Get or set the crosstalk compensation matrix.\"\n    },\n    {\n      \"action_name\": \"auto-adjusted_delay\",\n      \"description\": \"获取或设置调整后的延迟参数。\",\n      \"description_en\": \"Get or set the adjusted delay parameter.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"qubit readout\",\n    \"Zurich Instruments UHFQA\",\n    \"quantum analyzer\",\n    \"AWG sequencer\",\n    \"integration weights\",\n    \"QCCS/PQSC synchronization\",\n    \"waveform memory\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1480,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1967,
+      "output_tokens_details": {
+        "reasoning_tokens": 1013
+      },
+      "total_tokens": 3447
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1480,
+      "output_token_count": 1967,
+      "predict_time": 38.586816948
+    }
+  },
+  "output_text": "{\n  \"name\": \"超高频量子分析仪（UHFQA）\",\n  \"name_en\": \"UHF Quantum Analyzer (UHFQA)\",\n  \"manufacturer\": \"Zurich Instruments\",\n  \"description\": \"这是一台用于量子实验的物理仪器，面向量子比特读出与控制场景。它提供量子分析通道、任意波形发生、序列器程序加载、波形存储器访问、积分权重配置，以及与 PQSC 配合的 QCCS 同步设置。\",\n  \"description_en\": \"This is a physical instrument for quantum experiments, used for qubit readout and control workflows. It provides quantum analyzer channels, arbitrary waveform generation, sequencer program loading, waveform memory access, integration weight configuration, and QCCS synchronization settings for operation with a PQSC.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-enable_qccs_mode\",\n      \"description\": \"配置仪器进入 QCCS 模式，以便与 PQSC 正确连接和同步。\",\n      \"description_en\": \"Configure the instrument for QCCS mode so it can connect to and synchronize with a PQSC.\"\n    },\n    {\n      \"action_name\": \"auto-check_status\",\n      \"description\": \"检查命令表或相关上传对象在仪器上的状态。\",\n      \"description_en\": \"Check the status of the command table or related uploaded object on the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-load_validation_schema\",\n      \"description\": \"加载用于校验命令表的验证模式。\",\n      \"description_en\": \"Load the validation schema used to validate a command table.\"\n    },\n    {\n      \"action_name\": \"auto-upload_to_device\",\n      \"description\": \"将命令表上传到仪器。\",\n      \"description_en\": \"Upload a command table to the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-load_from_device\",\n      \"description\": \"从仪器读取命令表。\",\n      \"description_en\": \"Load a command table from the instrument.\"\n    },\n    {\n      \"action_name\": \"auto-enable_sequencer\",\n      \"description\": \"启用 AWG 序列器运行。\",\n      \"description_en\": \"Enable the AWG sequencer.\"\n    },\n    {\n      \"action_name\": \"auto-wait_done\",\n      \"description\": \"等待序列器或相关 AWG 操作完成。\",\n      \"description_en\": \"Wait until the sequencer or related AWG operation is complete.\"\n    },\n    {\n      \"action_name\": \"auto-compile_sequencer_program\",\n      \"description\": \"编译序列器程序以供 AWG 执行。\",\n      \"description_en\": \"Compile a sequencer program for AWG execution.\"\n    },\n    {\n      \"action_name\": \"auto-load_sequencer_program\",\n      \"description\": \"将序列器程序加载到 AWG。\",\n      \"description_en\": \"Load a sequencer program onto the AWG.\"\n    },\n    {\n      \"action_name\": \"auto-write_to_waveform_memory\",\n      \"description\": \"向 AWG 波形存储器写入波形数据。\",\n      \"description_en\": \"Write waveform data to the AWG waveform memory.\"\n    },\n    {\n      \"action_name\": \"auto-read_from_waveform_memory\",\n      \"description\": \"从 AWG 波形存储器读取波形数据。\",\n      \"description_en\": \"Read waveform data from the AWG waveform memory.\"\n    },\n    {\n      \"action_name\": \"auto-write_integration_weights\",\n      \"description\": \"写入量子分析积分权重，用于读出信号积分处理。\",\n      \"description_en\": \"Write integration weights for quantum analyzer readout signal integration.\"\n    },\n    {\n      \"action_name\": \"auto-crosstalk_matrix\",\n      \"description\": \"获取或设置串扰补偿矩阵。\",\n      \"description_en\": \"Get or set the crosstalk compensation matrix.\"\n    },\n    {\n      \"action_name\": \"auto-adjusted_delay\",\n      \"description\": \"获取或设置调整后的延迟参数。\",\n      \"description_en\": \"Get or set the adjusted delay parameter.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"qubit readout\",\n    \"Zurich Instruments UHFQA\",\n    \"quantum analyzer\",\n    \"AWG sequencer\",\n    \"integration weights\",\n    \"QCCS/PQSC synchronization\",\n    \"waveform memory\"\n  ]\n}"
+}
