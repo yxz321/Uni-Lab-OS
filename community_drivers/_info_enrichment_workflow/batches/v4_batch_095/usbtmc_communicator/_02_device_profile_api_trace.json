@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: usbtmc_communicator\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/instruments/abstract_instruments/comm/usbtmc_communicator.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.comm_layer.usbtmc_comm:USBTMCCommunicator\n\nClass: USBTMCCommunicator (focal)\n  Bases: ['io.IOBase', 'AbstractCommunicator']\n  Docstring: Wraps a USBTMC device. Arguments are passed to `usbtmc.Instrument`.\n\nFocal class methods:\n  [status_getter] address(self)\n  [status_getter] terminator(self)\n    comment: Gets/sets the termination character used for communicating with the\n        USBTMC instrument.\n\n        :type: `str`\n  [status_setter] terminator(self, newval)\n  [status_getter] timeout(self)\n    comment: Gets/sets the communication timeout of the usbtmc comm channel.\n\n        :type: `~pint.Quantity`\n        :units: As specified or assumed to be of units ``seconds``\n  [status_setter] timeout(self, newval)\n  [command] close(self)\n    comment: FILE-LIKE METHODS #\n    comment: Close the USBTMC connection object\n  [command] read(self, size=-1, encoding='utf-8')\n    comment: Read bytes in from the usbtmc connection, returning a decoded string\n        using the provided encoding method.\n\n        :param int size: The number of bytes to read in from the usbtmc\n            co...\n  [command] read_raw(self, size=-1)\n    comment: Read bytes in from the usbtmc connection.\n\n        :param int size: The number of bytes to read in from the usbtmc\n            connection.\n\n        :return: The read bytes\n        :rtype: `bytes`\n  [command] write(self, msg, encoding='utf-8')\n    comment: Write a string to the usbtmc connection. This string will be converted\n        to `bytes` using the provided encoding method.\n\n        :param str msg: String to be sent to the instrument over the usbt...\n  [command] write_raw(self, msg)\n    comment: Write bytes to the usbtmc connection.\n\n        :param bytes msg: Bytes to be sent to the instrument over the usbtmc\n            connection.\n  [command] seek(self, offset)\n  [command] tell(self)\n  [command] flush_input(self)\n    comment: For a USBTMC connection, this function does not actually do anything\n        and simply returns.\n\nRegistry actions:\n  auto-close (from close())\n  auto-flush_input (from flush_input())\n  auto-read (from read())\n  auto-read_raw (from read_raw())\n  auto-seek (from seek())\n  auto-tell (from tell())\n  auto-terminator (from terminator())\n  auto-timeout (from timeout())\n  auto-write (from write())\n  auto-write_raw (from write_raw())\n  auto-address (from address())\n\nRequired output action ids:\n  auto-close\n  auto-flush_input\n  auto-read\n  auto-read_raw\n  auto-seek\n  auto-tell\n  auto-terminator\n  auto-timeout\n  auto-write\n  auto-write_raw\n  auto-address"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_005fee33a67d6a610069d5b6a2c68081938cf049d118e2d7ac",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3803,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5855,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_005fee33a67d6a610069d5b6a326f88193886b54d57a5af1eb",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_005fee33a67d6a610069d5b6b3380c8193a6322a8e83f2b70c",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"USBTMC通信组件\",\n  \"name_en\": \"USBTMC Communicator\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验系统与支持 USBTMC 的测试测量仪器之间进行读写通信的非实体通信组件。它封装了基于 USBTMC 的连接，提供地址、终止符、超时等属性管理，以及文本和原始字节的读取、写入与连接关闭等文件式 I/O 操作。\",\n  \"description_en\": \"A non-physical communication component used to read from and write to USBTMC-compatible test and measurement instruments in laboratory systems. It wraps a USBTMC connection and provides property management for address, terminator, and timeout, along with file-like I/O operations such as text/raw byte read, write, and connection close.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭USBTMC通信连接。\",\n      \"description_en\": \"Close the USBTMC communication connection.\"\n    },\n    {\n      \"action_name\": \"auto-flush_input\",\n      \"description\": \"刷新输入缓冲区（对USBTMC连接通常不执行实际操作）。\",\n      \"description_en\": \"Flush the input buffer (typically a no-op for a USBTMC connection).\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"从USBTMC连接读取并解码文本。\",\n      \"description_en\": \"Read and decode text from the USBTMC connection.\"\n    },\n    {\n      \"action_name\": \"auto-read_raw\",\n      \"description\": \"从USBTMC连接读取原始字节。\",\n      \"description_en\": \"Read raw bytes from the USBTMC connection.\"\n    },\n    {\n      \"action_name\": \"auto-seek\",\n      \"description\": \"设置通信流中的当前位置偏移。\",\n      \"description_en\": \"Set the current position offset in the communication stream.\"\n    },\n    {\n      \"action_name\": \"auto-tell\",\n      \"description\": \"获取通信流中的当前位置。\",\n      \"description_en\": \"Get the current position in the communication stream.\"\n    },\n    {\n      \"action_name\": \"auto-terminator\",\n      \"description\": \"获取/设置通信终止字符。\",\n      \"description_en\": \"Get/set the communication termination character.\"\n    },\n    {\n      \"action_name\": \"auto-timeout\",\n      \"description\": \"获取/设置通信超时。\",\n      \"description_en\": \"Get/set the communication timeout.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向USBTMC连接写入文本。\",\n      \"description_en\": \"Write text to the USBTMC connection.\"\n    },\n    {\n      \"action_name\": \"auto-write_raw\",\n      \"description\": \"向USBTMC连接写入原始字节。\",\n      \"description_en\": \"Write raw bytes to the USBTMC connection.\"\n    },\n    {\n      \"action_name\": \"auto-address\",\n      \"description\": \"获取USBTMC地址。\",\n      \"description_en\": \"Get the USBTMC address.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USBTMC communication\",\n    \"USB test and measurement\",\n    \"SCPI over USB\",\n    \"instrument I/O\",\n    \"text and binary read/write\",\n    \"timeout handling\",\n    \"terminator configuration\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1382,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1525,
+      "output_tokens_details": {
+        "reasoning_tokens": 799
+      },
+      "total_tokens": 2907
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1382,
+      "output_token_count": 1525,
+      "predict_time": 27.323084559
+    }
+  },
+  "output_text": "{\n  \"name\": \"USBTMC通信组件\",\n  \"name_en\": \"USBTMC Communicator\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验系统与支持 USBTMC 的测试测量仪器之间进行读写通信的非实体通信组件。它封装了基于 USBTMC 的连接，提供地址、终止符、超时等属性管理，以及文本和原始字节的读取、写入与连接关闭等文件式 I/O 操作。\",\n  \"description_en\": \"A non-physical communication component used to read from and write to USBTMC-compatible test and measurement instruments in laboratory systems. It wraps a USBTMC connection and provides property management for address, terminator, and timeout, along with file-like I/O operations such as text/raw byte read, write, and connection close.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-close\",\n      \"description\": \"关闭USBTMC通信连接。\",\n      \"description_en\": \"Close the USBTMC communication connection.\"\n    },\n    {\n      \"action_name\": \"auto-flush_input\",\n      \"description\": \"刷新输入缓冲区（对USBTMC连接通常不执行实际操作）。\",\n      \"description_en\": \"Flush the input buffer (typically a no-op for a USBTMC connection).\"\n    },\n    {\n      \"action_name\": \"auto-read\",\n      \"description\": \"从USBTMC连接读取并解码文本。\",\n      \"description_en\": \"Read and decode text from the USBTMC connection.\"\n    },\n    {\n      \"action_name\": \"auto-read_raw\",\n      \"description\": \"从USBTMC连接读取原始字节。\",\n      \"description_en\": \"Read raw bytes from the USBTMC connection.\"\n    },\n    {\n      \"action_name\": \"auto-seek\",\n      \"description\": \"设置通信流中的当前位置偏移。\",\n      \"description_en\": \"Set the current position offset in the communication stream.\"\n    },\n    {\n      \"action_name\": \"auto-tell\",\n      \"description\": \"获取通信流中的当前位置。\",\n      \"description_en\": \"Get the current position in the communication stream.\"\n    },\n    {\n      \"action_name\": \"auto-terminator\",\n      \"description\": \"获取/设置通信终止字符。\",\n      \"description_en\": \"Get/set the communication termination character.\"\n    },\n    {\n      \"action_name\": \"auto-timeout\",\n      \"description\": \"获取/设置通信超时。\",\n      \"description_en\": \"Get/set the communication timeout.\"\n    },\n    {\n      \"action_name\": \"auto-write\",\n      \"description\": \"向USBTMC连接写入文本。\",\n      \"description_en\": \"Write text to the USBTMC connection.\"\n    },\n    {\n      \"action_name\": \"auto-write_raw\",\n      \"description\": \"向USBTMC连接写入原始字节。\",\n      \"description_en\": \"Write raw bytes to the USBTMC connection.\"\n    },\n    {\n      \"action_name\": \"auto-address\",\n      \"description\": \"获取USBTMC地址。\",\n      \"description_en\": \"Get the USBTMC address.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"USBTMC communication\",\n    \"USB test and measurement\",\n    \"SCPI over USB\",\n    \"instrument I/O\",\n    \"text and binary read/write\",\n    \"timeout handling\",\n    \"terminator configuration\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: usbtmclight\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/centralcontrol/usbtmclight.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.generic.usbtmclight:Usbtmclight\n\nClass: Usbtmclight (focal)\n  Bases: ['object']\n  Docstring: interface for a light source with usb-tmc comms (like LSS-7120)\n\nFocal class methods:\n  [command] connect(self)\n    comment: comms immediately after open seem unreliable, so we do this\n    comment: generic connect method, does what's appropriate for getting comms up, timeouts are in seconds\n        0 is success\n        -3 is programming/logic error\n  [command] disconnect(self, *args, **kwargs)\n    comment: do our best to clean up and tear down connection\n  [command] on(self)\n    comment: self._intensity = self._on_intensity  # compat\n    comment: turns the light on\n  [command] off(self)\n    comment: self._intensity = 0  # compat\n    comment: turns the light off\n  [command] set_state(self, state)\n    comment: sets the light's state\n  [command] query_on_state(self)\n  [command] get_status(self)\n    comment: hack for LSS-7120 not supporting read_stb()\n  [command] get_run_status(self)\n    comment: compat\n  [command] set_runtime(self, ms)\n    comment: compat\n  [command] get_runtime(self)\n    comment: compat\n  [command] set_intensity(self, percent)\n    comment: compat\n  [command] get_intensity(self)\n    comment: compat\n  [command] get_temperatures(self, *args, **kwargs)\n  [command] activate_recipe(self, recipe_name=None)\n    comment: compat\n\nRegistry actions:\n  auto-on (from on())\n  auto-off (from off())\n  auto-set_state (from set_state())\n  auto-query_on_state (from query_on_state())\n  auto-get_status (from get_status())\n  auto-get_run_status (from get_run_status())\n  auto-set_runtime (from set_runtime())\n  auto-get_runtime (from get_runtime())\n  auto-set_intensity (from set_intensity())\n  auto-get_intensity (from get_intensity())\n  auto-get_temperatures (from get_temperatures())\n  auto-activate_recipe (from activate_recipe())\n\nRequired output action ids:\n  auto-on\n  auto-off\n  auto-set_state\n  auto-query_on_state\n  auto-get_status\n  auto-get_run_status\n  auto-set_runtime\n  auto-get_runtime\n  auto-set_intensity\n  auto-get_intensity\n  auto-get_temperatures\n  auto-activate_recipe"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0b86c07f511d27790069d5b6b2262c819498f306b37ff7b814",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1793,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4631,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0b86c07f511d27790069d5b6b2865881949d85804e5ab4bb6d",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0b86c07f511d27790069d5b6bb64fc819499f98ba9b38ec8be",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"USB-TMC实验光源\",\n  \"name_en\": \"USB-TMC Light Source\",\n  \"manufacturer\": \"\",\n  \"description\": \"通过 USB-TMC 通信控制的实验室光源，可进行开关、光强设定、运行时长设定、状态查询、温度读取和预设配方激活，适用于实验中的照明、激发或定时曝光场景。\",\n  \"description_en\": \"A laboratory light source controlled over USB-TMC communication, supporting on/off control, intensity setting, runtime setting, status queries, temperature readout, and preset recipe activation for lab illumination, excitation, or timed exposure tasks.\",\n  \"tag_hints\": [\n    \"light source control\",\n    \"USB-TMC\",\n    \"intensity control\",\n    \"timed illumination\",\n    \"temperature monitoring\",\n    \"recipe/profile selection\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-on\",\n      \"description\": \"打开光源。\",\n      \"description_en\": \"Turn the light source on.\"\n    },\n    {\n      \"action_name\": \"auto-off\",\n      \"description\": \"关闭光源。\",\n      \"description_en\": \"Turn the light source off.\"\n    },\n    {\n      \"action_name\": \"auto-set_state\",\n      \"description\": \"设置光源开关状态。\",\n      \"description_en\": \"Set the light source on/off state.\"\n    },\n    {\n      \"action_name\": \"auto-query_on_state\",\n      \"description\": \"查询光源当前是否开启。\",\n      \"description_en\": \"Query whether the light source is currently on.\"\n    },\n    {\n      \"action_name\": \"auto-get_status\",\n      \"description\": \"读取设备状态信息。\",\n      \"description_en\": \"Get device status information.\"\n    },\n    {\n      \"action_name\": \"auto-get_run_status\",\n      \"description\": \"读取设备运行状态。\",\n      \"description_en\": \"Get the current run status.\"\n    },\n    {\n      \"action_name\": \"auto-set_runtime\",\n      \"description\": \"设置光源运行时长。\",\n      \"description_en\": \"Set the light source runtime duration.\"\n    },\n    {\n      \"action_name\": \"auto-get_runtime\",\n      \"description\": \"读取光源运行时长设置。\",\n      \"description_en\": \"Get the configured runtime duration.\"\n    },\n    {\n      \"action_name\": \"auto-set_intensity\",\n      \"description\": \"设置光强百分比。\",\n      \"description_en\": \"Set the output intensity percentage.\"\n    },\n    {\n      \"action_name\": \"auto-get_intensity\",\n      \"description\": \"读取光强百分比。\",\n      \"description_en\": \"Get the output intensity percentage.\"\n    },\n    {\n      \"action_name\": \"auto-get_temperatures\",\n      \"description\": \"读取设备温度信息。\",\n      \"description_en\": \"Get device temperature readings.\"\n    },\n    {\n      \"action_name\": \"auto-activate_recipe\",\n      \"description\": \"激活预设配方或工作模式。\",\n      \"description_en\": \"Activate a preset recipe or operating profile.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1282,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1175,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2457
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1282,
+      "output_token_count": 1175,
+      "predict_time": 20.029563268
+    }
+  },
+  "output_text": "{\n  \"name\": \"USB-TMC实验光源\",\n  \"name_en\": \"USB-TMC Light Source\",\n  \"manufacturer\": \"\",\n  \"description\": \"通过 USB-TMC 通信控制的实验室光源，可进行开关、光强设定、运行时长设定、状态查询、温度读取和预设配方激活，适用于实验中的照明、激发或定时曝光场景。\",\n  \"description_en\": \"A laboratory light source controlled over USB-TMC communication, supporting on/off control, intensity setting, runtime setting, status queries, temperature readout, and preset recipe activation for lab illumination, excitation, or timed exposure tasks.\",\n  \"tag_hints\": [\n    \"light source control\",\n    \"USB-TMC\",\n    \"intensity control\",\n    \"timed illumination\",\n    \"temperature monitoring\",\n    \"recipe/profile selection\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-on\",\n      \"description\": \"打开光源。\",\n      \"description_en\": \"Turn the light source on.\"\n    },\n    {\n      \"action_name\": \"auto-off\",\n      \"description\": \"关闭光源。\",\n      \"description_en\": \"Turn the light source off.\"\n    },\n    {\n      \"action_name\": \"auto-set_state\",\n      \"description\": \"设置光源开关状态。\",\n      \"description_en\": \"Set the light source on/off state.\"\n    },\n    {\n      \"action_name\": \"auto-query_on_state\",\n      \"description\": \"查询光源当前是否开启。\",\n      \"description_en\": \"Query whether the light source is currently on.\"\n    },\n    {\n      \"action_name\": \"auto-get_status\",\n      \"description\": \"读取设备状态信息。\",\n      \"description_en\": \"Get device status information.\"\n    },\n    {\n      \"action_name\": \"auto-get_run_status\",\n      \"description\": \"读取设备运行状态。\",\n      \"description_en\": \"Get the current run status.\"\n    },\n    {\n      \"action_name\": \"auto-set_runtime\",\n      \"description\": \"设置光源运行时长。\",\n      \"description_en\": \"Set the light source runtime duration.\"\n    },\n    {\n      \"action_name\": \"auto-get_runtime\",\n      \"description\": \"读取光源运行时长设置。\",\n      \"description_en\": \"Get the configured runtime duration.\"\n    },\n    {\n      \"action_name\": \"auto-set_intensity\",\n      \"description\": \"设置光强百分比。\",\n      \"description_en\": \"Set the output intensity percentage.\"\n    },\n    {\n      \"action_name\": \"auto-get_intensity\",\n      \"description\": \"读取光强百分比。\",\n      \"description_en\": \"Get the output intensity percentage.\"\n    },\n    {\n      \"action_name\": \"auto-get_temperatures\",\n      \"description\": \"读取设备温度信息。\",\n      \"description_en\": \"Get device temperature readings.\"\n    },\n    {\n      \"action_name\": \"auto-activate_recipe\",\n      \"description\": \"激活预设配方或工作模式。\",\n      \"description_en\": \"Activate a preset recipe or operating profile.\"\n    }\n  ]\n}"
+}

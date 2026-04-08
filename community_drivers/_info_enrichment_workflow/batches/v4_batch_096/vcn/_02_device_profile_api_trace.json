@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: vcn\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pcdsdevices/valve.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.valve.vcn:VCN\n\nClass: Commands \n  Bases: ['IntEnum']\n  Docstring: Command aliases for opening and closing valves.\n\nClass: InterlockError \n  Bases: ['PermissionError']\n  Docstring: Error when request is blocked by interlock logic.\n\nClass: GateValve \n  Bases: ['Stopper']\n  Docstring: Basic Vacuum Valve.\n\nThis inherits directly from `.Stopper` but adds additional logic to check\nthe state of the interlock before requesting motion. This is not a safety\nfeature, just a notice to the operator.\n\nThis class has been replaced by `VGCLegacy` but has not been removed as\nsome elements still need to be carried over.\n\nClass: ValveBase \n  Bases: ['Device']\n  Docstring: Base class for valves.\n\nValves are normally closed by default.\n\nNewer class. This and below are still missing some functionality.\nStill need to work out replacement of old classes.\n\nThis corresponds to ST_ValveBase in the lcls-twincat-vacuum library.\nPVs that are omitted in VCGLegacy are instead put in the VVC class.\n\nClass: VVC \n  Bases: ['ValveBase']\n  Docstring: VVC = Vent Valve, Controlled.\n\nThis corresponds to ST_ValveBase in the lcls-twincat-vacuum library.\nIt contains PVs missing for VGCLegacy.\n\nAll new controlled valve classes should inherit from VVC.\n\nClass: VGCLegacy \n  Bases: ['ValveBase']\n  Docstring: Class for Basic Vacuum Valve.\n\nReplaces the `GateValve` class.\nThis does not correspond to any TwinCAT libraries.\n\nClass: VRC \n  Bases: ['VVC', 'LightpathMixin']\n  Docstring: VRC = Valve with Readback and Control\n\nThis is the standard normally-closed valve class.\nIt corresponds with ST_VRC in the lcls-twincat-vacuum library,\nthough it also adds some PVs from ST_ValveBase.\n\nThis class does not contain detailed interlocking information,\nrather it only includes whether or not an interlock is present.\n\nClass: VRCClsLS \n  Bases: ['VVC']\n  Docstring: Valve with Readback and Control and only a Closed Limit Switch.\n\nThis class is just VRC but without open_limit.\n\nClass: VGC \n  Bases: ['VRC']\n  Docstring: VGC = Vacuum Gate valve, Controlled\n\nThis is the gate valve class with detailed interlocking information\navailable. These valves are typically along the beam path and are\nprevented from opening when the pressure differential is too great.\n\nThese are always normally closed valves, meaning that they are\nalways safe to close (in terms of vacuum) and that turning the PLC\noff will cause them to close immediately.\n\nThis corresponds with ST_VGC in the lcls-twincat-vacuum library.\n\nClass: VGC_2S \n  Bases: ['VRC']\n  Docstring: VGC_2S = Vacuum Gate valve, Controlled, with 2 Setpoints.\n\nThis is the class for VGC elements that have different interlock setpoints\nfor the upstream and downstream gauges respectively.\n\nThis corresponds with ST_VGC_2S in the lcls-twincat-vacuum library.\n\nClass: VFS \n  Bases: ['LightpathMixin']\n  Docstring: VFS = Fast Shutter Valve\n\nThis valve is typically used to protect sensitive beamline components\nfrom bad vacuum events that would otherwise damage them. It has an\nespecially fast response time compared to other vacuum system elements.\n\nThis corresponds with ST_VFS in the lcls-twincat-vacuum library,\nbut rather than inherit from other classes it includes repeated\nelements from ST_ValveBase.\n\nClass: VVCNO \n  Bases: ['Device']\n  Docstring: VVCNO = Vent Valve, Controlled, Normally Open.\n\nThis is the class for valves that default to the \"open\" state rather than\nthe \"closed\" state.\n\nThis corresponds with ST_VCCNO in the lcls-twincat-vacuum library,\nthough I suspect this is a typo and the file should have been ST_VVCNO.\n\nThis correctly does not inherit from the other classes because the\ncorresponding library elements also do not inherit from the other\nclasses.\n\nClass: VRCNO \n  Bases: ['VVCNO', 'LightpathMixin']\n  Docstring: VRCNO = Valve with Readback and Control, Normally Open\n\nThis is a valve that defaults to the \"open\" state and includes\ncontrollable elements.\n\nIt corresponds with ST_VRC_NO in the lcls-twincat-vacuum library,\nbut it also includes elements defined in ST_ValveBase, and it\ndoesn't use all of the PVs defined in the struct.\n\nClass: VRCDA \n  Bases: ['VRC', 'VRCNO']\n  Docstring: VRCDA = Valve with Readback and Control, Dual Acting\n\nThis is a valve that has no default state. It will maintain its current\nstate until asked to change it, and it can be interlocked in either\ndirection to prevent opening and to prevent closing.\n\nThis corresponds to ST_VRC_NO in the lcls-twincat-vacuum library, just\nlike VRCNO, but it uses more of the PVs that were defined in\nST_ValveBase.\n\nClass: VCN (focal)\n  Bases: ['Device']\n  Docstring: VCN = Variable Controlled Needle valve\n\nThis is a valve that controls the amount of flow between two gas volumes,\nrather than cutting off or opening the flow entirely.\n\nIt corresponds to ST_VCN in the lcls-twincat-vacuum library.\n\nClass: VCN_VAT590_Status \n  Bases: ['Device']\n  Docstring: See `VCN_VAT590`\n\nCorresponds to just ST_VAT590_STATUS in the\nlcls-twincat-vacuum library.\n\nClass: VCN_VAT590 \n  Bases: ['BaseInterface', 'Device']\n  Docstring: VCN_VAT590 = Variable Controlled Needle Valve using the VAT590\n\nVAT590 = series 590 valve from the company, VAT\nVAT = company that manufactures vacuum valves, among other things\n\nThis has different PVs than the normal VCN class.\n\nThis corresponds to the ST_VCN_VAT590 and ST_VAT590_STATUS\ndata types in the lcls-twincat-vacuum library.\n\nClass: VCN_OpenLoop \n  Bases: ['Device']\n  Docstring: VCN = Variable Controlled Needle\n\nVCN w/ open loop control\nIt corresponds to ST_VCN in the lcls-twincat-vacuum library.\n\nRegistry actions:\n  auto-check_value (from check_value())\n  auto-interlocked (from interlocked())\n  auto-calc_lightpath_state (from calc_lightpath_state())\n  auto-close_override (from close_override())\n\nRequired output action ids:\n  auto-check_value\n  auto-interlocked\n  auto-calc_lightpath_state\n  auto-close_override"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_00e98786e03bf0040069d5b69b68e88197b4aa204da083f1b7",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7180,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 6019,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_00e98786e03bf0040069d5b69bc5f0819781cdf892b9886d27",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_00e98786e03bf0040069d5b6b13d4881979c604307cfde8400",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"可变控制针阀\",\n  \"name_en\": \"Variable Controlled Needle Valve\",\n  \"manufacturer\": \"\",\n  \"description\": \"一种用于真空系统的可调针阀，用于连续控制两侧气体体积之间的流量，而不是仅进行全开或全关切换。常用于真空管路中的气体导入、抽气平衡或细致流量调节。\",\n  \"description_en\": \"An adjustable needle valve for vacuum systems that continuously controls flow between two gas volumes rather than simply switching fully open or closed. It is commonly used for gas dosing, pumping balance, or fine flow regulation in vacuum lines.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-check_value\",\n      \"description\": \"检查给定阀门设定值是否有效。\",\n      \"description_en\": \"Check whether the requested valve setpoint/value is valid.\"\n    },\n    {\n      \"action_name\": \"auto-interlocked\",\n      \"description\": \"获取阀门是否处于联锁状态。\",\n      \"description_en\": \"Get whether the valve is in an interlocked state.\"\n    },\n    {\n      \"action_name\": \"auto-calc_lightpath_state\",\n      \"description\": \"计算阀门当前对应的光路状态。\",\n      \"description_en\": \"Calculate the current lightpath state associated with the valve.\"\n    },\n    {\n      \"action_name\": \"auto-close_override\",\n      \"description\": \"设置阀门关闭覆盖状态。\",\n      \"description_en\": \"Set the valve close-override state.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"vacuum valve\",\n    \"needle valve\",\n    \"variable flow control\",\n    \"gas dosing\",\n    \"vacuum system\",\n    \"fine flow regulation\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2196,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1421,
+      "output_tokens_details": {
+        "reasoning_tokens": 1034
+      },
+      "total_tokens": 3617
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2196,
+      "output_token_count": 1421,
+      "predict_time": 30.254306601
+    }
+  },
+  "output_text": "{\n  \"name\": \"可变控制针阀\",\n  \"name_en\": \"Variable Controlled Needle Valve\",\n  \"manufacturer\": \"\",\n  \"description\": \"一种用于真空系统的可调针阀，用于连续控制两侧气体体积之间的流量，而不是仅进行全开或全关切换。常用于真空管路中的气体导入、抽气平衡或细致流量调节。\",\n  \"description_en\": \"An adjustable needle valve for vacuum systems that continuously controls flow between two gas volumes rather than simply switching fully open or closed. It is commonly used for gas dosing, pumping balance, or fine flow regulation in vacuum lines.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-check_value\",\n      \"description\": \"检查给定阀门设定值是否有效。\",\n      \"description_en\": \"Check whether the requested valve setpoint/value is valid.\"\n    },\n    {\n      \"action_name\": \"auto-interlocked\",\n      \"description\": \"获取阀门是否处于联锁状态。\",\n      \"description_en\": \"Get whether the valve is in an interlocked state.\"\n    },\n    {\n      \"action_name\": \"auto-calc_lightpath_state\",\n      \"description\": \"计算阀门当前对应的光路状态。\",\n      \"description_en\": \"Calculate the current lightpath state associated with the valve.\"\n    },\n    {\n      \"action_name\": \"auto-close_override\",\n      \"description\": \"设置阀门关闭覆盖状态。\",\n      \"description_en\": \"Set the valve close-override state.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"vacuum valve\",\n    \"needle valve\",\n    \"variable flow control\",\n    \"gas dosing\",\n    \"vacuum system\",\n    \"fine flow regulation\"\n  ]\n}"
+}

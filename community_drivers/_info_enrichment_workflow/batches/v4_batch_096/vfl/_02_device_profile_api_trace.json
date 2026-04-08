@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: vfl\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: lantz/drivers/legacy/mpb/vfl.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.laser.mpb.vfl_laser:VFL\n\nClass: VFL (focal)\n  Bases: ['SerialDriver']\n  Docstring: Driver for any VFL MPB Communications laser.\n    \n\nFocal class methods:\n  [command] idn(self)\n    comment: Identification of the device\n  [command] status(self)\n    comment: Current device status\n  [command] enabled(self)\n    comment: Method for turning on the laser\n  [command] enabled(self, value)\n  [command] ctl_mode(self)\n    comment: To handle laser diode current (mA) in Active Current Control Mode\n  [command] ctl_mode(self, value)\n  [command] current_sp(self)\n    comment: To handle laser diode current (mA) in Active Current Control Mode\n  [command] current_sp(self, value)\n  [command] power_sp(self)\n    comment: To handle output power set point (mW) in APC Mode\n  [command] power_sp(self, value)\n  [command] power(self)\n    comment: To get the laser emission power (mW)\n  [command] ld_current(self)\n    comment: To get the laser diode current (mA)\n  [command] ld_temp(self)\n    comment: To get the laser diode temperature (ºC)\n  [command] tec_current(self)\n    comment: To get the thermoelectric cooler (TEC) current (mA)\n  [command] tec_temp(self)\n    comment: To get the thermoelectric cooler (TEC) temperature (ºC)\n  [command] shg_temp_sp(self)\n    comment: To handle the SHG temperature set point\n  [command] shg_temp_sp(self, value)\n  [command] shg_temp(self)\n    comment: To get the SHG temperature\n  [command] shg_tune_info(self)\n    comment: Getting information about laser ready for SHG tuning\n  [command] shg_tuning(self)\n    comment: Initiating SHG tuning\n  [command] tune_shg(self)\n  [command] tune_shg_stop(self)\n\nRegistry actions:\n  auto-tune_shg_async (from tune_shg_async())\n  auto-tune_shg_stop_async (from tune_shg_stop_async())\n  auto-idn (from idn())\n  auto-status (from status())\n  auto-enabled (from enabled())\n  auto-ctl_mode (from ctl_mode())\n  auto-current_sp (from current_sp())\n  auto-power_sp (from power_sp())\n  auto-power (from power())\n  auto-ld_current (from ld_current())\n  auto-ld_temp (from ld_temp())\n  auto-tec_current (from tec_current())\n  auto-tec_temp (from tec_temp())\n  auto-shg_temp_sp (from shg_temp_sp())\n  auto-shg_temp (from shg_temp())\n  auto-shg_tune_info (from shg_tune_info())\n  auto-shg_tuning (from shg_tuning())\n  auto-tune_shg (from tune_shg())\n  auto-tune_shg_stop (from tune_shg_stop())\n\nRequired output action ids:\n  auto-tune_shg_async\n  auto-tune_shg_stop_async\n  auto-idn\n  auto-status\n  auto-enabled\n  auto-ctl_mode\n  auto-current_sp\n  auto-power_sp\n  auto-power\n  auto-ld_current\n  auto-ld_temp\n  auto-tec_current\n  auto-tec_temp\n  auto-shg_temp_sp\n  auto-shg_temp\n  auto-shg_tune_info\n  auto-shg_tuning\n  auto-tune_shg\n  auto-tune_shg_stop"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0b2075b1995eb5a90069d5b6c0afd88190bd5d564d5e67a6b9",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3930,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 8087,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0b2075b1995eb5a90069d5b6c1ad68819082aac7e47515a74e",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0b2075b1995eb5a90069d5b6d783348190b0f628e93e9f393f",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"MPB VFL 激光器\",\n  \"name_en\": \"MPB VFL laser\",\n  \"manufacturer\": \"MPB Communications\",\n  \"description\": \"由 MPB Communications 提供的串口控制激光器，可开关激光输出，在恒流或恒功率模式下设置激光二极管电流与输出功率，并读取发射功率、激光二极管和 TEC 状态；还支持 SHG（二次谐波）温度设定与调谐，适用于实验中的激光输出控制和运行状态监测。\",\n  \"description_en\": \"A serial-controlled laser from MPB Communications. It can enable or disable laser emission, operate in current-control or power-control mode, set laser diode current and output power, and read emission power plus laser diode and TEC status. It also supports SHG temperature setpoint control and SHG tuning for laboratory laser output control and health monitoring.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-tune_shg_async\",\n      \"description\": \"异步启动 SHG 自动调谐\",\n      \"description_en\": \"start SHG auto-tuning asynchronously\"\n    },\n    {\n      \"action_name\": \"auto-tune_shg_stop_async\",\n      \"description\": \"异步停止 SHG 自动调谐\",\n      \"description_en\": \"stop SHG auto-tuning asynchronously\"\n    },\n    {\n      \"action_name\": \"auto-idn\",\n      \"description\": \"获取设备标识\",\n      \"description_en\": \"get device identification\"\n    },\n    {\n      \"action_name\": \"auto-status\",\n      \"description\": \"获取当前设备状态\",\n      \"description_en\": \"get current device status\"\n    },\n    {\n      \"action_name\": \"auto-enabled\",\n      \"description\": \"获取/设置激光输出使能状态\",\n      \"description_en\": \"get/set laser emission enable state\"\n    },\n    {\n      \"action_name\": \"auto-ctl_mode\",\n      \"description\": \"获取/设置激光控制模式\",\n      \"description_en\": \"get/set laser control mode\"\n    },\n    {\n      \"action_name\": \"auto-current_sp\",\n      \"description\": \"获取/设置激光二极管电流设定值\",\n      \"description_en\": \"get/set laser diode current setpoint\"\n    },\n    {\n      \"action_name\": \"auto-power_sp\",\n      \"description\": \"获取/设置输出功率设定值\",\n      \"description_en\": \"get/set output power setpoint\"\n    },\n    {\n      \"action_name\": \"auto-power\",\n      \"description\": \"获取激光输出功率\",\n      \"description_en\": \"get laser emission power\"\n    },\n    {\n      \"action_name\": \"auto-ld_current\",\n      \"description\": \"获取激光二极管电流\",\n      \"description_en\": \"get laser diode current\"\n    },\n    {\n      \"action_name\": \"auto-ld_temp\",\n      \"description\": \"获取激光二极管温度\",\n      \"description_en\": \"get laser diode temperature\"\n    },\n    {\n      \"action_name\": \"auto-tec_current\",\n      \"description\": \"获取 TEC 电流\",\n      \"description_en\": \"get TEC current\"\n    },\n    {\n      \"action_name\": \"auto-tec_temp\",\n      \"description\": \"获取 TEC 温度\",\n      \"description_en\": \"get TEC temperature\"\n    },\n    {\n      \"action_name\": \"auto-shg_temp_sp\",\n      \"description\": \"获取/设置 SHG 温度设定值\",\n      \"description_en\": \"get/set SHG temperature setpoint\"\n    },\n    {\n      \"action_name\": \"auto-shg_temp\",\n      \"description\": \"获取 SHG 温度\",\n      \"description_en\": \"get SHG temperature\"\n    },\n    {\n      \"action_name\": \"auto-shg_tune_info\",\n      \"description\": \"获取 SHG 调谐就绪信息\",\n      \"description_en\": \"get SHG tuning readiness information\"\n    },\n    {\n      \"action_name\": \"auto-shg_tuning\",\n      \"description\": \"执行 SHG 调谐命令\",\n      \"description_en\": \"execute the SHG tuning command\"\n    },\n    {\n      \"action_name\": \"auto-tune_shg\",\n      \"description\": \"启动 SHG 调谐\",\n      \"description_en\": \"start SHG tuning\"\n    },\n    {\n      \"action_name\": \"auto-tune_shg_stop\",\n      \"description\": \"停止 SHG 调谐\",\n      \"description_en\": \"stop SHG tuning\"\n    }\n  ],\n  \"tag_hints\": [\n    \"laser source\",\n    \"MPB Communications\",\n    \"serial laser control\",\n    \"APC/ACC control\",\n    \"laser diode current control\",\n    \"TEC monitoring\",\n    \"SHG tuning\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1501,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2161,
+      "output_tokens_details": {
+        "reasoning_tokens": 1125
+      },
+      "total_tokens": 3662
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1501,
+      "output_token_count": 2161,
+      "predict_time": 40.367052223
+    }
+  },
+  "output_text": "{\n  \"name\": \"MPB VFL 激光器\",\n  \"name_en\": \"MPB VFL laser\",\n  \"manufacturer\": \"MPB Communications\",\n  \"description\": \"由 MPB Communications 提供的串口控制激光器，可开关激光输出，在恒流或恒功率模式下设置激光二极管电流与输出功率，并读取发射功率、激光二极管和 TEC 状态；还支持 SHG（二次谐波）温度设定与调谐，适用于实验中的激光输出控制和运行状态监测。\",\n  \"description_en\": \"A serial-controlled laser from MPB Communications. It can enable or disable laser emission, operate in current-control or power-control mode, set laser diode current and output power, and read emission power plus laser diode and TEC status. It also supports SHG temperature setpoint control and SHG tuning for laboratory laser output control and health monitoring.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-tune_shg_async\",\n      \"description\": \"异步启动 SHG 自动调谐\",\n      \"description_en\": \"start SHG auto-tuning asynchronously\"\n    },\n    {\n      \"action_name\": \"auto-tune_shg_stop_async\",\n      \"description\": \"异步停止 SHG 自动调谐\",\n      \"description_en\": \"stop SHG auto-tuning asynchronously\"\n    },\n    {\n      \"action_name\": \"auto-idn\",\n      \"description\": \"获取设备标识\",\n      \"description_en\": \"get device identification\"\n    },\n    {\n      \"action_name\": \"auto-status\",\n      \"description\": \"获取当前设备状态\",\n      \"description_en\": \"get current device status\"\n    },\n    {\n      \"action_name\": \"auto-enabled\",\n      \"description\": \"获取/设置激光输出使能状态\",\n      \"description_en\": \"get/set laser emission enable state\"\n    },\n    {\n      \"action_name\": \"auto-ctl_mode\",\n      \"description\": \"获取/设置激光控制模式\",\n      \"description_en\": \"get/set laser control mode\"\n    },\n    {\n      \"action_name\": \"auto-current_sp\",\n      \"description\": \"获取/设置激光二极管电流设定值\",\n      \"description_en\": \"get/set laser diode current setpoint\"\n    },\n    {\n      \"action_name\": \"auto-power_sp\",\n      \"description\": \"获取/设置输出功率设定值\",\n      \"description_en\": \"get/set output power setpoint\"\n    },\n    {\n      \"action_name\": \"auto-power\",\n      \"description\": \"获取激光输出功率\",\n      \"description_en\": \"get laser emission power\"\n    },\n    {\n      \"action_name\": \"auto-ld_current\",\n      \"description\": \"获取激光二极管电流\",\n      \"description_en\": \"get laser diode current\"\n    },\n    {\n      \"action_name\": \"auto-ld_temp\",\n      \"description\": \"获取激光二极管温度\",\n      \"description_en\": \"get laser diode temperature\"\n    },\n    {\n      \"action_name\": \"auto-tec_current\",\n      \"description\": \"获取 TEC 电流\",\n      \"description_en\": \"get TEC current\"\n    },\n    {\n      \"action_name\": \"auto-tec_temp\",\n      \"description\": \"获取 TEC 温度\",\n      \"description_en\": \"get TEC temperature\"\n    },\n    {\n      \"action_name\": \"auto-shg_temp_sp\",\n      \"description\": \"获取/设置 SHG 温度设定值\",\n      \"description_en\": \"get/set SHG temperature setpoint\"\n    },\n    {\n      \"action_name\": \"auto-shg_temp\",\n      \"description\": \"获取 SHG 温度\",\n      \"description_en\": \"get SHG temperature\"\n    },\n    {\n      \"action_name\": \"auto-shg_tune_info\",\n      \"description\": \"获取 SHG 调谐就绪信息\",\n      \"description_en\": \"get SHG tuning readiness information\"\n    },\n    {\n      \"action_name\": \"auto-shg_tuning\",\n      \"description\": \"执行 SHG 调谐命令\",\n      \"description_en\": \"execute the SHG tuning command\"\n    },\n    {\n      \"action_name\": \"auto-tune_shg\",\n      \"description\": \"启动 SHG 调谐\",\n      \"description_en\": \"start SHG tuning\"\n    },\n    {\n      \"action_name\": \"auto-tune_shg_stop\",\n      \"description\": \"停止 SHG 调谐\",\n      \"description_en\": \"stop SHG tuning\"\n    }\n  ],\n  \"tag_hints\": [\n    \"laser source\",\n    \"MPB Communications\",\n    \"serial laser control\",\n    \"APC/ACC control\",\n    \"laser diode current control\",\n    \"TEC monitoring\",\n    \"SHG tuning\"\n  ]\n}"
+}

@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: vertical_mirror\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: src/ophyd_async/sim/_mirror_vertical.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.vertical_mirror.vertical_mirror_v2:VerticalMirror\n\nClass: TwoJackRaw \n  Bases: ['TypedDict']\n\nClass: TwoJackDerived \n  Bases: ['TypedDict']\n\nClass: TwoJackTransform \n  Bases: ['Transform']\n\nClass: VerticalMirror (focal)\n  Bases: ['Device', 'Movable[TwoJackDerived]']\n\nFocal class methods:\n  [command] set(self, derived)\n\nRegistry actions:\n  auto-set (from set())\n  auto-raw_to_derived (from raw_to_derived())\n  auto-derived_to_raw (from derived_to_raw())\n\nRequired output action ids:\n  auto-set\n  auto-raw_to_derived\n  auto-derived_to_raw"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0e81eecf366589190069d5b6b939008197a87dd117f519af64",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1728,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4761,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0e81eecf366589190069d5b6b9a2d48197bd475d0b457e1d18",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0e81eecf366589190069d5b6c941dc8197b2ee49cb88446db9",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"垂直反射镜模拟组件\",\n  \"name_en\": \"Vertical Mirror Simulator\",\n  \"manufacturer\": \"\",\n  \"description\": \"非物理软件组件，用于在实验控制中模拟双支撑/双千斤顶垂直反射镜的运动与几何换算。它支持原始执行量与派生镜面参数之间的转换，并可按派生目标参数进行设定，适合测试控制逻辑与坐标变换。\",\n  \"description_en\": \"A non-physical software component that simulates a two-support/two-jack vertical mirror for experiment control. It converts between raw actuator values and derived mirror parameters, and allows the mirror state to be set using derived targets, making it useful for testing control logic and coordinate transforms.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set\",\n      \"description\": \"设置模拟垂直反射镜的派生目标参数。\",\n      \"description_en\": \"Set the derived target parameters of the simulated vertical mirror.\"\n    },\n    {\n      \"action_name\": \"auto-raw_to_derived\",\n      \"description\": \"将原始双千斤顶参数转换为派生镜面参数。\",\n      \"description_en\": \"Convert raw two-jack values into derived mirror parameters.\"\n    },\n    {\n      \"action_name\": \"auto-derived_to_raw\",\n      \"description\": \"将派生镜面参数转换为原始双千斤顶参数。\",\n      \"description_en\": \"Convert derived mirror parameters into raw two-jack values.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"vertical mirror simulation\",\n    \"two-jack transform\",\n    \"mirror kinematics\",\n    \"coordinate conversion\",\n    \"movable optics model\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 873,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1171,
+      "output_tokens_details": {
+        "reasoning_tokens": 791
+      },
+      "total_tokens": 2044
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 873,
+      "output_token_count": 1171,
+      "predict_time": 23.48370753
+    }
+  },
+  "output_text": "{\n  \"name\": \"垂直反射镜模拟组件\",\n  \"name_en\": \"Vertical Mirror Simulator\",\n  \"manufacturer\": \"\",\n  \"description\": \"非物理软件组件，用于在实验控制中模拟双支撑/双千斤顶垂直反射镜的运动与几何换算。它支持原始执行量与派生镜面参数之间的转换，并可按派生目标参数进行设定，适合测试控制逻辑与坐标变换。\",\n  \"description_en\": \"A non-physical software component that simulates a two-support/two-jack vertical mirror for experiment control. It converts between raw actuator values and derived mirror parameters, and allows the mirror state to be set using derived targets, making it useful for testing control logic and coordinate transforms.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-set\",\n      \"description\": \"设置模拟垂直反射镜的派生目标参数。\",\n      \"description_en\": \"Set the derived target parameters of the simulated vertical mirror.\"\n    },\n    {\n      \"action_name\": \"auto-raw_to_derived\",\n      \"description\": \"将原始双千斤顶参数转换为派生镜面参数。\",\n      \"description_en\": \"Convert raw two-jack values into derived mirror parameters.\"\n    },\n    {\n      \"action_name\": \"auto-derived_to_raw\",\n      \"description\": \"将派生镜面参数转换为原始双千斤顶参数。\",\n      \"description_en\": \"Convert derived mirror parameters into raw two-jack values.\"\n    }\n  ],\n  \"tag_hints\": [\n    \"vertical mirror simulation\",\n    \"two-jack transform\",\n    \"mirror kinematics\",\n    \"coordinate conversion\",\n    \"movable optics model\"\n  ]\n}"
+}

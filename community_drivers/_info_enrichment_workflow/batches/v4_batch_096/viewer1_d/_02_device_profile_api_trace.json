@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: viewer1_d\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: packages/pymodaq_gui/src/pymodaq_gui/plotting/data_viewers/viewer1D.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.viewers.viewer1d:Viewer1D\n\nClass: DataDisplayer \n  Bases: ['QObject']\n  Docstring: This Object deals with the display of 1D data  on a plotitem\n\nClass: View1D \n  Bases: ['ActionManager', 'QObject']\n\nClass: Viewer1D (focal)\n  Bases: ['ViewerBase']\n  Docstring: DataWithAxis of type Data1D can be plotted using this data viewer\n\nMethods\n-------\nshow_data:\n    parameter:\n    * dwa: a DataWithaxis\n    * scatter_dwa: an optional extra DataWithAxis to be plotted with scatter points\n      it could define extra_attributes such as symbol: str (to define the symbol layout\n      default: 'o') and symbol_size: int (to define the symbol size)\n\nFocal class methods:\n  [command] update_colors(self, colors, displayer=None)\n  [status_getter] roi_manager(self)\n    comment: Convenience method\n  [status_getter] roi_target(self)\n  [command] move_roi_target(self, pos=None)\n    comment: move a specific read only ROI at the given position on the viewer\n  [status_getter] crosshair(self)\n    comment: Convenience method\n  [command] set_crosshair_position(self, xpos, ypos=0)\n    comment: Convenience method to set the crosshair positions\n  [command] add_plot_item(self, item)\n  [command] process_crosshair_lineouts(self, crosshair_dte)\n  [command] process_roi_lineouts(self, roi_dte)\n  [command] prepare_connect_ui(self)\n  [command] selected_region_changed(self)\n  [command] double_clicked(self, posx, posy=0)\n  [command] roi_changed(self)\n  [command] crosshair_changed(self)\n  [command] activate_roi(self, activate=True)\n  [status_getter] labels(self)\n  [status_setter] labels(self, labels)\n  [status_getter] get_axis_from_view(self, data)\n  [command] update_status(self, txt)\n\nRegistry actions:\n  auto-update_colors (from update_colors())\n  auto-move_roi_target (from move_roi_target())\n  auto-set_crosshair_position (from set_crosshair_position())\n  auto-add_plot_item (from add_plot_item())\n  auto-process_crosshair_lineouts (from process_crosshair_lineouts())\n  auto-process_roi_lineouts (from process_roi_lineouts())\n  auto-prepare_connect_ui (from prepare_connect_ui())\n  auto-selected_region_changed (from selected_region_changed())\n  auto-double_clicked (from double_clicked())\n  auto-roi_changed (from roi_changed())\n  auto-crosshair_changed (from crosshair_changed())\n  auto-activate_roi (from activate_roi())\n  auto-labels (from labels())\n  auto-update_status (from update_status())\n\nRequired output action ids:\n  auto-update_colors\n  auto-move_roi_target\n  auto-set_crosshair_position\n  auto-add_plot_item\n  auto-process_crosshair_lineouts\n  auto-process_roi_lineouts\n  auto-prepare_connect_ui\n  auto-selected_region_changed\n  auto-double_clicked\n  auto-roi_changed\n  auto-crosshair_changed\n  auto-activate_roi\n  auto-labels\n  auto-update_status"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0482e8c1e6c675040069d5b6d753e081978da6e21c586f5077",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1798,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 5064,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0482e8c1e6c675040069d5b6d7e694819799a9d267aecc23a1",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0482e8c1e6c675040069d5b6e291f48197afcf9293403bf56f",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"一维数据查看器\",\n  \"name_en\": \"1D Data Viewer\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验数据可视化的非物理软件组件，可在图形界面中显示一维 DataWithAxis 数据，并提供十字光标、ROI、线剖面、标签和状态文本等交互功能。\",\n  \"description_en\": \"A non-physical software component for experimental data visualization. It displays 1D DataWithAxis data in a GUI and provides interactive features such as crosshairs, ROIs, lineouts, labels, and status text.\",\n  \"tag_hints\": [\n    \"1D data visualization\",\n    \"GUI plot viewer\",\n    \"crosshair interaction\",\n    \"ROI selection\",\n    \"lineout processing\",\n    \"PyMoDAQ GUI\",\n    \"experimental data display\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-update_colors\",\n      \"description\": \"更新绘图颜色\",\n      \"description_en\": \"update plot colors\"\n    },\n    {\n      \"action_name\": \"auto-move_roi_target\",\n      \"description\": \"移动指定的 ROI 目标位置\",\n      \"description_en\": \"move the specified ROI target position\"\n    },\n    {\n      \"action_name\": \"auto-set_crosshair_position\",\n      \"description\": \"设置十字光标位置\",\n      \"description_en\": \"set the crosshair position\"\n    },\n    {\n      \"action_name\": \"auto-add_plot_item\",\n      \"description\": \"添加绘图项\",\n      \"description_en\": \"add a plot item\"\n    },\n    {\n      \"action_name\": \"auto-process_crosshair_lineouts\",\n      \"description\": \"处理十字光标线剖面数据\",\n      \"description_en\": \"process crosshair lineout data\"\n    },\n    {\n      \"action_name\": \"auto-process_roi_lineouts\",\n      \"description\": \"处理 ROI 线剖面数据\",\n      \"description_en\": \"process ROI lineout data\"\n    },\n    {\n      \"action_name\": \"auto-prepare_connect_ui\",\n      \"description\": \"准备界面连接\",\n      \"description_en\": \"prepare UI connections\"\n    },\n    {\n      \"action_name\": \"auto-selected_region_changed\",\n      \"description\": \"处理选区变化\",\n      \"description_en\": \"handle selected region changes\"\n    },\n    {\n      \"action_name\": \"auto-double_clicked\",\n      \"description\": \"处理查看器中的双击事件\",\n      \"description_en\": \"handle double-click events in the viewer\"\n    },\n    {\n      \"action_name\": \"auto-roi_changed\",\n      \"description\": \"处理 ROI 变化\",\n      \"description_en\": \"handle ROI changes\"\n    },\n    {\n      \"action_name\": \"auto-crosshair_changed\",\n      \"description\": \"处理十字光标变化\",\n      \"description_en\": \"handle crosshair changes\"\n    },\n    {\n      \"action_name\": \"auto-activate_roi\",\n      \"description\": \"启用或禁用 ROI\",\n      \"description_en\": \"activate or deactivate ROI\"\n    },\n    {\n      \"action_name\": \"auto-labels\",\n      \"description\": \"获取/设置标签\",\n      \"description_en\": \"get/set labels\"\n    },\n    {\n      \"action_name\": \"auto-update_status\",\n      \"description\": \"更新状态文本\",\n      \"description_en\": \"update status text\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1420,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1246,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2666
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1420,
+      "output_token_count": 1246,
+      "predict_time": 22.669886211
+    }
+  },
+  "output_text": "{\n  \"name\": \"一维数据查看器\",\n  \"name_en\": \"1D Data Viewer\",\n  \"manufacturer\": \"\",\n  \"description\": \"用于实验数据可视化的非物理软件组件，可在图形界面中显示一维 DataWithAxis 数据，并提供十字光标、ROI、线剖面、标签和状态文本等交互功能。\",\n  \"description_en\": \"A non-physical software component for experimental data visualization. It displays 1D DataWithAxis data in a GUI and provides interactive features such as crosshairs, ROIs, lineouts, labels, and status text.\",\n  \"tag_hints\": [\n    \"1D data visualization\",\n    \"GUI plot viewer\",\n    \"crosshair interaction\",\n    \"ROI selection\",\n    \"lineout processing\",\n    \"PyMoDAQ GUI\",\n    \"experimental data display\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-update_colors\",\n      \"description\": \"更新绘图颜色\",\n      \"description_en\": \"update plot colors\"\n    },\n    {\n      \"action_name\": \"auto-move_roi_target\",\n      \"description\": \"移动指定的 ROI 目标位置\",\n      \"description_en\": \"move the specified ROI target position\"\n    },\n    {\n      \"action_name\": \"auto-set_crosshair_position\",\n      \"description\": \"设置十字光标位置\",\n      \"description_en\": \"set the crosshair position\"\n    },\n    {\n      \"action_name\": \"auto-add_plot_item\",\n      \"description\": \"添加绘图项\",\n      \"description_en\": \"add a plot item\"\n    },\n    {\n      \"action_name\": \"auto-process_crosshair_lineouts\",\n      \"description\": \"处理十字光标线剖面数据\",\n      \"description_en\": \"process crosshair lineout data\"\n    },\n    {\n      \"action_name\": \"auto-process_roi_lineouts\",\n      \"description\": \"处理 ROI 线剖面数据\",\n      \"description_en\": \"process ROI lineout data\"\n    },\n    {\n      \"action_name\": \"auto-prepare_connect_ui\",\n      \"description\": \"准备界面连接\",\n      \"description_en\": \"prepare UI connections\"\n    },\n    {\n      \"action_name\": \"auto-selected_region_changed\",\n      \"description\": \"处理选区变化\",\n      \"description_en\": \"handle selected region changes\"\n    },\n    {\n      \"action_name\": \"auto-double_clicked\",\n      \"description\": \"处理查看器中的双击事件\",\n      \"description_en\": \"handle double-click events in the viewer\"\n    },\n    {\n      \"action_name\": \"auto-roi_changed\",\n      \"description\": \"处理 ROI 变化\",\n      \"description_en\": \"handle ROI changes\"\n    },\n    {\n      \"action_name\": \"auto-crosshair_changed\",\n      \"description\": \"处理十字光标变化\",\n      \"description_en\": \"handle crosshair changes\"\n    },\n    {\n      \"action_name\": \"auto-activate_roi\",\n      \"description\": \"启用或禁用 ROI\",\n      \"description_en\": \"activate or deactivate ROI\"\n    },\n    {\n      \"action_name\": \"auto-labels\",\n      \"description\": \"获取/设置标签\",\n      \"description_en\": \"get/set labels\"\n    },\n    {\n      \"action_name\": \"auto-update_status\",\n      \"description\": \"更新状态文本\",\n      \"description_en\": \"update status text\"\n    }\n  ]\n}"
+}

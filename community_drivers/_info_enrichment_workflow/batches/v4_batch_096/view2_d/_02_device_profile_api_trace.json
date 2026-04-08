@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: view2_d\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: packages/pymodaq_gui/src/pymodaq_gui/plotting/data_viewers/viewer2D.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.imaging.view2d:View2D\n\nClass: ImageDisplayer \n  Bases: ['QObject']\n  Docstring: This Object deals with the display of 2D data  with a plotitem\n\nClass: Histogrammer \n  Bases: ['QObject']\n\nClass: IsoCurver \n  Bases: ['QObject']\n\nClass: View2D (focal)\n  Bases: ['ActionManager', 'QtCore.QObject']\n\nClass: Viewer2D \n  Bases: ['ViewerBase']\n  Docstring: Object managing plotting and manipulation of 2D data using a View2D\n\nFocal class methods:\n  [command] clear_plot_item(self)\n  [command] set_image_displayer(self, data_distribution)\n  [command] show_roi_target(self, show=True)\n  [command] move_scale_roi_target(self, pos=None, size=None)\n    comment: Move and scale the target ROI (used to display a particular area,\n        for instance the currently scanned points\n        during a scan\n        Parameters\n        ----------\n        pos: (iterable) ...\n  [command] setup_widgets(self)\n  [command] setup_graphs(self, graphs_layout)\n  [command] setup_actions(self)\n  [command] update_colors(self, colors)\n  [command] connect_things(self)\n  [command] show_legend(self, show=True)\n  [command] add_roi_displayer(self, roi_name='')\n  [command] remove_roi_displayer(self, roi_name='')\n  [command] update_roi_channels(self, roi_name)\n    comment: Update the use_channel setting each time a ROI is added\n  [command] prepare_ui(self)\n  [command] display_images(self, datas)\n  [command] display_roi_lineouts(self, roi_dte)\n  [command] display_crosshair_lineouts(self, crosshair_dte)\n  [command] show_lineout_widgets(self)\n  [command] roi_clicked(self, isroichecked=True)\n  [status_getter] get_visible_images(self)\n  [command] notify_visibility_data_displayer(self)\n  [command] show_hide_histogram(self, show=True)\n  [command] prepare_image_widget_for_lineouts(self, ratio=0.7)\n  [command] collapse_lineout_widgets(self)\n  [status_getter] get_view_range(self)\n  [status_getter] get_data_at(self, name='red', xy=(0, 0))\n  [command] lock_aspect_ratio(self)\n  [command] move_left_splitter(self, pos, index)\n  [command] move_right_splitter(self, pos, index)\n  [status_getter] get_double_clicked(self)\n  [status_getter] get_axis(self, position='left')\n  [status_getter] plotitem(self)\n  [status_getter] get_image_item(self, color='red')\n  [status_getter] get_crosshair_signal(self)\n    comment: Convenience function from the Crosshair\n  [status_getter] get_crosshair_position(self)\n    comment: Convenience function from the Crosshair\n  [status_setter] set_crosshair_position(self, *positions)\n    comment: Convenience function from the Crosshair\n  [command] show_hide_crosshair(self, show=True)\n  [command] show_ROI_select(self)\n  [command] set_image_labels(self, labels)\n  [status_setter] set_axis_label(self, position, label='', units='')\n    comment: Convenience method to set label and unit of any view axes\n        Parameters\n        ----------\n        position: (str) any of AXIS_POSITIONS\n        label: (str) text of the axis label\n        units:...\n  [status_getter] get_axis_label(self, position)\n  [command] set_axis_scaling(self, position='top', scaling=1, offset=0, label='', units='Pxls')\n    comment: Method used to update the scaling of the right and top axes in order to translate pixels to real coordinates\n        Parameters\n        ----------\n        position: (str) axis position either one of A...\n  [command] scale_axis(self, xaxis, yaxis)\n    comment: scale view coordinates from the regular axes to the scaled/offset ones\n  [command] unscale_axis(self, xaxis, yaxis)\n    comment: scale view coordinates from the scaled/offset axes to the regular ones\n\nRegistry actions:\n  auto-clear_plot_item (from clear_plot_item())\n  auto-set_image_displayer (from set_image_displayer())\n  auto-show_roi_target (from show_roi_target())\n  auto-move_scale_roi_target (from move_scale_roi_target())\n  auto-setup_widgets (from setup_widgets())\n  auto-setup_graphs (from setup_graphs())\n  auto-setup_actions (from setup_actions())\n  auto-update_colors (from update_colors())\n  auto-connect_things (from connect_things())\n  auto-show_legend (from show_legend())\n  auto-add_roi_displayer (from add_roi_displayer())\n  auto-remove_roi_displayer (from remove_roi_displayer())\n  auto-update_roi_channels (from update_roi_channels())\n  auto-prepare_ui (from prepare_ui())\n  auto-display_images (from display_images())\n  auto-display_roi_lineouts (from display_roi_lineouts())\n  auto-display_crosshair_lineouts (from display_crosshair_lineouts())\n  auto-show_lineout_widgets (from show_lineout_widgets())\n  auto-roi_clicked (from roi_clicked())\n  auto-notify_visibility_data_displayer (from notify_visibility_data_displayer())\n  auto-show_hide_histogram (from show_hide_histogram())\n  auto-prepare_image_widget_for_lineouts (from prepare_image_widget_for_lineouts())\n  auto-collapse_lineout_widgets (from collapse_lineout_widgets())\n  auto-lock_aspect_ratio (from lock_aspect_ratio())\n  auto-move_left_splitter (from move_left_splitter())\n  auto-move_right_splitter (from move_right_splitter())\n  auto-set_crosshair_position (from set_crosshair_position())\n  auto-show_hide_crosshair (from show_hide_crosshair())\n  auto-show_ROI_select (from show_ROI_select())\n  auto-set_image_labels (from set_image_labels())\n  auto-set_axis_label (from set_axis_label())\n  auto-set_axis_scaling (from set_axis_scaling())\n  auto-scale_axis (from scale_axis())\n  auto-unscale_axis (from unscale_axis())\n\nRequired output action ids:\n  auto-clear_plot_item\n  auto-set_image_displayer\n  auto-show_roi_target\n  auto-move_scale_roi_target\n  auto-setup_widgets\n  auto-setup_graphs\n  auto-setup_actions\n  auto-update_colors\n  auto-connect_things\n  auto-show_legend\n  auto-add_roi_displayer\n  auto-remove_roi_displayer\n  auto-update_roi_channels\n  auto-prepare_ui\n  auto-display_images\n  auto-display_roi_lineouts\n  auto-display_crosshair_lineouts\n  auto-show_lineout_widgets\n  auto-roi_clicked\n  auto-notify_visibility_data_displayer\n  auto-show_hide_histogram\n  auto-prepare_image_widget_for_lineouts\n  auto-collapse_lineout_widgets\n  auto-lock_aspect_ratio\n  auto-move_left_splitter\n  auto-move_right_splitter\n  auto-set_crosshair_position\n  auto-show_hide_crosshair\n  auto-show_ROI_select\n  auto-set_image_labels\n  auto-set_axis_label\n  auto-set_axis_scaling\n  auto-scale_axis\n  auto-unscale_axis"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0405e53b58e74cfe0069d5b6d31d8c8193bfe4369bada7716a",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 7603,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 8326,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0405e53b58e74cfe0069d5b6d394f08193b5523be5fa4fec36",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0405e53b58e74cfe0069d5b6dd3c3c8193bdd59fcab9b34ccc",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"二维数据视图组件\",\n  \"name_en\": \"2D Data Viewer\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个用于实验软件中的非物理二维数据显示组件，用于绘制和操作图像数据。它支持图像显示、ROI 区域、十字光标、线剖面、直方图、图例、坐标轴标签与缩放，常用于相机图像或扫描成像结果的实时可视化与分析。\",\n  \"description_en\": \"A non-physical 2D data visualization component used in laboratory software to plot and manipulate image data. It supports image display, ROIs, crosshair, lineouts, histogram, legend, axis labels, and axis scaling, and is commonly used for real-time visualization and analysis of camera images or scanned imaging data.\",\n  \"tag_hints\": [\n    \"2D image visualization\",\n    \"ROI display\",\n    \"crosshair lineouts\",\n    \"histogram display\",\n    \"axis scaling\",\n    \"scientific plotting\",\n    \"scan image viewer\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-clear_plot_item\",\n      \"description\": \"清除绘图项中的显示内容。\",\n      \"description_en\": \"Clear the displayed content from the plot item.\"\n    },\n    {\n      \"action_name\": \"auto-set_image_displayer\",\n      \"description\": \"设置二维图像数据的显示方式。\",\n      \"description_en\": \"Set the display mode for 2D image data.\"\n    },\n    {\n      \"action_name\": \"auto-show_roi_target\",\n      \"description\": \"显示或隐藏 ROI 目标区域标记。\",\n      \"description_en\": \"Show or hide the ROI target marker.\"\n    },\n    {\n      \"action_name\": \"auto-move_scale_roi_target\",\n      \"description\": \"移动并缩放 ROI 目标区域。\",\n      \"description_en\": \"Move and resize the ROI target area.\"\n    },\n    {\n      \"action_name\": \"auto-setup_widgets\",\n      \"description\": \"初始化界面控件。\",\n      \"description_en\": \"Set up the interface widgets.\"\n    },\n    {\n      \"action_name\": \"auto-setup_graphs\",\n      \"description\": \"初始化图形显示区域布局。\",\n      \"description_en\": \"Set up the graph display layout.\"\n    },\n    {\n      \"action_name\": \"auto-setup_actions\",\n      \"description\": \"初始化界面操作项。\",\n      \"description_en\": \"Set up the interface actions.\"\n    },\n    {\n      \"action_name\": \"auto-update_colors\",\n      \"description\": \"更新图像或通道的显示颜色。\",\n      \"description_en\": \"Update the display colors of images or channels.\"\n    },\n    {\n      \"action_name\": \"auto-connect_things\",\n      \"description\": \"连接界面内部的信号与槽。\",\n      \"description_en\": \"Connect internal interface signals and slots.\"\n    },\n    {\n      \"action_name\": \"auto-show_legend\",\n      \"description\": \"显示或隐藏图例。\",\n      \"description_en\": \"Show or hide the legend.\"\n    },\n    {\n      \"action_name\": \"auto-add_roi_displayer\",\n      \"description\": \"添加一个 ROI 显示项。\",\n      \"description_en\": \"Add an ROI displayer.\"\n    },\n    {\n      \"action_name\": \"auto-remove_roi_displayer\",\n      \"description\": \"移除一个 ROI 显示项。\",\n      \"description_en\": \"Remove an ROI displayer.\"\n    },\n    {\n      \"action_name\": \"auto-update_roi_channels\",\n      \"description\": \"更新 ROI 使用的通道设置。\",\n      \"description_en\": \"Update the channel selection used by an ROI.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_ui\",\n      \"description\": \"准备并配置用户界面。\",\n      \"description_en\": \"Prepare and configure the user interface.\"\n    },\n    {\n      \"action_name\": \"auto-display_images\",\n      \"description\": \"显示二维图像数据。\",\n      \"description_en\": \"Display 2D image data.\"\n    },\n    {\n      \"action_name\": \"auto-display_roi_lineouts\",\n      \"description\": \"显示 ROI 的线剖面数据。\",\n      \"description_en\": \"Display ROI lineout data.\"\n    },\n    {\n      \"action_name\": \"auto-display_crosshair_lineouts\",\n      \"description\": \"显示十字光标位置的线剖面数据。\",\n      \"description_en\": \"Display lineout data at the crosshair position.\"\n    },\n    {\n      \"action_name\": \"auto-show_lineout_widgets\",\n      \"description\": \"显示线剖面相关控件。\",\n      \"description_en\": \"Show the lineout-related widgets.\"\n    },\n    {\n      \"action_name\": \"auto-roi_clicked\",\n      \"description\": \"响应 ROI 选择或点击状态变化。\",\n      \"description_en\": \"Handle ROI selection or click state changes.\"\n    },\n    {\n      \"action_name\": \"auto-notify_visibility_data_displayer\",\n      \"description\": \"通知数据显示器可见性状态已变化。\",\n      \"description_en\": \"Notify that the data displayer visibility has changed.\"\n    },\n    {\n      \"action_name\": \"auto-show_hide_histogram\",\n      \"description\": \"显示或隐藏直方图。\",\n      \"description_en\": \"Show or hide the histogram.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_image_widget_for_lineouts\",\n      \"description\": \"为线剖面显示调整图像控件布局。\",\n      \"description_en\": \"Prepare the image widget layout for lineout display.\"\n    },\n    {\n      \"action_name\": \"auto-collapse_lineout_widgets\",\n      \"description\": \"折叠线剖面控件区域。\",\n      \"description_en\": \"Collapse the lineout widget area.\"\n    },\n    {\n      \"action_name\": \"auto-lock_aspect_ratio\",\n      \"description\": \"锁定图像显示的纵横比。\",\n      \"description_en\": \"Lock the image display aspect ratio.\"\n    },\n    {\n      \"action_name\": \"auto-move_left_splitter\",\n      \"description\": \"移动左侧分割条位置。\",\n      \"description_en\": \"Move the left splitter position.\"\n    },\n    {\n      \"action_name\": \"auto-move_right_splitter\",\n      \"description\": \"移动右侧分割条位置。\",\n      \"description_en\": \"Move the right splitter position.\"\n    },\n    {\n      \"action_name\": \"auto-set_crosshair_position\",\n      \"description\": \"设置十字光标位置。\",\n      \"description_en\": \"Set crosshair position.\"\n    },\n    {\n      \"action_name\": \"auto-show_hide_crosshair\",\n      \"description\": \"显示或隐藏十字光标。\",\n      \"description_en\": \"Show or hide the crosshair.\"\n    },\n    {\n      \"action_name\": \"auto-show_ROI_select\",\n      \"description\": \"显示 ROI 选择界面。\",\n      \"description_en\": \"Show the ROI selection interface.\"\n    },\n    {\n      \"action_name\": \"auto-set_image_labels\",\n      \"description\": \"设置图像或通道标签。\",\n      \"description_en\": \"Set image or channel labels.\"\n    },\n    {\n      \"action_name\": \"auto-set_axis_label\",\n      \"description\": \"设置坐标轴标签与单位。\",\n      \"description_en\": \"Set axis label and units.\"\n    },\n    {\n      \"action_name\": \"auto-set_axis_scaling\",\n      \"description\": \"设置坐标轴缩放、偏移及标注。\",\n      \"description_en\": \"Set axis scaling, offset, and labeling.\"\n    },\n    {\n      \"action_name\": \"auto-scale_axis\",\n      \"description\": \"将坐标从原始轴转换到缩放后的轴。\",\n      \"description_en\": \"Convert coordinates from the regular axes to the scaled axes.\"\n    },\n    {\n      \"action_name\": \"auto-unscale_axis\",\n      \"description\": \"将坐标从缩放后的轴还原到原始轴。\",\n      \"description_en\": \"Convert coordinates from the scaled axes back to the regular axes.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2295,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2218,
+      "output_tokens_details": {
+        "reasoning_tokens": 500
+      },
+      "total_tokens": 4513
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2295,
+      "output_token_count": 2218,
+      "predict_time": 36.915210422
+    }
+  },
+  "output_text": "{\n  \"name\": \"二维数据视图组件\",\n  \"name_en\": \"2D Data Viewer\",\n  \"manufacturer\": \"\",\n  \"description\": \"一个用于实验软件中的非物理二维数据显示组件，用于绘制和操作图像数据。它支持图像显示、ROI 区域、十字光标、线剖面、直方图、图例、坐标轴标签与缩放，常用于相机图像或扫描成像结果的实时可视化与分析。\",\n  \"description_en\": \"A non-physical 2D data visualization component used in laboratory software to plot and manipulate image data. It supports image display, ROIs, crosshair, lineouts, histogram, legend, axis labels, and axis scaling, and is commonly used for real-time visualization and analysis of camera images or scanned imaging data.\",\n  \"tag_hints\": [\n    \"2D image visualization\",\n    \"ROI display\",\n    \"crosshair lineouts\",\n    \"histogram display\",\n    \"axis scaling\",\n    \"scientific plotting\",\n    \"scan image viewer\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-clear_plot_item\",\n      \"description\": \"清除绘图项中的显示内容。\",\n      \"description_en\": \"Clear the displayed content from the plot item.\"\n    },\n    {\n      \"action_name\": \"auto-set_image_displayer\",\n      \"description\": \"设置二维图像数据的显示方式。\",\n      \"description_en\": \"Set the display mode for 2D image data.\"\n    },\n    {\n      \"action_name\": \"auto-show_roi_target\",\n      \"description\": \"显示或隐藏 ROI 目标区域标记。\",\n      \"description_en\": \"Show or hide the ROI target marker.\"\n    },\n    {\n      \"action_name\": \"auto-move_scale_roi_target\",\n      \"description\": \"移动并缩放 ROI 目标区域。\",\n      \"description_en\": \"Move and resize the ROI target area.\"\n    },\n    {\n      \"action_name\": \"auto-setup_widgets\",\n      \"description\": \"初始化界面控件。\",\n      \"description_en\": \"Set up the interface widgets.\"\n    },\n    {\n      \"action_name\": \"auto-setup_graphs\",\n      \"description\": \"初始化图形显示区域布局。\",\n      \"description_en\": \"Set up the graph display layout.\"\n    },\n    {\n      \"action_name\": \"auto-setup_actions\",\n      \"description\": \"初始化界面操作项。\",\n      \"description_en\": \"Set up the interface actions.\"\n    },\n    {\n      \"action_name\": \"auto-update_colors\",\n      \"description\": \"更新图像或通道的显示颜色。\",\n      \"description_en\": \"Update the display colors of images or channels.\"\n    },\n    {\n      \"action_name\": \"auto-connect_things\",\n      \"description\": \"连接界面内部的信号与槽。\",\n      \"description_en\": \"Connect internal interface signals and slots.\"\n    },\n    {\n      \"action_name\": \"auto-show_legend\",\n      \"description\": \"显示或隐藏图例。\",\n      \"description_en\": \"Show or hide the legend.\"\n    },\n    {\n      \"action_name\": \"auto-add_roi_displayer\",\n      \"description\": \"添加一个 ROI 显示项。\",\n      \"description_en\": \"Add an ROI displayer.\"\n    },\n    {\n      \"action_name\": \"auto-remove_roi_displayer\",\n      \"description\": \"移除一个 ROI 显示项。\",\n      \"description_en\": \"Remove an ROI displayer.\"\n    },\n    {\n      \"action_name\": \"auto-update_roi_channels\",\n      \"description\": \"更新 ROI 使用的通道设置。\",\n      \"description_en\": \"Update the channel selection used by an ROI.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_ui\",\n      \"description\": \"准备并配置用户界面。\",\n      \"description_en\": \"Prepare and configure the user interface.\"\n    },\n    {\n      \"action_name\": \"auto-display_images\",\n      \"description\": \"显示二维图像数据。\",\n      \"description_en\": \"Display 2D image data.\"\n    },\n    {\n      \"action_name\": \"auto-display_roi_lineouts\",\n      \"description\": \"显示 ROI 的线剖面数据。\",\n      \"description_en\": \"Display ROI lineout data.\"\n    },\n    {\n      \"action_name\": \"auto-display_crosshair_lineouts\",\n      \"description\": \"显示十字光标位置的线剖面数据。\",\n      \"description_en\": \"Display lineout data at the crosshair position.\"\n    },\n    {\n      \"action_name\": \"auto-show_lineout_widgets\",\n      \"description\": \"显示线剖面相关控件。\",\n      \"description_en\": \"Show the lineout-related widgets.\"\n    },\n    {\n      \"action_name\": \"auto-roi_clicked\",\n      \"description\": \"响应 ROI 选择或点击状态变化。\",\n      \"description_en\": \"Handle ROI selection or click state changes.\"\n    },\n    {\n      \"action_name\": \"auto-notify_visibility_data_displayer\",\n      \"description\": \"通知数据显示器可见性状态已变化。\",\n      \"description_en\": \"Notify that the data displayer visibility has changed.\"\n    },\n    {\n      \"action_name\": \"auto-show_hide_histogram\",\n      \"description\": \"显示或隐藏直方图。\",\n      \"description_en\": \"Show or hide the histogram.\"\n    },\n    {\n      \"action_name\": \"auto-prepare_image_widget_for_lineouts\",\n      \"description\": \"为线剖面显示调整图像控件布局。\",\n      \"description_en\": \"Prepare the image widget layout for lineout display.\"\n    },\n    {\n      \"action_name\": \"auto-collapse_lineout_widgets\",\n      \"description\": \"折叠线剖面控件区域。\",\n      \"description_en\": \"Collapse the lineout widget area.\"\n    },\n    {\n      \"action_name\": \"auto-lock_aspect_ratio\",\n      \"description\": \"锁定图像显示的纵横比。\",\n      \"description_en\": \"Lock the image display aspect ratio.\"\n    },\n    {\n      \"action_name\": \"auto-move_left_splitter\",\n      \"description\": \"移动左侧分割条位置。\",\n      \"description_en\": \"Move the left splitter position.\"\n    },\n    {\n      \"action_name\": \"auto-move_right_splitter\",\n      \"description\": \"移动右侧分割条位置。\",\n      \"description_en\": \"Move the right splitter position.\"\n    },\n    {\n      \"action_name\": \"auto-set_crosshair_position\",\n      \"description\": \"设置十字光标位置。\",\n      \"description_en\": \"Set crosshair position.\"\n    },\n    {\n      \"action_name\": \"auto-show_hide_crosshair\",\n      \"description\": \"显示或隐藏十字光标。\",\n      \"description_en\": \"Show or hide the crosshair.\"\n    },\n    {\n      \"action_name\": \"auto-show_ROI_select\",\n      \"description\": \"显示 ROI 选择界面。\",\n      \"description_en\": \"Show the ROI selection interface.\"\n    },\n    {\n      \"action_name\": \"auto-set_image_labels\",\n      \"description\": \"设置图像或通道标签。\",\n      \"description_en\": \"Set image or channel labels.\"\n    },\n    {\n      \"action_name\": \"auto-set_axis_label\",\n      \"description\": \"设置坐标轴标签与单位。\",\n      \"description_en\": \"Set axis label and units.\"\n    },\n    {\n      \"action_name\": \"auto-set_axis_scaling\",\n      \"description\": \"设置坐标轴缩放、偏移及标注。\",\n      \"description_en\": \"Set axis scaling, offset, and labeling.\"\n    },\n    {\n      \"action_name\": \"auto-scale_axis\",\n      \"description\": \"将坐标从原始轴转换到缩放后的轴。\",\n      \"description_en\": \"Convert coordinates from the regular axes to the scaled axes.\"\n    },\n    {\n      \"action_name\": \"auto-unscale_axis\",\n      \"description\": \"将坐标从缩放后的轴还原到原始轴。\",\n      \"description_en\": \"Convert coordinates from the scaled axes back to the regular axes.\"\n    }\n  ]\n}"
+}

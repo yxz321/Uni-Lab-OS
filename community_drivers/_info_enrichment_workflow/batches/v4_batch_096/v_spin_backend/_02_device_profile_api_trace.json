@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: v_spin_backend\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: pylabrobot/centrifuge/vspin_backend.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.loader.access2_loader_backend:VSpinBackend\n\nClass: Access2Backend \n  Bases: ['LoaderBackend']\n\nClass: VSpinBackend (focal)\n  Bases: ['CentrifugeBackend']\n  Docstring: Backend for the Agilent Centrifuge.\nNote that this is not a complete implementation.\n\nClass: VSpin \n  Bases: []\n\nFocal class methods:\n  [command] setup(self)\n    comment: TODO: add functionality where if robot has been initialized before nothing needs to happen\n    comment: --- almost the same as go to position ---\n    comment: rpm = 600,\n    comment: acceleration = 75.09289617486338\n    comment: -----------------------------------------\n    comment: If we have not set the calibration yet, load it now.\n  [status_getter] bucket_1_remainder(self)\n  [command] set_bucket_1_position_to_current(self)\n    comment: Set the current position as bucket 1 position and save calibration.\n  [status_getter] get_bucket_1_position(self)\n    comment: first number after current position that matches bucket 1 position mod FULL_ROTATION\n    comment: Get the bucket 1 position based on calibration.\n    Normally it is the home position minus the remainder (calibration).\n    The bucket 1 position must be greater than the current position, so we find\n...\n  [command] stop(self)\n  [status_getter] get_position(self)\n  [status_getter] get_tachometer(self)\n    comment: current speed in rpm\n  [status_getter] get_home_position(self)\n    comment: changes during a run, but the bucket 1 position relative to it does not\n  [status_getter] get_bucket_locked(self)\n  [status_getter] get_door_open(self)\n  [status_getter] get_door_locked(self)\n  [command] configure_and_initialize(self)\n  [command] set_configuration_data(self)\n    comment: Set the device configuration data.\n  [command] initialize(self)\n  [command] open_door(self)\n    comment: Centrifuge operations\n    comment: used to be:                           aa022600072f\n    comment: we can't tell when the door is fully open, so we just wait a bit\n  [command] close_door(self)\n    comment: used to be:                           aa022600052d\n    comment: we can't tell when the door is fully closed, so we just wait a bit\n  [command] lock_door(self)\n    comment: used to be                            aa0226000129\n  [command] unlock_door(self)\n    comment: used to be                            aa022600052d\n  [command] lock_bucket(self)\n  [command] unlock_bucket(self)\n  [command] go_to_bucket1(self)\n  [command] go_to_bucket2(self)\n  [command] go_to_position(self, position)\n    comment: await self._send_command(bytes.fromhex(\"aa0117021a\"))\n  [command] g_to_rpm(g)\n    comment: https://en.wikipedia.org/wiki/Centrifugation#Mathematical_formula\n  [command] spin(self, g=500, duration=60, acceleration=0.8, deceleration=0.8)\n    comment: 1 - compute the final position\n    comment: compute the distance traveled during the acceleration period\n    comment: distance = 1/2 * v^2 / a. area under 0 to t (triangle). t = a/v_max\n    comment: 12903.2 ticks/s^2 is 100% acceleration\n    comment: compute the distance traveled at speed\n    comment: this is almost 3 hours of spinning at 3000 rpm (max speed),\n    comment: so we assume nobody will ever hit this.\n    comment: 2 - send \"go to position\" command with computed final position and rpm\n    comment: 3 - wait for acceleration to the set rpm\n    comment: we also check the position to avoid waiting forever if the speed is not reached (e.g. short spin...)\n    comment: 4 - once the speed is reached, compute the position at which to start deceleration\n    comment: this is different than computed above, because above we assumed constant acceleration from 0 to rpm.\n    comment: however, in reality there is jerk and the acceleration is not constant, so we have to adjust as we go.\n    comment: this is what the vendor software does too.\n    comment: if we are already past that position, we skip this part.\n    comment: then wait until we reach that position\n    comment: 5 - send deceleration command\n    comment: aa0194b600000000dc02000029: decel at 80\n    comment: aa0194b6000000000a03000058: decel at 85\n    comment: aa0194b61283000012010000f3: used in setup (30%)\n    comment: 6 - reset position back to 0ish\n    comment: this part is aneeded because otherwise calling go_to_position will not work after\n    comment: 7 - wait for home position to change\n    comment: go_to_bucket{1,2} does not work until the home position changes\n    comment: Start a spin cycle. spin spin spin spin\n\n    Args:\n      g: relative centrifugal force, also known as g-force\n      duration: time in seconds spent at speed (g)\n      acceleration: 0-1 of total accele...\n\nRegistry actions:\n  auto-close_door (from close_door())\n  auto-configure_and_initialize (from configure_and_initialize())\n  auto-go_to_bucket1 (from go_to_bucket1())\n  auto-go_to_bucket2 (from go_to_bucket2())\n  auto-go_to_position (from go_to_position())\n  auto-initialize (from initialize())\n  auto-lock_bucket (from lock_bucket())\n  auto-lock_door (from lock_door())\n  auto-open_door (from open_door())\n  auto-set_bucket_1_position_to_current (from set_bucket_1_position_to_current())\n  auto-set_configuration_data (from set_configuration_data())\n  auto-setup (from setup())\n  auto-spin (from spin())\n  auto-stop (from stop())\n  auto-unlock_bucket (from unlock_bucket())\n  auto-unlock_door (from unlock_door())\n  auto-send_command (from send_command())\n  auto-serialize (from serialize())\n  auto-get_status (from get_status())\n  auto-park (from park())\n  auto-load (from load())\n  auto-unload (from unload())\n  auto-bucket_1_remainder (from bucket_1_remainder())\n  auto-get_bucket_1_position (from get_bucket_1_position())\n  auto-get_position (from get_position())\n  auto-get_tachometer (from get_tachometer())\n  auto-get_home_position (from get_home_position())\n  auto-get_bucket_locked (from get_bucket_locked())\n  auto-get_door_open (from get_door_open())\n  auto-get_door_locked (from get_door_locked())\n  auto-g_to_rpm (from g_to_rpm())\n\nRequired output action ids:\n  auto-close_door\n  auto-configure_and_initialize\n  auto-go_to_bucket1\n  auto-go_to_bucket2\n  auto-go_to_position\n  auto-initialize\n  auto-lock_bucket\n  auto-lock_door\n  auto-open_door\n  auto-set_bucket_1_position_to_current\n  auto-set_configuration_data\n  auto-setup\n  auto-spin\n  auto-stop\n  auto-unlock_bucket\n  auto-unlock_door\n  auto-send_command\n  auto-serialize\n  auto-get_status\n  auto-park\n  auto-load\n  auto-unload\n  auto-bucket_1_remainder\n  auto-get_bucket_1_position\n  auto-get_position\n  auto-get_tachometer\n  auto-get_home_position\n  auto-get_bucket_locked\n  auto-get_door_open\n  auto-get_door_locked\n  auto-g_to_rpm"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0ae6296bc34029d80069d5b69b94848195a6e341765e07faeb",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 1802,
+          "start_offset": 830
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 9072,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0ae6296bc34029d80069d5b69bee588195a8a101bf09c6f38e",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0ae6296bc34029d80069d5b6ac4d4081958cc5e1ef4c9d22d4",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"安捷伦 VSpin 离心机\",\n  \"name_en\": \"Agilent VSpin Centrifuge\",\n  \"manufacturer\": \"Agilent\",\n  \"description\": \"用于实验室样品离心处理的自动化离心机，可进行转子位置控制、开关门、门锁与桶锁控制，并按设定的相对离心力或转速执行离心程序。\",\n  \"description_en\": \"An automated laboratory centrifuge for sample separation, supporting rotor positioning, door open/close control, door and bucket locking, and spin programs based on target relative centrifugal force or RPM.\",\n  \"tag_hints\": [\n    \"centrifugation\",\n    \"rotor position control\",\n    \"door lock interlock\",\n    \"bucket lock control\",\n    \"RPM monitoring\",\n    \"g-force to RPM conversion\",\n    \"lab automation\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-close_door\",\n      \"description\": \"关闭离心机门。\",\n      \"description_en\": \"Close the centrifuge door.\"\n    },\n    {\n      \"action_name\": \"auto-configure_and_initialize\",\n      \"description\": \"配置并初始化离心机。\",\n      \"description_en\": \"Configure and initialize the centrifuge.\"\n    },\n    {\n      \"action_name\": \"auto-go_to_bucket1\",\n      \"description\": \"将转子移动到桶位 1。\",\n      \"description_en\": \"Move the rotor to bucket position 1.\"\n    },\n    {\n      \"action_name\": \"auto-go_to_bucket2\",\n      \"description\": \"将转子移动到桶位 2。\",\n      \"description_en\": \"Move the rotor to bucket position 2.\"\n    },\n    {\n      \"action_name\": \"auto-go_to_position\",\n      \"description\": \"将转子移动到指定位置。\",\n      \"description_en\": \"Move the rotor to a specified position.\"\n    },\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"初始化离心机。\",\n      \"description_en\": \"Initialize the centrifuge.\"\n    },\n    {\n      \"action_name\": \"auto-lock_bucket\",\n      \"description\": \"锁定样品桶。\",\n      \"description_en\": \"Lock the bucket.\"\n    },\n    {\n      \"action_name\": \"auto-lock_door\",\n      \"description\": \"锁定离心机门。\",\n      \"description_en\": \"Lock the centrifuge door.\"\n    },\n    {\n      \"action_name\": \"auto-open_door\",\n      \"description\": \"打开离心机门。\",\n      \"description_en\": \"Open the centrifuge door.\"\n    },\n    {\n      \"action_name\": \"auto-set_bucket_1_position_to_current\",\n      \"description\": \"将当前位置设为桶位 1 并保存校准。\",\n      \"description_en\": \"Set the current position as bucket 1 and save the calibration.\"\n    },\n    {\n      \"action_name\": \"auto-set_configuration_data\",\n      \"description\": \"设置设备配置数据。\",\n      \"description_en\": \"Set the device configuration data.\"\n    },\n    {\n      \"action_name\": \"auto-setup\",\n      \"description\": \"执行离心机设置与校准加载。\",\n      \"description_en\": \"Perform centrifuge setup and load calibration.\"\n    },\n    {\n      \"action_name\": \"auto-spin\",\n      \"description\": \"按设定离心力、时长、加速度和减速度执行离心。\",\n      \"description_en\": \"Run a spin cycle with the specified g-force, duration, acceleration, and deceleration.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止离心机运行。\",\n      \"description_en\": \"Stop the centrifuge.\"\n    },\n    {\n      \"action_name\": \"auto-unlock_bucket\",\n      \"description\": \"解锁样品桶。\",\n      \"description_en\": \"Unlock the bucket.\"\n    },\n    {\n      \"action_name\": \"auto-unlock_door\",\n      \"description\": \"解锁离心机门。\",\n      \"description_en\": \"Unlock the centrifuge door.\"\n    },\n    {\n      \"action_name\": \"auto-send_command\",\n      \"description\": \"发送底层设备命令。\",\n      \"description_en\": \"Send a low-level device command.\"\n    },\n    {\n      \"action_name\": \"auto-serialize\",\n      \"description\": \"序列化设备配置或状态。\",\n      \"description_en\": \"Serialize the device configuration or state.\"\n    },\n    {\n      \"action_name\": \"auto-get_status\",\n      \"description\": \"获取设备状态。\",\n      \"description_en\": \"Get device status.\"\n    },\n    {\n      \"action_name\": \"auto-park\",\n      \"description\": \"执行停放流程。\",\n      \"description_en\": \"Perform the park procedure.\"\n    },\n    {\n      \"action_name\": \"auto-load\",\n      \"description\": \"执行装载流程。\",\n      \"description_en\": \"Perform the load procedure.\"\n    },\n    {\n      \"action_name\": \"auto-unload\",\n      \"description\": \"执行卸载流程。\",\n      \"description_en\": \"Perform the unload procedure.\"\n    },\n    {\n      \"action_name\": \"auto-bucket_1_remainder\",\n      \"description\": \"获取桶位 1 的校准余量。\",\n      \"description_en\": \"Get the bucket 1 calibration remainder.\"\n    },\n    {\n      \"action_name\": \"auto-get_bucket_1_position\",\n      \"description\": \"获取桶位 1 的位置。\",\n      \"description_en\": \"Get the bucket 1 position.\"\n    },\n    {\n      \"action_name\": \"auto-get_position\",\n      \"description\": \"获取当前转子位置。\",\n      \"description_en\": \"Get the current rotor position.\"\n    },\n    {\n      \"action_name\": \"auto-get_tachometer\",\n      \"description\": \"获取当前转速。\",\n      \"description_en\": \"Get the current speed.\"\n    },\n    {\n      \"action_name\": \"auto-get_home_position\",\n      \"description\": \"获取原点位置。\",\n      \"description_en\": \"Get the home position.\"\n    },\n    {\n      \"action_name\": \"auto-get_bucket_locked\",\n      \"description\": \"获取样品桶锁定状态。\",\n      \"description_en\": \"Get the bucket lock state.\"\n    },\n    {\n      \"action_name\": \"auto-get_door_open\",\n      \"description\": \"获取门打开状态。\",\n      \"description_en\": \"Get the door open state.\"\n    },\n    {\n      \"action_name\": \"auto-get_door_locked\",\n      \"description\": \"获取门锁定状态。\",\n      \"description_en\": \"Get the door locked state.\"\n    },\n    {\n      \"action_name\": \"auto-g_to_rpm\",\n      \"description\": \"将相对离心力换算为转速。\",\n      \"description_en\": \"Convert relative centrifugal force to RPM.\"\n    }\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 2415,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2323,
+      "output_tokens_details": {
+        "reasoning_tokens": 872
+      },
+      "total_tokens": 4738
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 2415,
+      "output_token_count": 2323,
+      "predict_time": 36.907568321
+    }
+  },
+  "output_text": "{\n  \"name\": \"安捷伦 VSpin 离心机\",\n  \"name_en\": \"Agilent VSpin Centrifuge\",\n  \"manufacturer\": \"Agilent\",\n  \"description\": \"用于实验室样品离心处理的自动化离心机，可进行转子位置控制、开关门、门锁与桶锁控制，并按设定的相对离心力或转速执行离心程序。\",\n  \"description_en\": \"An automated laboratory centrifuge for sample separation, supporting rotor positioning, door open/close control, door and bucket locking, and spin programs based on target relative centrifugal force or RPM.\",\n  \"tag_hints\": [\n    \"centrifugation\",\n    \"rotor position control\",\n    \"door lock interlock\",\n    \"bucket lock control\",\n    \"RPM monitoring\",\n    \"g-force to RPM conversion\",\n    \"lab automation\"\n  ],\n  \"actions\": [\n    {\n      \"action_name\": \"auto-close_door\",\n      \"description\": \"关闭离心机门。\",\n      \"description_en\": \"Close the centrifuge door.\"\n    },\n    {\n      \"action_name\": \"auto-configure_and_initialize\",\n      \"description\": \"配置并初始化离心机。\",\n      \"description_en\": \"Configure and initialize the centrifuge.\"\n    },\n    {\n      \"action_name\": \"auto-go_to_bucket1\",\n      \"description\": \"将转子移动到桶位 1。\",\n      \"description_en\": \"Move the rotor to bucket position 1.\"\n    },\n    {\n      \"action_name\": \"auto-go_to_bucket2\",\n      \"description\": \"将转子移动到桶位 2。\",\n      \"description_en\": \"Move the rotor to bucket position 2.\"\n    },\n    {\n      \"action_name\": \"auto-go_to_position\",\n      \"description\": \"将转子移动到指定位置。\",\n      \"description_en\": \"Move the rotor to a specified position.\"\n    },\n    {\n      \"action_name\": \"auto-initialize\",\n      \"description\": \"初始化离心机。\",\n      \"description_en\": \"Initialize the centrifuge.\"\n    },\n    {\n      \"action_name\": \"auto-lock_bucket\",\n      \"description\": \"锁定样品桶。\",\n      \"description_en\": \"Lock the bucket.\"\n    },\n    {\n      \"action_name\": \"auto-lock_door\",\n      \"description\": \"锁定离心机门。\",\n      \"description_en\": \"Lock the centrifuge door.\"\n    },\n    {\n      \"action_name\": \"auto-open_door\",\n      \"description\": \"打开离心机门。\",\n      \"description_en\": \"Open the centrifuge door.\"\n    },\n    {\n      \"action_name\": \"auto-set_bucket_1_position_to_current\",\n      \"description\": \"将当前位置设为桶位 1 并保存校准。\",\n      \"description_en\": \"Set the current position as bucket 1 and save the calibration.\"\n    },\n    {\n      \"action_name\": \"auto-set_configuration_data\",\n      \"description\": \"设置设备配置数据。\",\n      \"description_en\": \"Set the device configuration data.\"\n    },\n    {\n      \"action_name\": \"auto-setup\",\n      \"description\": \"执行离心机设置与校准加载。\",\n      \"description_en\": \"Perform centrifuge setup and load calibration.\"\n    },\n    {\n      \"action_name\": \"auto-spin\",\n      \"description\": \"按设定离心力、时长、加速度和减速度执行离心。\",\n      \"description_en\": \"Run a spin cycle with the specified g-force, duration, acceleration, and deceleration.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止离心机运行。\",\n      \"description_en\": \"Stop the centrifuge.\"\n    },\n    {\n      \"action_name\": \"auto-unlock_bucket\",\n      \"description\": \"解锁样品桶。\",\n      \"description_en\": \"Unlock the bucket.\"\n    },\n    {\n      \"action_name\": \"auto-unlock_door\",\n      \"description\": \"解锁离心机门。\",\n      \"description_en\": \"Unlock the centrifuge door.\"\n    },\n    {\n      \"action_name\": \"auto-send_command\",\n      \"description\": \"发送底层设备命令。\",\n      \"description_en\": \"Send a low-level device command.\"\n    },\n    {\n      \"action_name\": \"auto-serialize\",\n      \"description\": \"序列化设备配置或状态。\",\n      \"description_en\": \"Serialize the device configuration or state.\"\n    },\n    {\n      \"action_name\": \"auto-get_status\",\n      \"description\": \"获取设备状态。\",\n      \"description_en\": \"Get device status.\"\n    },\n    {\n      \"action_name\": \"auto-park\",\n      \"description\": \"执行停放流程。\",\n      \"description_en\": \"Perform the park procedure.\"\n    },\n    {\n      \"action_name\": \"auto-load\",\n      \"description\": \"执行装载流程。\",\n      \"description_en\": \"Perform the load procedure.\"\n    },\n    {\n      \"action_name\": \"auto-unload\",\n      \"description\": \"执行卸载流程。\",\n      \"description_en\": \"Perform the unload procedure.\"\n    },\n    {\n      \"action_name\": \"auto-bucket_1_remainder\",\n      \"description\": \"获取桶位 1 的校准余量。\",\n      \"description_en\": \"Get the bucket 1 calibration remainder.\"\n    },\n    {\n      \"action_name\": \"auto-get_bucket_1_position\",\n      \"description\": \"获取桶位 1 的位置。\",\n      \"description_en\": \"Get the bucket 1 position.\"\n    },\n    {\n      \"action_name\": \"auto-get_position\",\n      \"description\": \"获取当前转子位置。\",\n      \"description_en\": \"Get the current rotor position.\"\n    },\n    {\n      \"action_name\": \"auto-get_tachometer\",\n      \"description\": \"获取当前转速。\",\n      \"description_en\": \"Get the current speed.\"\n    },\n    {\n      \"action_name\": \"auto-get_home_position\",\n      \"description\": \"获取原点位置。\",\n      \"description_en\": \"Get the home position.\"\n    },\n    {\n      \"action_name\": \"auto-get_bucket_locked\",\n      \"description\": \"获取样品桶锁定状态。\",\n      \"description_en\": \"Get the bucket lock state.\"\n    },\n    {\n      \"action_name\": \"auto-get_door_open\",\n      \"description\": \"获取门打开状态。\",\n      \"description_en\": \"Get the door open state.\"\n    },\n    {\n      \"action_name\": \"auto-get_door_locked\",\n      \"description\": \"获取门锁定状态。\",\n      \"description_en\": \"Get the door locked state.\"\n    },\n    {\n      \"action_name\": \"auto-g_to_rpm\",\n      \"description\": \"将相对离心力换算为转速。\",\n      \"description_en\": \"Convert relative centrifugal force to RPM.\"\n    }\n  ]\n}"
+}

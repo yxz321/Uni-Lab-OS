@@ -1,20 +1,85 @@
-Device: vertical_mirror
-Registry Key: vertical_mirror
-Short Description: Synchrotron Vertical Mirror是一款表征设备。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (3):
-- auto-derived_to_raw -> derived_to_raw [UniLabJsonCommand] goal_params: angle, height
-- auto-raw_to_derived -> raw_to_derived [UniLabJsonCommand] goal_params: jack1, jack2
-- auto-set -> set [UniLabJsonCommand] goal_params: derived
-
-Driver Functions (4):
-- TwoJackTransform.raw_to_derived(self, *, jack1, jack2) (line 99)
-- TwoJackTransform.derived_to_raw(self, *, height, angle) (line 108)
-- VerticalMirror.__init__(self, name) (line 117)
-- VerticalMirror.set(self, derived) [async] (line 138)
+vertical_mirror:
+  name: 垂直反射镜模拟组件
+  name_en: Vertical Mirror Simulator
+  manufacturer: ''
+  category:
+  - 光学反射镜运动学模拟器
+  tags:
+  - 实验执行&合成设备
+  - 光学与光谱实验
+  - 精密定位与运动控制
+  - 实验设备模拟与流程调试
+  - 样品/探针定位与运动控制
+  - 光学反射镜运动学模拟器
+  description: 非物理软件组件，用于在实验控制中模拟双支撑/双千斤顶垂直反射镜的运动与几何换算。它支持原始执行量与派生镜面参数之间的转换，并可按派生目标参数进行设定，适合测试控制逻辑与坐标变换。
+  description_en: A non-physical software component that simulates a two-support/two-jack
+    vertical mirror for experiment control. It converts between raw actuator values
+    and derived mirror parameters, and allows the mirror state to be set using derived
+    targets, making it useful for testing control logic and coordinate transforms.
+  class:
+    action_value_mappings:
+      auto-set:
+        schema:
+          description: 设置模拟垂直反射镜的派生目标参数。
+          description_en: Set the derived target parameters of the simulated vertical
+            mirror.
+      auto-raw_to_derived:
+        schema:
+          description: 将原始双千斤顶参数转换为派生镜面参数。
+          description_en: Convert raw two-jack values into derived mirror parameters.
+      auto-derived_to_raw:
+        schema:
+          description: 将派生镜面参数转换为原始双千斤顶参数。
+          description_en: Convert derived mirror parameters into raw two-jack values.
+auto_annotation_metadata:
+  registry_key: vertical_mirror
+  annotation_workflow_version: v4
+  tag_hints:
+  - vertical mirror simulation
+  - two-jack transform
+  - mirror kinematics
+  - coordinate conversion
+  - movable optics model
+  existing_tags:
+  - id: '4313'
+    name: 实验执行&合成设备
+    name_en: Experiment Execution & Synthesis Equipment
+    type: experimental_step
+    rationale: 虽然是软件模拟组件，但它直接服务于实验控制逻辑、设定与运动换算，可归入实验执行环节。
+  - id: P-3003
+    name: 光学与光谱实验
+    name_en: Optical & Spectroscopy Experiments
+    type: experimental_domain
+    rationale: 对象是垂直反射镜，属于典型光学实验装置语境。
+  - id: P-1009
+    name: 精密定位与运动控制
+    name_en: Precision Positioning & Motion Control
+    type: experimental_domain
+    rationale: 组件处理双支撑/双千斤顶执行量与镜面参数之间的运动学换算，明显涉及精密定位控制。
+  - id: P-00002
+    name: 实验设备模拟与流程调试
+    name_en: Laboratory Device Simulation & Workflow Debugging
+    type: experimental_scene
+    rationale: 该组件明确用于模拟垂直反射镜状态并测试控制逻辑，和设备模拟调试场景高度吻合。
+  - id: P-0038
+    name: 样品/探针定位与运动控制
+    name_en: Sample / Probe Positioning & Motion Control
+    type: experimental_scene
+    rationale: 其核心是根据派生目标参数进行位置设定和几何转换，符合运动控制场景特征。
+  proposed_new_tags:
+  - id: P-970004
+    name: 光学反射镜运动学模拟器
+    name_en: Optical Mirror Kinematics Simulator
+    type: device_template_tag
+    rationale: 现有模板缺少针对可调反射镜几何/运动学模拟的软件组件类型，该设备正是此类对象。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

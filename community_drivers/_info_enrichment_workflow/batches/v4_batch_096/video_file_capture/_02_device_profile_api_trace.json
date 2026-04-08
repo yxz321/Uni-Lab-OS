@@ -1,0 +1,243 @@
+{
+  "request": {
+    "model": "Vendor2/GPT-5.4",
+    "reasoning": {
+      "effort": "medium"
+    },
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "device_profile",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Chinese device name"
+            },
+            "name_en": {
+              "type": "string",
+              "description": "English device name"
+            },
+            "manufacturer": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "description": "Chinese description"
+            },
+            "description_en": {
+              "type": "string",
+              "description": "English description"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "action_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Chinese"
+                  },
+                  "description_en": {
+                    "type": "string",
+                    "description": "English"
+                  }
+                },
+                "required": [
+                  "action_name",
+                  "description",
+                  "description_en"
+                ]
+              }
+            },
+            "tag_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Relevance-sorted keyword phrases for downstream tagging"
+            }
+          },
+          "required": [
+            "name",
+            "name_en",
+            "manufacturer",
+            "description",
+            "description_en",
+            "actions",
+            "tag_hints"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "input": [
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "You are interpreting extracted evidence about a lab-device driver.\n\nTask:\n- First decide whether the evidence points to a physical lab device or to a\n  non-physical software/helper component used around experiments (for example a\n  live display, launcher app, storage object, backend, protocol helper,\n  property wrapper, ruleset, factory, monitor, or abstract control module).\n- Infer a concise device name (Chinese) and name_en (English).\n- Infer the manufacturer from driver evidence (class name, module path,\n  docstrings, comments). If unclear, output empty string.\n- Write a concise Chinese description and English description_en of the device\n  or component and its lab use.\n- If the evidence points mainly to a non-physical software/helper component,\n  name and describe that software/helper component itself, explicitly make clear\n  that it is non-physical, and leave manufacturer empty unless the software\n  identity is directly supported by the evidence.\n- Only infer a specific physical instrument when the evidence shows direct\n  hardware-facing behavior such as sensing, actuation, motion, fluid handling,\n  optical emission/detection, electrical sourcing/measurement, or other\n  device-specific control of that instrument.\n- Do not infer a physical instrument merely because the code displays,\n  launches, stores, transports, configures, logs, or monitors data related to\n  that instrument.\n- Write bilingual descriptions for each action.\n- For `actions[].action_name`, use the required action id exactly when one is\n  provided in the user message under \"Required output action ids\".\n- Some functions are annotated as status_getter or status_setter. These manage\n  device properties. For these, the description should simply be\n  \"get/set/define <plain-text description of the property>\".\n- Produce tag_hints: a relevance-sorted list of short keyword phrases the\n  device relates to (e.g., \"cryogenic cooling\", \"PID temperature control\").\n  These will be used downstream for tag assignment. Aim for 3-8 hints.\n  Prefer English for tag_hints, but Chinese is acceptable if needed.\n- Do not invent capabilities unsupported by the evidence.\n- If evidence is weak, stay generic rather than hallucinating.\n- `name` and `description` must be natural Chinese.\n- `name_en` and `description_en` must be natural English.\n- Do not copy English text into the Chinese fields.\n- Keep the physical-vs-software decision implicit in the required schema\n  fields only. Do not output extra flags such as `is_physical`.\n- Do not describe the result as a \"backend\", \"driver\", or \"wrapper\" unless the\n  evidence truly supports only a software component and no physical device can\n  be identified.\n- When the evidence is mixed or weak, prefer a generic software/helper label\n  over hallucinating a specific physical device family.\n- Use module path, class name, action surface, and method comments to infer the\n  device family when possible.\n- Output JSON only.\n"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Device folder: video_file_capture\n\nModule docstring:\nAuto-generated by Build Agent\nOriginal: frame_source/video_file_capture.py\n\n[UNILAB DEBUG] 此驱动已注入调试日志\n- 每个方法被调用时会打印日志\n- 日志格式: [UNILAB] ClassName.method_name() called\n- 查看日志: logging.getLogger(\"unilab.driver\").setLevel(logging.DEBUG)\n\nModule path: unilabos.devices.media.video_file_capture:VideoFileCapture\n\nClass: VideoFileCapture (focal)\n  Bases: ['VideoCaptureBase']\n\nFocal class methods:\n  [command] start_async(self)\n    comment: Start background thread to continuously capture frames from video file.\n  [command] stop(self)\n    comment: Stop background frame capture thread.\n  [status_getter] get_latest_frame(self)\n    comment: Get the most recent frame captured by the background thread.\n        Returns:\n            Tuple[bool, Optional[np.ndarray]]: (success, frame) where success indicates if frame is available\n  [command] connect(self)\n    comment: Set additional parameters if provided\n    comment: Connect to video file.\n  [command] disconnect(self)\n    comment: Disconnect from video file.\n  [status_setter] set_exposure(self, value)\n    comment: Set exposure (not applicable for video files).\n  [status_getter] get_exposure(self)\n    comment: Get exposure (not applicable for video files).\n  [status_setter] set_gain(self, value)\n    comment: Set gain (not applicable for video files).\n  [status_getter] get_gain(self)\n    comment: Get gain (not applicable for video files).\n  [command] enable_auto_exposure(self, enable=True)\n    comment: Enable or disable auto exposure (not applicable for video files).\n        \n        Args:\n            enable: True to enable, False to disable\n        \n        Returns:\n            bool: Always False f...\n  [command] set_frame_size(self, width, height)\n    comment: Set frame size (not applicable for video files).\n  [command] discover(cls)\n    comment: Video file capture doesn't discover devices - it works with file paths\n    comment: Discover method for video file capture.\n        \n        Returns:\n            list: Empty list, as discovery is not applicable for file-based sources.\n                Use this class directly with file...\n  [command] get_config_schema(cls)\n    comment: Get configuration schema for video file capture\n\nRegistry actions:\n  auto-start_async (from start_async())\n  auto-stop (from stop())\n  auto-connect (from connect())\n  auto-disconnect (from disconnect())\n  auto-set_exposure (from set_exposure())\n  auto-set_gain (from set_gain())\n  auto-enable_auto_exposure (from enable_auto_exposure())\n  auto-set_frame_size (from set_frame_size())\n\nRequired output action ids:\n  auto-start_async\n  auto-stop\n  auto-connect\n  auto-disconnect\n  auto-set_exposure\n  auto-set_gain\n  auto-enable_auto_exposure\n  auto-set_frame_size"
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "id": "Vendor2-resp_0c849c1e77a7d2cf0069d5b6c36dac8194bd6f4d9f3b97f373",
+    "object": "response",
+    "created_at": 0,
+    "status": "completed",
+    "background": false,
+    "content_filters": [
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 3670,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "jailbreak": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "prompt"
+      },
+      {
+        "blocked": false,
+        "content_filter_offsets": {
+          "check_offset": 0,
+          "end_offset": 4406,
+          "start_offset": 0
+        },
+        "content_filter_raw": [],
+        "content_filter_results": {
+          "hate": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "protected_material_code": {
+            "detected": false,
+            "filtered": false
+          },
+          "protected_material_text": {
+            "detected": false,
+            "filtered": false
+          },
+          "self_harm": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "sexual": {
+            "filtered": false,
+            "severity": "safe"
+          },
+          "violence": {
+            "filtered": false,
+            "severity": "safe"
+          }
+        },
+        "source_type": "completion"
+      }
+    ],
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "model": "Vendor2/GPT-5.4",
+    "output": [
+      {
+        "id": "rs_0c849c1e77a7d2cf0069d5b6c3cdf08194a796eb0f0bb00f47",
+        "type": "reasoning"
+      },
+      {
+        "id": "msg_0c849c1e77a7d2cf0069d5b6cddd748194910d3ae9fcac1021",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"name\": \"视频文件帧采集源\",\n  \"name_en\": \"Video File Capture\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件视频源组件，用于从视频文件中读取并持续提供图像帧。它可连接到文件路径、在后台线程中连续抓取最新帧，并用于实验视频回放、图像处理流程测试或在没有真实相机时模拟视频输入。\",\n  \"description_en\": \"This is a non-physical software video source component that reads and serves image frames from a video file. It can connect to a file path, continuously capture frames in a background thread, and is used for experiment video playback, image-processing pipeline testing, or simulating camera input when no real camera is present.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-start_async\",\n      \"description\": \"启动后台线程，持续从视频文件捕获帧。\",\n      \"description_en\": \"Start a background thread to continuously capture frames from the video file.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止后台帧捕获线程。\",\n      \"description_en\": \"Stop the background frame capture thread.\"\n    },\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"连接到视频文件源。\",\n      \"description_en\": \"Connect to the video file source.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开与视频文件源的连接。\",\n      \"description_en\": \"Disconnect from the video file source.\"\n    },\n    {\n      \"action_name\": \"auto-set_exposure\",\n      \"description\": \"设置曝光。\",\n      \"description_en\": \"set exposure\"\n    },\n    {\n      \"action_name\": \"auto-set_gain\",\n      \"description\": \"设置增益。\",\n      \"description_en\": \"set gain\"\n    },\n    {\n      \"action_name\": \"auto-enable_auto_exposure\",\n      \"description\": \"启用或禁用自动曝光（对视频文件源不适用）。\",\n      \"description_en\": \"Enable or disable auto exposure (not applicable to video file sources).\"\n    },\n    {\n      \"action_name\": \"auto-set_frame_size\",\n      \"description\": \"设置帧尺寸（对视频文件源不适用）。\",\n      \"description_en\": \"Set frame size (not applicable to video file sources).\"\n    }\n  ],\n  \"tag_hints\": [\n    \"video file playback\",\n    \"camera simulation\",\n    \"background frame capture\",\n    \"frame replay\",\n    \"image pipeline testing\",\n    \"media source\"\n  ]\n}"
+          }
+        ]
+      }
+    ],
+    "parallel_tool_calls": false,
+    "previous_response_id": null,
+    "prompt_cache_key": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+      "effort": "medium"
+    },
+    "safety_identifier": null,
+    "service_tier": "",
+    "store": true,
+    "temperature": 1,
+    "text": {
+      "format": {
+        "type": "text"
+      },
+      "verbosity": "medium"
+    },
+    "tool_choice": null,
+    "tools": [],
+    "top_logprobs": 0,
+    "top_p": 0,
+    "truncation": "disabled",
+    "usage": {
+      "input_tokens": 1261,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1080,
+      "output_tokens_details": {
+        "reasoning_tokens": 516
+      },
+      "total_tokens": 2341
+    },
+    "user": null,
+    "metadata": {},
+    "metrics": {
+      "input_token_count": 1261,
+      "output_token_count": 1080,
+      "predict_time": 18.827274691
+    }
+  },
+  "output_text": "{\n  \"name\": \"视频文件帧采集源\",\n  \"name_en\": \"Video File Capture\",\n  \"manufacturer\": \"\",\n  \"description\": \"这是一个非物理的软件视频源组件，用于从视频文件中读取并持续提供图像帧。它可连接到文件路径、在后台线程中连续抓取最新帧，并用于实验视频回放、图像处理流程测试或在没有真实相机时模拟视频输入。\",\n  \"description_en\": \"This is a non-physical software video source component that reads and serves image frames from a video file. It can connect to a file path, continuously capture frames in a background thread, and is used for experiment video playback, image-processing pipeline testing, or simulating camera input when no real camera is present.\",\n  \"actions\": [\n    {\n      \"action_name\": \"auto-start_async\",\n      \"description\": \"启动后台线程，持续从视频文件捕获帧。\",\n      \"description_en\": \"Start a background thread to continuously capture frames from the video file.\"\n    },\n    {\n      \"action_name\": \"auto-stop\",\n      \"description\": \"停止后台帧捕获线程。\",\n      \"description_en\": \"Stop the background frame capture thread.\"\n    },\n    {\n      \"action_name\": \"auto-connect\",\n      \"description\": \"连接到视频文件源。\",\n      \"description_en\": \"Connect to the video file source.\"\n    },\n    {\n      \"action_name\": \"auto-disconnect\",\n      \"description\": \"断开与视频文件源的连接。\",\n      \"description_en\": \"Disconnect from the video file source.\"\n    },\n    {\n      \"action_name\": \"auto-set_exposure\",\n      \"description\": \"设置曝光。\",\n      \"description_en\": \"set exposure\"\n    },\n    {\n      \"action_name\": \"auto-set_gain\",\n      \"description\": \"设置增益。\",\n      \"description_en\": \"set gain\"\n    },\n    {\n      \"action_name\": \"auto-enable_auto_exposure\",\n      \"description\": \"启用或禁用自动曝光（对视频文件源不适用）。\",\n      \"description_en\": \"Enable or disable auto exposure (not applicable to video file sources).\"\n    },\n    {\n      \"action_name\": \"auto-set_frame_size\",\n      \"description\": \"设置帧尺寸（对视频文件源不适用）。\",\n      \"description_en\": \"Set frame size (not applicable to video file sources).\"\n    }\n  ],\n  \"tag_hints\": [\n    \"video file playback\",\n    \"camera simulation\",\n    \"background frame capture\",\n    \"frame replay\",\n    \"image pipeline testing\",\n    \"media source\"\n  ]\n}"
+}

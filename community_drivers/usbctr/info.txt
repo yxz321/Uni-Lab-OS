@@ -1,63 +1,159 @@
-Device: usbctr
-Registry Key: usbctr
-Short Description: Measurement Computing USB Counter/Timer是由Measurement Computing (MCC)生产的表征设备，主要功能包括停止、启动、扫描、数据保存、读取数据。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (22):
-- auto-ContinuousMode -> ContinuousMode [UniLabJsonCommand] goal_params: dwelltime, numframes
-- auto-ExternalMode -> ExternalMode [UniLabJsonCommand] goal_params: point0_action, prescale, prescale_counter, realtime
-- auto-InternalMode -> InternalMode [UniLabJsonCommand] goal_params: prescale
-- auto-NDArrayMode -> NDArrayMode [UniLabJsonCommand] goal_params: dwelltime, numframes, point0_action, prescale_counter
-- auto-ROIMode -> ROIMode [UniLabJsonCommand] goal_params: dwelltime, numframes, point0_action, prescale_counter
-- auto-ScalerMode -> ScalerMode [UniLabJsonCommand] goal_params: dwelltime, numframes
-- auto-apply_offsets -> apply_offsets [UniLabJsonCommand] goal_params: none
-- auto-arm -> arm [UniLabJsonCommand] goal_params: fnum, mode, numframes, wait
-- auto-config_filesaver -> config_filesaver [UniLabJsonCommand] goal_params: none
-- auto-disarm -> disarm [UniLabJsonCommand] goal_params: mode, wait
-- auto-erase -> erase [UniLabJsonCommand] goal_params: none
-- auto-get_arraydata -> get_arraydata [UniLabJsonCommand] goal_params: npts
-- auto-mcaNread -> mcaNread [UniLabJsonCommand] goal_params: nmcas
-- auto-post_scan -> post_scan [UniLabJsonCommand] goal_params: none
-- auto-pre_scan -> pre_scan [UniLabJsonCommand] goal_params: dwelltime, mode, npulses
-- auto-read_all_mcas -> read_all_mcas [UniLabJsonCommand] goal_params: none
-- auto-read_scaler_config -> read_scaler_config [UniLabJsonCommand] goal_params: none
-- auto-readmca -> readmca [UniLabJsonCommand] goal_params: count, nmca
-- auto-save_arraydata -> save_arraydata [UniLabJsonCommand] goal_params: filename, npts
-- auto-set_dwelltime -> set_dwelltime [UniLabJsonCommand] goal_params: val
-- auto-start -> start [UniLabJsonCommand] goal_params: wait
-- auto-stop -> stop [UniLabJsonCommand] goal_params: none
-
-Driver Functions (28):
-- USBCTR.__init__(self, prefix, scaler, nchan, clockrate) (line 100)
-- USBCTR.ExternalMode(self, point0_action, prescale_counter, realtime, prescale) (line 126)
-- USBCTR.InternalMode(self, prescale) (line 154)
-- USBCTR.set_dwelltime(self, val) (line 167)
-- USBCTR.ContinuousMode(self, dwelltime, numframes) (line 175)
-- USBCTR.ScalerMode(self, dwelltime, numframes) (line 196)
-- USBCTR.NDArrayMode(self, dwelltime, numframes, point0_action, prescale_counter) (line 215)
-- USBCTR.ROIMode(self, dwelltime, numframes, point0_action, prescale_counter) (line 241)
-- USBCTR.start(self, wait) (line 250)
-- USBCTR.stop(self) (line 260)
-- USBCTR.erase(self) (line 278)
-- USBCTR.mcaNread(self, nmcas) (line 283)
-- USBCTR.readmca(self, nmca, count) (line 288)
-- USBCTR.read_all_mcas(self) (line 293)
-- USBCTR.read_scaler_config(self) (line 297)
-- USBCTR.save_arraydata(self, filename, npts, **kws) (line 311)
-- USBCTR.get_arraydata(self, npts, **kws) (line 331)
-- USBCTRDetector.__init__(self, prefix, nchan, use_calc, label, mode, scaler, rois, **kws) (line 430)
-- USBCTRDetector.pre_scan(self, mode, npulses, dwelltime, **kws) (line 453)
-- USBCTRDetector.apply_offsets(self) (line 467)
-- USBCTRDetector.arm(self, mode, fnum, wait, numframes) (line 475)
-- USBCTRDetector.ContinuousMode(self, **kws) (line 492)
-- USBCTRDetector.start(self, mode, arm, wait) (line 496)
-- USBCTRDetector.stop(self, disarm) (line 506)
-- USBCTRDetector.disarm(self, mode, wait) (line 513)
-- USBCTRDetector.post_scan(self, **kws) (line 518)
-- USBCTRDetector.save_arraydata(self, filename, npts) (line 523)
-- USBCTRDetector.config_filesaver(self, **kws) (line 529)
+usbctr:
+  name: USB-CTR04/08 多通道标度计数器
+  name_en: USB-CTR04/08 Multi-Channel Scaler
+  manufacturer: Measurement Computing
+  category:
+  - 标量计数器
+  tags:
+  - 表征设备
+  - 智慧表征与检测中心
+  - 同步计数与探测器通道监测
+  - 瞬态信号采集与同步触发测量
+  - 标量计数器
+  description: Measurement Computing 的 USB-CTR04/USB-CTR08 多通道标度计数器，用于对脉冲或计数通道进行定时采集。该设备支持内部/外部模式、连续采集、标量采集、阵列采集和
+    ROI 模式，可启动、停止、清除并读取 MCS/MCA 数据，常用于步进扫描或连续扫描实验中的计数信号采集。
+  description_en: Measurement Computing USB-CTR04/USB-CTR08 multi-channel scaler for
+    time-resolved pulse or count acquisition. It supports internal and external modes,
+    continuous, scaler, array, and ROI acquisition modes, and can start, stop, erase,
+    and read MCS/MCA data for step-scan or slew-scan experiments.
+  class:
+    action_value_mappings:
+      auto-ContinuousMode:
+        schema:
+          description: 设置为连续采集模式。
+          description_en: Set the device to continuous acquisition mode.
+      auto-ExternalMode:
+        schema:
+          description: 设置为外部模式，使用外部触发或外部计数相关选项进行采集。
+          description_en: Set the device to external mode for acquisition using external
+            trigger/count-related options.
+      auto-InternalMode:
+        schema:
+          description: 设置为内部定时模式。
+          description_en: Set the device to internal timing mode.
+      auto-NDArrayMode:
+        schema:
+          description: 设置为阵列采集模式，用于连续扫描采集。
+          description_en: Set the device to array acquisition mode for slew-scan data
+            collection.
+      auto-ROIMode:
+        schema:
+          description: 设置为 ROI 模式，用于连续扫描采集。
+          description_en: Set the device to ROI mode for slew-scan acquisition.
+      auto-ScalerMode:
+        schema:
+          description: 设置为标量模式，用于步进扫描采集。
+          description_en: Set the device to scaler mode for step-scan acquisition.
+      auto-erase:
+        schema:
+          description: 清除当前 MCS 采集数据。
+          description_en: Erase the current MCS acquisition data.
+      auto-mcaNread:
+        schema:
+          description: 读取指定数量的 MCA 数据。
+          description_en: Read the requested number of MCA datasets.
+      auto-read_all_mcas:
+        schema:
+          description: 读取全部 MCA 数据。
+          description_en: Read all available MCA data.
+      auto-read_scaler_config:
+        schema:
+          description: 读取标量通道名称和计算配置。
+          description_en: Read scaler channel names and calculation configuration.
+      auto-readmca:
+        schema:
+          description: 读取单个 MCS/MCA 数据谱。
+          description_en: Read a single MCS/MCA spectrum.
+      auto-save_arraydata:
+        schema:
+          description: 将 MCA 阵列数据保存为 ASCII 文件。
+          description_en: Save MCA array data to an ASCII file.
+      auto-set_dwelltime:
+        schema:
+          description: 设置驻留时间。
+          description_en: Set the dwell time.
+      auto-start:
+        schema:
+          description: 启动 MCS 采集。
+          description_en: Start MCS acquisition.
+      auto-stop:
+        schema:
+          description: 停止 MCS 采集。
+          description_en: Stop MCS acquisition.
+      auto-get_arraydata:
+        schema:
+          description: 获取阵列数据。
+          description_en: Get array data.
+      auto-pre_scan:
+        schema:
+          description: 在扫描前准备计数器采集。
+          description_en: Prepare the counter acquisition before a scan.
+      auto-apply_offsets:
+        schema:
+          description: 应用已配置的偏移量。
+          description_en: Apply configured offsets.
+      auto-arm:
+        schema:
+          description: 布防设备以等待采集触发。
+          description_en: Arm the device to await acquisition triggering.
+      auto-disarm:
+        schema:
+          description: 撤防设备并退出待采集状态。
+          description_en: Disarm the device and leave the armed acquisition state.
+      auto-post_scan:
+        schema:
+          description: 在扫描结束后完成计数器收尾处理。
+          description_en: Finalize the counter after a scan.
+      auto-config_filesaver:
+        schema:
+          description: 配置采集数据的文件保存设置。
+          description_en: Configure file-saving settings for acquired data.
+auto_annotation_metadata:
+  registry_key: usbctr
+  annotation_workflow_version: v4
+  tag_hints:
+  - multi-channel scaler
+  - counter/timer acquisition
+  - MCS
+  - MCA readout
+  - external triggering
+  - step scanning
+  - slew scanning
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该设备用于采集脉冲/计数信号并读取MCS/MCA数据，核心用途是实验测量与表征。
+  - id: '4325'
+    name: 智慧表征与检测中心
+    name_en: Intelligent Characterization & Testing Center
+    type: experimental_domain
+    rationale: 设备面向扫描实验中的计数信号采集与检测，属于通用表征测试域。
+  - id: P-12006
+    name: 同步计数与探测器通道监测
+    name_en: Synchronized Counting & Detector Channel Monitoring
+    type: experimental_scene
+    rationale: 支持多通道标度、外触发和扫描过程中的同步计数，和该场景高度一致。
+  - id: P-0024
+    name: 瞬态信号采集与同步触发测量
+    name_en: Transient Signal Acquisition & Synchronized Triggered Measurement
+    type: experimental_scene
+    rationale: 设备支持内部/外部模式、定时采集和触发等待，适合瞬态与同步触发采集场景。
+  - id: P-12005
+    name: 标量计数器
+    name_en: Scaler Counter
+    type: device_template_tag
+    rationale: 设备名称即多通道标度计数器，和该模板直接匹配。
+  proposed_new_tags: []
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review

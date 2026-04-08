@@ -1,38 +1,102 @@
-Device: video_file_capture
-Registry Key: video_file_capture
-Short Description: Video File Capture是一款表征设备，主要功能包括使能、停止、启动、增益设置、设备连接。
-
-Categories:
-- 表征设备
-
-Related Tags (from tag 标签列表.csv):
-- [4316] 表征设备 / Characterization Equipment (experimental_step)
-
-Atom Actions (8):
-- auto-connect -> connect [UniLabJsonCommand] goal_params: none
-- auto-disconnect -> disconnect [UniLabJsonCommand] goal_params: none
-- auto-enable_auto_exposure -> enable_auto_exposure [UniLabJsonCommand] goal_params: enable
-- auto-set_exposure -> set_exposure [UniLabJsonCommand] goal_params: value
-- auto-set_frame_size -> set_frame_size [UniLabJsonCommand] goal_params: height, width
-- auto-set_gain -> set_gain [UniLabJsonCommand] goal_params: value
-- auto-start_async -> start_async [UniLabJsonCommand] goal_params: none
-- auto-stop -> stop [UniLabJsonCommand] goal_params: none
-
-Driver Functions (17):
-- VideoFileCapture.start_async(self) (line 87)
-- VideoFileCapture.stop(self) (line 101)
-- VideoFileCapture._background_capture(self) (line 113)
-- VideoFileCapture.get_latest_frame(self) (line 122)
-- VideoFileCapture._read_direct(self) (line 132)
-- VideoFileCapture.__init__(self, source, **kwargs) (line 162)
-- VideoFileCapture.connect(self) (line 170)
-- VideoFileCapture.disconnect(self) (line 194)
-- VideoFileCapture._read_implementation(self) (line 208)
-- VideoFileCapture.set_exposure(self, value) (line 218)
-- VideoFileCapture.get_exposure(self) (line 224)
-- VideoFileCapture.set_gain(self, value) (line 229)
-- VideoFileCapture.get_gain(self) (line 235)
-- VideoFileCapture.enable_auto_exposure(self, enable) (line 240)
-- VideoFileCapture.set_frame_size(self, width, height) (line 254)
-- VideoFileCapture.discover(cls) (line 261)
-- VideoFileCapture.get_config_schema(cls) (line 275)
+video_file_capture:
+  name: 视频文件帧采集源
+  name_en: Video File Capture
+  manufacturer: ''
+  category:
+  - 视频文件采集源
+  tags:
+  - 表征设备
+  - 实验计算与数据处理
+  - 离线图像回放与虚拟相机输入
+  - 实验成像与机器视觉
+  - 视频文件采集源
+  description: 这是一个非物理的软件视频源组件，用于从视频文件中读取并持续提供图像帧。它可连接到文件路径、在后台线程中连续抓取最新帧，并用于实验视频回放、图像处理流程测试或在没有真实相机时模拟视频输入。
+  description_en: This is a non-physical software video source component that reads
+    and serves image frames from a video file. It can connect to a file path, continuously
+    capture frames in a background thread, and is used for experiment video playback,
+    image-processing pipeline testing, or simulating camera input when no real camera
+    is present.
+  class:
+    action_value_mappings:
+      auto-start_async:
+        schema:
+          description: 启动后台线程，持续从视频文件捕获帧。
+          description_en: Start a background thread to continuously capture frames
+            from the video file.
+      auto-stop:
+        schema:
+          description: 停止后台帧捕获线程。
+          description_en: Stop the background frame capture thread.
+      auto-connect:
+        schema:
+          description: 连接到视频文件源。
+          description_en: Connect to the video file source.
+      auto-disconnect:
+        schema:
+          description: 断开与视频文件源的连接。
+          description_en: Disconnect from the video file source.
+      auto-set_exposure:
+        schema:
+          description: 设置曝光。
+          description_en: set exposure
+      auto-set_gain:
+        schema:
+          description: 设置增益。
+          description_en: set gain
+      auto-enable_auto_exposure:
+        schema:
+          description: 启用或禁用自动曝光（对视频文件源不适用）。
+          description_en: Enable or disable auto exposure (not applicable to video
+            file sources).
+      auto-set_frame_size:
+        schema:
+          description: 设置帧尺寸（对视频文件源不适用）。
+          description_en: Set frame size (not applicable to video file sources).
+auto_annotation_metadata:
+  registry_key: video_file_capture
+  annotation_workflow_version: v4
+  tag_hints:
+  - video file playback
+  - camera simulation
+  - background frame capture
+  - frame replay
+  - image pipeline testing
+  - media source
+  existing_tags:
+  - id: '4316'
+    name: 表征设备
+    name_en: Characterization Equipment
+    type: experimental_step
+    rationale: 该组件提供可回放的图像帧输入，常用于成像流程测试和图像处理验证，可视为表征链路中的图像源。
+  - id: P-700004
+    name: 实验计算与数据处理
+    name_en: Experimental Computing & Data Processing
+    type: experimental_domain
+    rationale: 这是非物理软件视频源，核心用途是为实验软件和图像处理流程提供数据输入。
+  - id: P-12008
+    name: 离线图像回放与虚拟相机输入
+    name_en: Offline Image Replay & Virtual Camera Input
+    type: experimental_scene
+    rationale: 设备明确用于从视频文件回放图像并模拟真实相机输入，与该场景完全一致。
+  - id: P-8113
+    name: 实验成像与机器视觉
+    name_en: Laboratory Imaging & Machine Vision
+    type: experimental_scene
+    rationale: 它常用于图像处理流程测试和视频输入替代，和实验成像/机器视觉流程相关。
+  proposed_new_tags:
+  - id: P-970005
+    name: 视频文件采集源
+    name_en: Video File Capture Source
+    type: device_template_tag
+    rationale: 现有模板有文件夹图像采集源，但缺少针对视频文件连续帧读取的软件视频源模板。
+  websearch_evidence:
+    used: false
+    findings: []
+  processing_pass_order:
+  - deterministic_local_extraction
+  - per_device_semantic_profile
+  - agent_conflict_check_and_web_search
+  - batch_tag_pass
+  - payload_merge
+  - render_info_txt
+  - validate_and_review
