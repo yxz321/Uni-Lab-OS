@@ -28,7 +28,7 @@ The following products were selected using explicit web search because local ava
 |---|---|---:|---|---|
 | 1. Sample prep / liquid handling | `vantage_backend` | (a) | No | Strongest locally validated pipetting + integrated gripper |
 | 2. Incubation / cooling / shaking | `cytomat_backend` | (a) | No | Best local match for temp + gas + shaking + plate hotel behavior |
-| 3. Centrifugation | `centrifuge` | (a) | No | Best local generic centrifuge for mixed phage workflow carriers |
+| 3. Centrifugation | `Hettich ROTANTA 460 Robotic` | (b) | Yes | Stronger robotics fit for automation-first handling, but published max is `6446 x g`, so the draft `8000 x g` step would need adjustment |
 | 4. Seal / unseal / wash / bulk dispense | `Agilent BioTek 406 FX` | (b) | Yes | Local sealing exists, but washing does not |
 | 5. Fluorescent staining / FACS | `BD FACSMelody` | (c) | Yes | Sorting/gating is a true local gap |
 | 6. Phage recovery / infection / amplification | `vantage_backend` + `cytomat_backend` | (a) | No | Best served by combining already-validated local stations |
@@ -38,7 +38,7 @@ The following products were selected using explicit web search because local ava
 | 10. Plasmid extraction / DNA sequencing | `QIAcube Connect` + `SeqStudio Genetic Analyzer` | (c) | Yes | Extraction and sequencing are both true gaps |
 | 11. Vector construction / transformation | `BioXp 3250` | (c) | Yes | Best web-backed automated construct-assembly station |
 | 12. Protein expression / purification / validation | `ÄKTA pure` + `Biacore 8K+` | (c) | Yes | Purification and SPR analysis both missing locally |
-| 13. Automation support | `vantage_backend` | (a) | No | Integrated gripper already covers most transport needs |
+| 13. Automation support | `robotic_arm.SCARA_with_slider.moveit.virtual` | (b) | No | Best local reference for cross-device reach because it combines a robot arm, linear slider, and MoveIt-style motion planning |
 
 ## Per-function capability matrix
 
@@ -52,10 +52,10 @@ The following products were selected using explicit web search because local ava
 | Gas-aware cell incubation | 2 | (a) | `cytomat_backend` | `heraeus_cytomat_backend`, `incubator` | Best local path for `CO2`-aware plate incubation |
 | Scheduled shaking during binding | 2 | (a) | `cytomat_backend` | `incubator_shaker_stack`, `bio_shake` | Alternative is to split storage and shaking stations |
 | Plate storage and recall | 2 | (a) | `cytomat_backend` | `incubator`, `hotel.thermo_orbitor_rs2_hotel` | Barcode/storage actions make it the best bundle lead |
-| Load sample carrier | 3 | (a) | `centrifuge` | `v_spin_backend`, `access2_backend` | More generic than the plate-only VSpin variants |
-| Controlled spin by `g` | 3 | (a) | `centrifuge` | `v_spin_backend` | Local action schema explicitly takes `g` and duration |
-| Supernatant recovery handoff | 3 | (a) | `centrifuge` | `access2_backend` | Indexed bucket handling is explicit in the local driver |
-| Door / interlock control | 3 | (a) | `centrifuge` | `v_spin_backend` | Explicit local open/close/lock/unlock actions |
+| Load sample carrier | 3 | (b) | `Hettich ROTANTA 460 Robotic` | `eppendorf_centrifuge_5910_ri`, `v_spin_backend` | Strongest robotics-oriented load/unload story among the researched centrifuges |
+| Controlled spin by `g` | 3 | (b) | `Hettich ROTANTA 460 Robotic` | `eppendorf_centrifuge_5910_ri`, `v_spin_backend` | Suitable for the repeated `500 x g` tube spins, but published max is `6446 x g`, so the draft `8000 x g` recovery step would need adjustment |
+| Supernatant recovery handoff | 3 | (b) | `Hettich ROTANTA 460 Robotic` | `eppendorf_centrifuge_5910_ri`, `v_spin_backend` | Suggested for robotics-first workflow design, with `eppendorf_centrifuge_5910_ri` as the exact-speed fallback when the `8000 x g` clarification step must be preserved |
+| Door / interlock control | 3 | (a) | `v_spin_backend` | `access2_backend` | Local VSpin drivers remain valid for the control surface, but they are not enough for the full draft protocol alone |
 | Seal plate | 4 | (a) | `sealer` | `a4_s_backend` | Already available locally |
 | Peel plate | 4 | (a) | `peeler` | none local of similar quality | Already available locally |
 | Wash cell or ELISA plate | 4 | (c) | `Agilent BioTek 406 FX` | `vantage_backend` plus manual wash logic | Local inventory has no credible dedicated washer |
@@ -83,7 +83,7 @@ The following products were selected using explicit web search because local ava
 | Affinity purification | 12 | (c) | `ÄKTA pure` | manual chromatography, HPLC-adjacent local pieces | No local FPLC/AKTA-class station |
 | Measure binding affinity | 12 | (c) | `Biacore 8K+` | outsourced assay service | No local SPR driver |
 | Compare specificity panel | 12 | (c) | `Biacore 8K+` | ELISA-only surrogate assays | Specificity matrix work belongs on the SPR platform |
-| Plate and carrier transport | 13 | (a) | `vantage_backend` | `star_backend`, CSV-only robot-arm entries | Integrated gripper beats adding a separate primary robot |
+| Plate and carrier transport | 13 | (b) | `robotic_arm.SCARA_with_slider.moveit.virtual` | `vantage_backend`, `dexarm` | Arm-plus-slider architecture is the better match when devices cannot all be fixed in one place |
 | Incubator / hotel storage | 13 | (a) | `cytomat_backend` | `incubator`, `hotel.thermo_orbitor_rs2_hotel` | Strongest validated local hotel behavior |
 | Barcode and sample tracking | 13 | (a) | `cytomat_backend` | `QPix 420` for colony-specific tracking | Cytomat metadata explicitly mentions barcode reading |
-| Consumable handling and tip replenishment | 13 | (a) | `vantage_backend` | `star_backend`, `li_ha` | Best overall local automation backbone |
+| Consumable handling and tip replenishment | 13 | (a) | `vantage_backend` | `star_backend`, `li_ha` | Best overall local automation backbone inside the liquid-handling station |
