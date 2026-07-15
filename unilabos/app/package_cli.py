@@ -129,7 +129,10 @@ def read_registry_yaml_devices(pkg_dir: Path) -> Dict[str, Dict[str, Any]]:
         return {}
 
     entries: Dict[str, Dict[str, Any]] = {}
-    for yaml_path in sorted(list(pkg_dir.glob("*.yaml")) + list(pkg_dir.glob("*.yml"))):
+    root_yaml_paths = list(pkg_dir.glob("*.yaml")) + list(pkg_dir.glob("*.yml"))
+    nested_registry_paths = list(pkg_dir.rglob("registry.yaml")) + list(pkg_dir.rglob("registry.yml"))
+    yaml_paths = sorted(set(root_yaml_paths + nested_registry_paths))
+    for yaml_path in yaml_paths:
         try:
             data = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
         except Exception as exc:
@@ -486,23 +489,33 @@ def inspect_package(
 
     package_info = build_package_info(project, class_namespace, sha256)
 
-    # 设备来源优先级：根目录 registry.yaml > 文件夹式外部注册表(unilabos_registry/) > @device AST 扫描
-    # 前两者条目均自带完整 class.action_value_mappings，可直接作为 source_registry。
+    # YAML 条目自带完整 class.action_value_mappings，同 ID 时优先保留 YAML；
+    # 同时合并包内其他 @device，避免根目录遗留 registry.yaml 屏蔽 AST 新设备。
     yaml_entries = read_registry_yaml_devices(pkg_dir)
     if not yaml_entries:
         yaml_entries = read_external_registry_devices(pkg_dir)
         registry_source = "unilabos_registry/"
     else:
         registry_source = "registry.yaml"
+
+    ast_devices = scan_package_devices(pkg_dir)
+    ast_only_devices = {
+        device_id: meta
+        for device_id, meta in ast_devices.items()
+        if device_id not in yaml_entries
+    }
+
+    resources: List[Dict[str, Any]] = []
+    device_sources: List[str] = []
     if yaml_entries:
-        device_source = registry_source
-        device_ids = sorted(yaml_entries)
-        resources = build_resources_from_registry(yaml_entries, package_info)
-    else:
-        device_source = "@device AST"
-        ast_devices = scan_package_devices(pkg_dir)
-        device_ids = sorted(ast_devices)
-        resources = build_resources(ast_devices, package_info)
+        device_sources.append(registry_source)
+        resources.extend(build_resources_from_registry(yaml_entries, package_info))
+    if ast_only_devices:
+        device_sources.append("@device AST")
+        resources.extend(build_resources(ast_only_devices, package_info))
+
+    device_source = " + ".join(device_sources) or "@device AST"
+    device_ids = sorted(set(yaml_entries) | set(ast_only_devices))
     devices = {rid: None for rid in device_ids}
     if not resources:
         print_status(f"警告：{pkg_dir} 未发现 registry.yaml / unilabos_registry/ 或 @device 设备，仅生成 package_info", "warning")
