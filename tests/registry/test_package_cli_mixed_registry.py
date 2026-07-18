@@ -64,7 +64,32 @@ def test_inspect_package_merges_ast_devices_with_root_legacy_registry(tmp_path):
     # 根目录 YAML 不再屏蔽 Python 中的 @device。
     ast_resource = by_id["ast_device"]
     assert ast_resource["class"]["module"].endswith("driver:AstDevice")
-    assert "run" in ast_resource["class"]["action_value_mappings"]
+    run_action = ast_resource["class"]["action_value_mappings"]["run"]
+    assert run_action["schema"] == {
+        "title": "run参数",
+        "description": "Run AST action",
+        "type": "object",
+        "properties": {
+            "goal": {
+                "type": "object",
+                "properties": {
+                    "cycles": {
+                        "type": "integer",
+                        "title": "cycles",
+                    },
+                },
+            },
+            "feedback": {
+                "type": "object",
+                "properties": {},
+            },
+            "result": {
+                "type": "object",
+                "properties": {},
+            },
+        },
+        "required": ["goal"],
+    }
 
 
 def test_inspect_package_includes_nested_community_registry(tmp_path):

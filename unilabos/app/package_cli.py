@@ -13,6 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from unilabos.registry.utils import wrap_action_schema
 from unilabos.utils import logger
 from unilabos.utils.banner_print import print_status
 
@@ -286,11 +287,20 @@ def build_action_value_mappings(actions: Dict[str, Any]) -> Dict[str, Any]:
         if isinstance(action_type_raw, str) and action_type_raw.strip():
             action_type = action_type_raw.strip().split(":")[-1].split(".")[-1]
         description = action_args.get("description") or meta.get("docstring") or ""
+        result_schema = {"type": "object", "properties": {}}
+        feedback_schema = {"type": "object", "properties": {}}
         entry: Dict[str, Any] = {
             "type": action_type,
             "goal": goal_schema,
-            "result": {"type": "object", "properties": {}},
-            "feedback": {"type": "object", "properties": {}},
+            "result": result_schema,
+            "feedback": feedback_schema,
+            "schema": wrap_action_schema(
+                goal_schema,
+                name,
+                description=str(description),
+                result_schema=result_schema,
+                feedback_schema=feedback_schema,
+            ),
             "description": str(description),
         }
         if goal_default:
