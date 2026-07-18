@@ -8,7 +8,8 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
+from dataclasses import dataclass
+from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, Optional
 
 import requests
@@ -32,6 +33,17 @@ _MESH_ENCRYPT_EXTENSIONS = frozenset({
     ".stl", ".dae", ".obj", ".fbx", ".gltf", ".glb",
 })
 
+# 可作为前端模型入口的格式。依赖文件仍由 _MODEL_EXTENSIONS 控制。
+_ENTRY_FORMATS = {
+    ".xacro": "xacro",
+    ".urdf": "urdf",
+    ".stl": "stl",
+    ".gltf": "gltf",
+    ".glb": "gltf",
+    ".fbx": "fbx",
+    ".obj": "obj",
+}
+
 # XOR 密钥 — 从环境变量读取，与前端 mesh-decrypt.ts 一致
 _XOR_KEY = os.environ.get("UNILAB_MESH_XOR_KEY", "unilab3d-model-protection-key-v1").encode()
 
@@ -42,14 +54,125 @@ def _xor_transform(data: bytes, key: bytes = _XOR_KEY) -> bytes:
     return bytes(b ^ key[i % key_len] for i, b in enumerate(data))
 
 
+@dataclass(frozen=True)
+class _ModelUploadFile:
+    """待上传的本地模型文件及其 OSS 相对路径。"""
+
+    name: str
+    local_path: Path
+    size_kb: int
+
+
+def _legacy_model_source(mesh_name: str, model_type: str) -> Path:
+    """保留旧版 device_mesh 目录约定，供未传 model_source 的调用方使用。"""
+    if model_type == "device":
+        return _MESH_BASE_DIR / "devices" / mesh_name
+    return _MESH_BASE_DIR / "resources" / mesh_name
+
+
+def _collect_model_files(model_source: Path) -> list[_ModelUploadFile]:
+    """从单文件或目录收集模型文件，并生成 POSIX 风格相对路径。"""
+    if model_source.is_file():
+        if model_source.suffix.lower() not in _MODEL_EXTENSIONS:
+            return []
+        return [_ModelUploadFile(
+            name=model_source.name,
+            local_path=model_source,
+            size_kb=model_source.stat().st_size // 1024,
+        )]
+
+    files = []
+    for local_path in sorted(model_source.rglob("*")):
+        if local_path.is_file() and local_path.suffix.lower() in _MODEL_EXTENSIONS:
+            files.append(_ModelUploadFile(
+                name=local_path.relative_to(model_source).as_posix(),
+                local_path=local_path,
+                size_kb=local_path.stat().st_size // 1024,
+            ))
+    return files
+
+
+def _normalize_entry_file(entry_file: str) -> str:
+    """规范化入口相对路径并拒绝绝对路径或目录穿越。"""
+    normalized = PurePosixPath(entry_file.replace("\\", "/"))
+    if normalized.is_absolute() or ".." in normalized.parts:
+        raise ValueError(f"非法模型入口路径: {entry_file}")
+    return normalized.as_posix()
+
+
+def _select_entry_file(
+    files: list[_ModelUploadFile],
+    model_type: str,
+    entry_file: Optional[str],
+) -> str:
+    """选择发布入口；显式入口优先，否则按兼容约定安全推断。"""
+    names = {file.name for file in files}
+    if entry_file:
+        selected = _normalize_entry_file(entry_file)
+        if selected not in names:
+            raise ValueError(f"模型入口文件不存在或未被收集: {selected}")
+        if PurePosixPath(selected).suffix.lower() not in _ENTRY_FORMATS:
+            raise ValueError(f"不支持作为模型入口的文件类型: {selected}")
+        return selected
+
+    # 先保留旧目录的命名约定，同时兼容外部资产常用的 modal.xacro。
+    preferred = (
+        ("macro_device.xacro", "modal.xacro")
+        if model_type == "device"
+        else ("modal.xacro", "macro_device.xacro")
+    )
+    for candidate in preferred:
+        if candidate in names:
+            return candidate
+
+    root_descriptions = [
+        file.name for file in files
+        if "/" not in file.name
+        and PurePosixPath(file.name).suffix.lower() in {".xacro", ".urdf"}
+    ]
+    if len(root_descriptions) == 1:
+        return root_descriptions[0]
+
+    description_files = [
+        file.name for file in files
+        if PurePosixPath(file.name).suffix.lower() in {".xacro", ".urdf"}
+    ]
+    if len(description_files) == 1:
+        return description_files[0]
+
+    entry_candidates = [
+        file.name for file in files
+        if PurePosixPath(file.name).suffix.lower() in _ENTRY_FORMATS
+    ]
+    if len(entry_candidates) == 1:
+        return entry_candidates[0]
+
+    raise ValueError("无法唯一确定模型入口文件，请显式传入 entry_file")
+
+
+def _entry_format(entry_file: str) -> str:
+    """从入口扩展名推断前端 model.format。"""
+    suffix = PurePosixPath(entry_file).suffix.lower()
+    model_format = _ENTRY_FORMATS.get(suffix)
+    if not model_format:
+        raise ValueError(f"不支持作为模型入口的文件类型: {entry_file}")
+    return model_format
+
+
 def upload_device_model(
     http_client: "HTTPClient",
     template_uuid: str,
     mesh_name: str,
     model_type: str,
     version: str = "1.0.0",
+    *,
+    model_source: Optional[str | Path] = None,
+    entry_file: Optional[str] = None,
 ) -> Optional[str]:
-    """上传本地模型文件到 OSS，返回入口文件的 OSS URL。
+    """上传本地模型文件或模型包到 OSS，返回入口文件的 OSS URL。
+
+    ``model_source`` 可直接指向外部模型目录或单个模型文件。省略时继续使用
+    ``device_mesh/{devices|resources}/{mesh_name}`` 旧目录约定。
 
     Args:
         http_client: HTTPClient 实例
@@ -57,65 +180,83 @@ def upload_device_model(
         mesh_name: mesh 目录名（如 "arm_slider"）
         model_type: "device" 或 "resource"
         version: 模型版本
+        model_source: 显式本地模型文件/目录；省略时使用旧版内置目录
+        entry_file: 目录内的显式入口相对路径；省略时自动推断
 
     Returns:
         入口文件 OSS URL，上传失败返回 None
     """
-    if model_type == "device":
-        model_dir = _MESH_BASE_DIR / "devices" / mesh_name
-    else:
-        model_dir = _MESH_BASE_DIR / "resources" / mesh_name
-
-    if not model_dir.exists():
-        logger.warning(f"[模型上传] 本地目录不存在: {model_dir}")
-        return None
-
-    # 收集所有需要上传的文件
-    files = []
-    for f in model_dir.rglob("*"):
-        if f.is_file() and f.suffix.lower() in _MODEL_EXTENSIONS:
-            files.append({
-                "name": str(f.relative_to(model_dir)),
-                "size_kb": f.stat().st_size // 1024,
-            })
-
-    if not files:
-        logger.warning(f"[模型上传] 目录中无可上传的模型文件: {model_dir}")
+    source = (
+        Path(model_source).expanduser()
+        if model_source is not None
+        else _legacy_model_source(mesh_name, model_type)
+    )
+    if not source.exists():
+        logger.warning(f"[模型上传] 本地模型不存在: {source}")
         return None
 
     try:
+        files = _collect_model_files(source)
+        if not files:
+            logger.warning(f"[模型上传] 未找到可上传的模型文件: {source}")
+            return None
+
+        selected_entry = _select_entry_file(files, model_type, entry_file)
+        model_format = _entry_format(selected_entry)
+
         # 1. 获取预签名上传 URL
         upload_urls_resp = http_client.get_model_upload_urls(
             template_uuid=template_uuid,
-            files=[{"name": f["name"], "version": version} for f in files],
+            files=[{"name": file.name, "version": version} for file in files],
         )
         if not upload_urls_resp:
             return None
 
         url_items = upload_urls_resp.get("files", [])
+        upload_targets = {
+            item.get("name"): item.get("upload_url")
+            for item in url_items
+            if item.get("name")
+        }
 
         # 2. 逐个上传文件
-        for file_info, url_info in zip(files, url_items):
-            local_path = model_dir / file_info["name"]
-            upload_url = url_info.get("upload_url", "")
+        for file in files:
+            upload_url = upload_targets.get(file.name, "")
             if not upload_url:
-                continue
-            _put_upload(local_path, upload_url)
+                raise ValueError(f"未获取到模型文件上传地址: {file.name}")
+            _put_upload(file.local_path, upload_url)
 
         # 3. 确认发布
-        entry_file = "macro_device.xacro" if model_type == "device" else "modal.xacro"
-        # 检查入口文件是否存在，使用实际存在的文件名
-        for f in files:
-            if f["name"].endswith(".xacro"):
-                entry_file = f["name"]
-                break
-
+        encrypted = any(
+            file.local_path.suffix.lower() in _MESH_ENCRYPT_EXTENSIONS
+            for file in files
+        )
         publish_resp = http_client.publish_model(
             template_uuid=template_uuid,
             version=version,
-            entry_file=entry_file,
+            entry_file=selected_entry,
+            encrypted=encrypted,
         )
-        return publish_resp.get("path") if publish_resp else None
+        if not publish_resp:
+            return None
+
+        # 4. 当前 HTTPClient 支持时补充 format/files；旧版客户端仍可正常上传。
+        update_template_model = getattr(http_client, "update_template_model", None)
+        if callable(update_template_model):
+            update_resp = update_template_model(
+                template_uuid=template_uuid,
+                model={
+                    "format": model_format,
+                    "files": [
+                        {"name": file.name, "size_kb": file.size_kb}
+                        for file in files
+                    ],
+                },
+            )
+            if update_resp is None:
+                logger.warning(f"[模型上传] 模型已发布，但 format/files 更新失败: {mesh_name}")
+
+        return publish_resp.get("path")
 
     except Exception as e:
         logger.error(f"[模型上传] 上传失败 ({mesh_name}): {e}")

@@ -5,7 +5,7 @@ import tempfile
 import os
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import call, patch, MagicMock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -64,7 +64,174 @@ class TestUploadDeviceModel(unittest.TestCase):
 
             self.assertEqual(result, "https://oss.example.com/arm_slider/macro_device.xacro")
             self.mock_client.get_model_upload_urls.assert_called_once()
-            self.mock_client.publish_model.assert_called_once()
+            self.mock_client.publish_model.assert_called_once_with(
+                template_uuid="test-uuid",
+                version="1.0.0",
+                entry_file="macro_device.xacro",
+                encrypted=True,
+            )
+            self.mock_client.update_template_model.assert_called_once_with(
+                template_uuid="test-uuid",
+                model={
+                    "format": "xacro",
+                    "files": [
+                        {"name": "macro_device.xacro", "size_kb": 0},
+                        {"name": "meshes/link1.stl", "size_kb": 0},
+                    ],
+                },
+            )
+
+    def test_upload_explicit_external_xacro_directory(self):
+        """显式外部目录无需修改 _MESH_BASE_DIR，并按文件名匹配上传 URL。"""
+        model_dir = Path(self.tmp_dir) / "external-assets" / "hamilton_star"
+        mesh_path = model_dir / "meshes" / "base.stl"
+        mesh_path.parent.mkdir(parents=True)
+        entry_path = model_dir / "modal.xacro"
+        entry_path.write_text("<robot/>")
+        mesh_path.write_bytes(b"solid mesh")
+
+        # 故意反转响应顺序，验证不再依赖 zip 的位置对应关系。
+        self.mock_client.get_model_upload_urls.return_value = {
+            "files": [
+                {"name": "meshes/base.stl", "upload_url": "https://oss.example.com/mesh"},
+                {"name": "modal.xacro", "upload_url": "https://oss.example.com/entry"},
+            ]
+        }
+        self.mock_client.publish_model.return_value = {
+            "path": "https://oss.example.com/model/hamilton_star/1.0.0/modal.xacro"
+        }
+        self.mock_client.update_template_model.return_value = {}
+
+        with patch("unilabos.app.model_upload._put_upload") as mock_put:
+            result = upload_device_model(
+                http_client=self.mock_client,
+                template_uuid="hamilton-template",
+                mesh_name="hamilton_star",
+                model_type="device",
+                model_source=model_dir,
+                entry_file="modal.xacro",
+            )
+
+        self.assertEqual(
+            result,
+            "https://oss.example.com/model/hamilton_star/1.0.0/modal.xacro",
+        )
+        mock_put.assert_has_calls([
+            call(entry_path, "https://oss.example.com/entry"),
+            call(mesh_path, "https://oss.example.com/mesh"),
+        ], any_order=True)
+        self.mock_client.publish_model.assert_called_once_with(
+            template_uuid="hamilton-template",
+            version="1.0.0",
+            entry_file="modal.xacro",
+            encrypted=True,
+        )
+
+    def test_upload_explicit_standalone_stl(self):
+        """显式 STL 文件可直接作为入口，并持久化 stl format。"""
+        stl_path = Path(self.tmp_dir) / "centrifuge.stl"
+        stl_path.write_bytes(b"solid centrifuge")
+        self.mock_client.get_model_upload_urls.return_value = {
+            "files": [
+                {"name": "centrifuge.stl", "upload_url": "https://oss.example.com/stl"},
+            ]
+        }
+        self.mock_client.publish_model.return_value = {
+            "path": "https://oss.example.com/model/centrifuge/1.0.0/centrifuge.stl"
+        }
+        self.mock_client.update_template_model.return_value = {}
+
+        with patch("unilabos.app.model_upload._put_upload") as mock_put:
+            result = upload_device_model(
+                http_client=self.mock_client,
+                template_uuid="centrifuge-template",
+                mesh_name="centrifuge",
+                model_type="device",
+                model_source=stl_path,
+            )
+
+        self.assertEqual(
+            result,
+            "https://oss.example.com/model/centrifuge/1.0.0/centrifuge.stl",
+        )
+        mock_put.assert_called_once_with(stl_path, "https://oss.example.com/stl")
+        self.mock_client.publish_model.assert_called_once_with(
+            template_uuid="centrifuge-template",
+            version="1.0.0",
+            entry_file="centrifuge.stl",
+            encrypted=True,
+        )
+        self.mock_client.update_template_model.assert_called_once_with(
+            template_uuid="centrifuge-template",
+            model={
+                "format": "stl",
+                "files": [{"name": "centrifuge.stl", "size_kb": 0}],
+            },
+        )
+
+    def test_upload_explicit_urdf_directory_infers_entry(self):
+        """URDF 包无需依赖 XACRO 默认文件名即可自动选择唯一入口。"""
+        model_dir = Path(self.tmp_dir) / "external-assets" / "robot"
+        mesh_path = model_dir / "meshes" / "link.stl"
+        mesh_path.parent.mkdir(parents=True)
+        urdf_path = model_dir / "robot.urdf"
+        urdf_path.write_text("<robot/>")
+        mesh_path.write_bytes(b"solid link")
+        self.mock_client.get_model_upload_urls.return_value = {
+            "files": [
+                {"name": "meshes/link.stl", "upload_url": "https://oss.example.com/mesh"},
+                {"name": "robot.urdf", "upload_url": "https://oss.example.com/urdf"},
+            ]
+        }
+        self.mock_client.publish_model.return_value = {
+            "path": "https://oss.example.com/model/robot/1.0.0/robot.urdf"
+        }
+        self.mock_client.update_template_model.return_value = {}
+
+        with patch("unilabos.app.model_upload._put_upload"):
+            result = upload_device_model(
+                http_client=self.mock_client,
+                template_uuid="robot-template",
+                mesh_name="robot",
+                model_type="device",
+                model_source=model_dir,
+            )
+
+        self.assertEqual(result, "https://oss.example.com/model/robot/1.0.0/robot.urdf")
+        self.mock_client.publish_model.assert_called_once_with(
+            template_uuid="robot-template",
+            version="1.0.0",
+            entry_file="robot.urdf",
+            encrypted=True,
+        )
+        self.mock_client.update_template_model.assert_called_once_with(
+            template_uuid="robot-template",
+            model={
+                "format": "urdf",
+                "files": [
+                    {"name": "meshes/link.stl", "size_kb": 0},
+                    {"name": "robot.urdf", "size_kb": 0},
+                ],
+            },
+        )
+
+    def test_multiple_stl_files_require_explicit_entry(self):
+        """多个可作为入口的静态模型不能按文件遍历顺序静默选择。"""
+        model_dir = Path(self.tmp_dir) / "external-assets" / "parts"
+        model_dir.mkdir(parents=True)
+        (model_dir / "part_a.stl").write_bytes(b"a")
+        (model_dir / "part_b.stl").write_bytes(b"b")
+
+        result = upload_device_model(
+            http_client=self.mock_client,
+            template_uuid="parts-template",
+            mesh_name="parts",
+            model_type="device",
+            model_source=model_dir,
+        )
+
+        self.assertIsNone(result)
+        self.mock_client.get_model_upload_urls.assert_not_called()
 
     @patch("unilabos.app.model_upload._MESH_BASE_DIR")
     def test_upload_dir_not_exists(self, mock_base):
