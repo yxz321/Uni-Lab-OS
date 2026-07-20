@@ -546,12 +546,15 @@ def inspect_package(
 
     # YAML 条目自带完整 class.action_value_mappings，同 ID 时优先保留 YAML；
     # 同时合并包内其他 @device，避免根目录遗留 registry.yaml 屏蔽 AST 新设备。
-    yaml_entries = read_registry_yaml_devices(pkg_dir)
-    if not yaml_entries:
-        yaml_entries = read_external_registry_devices(pkg_dir)
-        registry_source = "unilabos_registry/"
-    else:
-        registry_source = "registry.yaml"
+    nested_yaml_entries = read_registry_yaml_devices(pkg_dir)
+    external_yaml_entries = read_external_registry_devices(pkg_dir)
+    yaml_entries = {**external_yaml_entries, **nested_yaml_entries}
+    registry_sources: List[str] = []
+    if external_yaml_entries:
+        registry_sources.append("registry/")
+    if nested_yaml_entries:
+        registry_sources.append("registry.yaml")
+    registry_source = " + ".join(registry_sources)
 
     ast_devices = scan_package_devices(pkg_dir)
     ast_only_devices = {
