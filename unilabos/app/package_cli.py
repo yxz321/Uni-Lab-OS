@@ -4,16 +4,13 @@
 
 import hashlib
 import json
-import os
 import re
 import subprocess
-import sys
 import tarfile
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from unilabos.registry.utils import wrap_action_schema
 from unilabos.registry.init_enforce import validate_init_param_enforce
 from unilabos.utils import logger
 from unilabos.utils.banner_print import print_status
@@ -169,10 +166,7 @@ def read_registry_yaml_devices(pkg_dir: Path) -> Dict[str, Dict[str, Any]]:
         return {}
 
     entries: Dict[str, Dict[str, Any]] = {}
-    root_yaml_paths = list(pkg_dir.glob("*.yaml")) + list(pkg_dir.glob("*.yml"))
-    nested_registry_paths = list(pkg_dir.rglob("registry.yaml")) + list(pkg_dir.rglob("registry.yml"))
-    yaml_paths = sorted(set(root_yaml_paths + nested_registry_paths))
-    for yaml_path in yaml_paths:
+    for yaml_path in sorted(list(pkg_dir.glob("*.yaml")) + list(pkg_dir.glob("*.yml"))):
         try:
             data = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
         except Exception as exc:
@@ -256,185 +250,44 @@ def build_archive(pkg_dir: Path, archive_path: Path) -> str:
     return "sha256:" + _sha256_file(archive_path)
 
 
-_PY_TO_JSON_SCHEMA_TYPE = {
-    "float": "number",
-    "int": "integer",
-    "str": "string",
-    "bool": "boolean",
-    "dict": "object",
-    "list": "array",
-    "Dict": "object",
-    "List": "array",
-    "Any": "string",
-}
+def build_resources_from_ast(
+    ast_devices: Dict[str, Dict[str, Any]],
+    package_info: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """把 @device AST 扫描出的设备 meta 交给运行时注册表的权威构建器，映射为 /lab/resource 项。
 
-
-def _json_schema_type(py_type: str) -> str:
-    """把 Python 类型注解字符串归一化为 JSON Schema type（取裸类型名，未知回退 string）。"""
-    base = (py_type or "").strip().split("[")[0].split(".")[-1]
-    return _PY_TO_JSON_SCHEMA_TYPE.get(base, "string")
-
-
-def build_json_schema_from_params(params: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """把 AST 扫描出的函数参数列表转换为前端表单使用的 JSON Schema。"""
-    props: Dict[str, Any] = {}
-    required: List[str] = []
-    for param in params:
-        if not isinstance(param, dict):
-            continue
-        name = str(param.get("name") or "").strip()
-        if not name:
-            continue
-        props[name] = {
-            "type": _json_schema_type(str(param.get("type", ""))),
-            "title": name,
-        }
-        if param.get("required"):
-            required.append(name)
-    schema: Dict[str, Any] = {"type": "object", "properties": props}
-    if required:
-        schema["required"] = required
-    return schema
-
-
-def build_goal_default(params: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """提取参数默认值，供 action goal_default 使用。"""
-    defaults: Dict[str, Any] = {}
-    for param in params:
-        if not isinstance(param, dict):
-            continue
-        name = str(param.get("name") or "").strip()
-        if name and param.get("default") is not None:
-            defaults[name] = param.get("default")
-    return defaults
-
-
-def build_action_value_mappings(actions: Dict[str, Any]) -> Dict[str, Any]:
-    """把 AST 扫描的原始 action（params/return_type）转换成前后端期望的
+    复用 `Registry._build_device_entry_from_ast` 而非自造简化实现：保证每个 action 带
+    完整 `schema`(wrap_action_schema)、`goal_default`、`placeholder_keys`、result schema、
+    async 类型归一化等字段，与运行时注册表完全一致，杜绝"空 schema"类漏字段 bug。
     """
-    result: Dict[str, Any] = {}
-    for name, meta in actions.items():
-        if not isinstance(meta, dict):
-            continue
-        params = meta.get("params") if isinstance(meta.get("params"), list) else []
-        goal_schema = build_json_schema_from_params(params)
-        goal_default = build_goal_default(params)
-        action_args = meta.get("action_args") if isinstance(meta.get("action_args"), dict) else {}
-        action_type_raw = action_args.get("action_type")
-        action_type = "UniLabJsonCommandAsync" if meta.get("is_async") else "UniLabJsonCommand"
-        if isinstance(action_type_raw, str) and action_type_raw.strip():
-            action_type = action_type_raw.strip().split(":")[-1].split(".")[-1]
-        description = action_args.get("description") or meta.get("docstring") or ""
-        result_schema = {"type": "object", "properties": {}}
-        feedback_schema = {"type": "object", "properties": {}}
-        entry: Dict[str, Any] = {
-            "type": action_type,
-            "goal": goal_schema,
-            "result": result_schema,
-            "feedback": feedback_schema,
-            "schema": wrap_action_schema(
-                goal_schema,
-                name,
-                description=str(description),
-                result_schema=result_schema,
-                feedback_schema=feedback_schema,
-            ),
-            "description": str(description),
-        }
-        if goal_default:
-            entry["goal_default"] = goal_default
-        for key in ("placeholder_keys", "always_free", "node_type"):
-            if action_args.get(key):
-                entry[key] = action_args[key]
-        result[name] = entry
-    return result
+    from unilabos.registry.registry import Registry
 
-
-def build_status_types(status_props: Dict[str, Any]) -> Dict[str, str]:
-    """把 AST topic/status 元数据压成 registry 期望的 name -> return_type。"""
-    result: Dict[str, str] = {}
-    for name, meta in status_props.items():
-        if isinstance(meta, dict):
-            result[str(name)] = str(meta.get("return_type") or meta.get("type") or "Any")
-        else:
-            result[str(name)] = str(meta or "Any")
-    return result
-
-
-def build_init_param_schema(meta: Dict[str, Any], status_types: Dict[str, str]) -> Dict[str, Any]:
-    """根据 __init__ 参数和 status/topic 输出生成模板 init_param_schema。"""
-    init_params = meta.get("init_params") if isinstance(meta.get("init_params"), list) else []
-    data_schema: Dict[str, Any] = {"type": "object", "properties": {}, "required": []}
-    for name, type_name in status_types.items():
-        data_schema["properties"][name] = {
-            "type": _json_schema_type(type_name),
-            "title": name,
-        }
-        data_schema["required"].append(name)
-    return {
-        "config": build_json_schema_from_params(init_params),
-        "data": data_schema,
-    }
-
-
-def _copy_model_if_present(target: Dict[str, Any], model: Any) -> None:
-    """透传 @device(model=...)，但跳过 None，避免上传 null 覆盖已有模型。"""
-    if model is not None:
-        target["model"] = model
-
-
-def _registry_displayname(device_id: str, entry: Dict[str, Any]) -> str:
-    """YAML registry 使用 canonical displayname，兼容旧 display_name。"""
-    return str(entry.get("displayname") or entry.get("display_name") or device_id)
-
-
-def build_resources(devices: Dict[str, Dict[str, Any]], package_info: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """把扫描出的设备 meta 映射为 /lab/resource 的 resources 项，并附 resource 级 source_registry。"""
+    registry = Registry()  # __init__ 不触发扫描，仅借用 AST→条目构建器
     resources: List[Dict[str, Any]] = []
-    for device_id, meta in devices.items():
-        actions = meta.get("actions") if isinstance(meta.get("actions"), dict) else {}
-        action_value_mappings = build_action_value_mappings(actions)
-        status_props = meta.get("status_properties") if isinstance(meta.get("status_properties"), dict) else {}
-        status_types = build_status_types(status_props)
-        handles = meta.get("handles") if isinstance(meta.get("handles"), list) else []
-
-        reg_class = {
-            "module": meta.get("module", ""),
-            "type": meta.get("device_type", "python"),
-            "action_value_mappings": action_value_mappings,
-            "status_types": status_types,
-        }
-        model = meta.get("model")
-        init_param_schema = build_init_param_schema(meta, status_types)
-        # source_registry：保存设备原始注册表，供后端 BuildEffectiveTemplate 读取 class.action_value_mappings
-        source_registry = {
-            "class": reg_class,
-            "handles": handles,
-            "device_id": device_id,
-            "version": meta.get("version", package_info.get("version", "")),
-            "description": meta.get("description", ""),
-            "displayname": meta.get("displayname") or device_id,
-            "icon": meta.get("icon", ""),
-            "init_param_schema": init_param_schema,
-        }
-        _copy_model_if_present(source_registry, model)
-        category = meta.get("category") if isinstance(meta.get("category"), list) else []
-        resource_entry = {
+    for device_id in sorted(ast_devices):
+        ast_meta = ast_devices[device_id]
+        # 权威 entry：{category, class:{module,status_types,action_value_mappings,type[,hardware_interface]},
+        #   config_info, description, displayname, handles, icon, init_param_schema, version, ...}
+        entry = registry._build_device_entry_from_ast(device_id, ast_meta)
+        resource: Dict[str, Any] = {
             "id": device_id,
-            "registry_type": "device",
-            "version": meta.get("version", package_info.get("version", "0.0.1")),
-            "description": meta.get("description", ""),
-            "displayname": meta.get("displayname") or device_id,
-            "icon": meta.get("icon", ""),
-            "class": reg_class,
-            "category": category,
-            "handles": _map_handles(handles),
+            "registry_type": str(entry.get("registry_type", "device")),
+            "version": str(entry.get("version", package_info.get("version", "0.0.1"))),
+            "description": entry.get("description", ""),
+            "displayname": entry.get("displayname") or device_id,
+            "icon": entry.get("icon", ""),
+            "class": entry.get("class", {}),
+            "category": entry.get("category", []),
+            "handles": _map_handles(entry.get("handles", [])),
+            "init_param_schema": entry.get("init_param_schema", {}),
             "package_info": package_info,
-            "source_registry": source_registry,
-            "init_param_schema": init_param_schema,
+            # source_registry：整份权威 entry（含 class.action_value_mappings），供后端 BuildEffectiveTemplate
+            "source_registry": entry,
         }
-        _copy_model_if_present(resource_entry, model)
-        resources.append(resource_entry)
+        model = entry.get("model")
+        if model is not None:
+            resource["model"] = model
+        resources.append(resource)
     return resources
 
 
@@ -460,15 +313,11 @@ def build_resources_from_registry(
         category = entry.get("category") or entry.get("tags") or []
         if isinstance(category, str):
             category = [category]
-        displayname = _registry_displayname(device_id, entry)
-        source_registry = dict(entry)
-        source_registry["displayname"] = displayname
         resource: Dict[str, Any] = {
             "id": device_id,
             "registry_type": str(entry.get("resource_type", "device")),
             "version": str(entry.get("version", package_info.get("version", "0.0.1"))),
             "description": entry.get("description", ""),
-            "displayname": displayname,
             "icon": entry.get("icon", ""),
             "class": {
                 "module": cls.get("module", ""),
@@ -484,13 +333,26 @@ def build_resources_from_registry(
             "device_params": entry.get("device_params"),
             "package_info": package_info,
             # source_registry：直接保存 YAML 原始条目（含 class.action_value_mappings）
-            "source_registry": source_registry,
+            "source_registry": entry,
         }
         if init_schema is not None:
             resource["init_param_schema"] = init_schema
         resource["init_param_enforce"] = init_enforce
         resources.append(resource)
     return resources
+
+
+def _merge_resources_ast_priority(
+    yaml_resources: List[Dict[str, Any]],
+    ast_resources: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """按 resource["id"] 求并集，同 id 时 AST 版覆盖 YAML 版——与运行时 Registry 一致：
+    运行时对 AST 已注册的 device_id 视 YAML 为冗余并跳过（registry.py _load_single_device_file）。
+    先放 YAML，再用 AST update 覆盖，最后按 id 排序为稳定 list。
+    """
+    merged: Dict[str, Dict[str, Any]] = {res["id"]: res for res in yaml_resources}
+    merged.update({res["id"]: res for res in ast_resources})
+    return [merged[rid] for rid in sorted(merged)]
 
 
 def build_package_info(
@@ -544,36 +406,30 @@ def inspect_package(
 
     package_info = build_package_info(project, class_namespace, sha256)
 
-    # YAML 条目自带完整 class.action_value_mappings，同 ID 时优先保留 YAML；
-    # 同时合并包内其他 @device，避免根目录遗留 registry.yaml 屏蔽 AST 新设备。
-    nested_yaml_entries = read_registry_yaml_devices(pkg_dir)
-    external_yaml_entries = read_external_registry_devices(pkg_dir)
-    yaml_entries = {**external_yaml_entries, **nested_yaml_entries}
-    registry_sources: List[str] = []
-    if external_yaml_entries:
-        registry_sources.append("registry/")
-    if nested_yaml_entries:
-        registry_sources.append("registry.yaml")
-    registry_source = " + ".join(registry_sources)
+    # 设备来源：YAML(root registry.yaml 优先于 unilabos_registry/) 与 @device AST 扫描并集合并，
+    # 同 device_id 时 AST 覆盖 YAML——与运行时 Registry 一致（对 AST 已注册的 id 视 YAML 为冗余并跳过）。
+    yaml_entries = read_registry_yaml_devices(pkg_dir)
+    if yaml_entries:
+        yaml_source = "registry.yaml"
+    else:
+        yaml_entries = read_external_registry_devices(pkg_dir)
+        yaml_source = "unilabos_registry/"
+    yaml_resources = build_resources_from_registry(yaml_entries, package_info) if yaml_entries else []
 
     ast_devices = scan_package_devices(pkg_dir)
-    ast_only_devices = {
-        device_id: meta
-        for device_id, meta in ast_devices.items()
-        if device_id not in yaml_entries
-    }
+    ast_resources = build_resources_from_ast(ast_devices, package_info) if ast_devices else []
 
-    resources: List[Dict[str, Any]] = []
-    device_sources: List[str] = []
-    if yaml_entries:
-        device_sources.append(registry_source)
-        resources.extend(build_resources_from_registry(yaml_entries, package_info))
-    if ast_only_devices:
-        device_sources.append("@device AST")
-        resources.extend(build_resources(ast_only_devices, package_info))
+    resources = _merge_resources_ast_priority(yaml_resources, ast_resources)
+    device_ids = [res["id"] for res in resources]
 
-    device_source = " + ".join(device_sources) or "@device AST"
-    device_ids = sorted(set(yaml_entries) | set(ast_only_devices))
+    if yaml_resources and ast_resources:
+        device_source = f"{yaml_source} + @device AST (merged)"
+    elif yaml_resources:
+        device_source = yaml_source
+    elif ast_resources:
+        device_source = "@device AST"
+    else:
+        device_source = "无"
     devices = {rid: None for rid in device_ids}
     if not resources:
         print_status(f"警告：{pkg_dir} 未发现 registry.yaml / unilabos_registry/ 或 @device 设备，仅生成 package_info", "warning")
