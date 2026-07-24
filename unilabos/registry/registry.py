@@ -168,7 +168,10 @@ class Registry:
 
         # 4. --devices 目录内嵌的同构注册表 (devices/ resources/ device_comms/) — 两种模式下都加载
         self._load_devices_dir_registries(
-            devices_dirs, upload_registry=upload_registry, complete_registry=complete_registry
+            devices_dirs,
+            upload_registry=upload_registry,
+            complete_registry=complete_registry,
+            community_namespaces=community_namespaces,
         )
 
         self._startup_executor.shutdown(wait=True)
@@ -351,6 +354,15 @@ class Registry:
                 if parent_dir not in sys.path:
                     sys.path.insert(0, parent_dir)
                     logger.info(f"[UniLab Registry] 添加 Python 路径: {parent_dir}")
+                # 社区包内的顶层模块（如 unilab_virtual）直接位于 d_path 下，需把 d_path
+                # 本身放上 sys.path 才能被绝对导入。用 append 追加到末尾（优先级最低），
+                # 避免包内自带的同名第三方库副本 shadow 掉 pip 版、污染整个进程。
+                # ponytail: 上限——若社区包确实想覆盖某个 pip 同名模块，此处不生效，
+                # 届时需改为 per-package import 隔离；本处不做。
+                pkg_dir = str(d_path)
+                if pkg_dir not in sys.path:
+                    sys.path.append(pkg_dir)
+                    logger.info(f"[UniLab Registry] 添加社区包 Python 路径(末尾): {pkg_dir}")
                 extra_dirs.append(d_path)
 
         # 主扫描
@@ -2368,21 +2380,29 @@ class Registry:
         candidates.append(base)
         return candidates
 
-    def _load_devices_dir_registries(self, devices_dirs=None, upload_registry=False, complete_registry=False):
+    def _load_devices_dir_registries(
+        self, devices_dirs=None, upload_registry=False, complete_registry=False, community_namespaces=None
+    ):
         """为每个 --devices 目录自动加载其内嵌的、与 unilabos/registry 同构的注册表。
 
         约定：内嵌注册表与内置注册表结构一致（ROOT/registry/{devices,device_comms,resources}/*.yaml）。
         命中即复用 load_device_types / load_resource_types 加载。external_only 模式下同样加载——
         外部设备包自带的注册表不应被跳过。
+
+        community_namespaces: {已解析的 --devices 绝对路径 -> community.<ns>}。命中的目录里
+        以 YAML 内嵌注册表形式声明的 device/resource 同样要命名空间化为 community.<ns>.<id>，
+        与 AST 路径保持一致（社区包契约：图引用 community.<ns>.<id> 即实体 key，不做 alias 桥接）。
         """
         if not devices_dirs:
             return
 
+        community_namespaces = community_namespaces or {}
         seen: set = set()
         for d in devices_dirs:
             base = Path(d).resolve()
             if not base.is_dir():
                 continue
+            ns = community_namespaces.get(str(base))
             for candidate in self._registry_root_candidates(base):
                 root = candidate.resolve()
                 key = str(root)
@@ -2390,16 +2410,55 @@ class Registry:
                     continue
                 seen.add(key)
                 logger.info(f"[UniLab Registry] 加载 --devices 内嵌注册表: {root}")
+                # 快照加载前的 key，加载后取差集即本目录新增条目，仅命名空间化这些新增项
+                device_keys_before = set(self.device_type_registry.keys())
                 self.load_device_types(root, complete_registry=complete_registry)
+                resource_loaded = False
+                resource_keys_before: set = set()
                 if BasicConfig.enable_resource_load:
+                    resource_keys_before = set(self.resource_type_registry.keys())
                     self.load_resource_types(root, upload_registry, complete_registry=complete_registry)
+                    resource_loaded = True
                 else:
                     logger.warning(
                         "[UniLab Registry] 资源加载已禁用 (enable_resource_load=False)，"
                         f"跳过内嵌注册表资源: {root}"
                     )
+                if ns:
+                    self._namespace_registry_entries(
+                        self.device_type_registry,
+                        device_keys_before,
+                        ns,
+                        "device_id",
+                        "@device",
+                    )
+                    if resource_loaded:
+                        self._namespace_registry_entries(
+                            self.resource_type_registry,
+                            resource_keys_before,
+                            ns,
+                            "resource_id",
+                            "@resource",
+                        )
                 if root not in self.registry_paths:
                     self.registry_paths.append(root)
+
+    @staticmethod
+    def _namespace_registry_entries(registry, keys_before, ns, id_field, kind):
+        """把本次新增的裸名条目重命名为 community.<ns>.<id>，并同步 meta 里的 id 字段。"""
+        for did in set(registry.keys()) - keys_before:
+            nskey = f"{ns}.{did}"
+            if nskey in registry:
+                # 并集合并策略（commit e2b50946）：同 id 时 AST 优先。
+                # AST 类路径已把该实体命名空间化进注册表，这里直接丢弃 YAML 裸名副本。
+                # ponytail: 只丢弃不合并；若将来要把 YAML 的 model 等字段并入 AST 条目，是另一个话题，本次不做。
+                registry.pop(did)
+                logger.debug(f"YAML 设备 {did} 与 AST 同 id，按 AST 优先丢弃 YAML 裸名副本")
+                continue
+            entry = registry.pop(did)
+            if isinstance(entry, dict) and id_field in entry:
+                entry[id_field] = nskey
+            registry[nskey] = entry
 
     # ------------------------------------------------------------------
     # 注册表信息输出

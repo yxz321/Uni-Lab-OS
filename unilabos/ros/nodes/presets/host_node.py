@@ -1013,6 +1013,9 @@ class HostNode(BaseROS2DeviceNode):
                 if matched_device not in device_joints:
                     device_joints[matched_device] = {}
                 device_joints[matched_device][name] = float(pos)
+                bare = name[len(matched_device) + 1:]
+                if bare and bare != name:
+                    device_joints[matched_device][bare] = float(pos)
             elif len(self._device_uuid_map) == 1:
                 fallback_id = self._device_ids_sorted[0]
                 if fallback_id not in device_joints:
